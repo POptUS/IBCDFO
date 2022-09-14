@@ -1,0 +1,14 @@
+[tool.black]
+line-length = 200
+target-version = ['py37', 'py38', 'py39', 'py310']
+skip-string-normalization = true
+force-exclude = '''
+(
+  /(
+    | \.git       
+  )/
+    | libensemble/gen_funcs/old_aposmm.py
+    | libensemble/gen_funcs/persistent_aposmm.py
+    | libensemble/gen_funcs/aposmm_localopt_support.py
+)
+'''
