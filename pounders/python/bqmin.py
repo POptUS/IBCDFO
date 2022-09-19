@@ -32,7 +32,7 @@ def bqmin(A, B, L, U):
     X = np.zeros(n)
     f = X.T @ (0.5 * A @ X + B)
     G = A @ X + B
-    Projg = X - np.maximum(np.minimum(X-G, U), L)  # Projected gradient
+    Projg = X - np.maximum(np.minimum(X - G, U), L)  # Projected gradient
     it = 0  # iteration counter
     while it < maxit and np.linalg.norm(Projg, 2) > pgtol:
         it += 1
@@ -45,7 +45,7 @@ def bqmin(A, B, L, U):
         X = X - t * Projg
         f = X.T @ (0.5 * A @ X + B)
         G = A @ X + B
-        Projg = X - np.maximum(np.minimum(X-G, U), L)
+        Projg = X - np.maximum(np.minimum(X - G, U), L)
     # f has type array([[dbl]])
     # f = f[0][0]
     return [X, f]

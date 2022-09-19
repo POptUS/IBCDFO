@@ -6,9 +6,8 @@ force-exclude = '''
 (
   /(
     | \.git       
+    | pounders/python/tests/unit_tests
   )/
-    | libensemble/gen_funcs/old_aposmm.py
-    | libensemble/gen_funcs/persistent_aposmm.py
-    | libensemble/gen_funcs/aposmm_localopt_support.py
+    | pounders/python/formquad.py
 )
 '''
