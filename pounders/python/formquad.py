@@ -59,7 +59,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
         xkin = xkin[0, 0]  # If xkin is a numpy array 1 x 1, cast it as an int
 
     D = (X[:nf] - X[xkin])/delta
-    Nd = np.atleast_2d(np.linalg.norm(D,2,axis=1)).T
+    Nd = np.linalg.norm(D, 2, axis=1)
 
     # Get n+1 sufficiently affinely independent points:
     # Initialize the QR factorization of interest
@@ -72,8 +72,8 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     mp = 0
     for aff in range(0, 2):
         for i in reversed(range(0, nf)):
-            if Nd[i, 0] <= Pars[aff]:
-                proj = np.linalg.norm(D[i, :] @ Q[:, mp: n], 2)  # Project D onto null
+            if Nd[i] <= Pars[aff]:
+                proj = np.linalg.norm(D[i] @ Q[:, mp: n], 2)  # Project D onto null
                 if proj >= Pars[aff + 2]:  # add this index to Mind
                     mp += 1
                     Mind.append(i)
@@ -104,19 +104,19 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
         if vf:  # Only needed to do validity check
             return [Mdir, mp, valid, G, H, Mind]
     # Collect additional points
-    N = phi2eval(D[Mind, :]).T
+    N = phi2eval(D[Mind]).T
 
     mp = len(Mind) 
-    M = np.vstack((np.ones(n+1), D[Mind, :].T))
+    M = np.vstack((np.ones(n+1), D[Mind].T))
     [Q, R] = np.linalg.qr(M.T, mode='complete')
     # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
     # Now we add points until we have mpmax starting with the most recent ones
     i = nf - 1
     while mp < mpmax or mpmax == n+1:
-        if Nd[i, 0] <= Pars[1] and i not in Mind:
+        if Nd[i] <= Pars[1] and i not in Mind:
             Ny = np.hstack((N, phi2eval(D[i:i+1, :]).T))
             # Update QR
-            D[i, :] = np.float64(D[i, :])  # Convert entries to float to use qr_insert
+            D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
             [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((1, D[i])), mp, 'row')
             # [Qy, Ry] = flipFirstRow(Qy, Ry, 0, np.shape(Q)[1]-1)
             # [Qy, Ry] = flipSignQ(Qy, Ry, 0, np.shape(Q)[1]-1)
@@ -142,7 +142,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
                 Z = np.zeros((n+1, int(0.5 * n * (n+1))))
                 N = np.zeros((int(0.5 * n * (n+1)), n+1))
             break
-    F = F[Mind, :]
+    F = F[Mind]
     for k in range(0, m):
         # For L = N * Z, solve L.T * L * Omega = Z.T * f:
         if np.shape(L)[1] != np.shape(Z.T @ F[:, k:k+1])[1]:
