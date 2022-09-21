@@ -12,6 +12,4 @@ BenDFO.m = m;
 BenDFO.n = length(x);
 BenDFO.probtype = probtype;
 
-x = x(:);
-
 [~, fvec] = calfun(x);

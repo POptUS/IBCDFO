@@ -57,7 +57,6 @@ def doit():
         X0 = octave.dfoxs(float(n), nprob, factor**ns).T
 
         delta = 0.1
-        nfs = 0
         mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
         Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1,n)]
         Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1,n)]
@@ -67,9 +66,11 @@ def doit():
         def calfun(y):
             out = octave.feval("calfun_wrapper", y, m, nprob, probtype, [], 1, 1)
             assert len(out) == m, "Incorrect output dimension"
-            return 
+            return np.squeeze(out)
 
-        F0 = calfun(X0)
+        F0 = np.zeros((1,m))
+        F0[0] = calfun(X0)
+        nfs = 1
         xind = 0
 
         [XO, FO, flagO, xkinO] = pounders(calfun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
