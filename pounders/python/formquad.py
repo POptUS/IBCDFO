@@ -70,8 +70,8 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     valid = False
     # Counter for number of interpolation points
     mp = 0
-    for aff in range(0, 2):
-        for i in reversed(range(0, nf)):
+    for aff in range(2):
+        for i in reversed(range(nf)):
             if Nd[i] <= Pars[aff]:
                 proj = np.linalg.norm(D[i] @ Q[:, mp: n], 2)  # Project D onto null
                 if proj >= Pars[aff + 2]:  # add this index to Mind
@@ -143,7 +143,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
                 N = np.zeros((int(0.5 * n * (n+1)), n+1))
             break
     F = F[Mind]
-    for k in range(0, m):
+    for k in range(m):
         # For L = N * Z, solve L.T * L * Omega = Z.T * f:
         if np.shape(L)[1] != np.shape(Z.T @ F[:, k:k+1])[1]:
             Omega = np.linalg.solve(L.T @ L, (Z.T @ F[:, k:k+1]))
@@ -162,12 +162,12 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             Alpha = np.reshape(Alpha, (np.shape(Alpha)[0], 1))
         G[:, k] = Alpha[1:n+1, 0]
         num = -1
-        for i in range(0, n):
+        for i in range(n):
             num += 1
-            H[i, i, k] = Beta[num, 0]
+            H[i, i, k] = Beta[num]
             for j in range(i+1, n):
                 num += 1
-                H[i, j, k] = Beta[num, 0] / np.sqrt(2)
+                H[i, j, k] = Beta[num] / np.sqrt(2)
                 H[j, i, k] = H[i, j, k]
     H = H / (delta ** 2)
     G = G / delta
