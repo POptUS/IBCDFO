@@ -53,7 +53,6 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     H = np.zeros((n, n, m))
     # Precompute the scaled displacements (could be expensive for larger nfmax)
     D = np.zeros((nf, n))  # Scaled displacements
-    Nd = np.zeros((nf, 1))  # Norm of scaled displacements
     if type(mpmax) != int:
         mpmax = mpmax[0, 0]
     if type(xkin) != int:
@@ -67,24 +66,24 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     Q = np.eye(n)
     R = np.empty(shape=(0, 0))
     # Indices of model interpolation points
-    Mind = np.array([[xkin]])
+    Mind = [xkin]
     valid = False
     # Counter for number of interpolation points
     mp = 0
     for aff in range(0, 2):
         for i in reversed(range(0, nf)):
             if Nd[i, 0] <= Pars[aff]:
-                proj = np.linalg.norm(D[i:i+1, :] @ Q[:, mp: n], 2)  # Project D onto null
+                proj = np.linalg.norm(D[i, :] @ Q[:, mp: n], 2)  # Project D onto null
                 if proj >= Pars[aff + 2]:  # add this index to Mind
                     mp += 1
-                    Mind = np.vstack((Mind, np.array([[i]])))
+                    Mind.append(i)
                     if np.shape(R)[0] == 0:
                         [Q, R] = np.linalg.qr(D[i:i+1, :].T, mode='complete')
                         # [Q, R] = flipFirstRow(Q, R, 0, np.shape(Q)[1]-1)
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
                     else:
                         # Update QR
-                        D[i:i+1, :] = np.float64(D[i:i+1, :])  # Convert entries to float to use qr_insert
+                        D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
                         [Q, R] = scipy.linalg.qr_insert(Q, R, D[i:i+1, :].T, mp - 1, 'col')
                         # [Q, R] = flipFirstRow(Q, R, 0, np.shape(Q)[1]-1)
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
@@ -105,10 +104,10 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
         if vf:  # Only needed to do validity check
             return [Mdir, mp, valid, G, H, Mind]
     # Collect additional points
-    N = phi2eval(D[Mind.flatten(), :]).T
+    N = phi2eval(D[Mind, :]).T
 
     mp = len(Mind) 
-    M = np.hstack((np.ones((n+1, 1)), D[Mind.T[0], :])).T
+    M = np.vstack((np.ones(n+1), D[Mind, :].T))
     [Q, R] = np.linalg.qr(M.T, mode='complete')
     # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
     # Now we add points until we have mpmax starting with the most recent ones
@@ -118,21 +117,21 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             Ny = np.hstack((N, phi2eval(D[i:i+1, :]).T))
             # Update QR
             D[i, :] = np.float64(D[i, :])  # Convert entries to float to use qr_insert
-            [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((np.array([[1.]]), D[i:i+1, :])), mp, 'row')
+            [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((1, D[i])), mp, 'row')
             # [Qy, Ry] = flipFirstRow(Qy, Ry, 0, np.shape(Q)[1]-1)
             # [Qy, Ry] = flipSignQ(Qy, Ry, 0, np.shape(Q)[1]-1)
             Ly = Ny @ Qy[:, n+1: mp + 1]
             _, s, _ = np.linalg.svd(Ly)
             if min(s) > Pars[3]:
                 mp += 1
-                Mind = np.vstack((Mind, [[i]]))
+                Mind.append(i)
                 N = Ny
                 Q = Qy
                 R = Ry
                 L = Ly
                 Z = Q[:, n+1: mp]
                 # Note that M is growing
-                M = np.hstack((M, np.vstack((np.array([[1]]), D[i:i+1, :].T))))
+                M = np.hstack((M, np.vstack((1, D[i:i+1].T))))
         i -= 1
         # Reached end of points
         if i == -1:
@@ -143,7 +142,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
                 Z = np.zeros((n+1, int(0.5 * n * (n+1))))
                 N = np.zeros((int(0.5 * n * (n+1)), n+1))
             break
-    F = F[Mind.T[0], :]
+    F = F[Mind, :]
     for k in range(0, m):
         # For L = N * Z, solve L.T * L * Omega = Z.T * f:
         if np.shape(L)[1] != np.shape(Z.T @ F[:, k:k+1])[1]:
@@ -173,5 +172,4 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     H = H / (delta ** 2)
     G = G / delta
 
-    Mind = np.squeeze(Mind)
     return [Mdir, mp, valid, G, H, Mind]
