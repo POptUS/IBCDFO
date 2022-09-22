@@ -67,7 +67,7 @@ def doit():
         def calfun(y):
             out = octave.feval("calfun_wrapper", y, m, nprob, probtype, [], 1, 1)
             assert len(out) == m, "Incorrect output dimension"
-            return 
+            return
 
         F0 = calfun(X0)
         xind = 0

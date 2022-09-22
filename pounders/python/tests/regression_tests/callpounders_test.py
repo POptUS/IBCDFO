@@ -2,6 +2,7 @@ import numpy as np
 from calFun import calFun
 
 import sys
+
 sys.path.append("../../")
 from pounders import pounders
 
@@ -14,11 +15,11 @@ n = 2
 # X0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
 X0 = np.zeros((10, 2))
 X0[0, :] = 0.5 * np.ones((1, 2))
-mpmax = int(0.5 * (n+1) * (n+2))
+mpmax = int(0.5 * (n + 1) * (n + 2))
 # nfmax [int] Maximum number of function evaluations (>n+1) (100)
 nfmax = 60
 # gtol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-gtol = 10 ** -13
+gtol = 10**-13
 # delta [dbl] Positive trust region radius (.1)
 delta = 0.1
 # nfs [int] Number of function values (at X0) known in advance (0)
