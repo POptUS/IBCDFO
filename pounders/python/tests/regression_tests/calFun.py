@@ -10,4 +10,4 @@ def calFun(x):
     '''
     if np.shape(x)[0] > 1:
         x = np.reshape(x, (1, max(np.shape(x))))
-    return x + (x ** 2)
+    return x + (x**2)

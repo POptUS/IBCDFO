@@ -2,10 +2,9 @@ import numpy as np
 from calFun import calFun
 from scipy.io import loadmat
 import sys
+
 sys.path.append("../../")
 from pounders import pounders
-
-
 
 
 # Sample calling syntax for pounders
@@ -15,7 +14,7 @@ func = calFun
 n = 16
 # X0  [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
 np.random.seed(0)
-#X0 = 0.5 + 0.1*np.random.rand(1, n)
+# X0 = 0.5 + 0.1*np.random.rand(1, n)
 dataDictionary = loadmat('callpoundersX0.mat')
 X0 = dataDictionary['X0']
 # mpmax [int] Maximum number of interpolation points (>n+1) (2*n+1)
@@ -23,7 +22,7 @@ mpmax = 2 * n + 1
 # nfmax   [int] Maximum number of function evaluations (>n+1) (100)
 nfmax = 200
 # gtol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-gtol = 10 ** -13
+gtol = 10**-13
 # delta [dbl] Positive trust region radius (.1)
 delta = 0.1
 # nfs  [int] Number of function values (at X0) known in advance (0)

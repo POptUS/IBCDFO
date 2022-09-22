@@ -32,8 +32,8 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
             flag = -1
             return [flag, X0, mpmax, F0, L, U]
     # Check max number of interpolation points
-    if mpmax < n+1 or mpmax > int(0.5 * (n+1) * (n+2)):
-        mpmax = max(n+1, min(mpmax, int(0.5 * (n+1) * (n+2))))
+    if mpmax < n + 1 or mpmax > int(0.5 * (n + 1) * (n + 2)):
+        mpmax = max(n + 1, min(mpmax, int(0.5 * (n + 1) * (n + 2))))
         print(f'Warning: mpmax not in [n+1, 0.5 * (n+1) * (n+2) using {mpmax}')
         flag = 0
     # Check standard positive quantities
@@ -67,7 +67,7 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
             print('Warning: number of starting f values nfs does not match input F0')
             flag = 0
     # Check starting point
-    if (xkin > max(nfs-1, 0)) or (xkin < 0) or (xkin % 1 != 0):  # FixMe: Check what xkin needs to be...
+    if (xkin > max(nfs - 1, 0)) or (xkin < 0) or (xkin % 1 != 0):  # FixMe: Check what xkin needs to be...
         print('Error: starting point index not an integer between 0 and nfs-1')
         flag = -1
         return [flag, X0, mpmax, F0, L, U]
@@ -87,11 +87,11 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         print('Error: bounds are not 1-by-n vectors')
         flag = -1
         return [flag, X0, mpmax, F0, L, U]
-    if np.min(U-L) <= 0:
+    if np.min(U - L) <= 0:
         print('Error: must have U > L')
         flag = -1
         return [flag, X0, mpmax, F0, L, U]
-    if np.min([np.min(X0[xkin, :]-L), np.min(U-X0[xkin, :])]) < 0:
+    if np.min([np.min(X0[xkin, :] - L), np.min(U - X0[xkin, :])]) < 0:
         print('Error: starting point outside of bounds (L,U)')
         flag = -1
         return [flag, X0, mpmax, F0, L, U]
