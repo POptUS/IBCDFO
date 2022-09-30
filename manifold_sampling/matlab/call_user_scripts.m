@@ -16,8 +16,8 @@ function [nf, X, F, h, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, h, Hash
         end
     end
 
-    if ~allow_recalc && ismember(xnew, X(1:nf,:), 'rows')
-        error('Your method requested a point that has already been requested. FAIL!')
+    if ~allow_recalc && ismember(xnew, X(1:nf, :), 'rows')
+        error('Your method requested a point that has already been requested. FAIL!');
     end
 
     nf = nf + 1;
@@ -26,7 +26,7 @@ function [nf, X, F, h, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, h, Hash
     [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
     Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
-    assert(~any(isnan(F(nf, :))), 'Got a NaN. FAIL!')
+    assert(~any(isnan(F(nf, :))), 'Got a NaN. FAIL!');
 
     % It must be the case hfun values and gradients are the same when called with
     % and without hashes. Because we assume h is cheap to evaluate, we can

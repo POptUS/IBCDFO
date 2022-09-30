@@ -24,7 +24,7 @@ function [s, tau, chi, lambda_star] = minimize_affine_envelope(f, f_bar, beta, G
         duals_u = duals_u(2:n + 1);
         duals_l = duals_l(2:n + 1);
     elseif strcmp(subprob_switch, 'linprog')
-        options = optimoptions('linprog','Display','none');
+        options = optimoptions('linprog', 'Display', 'none');
         try
             [x, ~, exitflag, ~, lambda] = linprog(ff, A, bk_smaller, [], [], [-Inf, Low]', [Inf, Upp]', options);
             if exitflag == 1 % successful termination
