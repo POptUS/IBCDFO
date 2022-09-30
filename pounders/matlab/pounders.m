@@ -44,7 +44,7 @@
 %               = 0 normal termination because of grad,
 %               > 0 exceeded nfmax evals,   flag = norm of grad at final X
 %               = -1 if input was fatally incorrect (error message shown)
-%               = -2 model failure 
+%               = -2 model failure
 % xkin    [int] Index of point in X representing approximate minimizer
 %
 % --DEPENDS ON-------------------------------------------------------------
@@ -158,10 +158,10 @@ while nf<nfmax
         [~,np,valid,Gres,Hresdel,Mind] = ...
             formquad(X(1:nf,:),Res(1:nf,:),delta,xkin,npmax,Par,0);
     end
-    
+
     % 1b. Update the quadratic model
     Cres = F(xkin,:); Hres = Hres+Hresdel;
-    c = Fs(xkin);  
+    c = Fs(xkin);
     G = 2*Gres*F(xkin,1:m)';
     H = zeros(n);
     for i=1:m
@@ -169,7 +169,7 @@ while nf<nfmax
     end
     H = 2*H + 2*(Gres*Gres');
     ng = norm(G.*( and(X(xkin,:)>L,G'>0) + and(X(xkin,:)<U,G'<0) )');
-    
+
     if printf   % Output stuff: ---------(can be removed later)------------
         IERR = zeros(1,size(Mind,1));
         for i=1:size(Mind,1)
@@ -185,8 +185,7 @@ while nf<nfmax
         ierror=norm(IERR./max(abs(Fs(Mind,:)'),0),inf); % Interp. error
         fprintf(progstr, nf, delta, valid, np, Fs(xkin), ng, ierror);
     end %------------------------------------------------------------------
-    
-    
+
     % 2. Criticality test invoked if the projected model gradient is small
     if ng<gtol
         % Check to see if the model is valid within a region of size gtol
@@ -220,8 +219,7 @@ while nf<nfmax
             X = X(1:nf,:);  F = F(1:nf,:);  flag = 0;  return;
         end
     end
-   
-    
+
     % 3. Solve the subproblem min{G'*s+.5*s'*H*s : Lows <= s <= Upps }
     Lows = max((L-X(xkin,:)),-delta);
     Upps = min((U-X(xkin,:)),delta);
@@ -229,16 +227,16 @@ while nf<nfmax
         [Xsp,mdec] = bqmin(H,G,Lows,Upps);
     elseif spsolver==2 % Arnold Neumaier's minq5
         [Xsp,mdec] = minqsw(0,G,H,Lows',Upps',0,zeros(n,1));
-                     
+
     elseif spsolver==3 % Arnold Neumaier's minq8
-        
+
         data.gam = 0;
         data.c = G;
         data.b = zeros(n,1);
         [tmp1,tmp2] = ldl(H);
         data.D = diag(tmp2);
         data.A = tmp1';
-        
+
         [Xsp,mdec] = minq8(data,Lows',Upps',zeros(n,1),10*n);
     end
     Xsp = Xsp'; % Solvers currently work with column vectors
@@ -248,7 +246,7 @@ while nf<nfmax
     if (step_norm >= 0.01*delta || valid) && ~(mdec==0 && ~valid)
 
         Xsp = min(U,max(L,X(xkin,:)+Xsp));  % Temp safeguard; note Xsp is not a step anymore
-        
+
         % Project if we're within machine precision
         for i=1:n %! This will need to be cleaned up eventually
             if U(i)-Xsp(i)<eps*abs(U(i)) && U(i)>Xsp(i) && G(i)>=0
@@ -284,7 +282,7 @@ while nf<nfmax
             Cres = F(xkin,:);
             xkin = nf; % Change current center
         end
-        
+
         % 4b. Update the trust-region radius:
         if (rho>=eta1)  &&  (step_norm>.75*delta)
             delta = min(delta*gam1,maxdelta);
@@ -295,7 +293,7 @@ while nf<nfmax
         rho = -1; % Force yourself to do a model-improving point
         if printf, disp('Warning: skipping sp soln!---------'); end
     end
-    
+
     % 5. Evaluate a model-improving point if necessary
     if ~(valid) && (nf<nfmax) && (rho<eta1) % Implies xkin,delta unchanged
         % Need to check because model may be valid after Xsp evaluation
@@ -319,7 +317,7 @@ while nf<nfmax
                 H = H + F(xkin,i)*Hres(:,:,i);
             end
             H = 2*H + 2*(Gres*Gres');
-            
+
             % Evaluate model-improving points to pick best one
             %! May eventually want to normalize Mdir first for infty norm
             % Plus directions
@@ -340,7 +338,7 @@ while nf<nfmax
             if a2<a1
                 Xsp = Mdir1(b,:);
             end
-            
+
             nf = nf + 1;
             X(nf,:) = min(U,max(L,X(xkin,:)+Xsp)); % Temp safeguard
             F(nf,:) = fun(X(nf,:)); Fs(nf) = sum(F(nf,:).^2);
@@ -352,7 +350,7 @@ while nf<nfmax
                 %  Update model to reflect new base point
                 D = (X(nf,:)-X(xkin,:));
                 xkin = nf; % Change current center
-                Cres = F(xkin,:);     
+                Cres = F(xkin,:);
                 % Don't actually use:
                 for j=1:m, Gres(:,j)=Gres(:,j)+Hres(:,:,j)*D'; end
             end

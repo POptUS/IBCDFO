@@ -56,7 +56,6 @@ for row = 1:53
     delta = 0.1;
     printf = 0;
 
-
     [X,F,flag,xkin] = pounders(@calfun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf);
 
     assert(size(X,1) <= nfmax, "POUNDERs grew the size of X")
@@ -73,7 +72,7 @@ for row = 1:53
     Results{SolverNumber,row}.Fvec = F;
     Results{SolverNumber,row}.H = sum(F.^2,2);
     Results{SolverNumber,row}.X = X;
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     save('-mat7-binary', filename, 'Results') % Octave save
 end
 save(filename, 'Results');

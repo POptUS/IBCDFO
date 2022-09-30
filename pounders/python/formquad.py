@@ -1,16 +1,8 @@
 import numpy as np
-
-
 import scipy.linalg
-
-
 from phi2eval import phi2eval
-
-
-from flipFirstRow import flipFirstRow
-
-
-from flipSignQ import flipSignQ
+# from flipFirstRow import flipFirstRow
+# from flipSignQ import flipSignQ
 
 
 def formquad(X, F, delta, xkin, mpmax, Pars, vf):
@@ -106,7 +98,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     # Collect additional points
     N = phi2eval(D[Mind]).T
 
-    mp = len(Mind) 
+    mp = len(Mind)
     M = np.vstack((np.ones(n+1), D[Mind].T))
     [Q, R] = np.linalg.qr(M.T, mode='complete')
     # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)

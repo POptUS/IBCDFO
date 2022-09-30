@@ -3,8 +3,6 @@ from checkinputss import checkinputss
 from formquad import formquad
 from bmpts import bmpts
 from bqmin import bqmin
-import scipy as sp
-from scipy import io
 
 import sys
 
@@ -62,7 +60,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         from minqsw import minqsw
     elif spsolver == 3:
         sys.path.append("../../minq/minq8/python/")
-        from minq8 import minq
+        from minq8 import minq8
 
     [flag, X0, mpmax, F0, L, U] = checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)
     if flag == -1:

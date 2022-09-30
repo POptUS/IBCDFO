@@ -1,0 +1,19 @@
+[flake8]
+max-line-length = 200
+
+ignore =
+        # E203 is not PEP 8 compliant. https://github.com/PyCQA/pycodestyle/issues/373
+        E203
+        # Not worrying about spaces around arithmetic operations
+        E226
+        # Linebreaks before/after unary operators are okay
+        W503, W504
+
+exclude =
+        # Don't need to check .git
+        .git,
+        pounders/python/tests/unit_tests/*
+
+per-file-ignores =
+        # Need to add pounders to the path before importing it
+        pounders/python/tests/regression_tests/*.py:E402
