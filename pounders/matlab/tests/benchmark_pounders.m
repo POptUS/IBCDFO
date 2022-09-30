@@ -57,7 +57,7 @@ for row = 1:53
     printf = 0;
 
 
-    [X,F,flag,xkin] = pounders(@calfun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf);
+    [X,F,flag,xkin] = pounders(@calfun_wrapper,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf);
 
     assert(size(X,1) <= nfmax, "POUNDERs grew the size of X")
     if re_check
@@ -77,3 +77,8 @@ for row = 1:53
 %     save('-mat7-binary', filename, 'Results') % Octave save
 end
 save(filename, 'Results');
+end
+
+function [fvec] = calfun_wrapper(x)
+   [~, fvec, ~] = calfun(x);
+end
