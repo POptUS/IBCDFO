@@ -24,7 +24,7 @@ filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat
 Results = cell(1, 53);
 
 % for row = find(cellfun(@length,Results)==0)
-for row = [1, 2, 7, 8, 43, 44, 45]
+for row = [7]
     nprob = dfo(row, 1);
     n = dfo(row, 2);
     m = dfo(row, 3);
@@ -45,15 +45,15 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     % Manifold sampling
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    for jj = 1
+    for jj = 2
         if jj == 1
             hfun = @pw_maximum_squared;
         end
         if jj == 2
-            hfun = @pw_maximum_abs;
+            hfun = @pw_minimum_squared;
         end
     end
-    Ffun = @calfun;
+    Ffun = @calfun_wrapper;
     x0 = xs';
 
     [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch);
@@ -69,3 +69,9 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     % save('-mat7-binary', filename, 'Results') % Octave save
 end
 save(filename, 'Results');
+end
+
+function [fvec] = calfun_wrapper(x)
+[~, fvec, ~] = calfun(x);
+fvec = fvec';
+end
