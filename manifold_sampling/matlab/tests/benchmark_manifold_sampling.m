@@ -24,7 +24,7 @@ filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat
 Results = cell(1, 53);
 
 % for row = find(cellfun(@length,Results)==0)
-for row = [7]
+for row = [1, 2, 7, 8, 43, 44, 45]
     nprob = dfo(row, 1);
     n = dfo(row, 2);
     m = dfo(row, 3);
