@@ -1,5 +1,5 @@
 % bqmin.m, Version 0.1,    Modified 12/1/09  Stefan Wild
-% 
+%
 %  [X,f] = bqmin(A,B,L,U)
 %
 %  Minimizes the quadratic .5*X'*A*X + B subject to L<=X<=U using the
@@ -43,7 +43,7 @@ Projg = X - max(min(X-G,U),L); % Projected gradient
 it = 0; % Iteration counter
 while (it<maxit && norm(Projg)>pgtol)
     it = it+1;
-    
+
     % Simple line search along the projected gradient
     t = 1; % By default take the full step
     pap = Projg'*A*Projg;
