@@ -1,15 +1,15 @@
 % formquad.m, Version 0.1, Modified 3/2/10
 % Stefan Wild and Jorge More', Argonne National Laboratory.
-% 
+%
 %  [Mdir,np,valid,G,H,Mind] = formquad(X,F,delta,xkin,npmax,Pars,vf)
 %
 % Computes the parameters for m quadratics
 %       Q_i(x) = C(i) + G(:,i)'*x + 0.5*x'*H(:,:,i)*x,  i=1:m
 % whose Hessians H are of least Frobenius norm subject to the interpolation
 %       Q_i(X(Mind,:)) = F(Mind,i).
-% 
+%
 % The procedure works equally well with m=1 and m>1.
-% The derivation is involved but may be found in "MNH: A Derivative-Free 
+% The derivation is involved but may be found in "MNH: A Derivative-Free
 % Optimization Algorithm Using Minimal Norm Hessians" by S Wild, 2008.
 %
 % --INPUTS-----------------------------------------------------------------
@@ -65,12 +65,12 @@ for aff=1:2
                 np = np+1;
                 Mind(np+1,1) = i;
                 % MATLAB:
-                % [Q,R] = qrinsert(Q,R,np,D(i,:)'); % Update QR 
+                % [Q,R] = qrinsert(Q,R,np,D(i,:)'); % Update QR
                 % This bit is just for Octave
                 if (size(R,1) == 0)
                     [Q,R] = qr(D(i,:)');
                 else
-                    [Q,R] = qrinsert(Q,R,np,D(i,:)'); % Update QR 
+                    [Q,R] = qrinsert(Q,R,np,D(i,:)'); % Update QR
                 end
                 if (np==n)
                     break; % Breaks out of for loop
@@ -122,7 +122,7 @@ while np<npmax || npmax==n+1
     i = i-1;
     if i==0 % Reached end of points
         if np==(n+1) % Set outputs so that Hessian is zero
-            L=1; Z=zeros(n+1,.5*n*(n+1)); N=zeros(.5*n*(n+1),n+1); 
+            L=1; Z=zeros(n+1,.5*n*(n+1)); N=zeros(.5*n*(n+1),n+1);
         end
         break;
     end

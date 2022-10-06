@@ -6,7 +6,6 @@ import os
 from oct2py import octave
 import numpy as np
 import scipy as sp
-from scipy import io
 from mpi4py import MPI
 
 sys.path.append("../../")
@@ -58,8 +57,8 @@ def doit():
 
         delta = 0.1
         mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
-        Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1,n)]
-        Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1,n)]
+        Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
+        Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
 
         printf = False
 
@@ -68,7 +67,7 @@ def doit():
             assert len(out) == m, "Incorrect output dimension"
             return np.squeeze(out)
 
-        F0 = np.zeros((1,m))
+        F0 = np.zeros((1, m))
         F0[0] = calfun(X0)
         nfs = 1
         xind = 0
