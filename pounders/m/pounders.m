@@ -53,10 +53,8 @@
 % formquad, phi2eval  :  Forms interpolation set and fits quadratic models
 % bmpts, boxline : Generates feasible model-improving points
 function [X,F,flag,xkin] = ...
-    pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
+    pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf,spsolver)
 
-% Choose your solver:
-global spsolver
 %spsolver=1; % Stefan's crappy solver
 if spsolver == 2
     addpath('../../minq/minq5/matlab'); % Arnold Neumaier's minq5
