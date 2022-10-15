@@ -70,13 +70,13 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
                     mp += 1
                     Mind.append(i)
                     if np.shape(R)[0] == 0:
-                        [Q, R] = np.linalg.qr(D[i:i+1, :].T, mode='complete')
+                        [Q, R] = np.linalg.qr(D[[i], :].T, mode='complete')
                         # [Q, R] = flipFirstRow(Q, R, 0, np.shape(Q)[1]-1)
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
                     else:
                         # Update QR
                         D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
-                        [Q, R] = scipy.linalg.qr_insert(Q, R, D[i:i+1, :].T, mp - 1, 'col')
+                        [Q, R] = scipy.linalg.qr_insert(Q, R, D[[i], :].T, mp - 1, 'col')
                         # [Q, R] = flipFirstRow(Q, R, 0, np.shape(Q)[1]-1)
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
                     if mp == n:
@@ -106,7 +106,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     i = nf - 1
     while mp < mpmax or mpmax == n+1:
         if Nd[i] <= Pars[1] and i not in Mind:
-            Ny = np.hstack((N, phi2eval(D[i:i+1, :]).T))
+            Ny = np.hstack((N, phi2eval(D[[i], :]).T))
             # Update QR
             D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
             [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((1, D[i])), mp, 'row')
@@ -123,7 +123,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
                 L = Ly
                 Z = Q[:, n+1: mp]
                 # Note that M is growing
-                M = np.hstack((M, np.vstack((1, D[i:i+1].T))))
+                M = np.hstack((M, np.vstack((1, D[[i]].T))))
         i -= 1
         # Reached end of points
         if i == -1:
@@ -137,20 +137,21 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     F = F[Mind]
     for k in range(m):
         # For L = N * Z, solve L.T * L * Omega = Z.T * f:
-        if np.shape(L)[1] != np.shape(Z.T @ F[:, k:k+1])[1]:
-            Omega = np.linalg.solve(L.T @ L, (Z.T @ F[:, k:k+1]))
+        J = Z.T @ F[:, [k]]
+        if np.shape(L)[1] != np.shape(J)[1]:
+            Omega = np.linalg.solve(L.T @ L, J)
         else:
-            Omega = np.linalg.solve(L.T @ L, (Z.T @ F[:, k:k+1]).T)
+            Omega = np.linalg.solve(L.T @ L, J.T)
         Beta = L @ Omega
         if np.shape(Beta)[1] > 1:
             Beta = Beta.T
         if np.shape(M)[0] == np.shape(M)[1]:
-            Alpha = np.linalg.solve(M.T, F[:, k:k+1] - N.T @ Beta)
+            Alpha = np.linalg.solve(M.T, F[:, [k]] - N.T @ Beta)
         else:
             if np.shape(M)[0] != np.shape(N)[1]:
-                Alpha = np.linalg.lstsq(M.T, F[:, k:k+1] - N.T @ Beta, rcond=None)[0]
+                Alpha = np.linalg.lstsq(M.T, F[:, [k]] - N.T @ Beta, rcond=None)[0]
             else:
-                Alpha = np.linalg.lstsq(M, F[:, k:k+1] - N.T @ Beta, rcond=None)[0]
+                Alpha = np.linalg.lstsq(M, F[:, [k]] - N.T @ Beta, rcond=None)[0]
             Alpha = np.reshape(Alpha, (np.shape(Alpha)[0], 1))
         G[:, k] = Alpha[1:n+1, 0]
         num = -1
