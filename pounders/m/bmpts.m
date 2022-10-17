@@ -22,7 +22,8 @@ if min(max(T)) >= theta % Safe to use our directions:
 else
     % May want to turn this display off
     disp('Note: Geometry points need to be coordinate directions!');
-    np = 0; Modeld = zeros(n);
+    np = 0;
+    Modeld = zeros(n);
     for j = 1:n
         t1 = min(X(j) - Low(j), delta);
         t2 = min(Upp(j) - X(j), delta);

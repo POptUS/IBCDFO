@@ -24,7 +24,8 @@ flag = 1; % By default, everything is OK
 % Verify that fun is a function handle.
 if ~isa(fun, 'function_handle')
     disp('  Error: fun is not a function handle');
-    flag = -1; return
+    flag = -1;
+    return
 end
 
 % Verify X0 is the appropriate size
@@ -37,7 +38,8 @@ if n ~= n2
         flag = 0;
     else
         disp('  Error: size(X0,2)~=n');
-        flag = -1; return
+        flag = -1;
+        return
     end
 end
 
@@ -51,10 +53,12 @@ end
 % Check standard positive quantities
 if nfmax < 1
     disp('  Error: max number of evaluations is less than 1');
-    flag = -1; return
+    flag = -1;
+    return
 elseif gtol <= 0
     disp('  Error: gtol must be positive');
-    flag = -1; return
+    flag = -1;
+    return
 elseif delta <= 0
     disp('  Error: delta must be positive');
 end
@@ -69,10 +73,12 @@ end
 [nfs2, m2] = size(F0);
 if nfs2 < nfs
     disp('  Error: fewer than nfs function values in F0');
-    flag = -1; return
+    flag = -1;
+    return
 elseif nfs > 1 && m ~= m2
     disp('  Error: F0 does not contain the right number of residuals');
-    flag = -1; return
+    flag = -1;
+    return
 elseif nfs2 > nfs
     disp('  Warning: number of starting f values nfs does not match input F0');
     flag = 0;
@@ -81,7 +87,8 @@ end
 % Check starting point
 if xkin > max(nfs, 1) || xkin < 1 || mod(xkin, 1) ~= 0
     disp('  Error: starting point index not an integer between 1 and nfs');
-    flag = -1; return
+    flag = -1;
+    return
 end
 
 % Check the bounds
@@ -89,21 +96,26 @@ end
 [nfs3, n3] = size(U);
 if n3 ~= n2 || nfs2 ~= nfs3
     disp('  Error: bound dimensions inconsistent');
-    flag = -1; return
+    flag = -1;
+    return
 elseif n2 ~= n && (n2 == 1 && nfs2 == n) % Attempt to transpose
-    L = L'; U = U';
+    L = L';
+    U = U';
     disp('  Warning: bounds are n-by-1, using transposed row vectors');
     flag = 0;
 elseif n2 ~= n || nfs2 ~= 1
     disp('  Error: bounds are not 1-by-n vectors');
-    flag = -1; return
+    flag = -1;
+    return
 end
 
 if min(U - L) <= 0
     disp('  Error: must have U>L');
-    flag = -1; return
+    flag = -1;
+    return
 end
-if min(min(X0(xkin, :) - L), min(U - X0(xkin, :))) < 0,
+if min(min(X0(xkin, :) - L), min(U - X0(xkin, :))) < 0
     disp('  Error: starting point outside of bounds (L,U)');
-    flag = -1; return
+    flag = -1;
+    return
 end

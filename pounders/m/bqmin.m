@@ -32,7 +32,9 @@ pgtol = 1e-13; % [dbl] tolerance on final projected gradient
 % -------------------------------------------------------------------------
 
 % Make everything a column vector:
-B = B(:); L = L(:); U = U(:);
+B = B(:);
+L = L(:);
+U = U(:);
 
 % Initial point (assumed feasible by L<=0<=U )
 X = zeros(n, 1);

@@ -81,7 +81,11 @@ end
 % 0. Check inputs
 [flag, X0, npmax, F0, L, U] = ...
     checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U);
-if flag == -1; X = []; F = []; return; end  % Problem with the input
+if flag == -1 % Problem with the input
+    X = [];
+    F = [];
+    return
+end
 
 % --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
 maxdelta = min(.5 * min(U - L), 1e3 * delta); % [dbl] Maximum tr radius
@@ -138,7 +142,8 @@ for i = 1:nf
 end
 
 Res = zeros(size(F)); % Stores the residuals for model updates
-Cres = F(xkin, :); Hres = zeros(n, n, m);
+Cres = F(xkin, :);
+Hres = zeros(n, n, m);
 % H = zeros(n); G = zeros(n,1); c = Fs(xkin);
 
 % ! NOTE: Currently do not move to a geometry point (including in
@@ -159,7 +164,8 @@ while nf < nfmax
         for i = 1:min(n - np, nfmax - nf)
             nf = nf + 1;
             X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeguard
-            F(nf, :) = fun(X(nf, :)); Fs(nf) = hfun(F(nf, :));
+            F(nf, :) = fun(X(nf, :));
+            Fs(nf) = hfun(F(nf, :));
             if printf
                 fprintf('%4i   Geometry point  %11.5e\n', nf, Fs(nf));
             end
@@ -168,13 +174,16 @@ while nf < nfmax
                 Res(nf, j) = (F(nf, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';
             end
         end
-        if nf >= nfmax; break; end
+        if nf >= nfmax
+            break
+        end
         [~, np, valid, Gres, Hresdel, Mind] = ...
             formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
     end
 
     % 1b. Update the quadratic model
-    Cres = F(xkin, :); Hres = Hres + Hresdel;
+    Cres = F(xkin, :);
+    Hres = Hres + Hresdel;
     c = Fs(xkin);
     [G, H] = combinemodels(Cres, Gres, Hres);
     ng = norm(G .* (and(X(xkin, :) > L, G' > 0) + and(X(xkin, :) < U, G' < 0))');
@@ -206,12 +215,15 @@ while nf < nfmax
             for i = 1:min(n - np, nfmax - nf)
                 nf = nf + 1;
                 X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeg.
-                F(nf, :) = fun(X(nf, :)); Fs(nf) = hfun(F(nf, :));
+                F(nf, :) = fun(X(nf, :));
+                Fs(nf) = hfun(F(nf, :));
                 if printf
                     fprintf('%4i   Critical point  %11.5e\n', nf, Fs(nf));
                 end
             end
-            if nf >= nfmax; break; end
+            if nf >= nfmax
+                break
+            end
             % Recalculate gradient based on a MFN model
             [~, ~, valid, Gres, Hres, Mind] = ...
                 formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 0);
@@ -219,8 +231,13 @@ while nf < nfmax
             ng = norm(G .* (and(X(xkin, :) > L, G' > 0) + and(X(xkin, :) < U, G' < 0))');
         end
         if ng < gtol % We trust the small gradient norm and return
-            if printf; disp('g is sufficiently small'); end
-            X = X(1:nf, :);  F = F(1:nf, :);  flag = 0;  return
+            if printf
+                disp('g is sufficiently small');
+            end
+            X = X(1:nf, :);
+            F = F(1:nf, :);
+            flag = 0;
+            return
         end
     end
 
@@ -254,27 +271,36 @@ while nf < nfmax
         % Project if we're within machine precision
         for i = 1:n % ! This will need to be cleaned up eventually
             if U(i) - Xsp(i) < eps * abs(U(i)) && U(i) > Xsp(i) && G(i) >= 0
-                Xsp(i) = U(i); disp('eps project!');
+                Xsp(i) = U(i);
+                disp('eps project!');
             elseif Xsp(i) - L(i) < eps * abs(L(i)) && L(i) < Xsp(i) && G(i) >= 0
-                Xsp(i) = L(i);  disp('eps project!');
+                Xsp(i) = L(i);
+                disp('eps project!');
             end
         end
 
         if mdec == 0 && valid && all(Xsp == X(xkin, :))
             disp('Terminating because mdec == 0 with a valid model and no change in Xsp');
-            X = X(1:nf, :);  F = F(1:nf, :);  flag = -2;  return
+            X = X(1:nf, :);
+            F = F(1:nf, :);
+            flag = -2;
+            return
         end
 
         nf = nf + 1;
         X(nf, :) = Xsp;
-        F(nf, :) = fun(X(nf, :)); Fs(nf) = hfun(F(nf, :));
+        F(nf, :) = fun(X(nf, :));
+        Fs(nf) = hfun(F(nf, :));
 
         if mdec ~= 0
             rho = (Fs(nf) - Fs(xkin)) / mdec;
         else % Note: this conditional only occurs when model is valid
             if Fs(nf) == Fs(xkin)
                 disp('Terminating because mdec == 0 with a valid model and Fs(nf) == Fs(xkin)');
-                X = X(1:nf, :);  F = F(1:nf, :);  flag = -2;  return
+                X = X(1:nf, :);
+                F = F(1:nf, :);
+                flag = -2;
+                return
             else
                 rho = np.inf * sign(Fs(nf) - Fs(xkin));
             end
@@ -295,7 +321,9 @@ while nf < nfmax
         end
     else % Don't evaluate f at Xsp
         rho = -1; % Force yourself to do a model-improving point
-        if printf; disp('Warning: skipping sp soln!---------'); end
+        if printf
+            disp('Warning: skipping sp soln!---------');
+        end
     end
 
     % 5. Evaluate a model-improving point if necessary
@@ -340,21 +368,28 @@ while nf < nfmax
 
             nf = nf + 1;
             X(nf, :) = min(U, max(L, X(xkin, :) + Xsp)); % Temp safeguard
-            F(nf, :) = fun(X(nf, :)); Fs(nf) = hfun(F(nf, :));
+            F(nf, :) = fun(X(nf, :));
+            Fs(nf) = hfun(F(nf, :));
             if printf
                 fprintf('%4i   Model point     %11.5e\n', nf, Fs(nf));
             end
             if Fs(nf, :) < Fs(xkin, :)  % ! Eventually check suff decrease here!
-                if printf; disp('**improvement from model point****');  end
+                if printf
+                    disp('**improvement from model point****');
+                end
                 %  Update model to reflect new base point
                 D = (X(nf, :) - X(xkin, :));
                 xkin = nf; % Change current center
                 Cres = F(xkin, :);
                 % Don't actually use:
-                for j = 1:m; Gres(:, j) = Gres(:, j) + Hres(:, :, j) * D'; end
+                for j = 1:m
+                    Gres(:, j) = Gres(:, j) + Hres(:, :, j) * D';
+                end
             end
         end
     end
 end
-if printf; disp('Number of function evals exceeded'); end
+if printf
+    disp('Number of function evals exceeded');
+end
 flag = ng;

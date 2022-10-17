@@ -39,7 +39,8 @@ function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xkin, npmax, Pars
 % qrinsert, svd : Standard internal Matlab/Octave/LAPACK commands
 
 % Internal parameters:
-[nf, n] = size(X);   m = size(F, 2);
+[nf, n] = size(X);
+m = size(F, 2);
 
 G = zeros(n, m);
 H = zeros(n, n, m);
@@ -53,7 +54,8 @@ for i = 1:nf
 end
 
 % Get n+1 sufficiently affinely independent points:
-Q = eye(n); R = []; % Initialize the QR factorization of interest
+Q = eye(n);
+R = []; % Initialize the QR factorization of interest
 Mind = xkin; % Indices of model interpolation points
 valid = false;
 np = 0;  % Counter for number of interpolation points
@@ -80,10 +82,14 @@ for aff = 1:2
     end
 
     if aff == 1 && np == n % Have enough points:
-        Mdir = []; valid = true; break
+        Mdir = [];
+        valid = true;
+        break
     elseif aff == 2 && np < n % Need to evaluate more points, then recall
         Mdir = Q(:, np + 1:n)';  % Output Geometry directions
-        G = []; H = []; return
+        G = [];
+        H = [];
+        return
     elseif aff == 1 % Output model-improving directions
         Mdir = Q(:, np + 1:n)';  % Will be empty if np=n
     end
@@ -112,7 +118,10 @@ while np < npmax || npmax == n + 1
         if min(svd(Ly)) > Pars(4)
             np = np + 1;
             Mind(np, 1) = i;
-            N = Ny;  Q = Qy;  R = Ry;  L = Ly;
+            N = Ny;
+            Q = Qy;
+            R = Ry;
+            L = Ly;
 
             Z = Q(:, n + 2:np);
             M = [M [1; D(i, :)']]; % Note that M is growing
@@ -122,7 +131,9 @@ while np < npmax || npmax == n + 1
     i = i - 1;
     if i == 0 % Reached end of points
         if np == (n + 1) % Set outputs so that Hessian is zero
-            L = 1; Z = zeros(n + 1, .5 * n * (n + 1)); N = zeros(.5 * n * (n + 1), n + 1);
+            L = 1;
+            Z = zeros(n + 1, .5 * n * (n + 1));
+            N = zeros(.5 * n * (n + 1), n + 1);
         end
         break
     end
