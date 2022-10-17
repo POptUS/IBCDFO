@@ -8,8 +8,9 @@ BenDFO.probtype = 'smooth';
 spsolver = 1;
 
 addpath('../')
-addpath('../../../../BenDFO/m/')
-addpath('../../../../BenDFO/data/')
+bendfo_location = '../../../../BenDFO';
+addpath([bendfo_location, '/m/'])
+addpath([bendfo_location, '/data/'])
 mkdir('benchmark_results')
 
 nfmax = 1000;
