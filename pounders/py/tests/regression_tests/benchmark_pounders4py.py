@@ -11,6 +11,8 @@ from mpi4py import MPI
 sys.path.append("../../")
 from pounders import pounders
 
+sys.path.append("../../general_h_funs")
+
 os.makedirs("benchmark_results", exist_ok=True)
 np.seterr("raise")
 
@@ -42,7 +44,20 @@ def doit():
         # spsolver = 1
         spsolver = 1
 
-        filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_" + probtype + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + ".mat"
+        for hfun_cases in range(1,2):
+            if hfun_cases == 1:
+                hfun = lambda F: np.sum(F**2)
+                import leastsquares as combinemodels 
+            elif hfun_cases == 2:
+                alpha = 0 # If changed here, also needs to be adjusted in squared_diff_from_mean.py
+                hfun = lambda F: np.sum((F - 1/len(F)*np.sum(F))**2) - alpha*(1/len(F)*np.sum(F))**2
+                import squared_diff_from_mean as combinemodels 
+            elif hfun_cases == 3:
+                if m != 3: # Emittance is only defined for the case when m == 3
+                    continue
+                import emittance_combine as combinemodels 
+
+        filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_" + probtype + "_prob=" + str(row) + "_spsolver=" + str(spsolver) +"_hfun" + combinemodels.__name__ + ".mat"
         if os.path.isfile(filename):
             Old = sp.io.loadmat(filename)
             re_check = True
