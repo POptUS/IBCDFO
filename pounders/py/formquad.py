@@ -45,10 +45,9 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     H = np.zeros((n, n, m))
     # Precompute the scaled displacements (could be expensive for larger nfmax)
     D = np.zeros((nf, n))  # Scaled displacements
-    if type(mpmax) != int:
-        mpmax = mpmax[0, 0]
-    if type(xkin) != int:
-        xkin = xkin[0, 0]  # If xkin is a numpy array 1 x 1, cast it as an int
+
+    assert isinstance(mpmax, int), "Must be an integer"
+    assert isinstance(xkin, int), "Must be an integer"
 
     D = (X[:nf] - X[xkin])/delta
     Nd = np.linalg.norm(D, 2, axis=1)
