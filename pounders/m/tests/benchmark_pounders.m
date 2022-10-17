@@ -2,9 +2,6 @@
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 function [] = benchmark_pounders()
 
-global BenDFO
-
-BenDFO.probtype = 'smooth';
 spsolver = 1;
 
 addpath('../')
@@ -57,7 +54,9 @@ for row = 1:53
     delta = 0.1;
     printf = 0;
 
-    [X,F,flag,xkin] = pounders(@calfun_wrapper,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf,spsolver);
+    objective = @(x)calfun_wrapper(x,BenDFO,'smooth');
+
+    [X,F,flag,xkin] = pounders(objective,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf,spsolver);
 
     assert(size(X,1) <= nfmax, "POUNDERs grew the size of X")
     if re_check
@@ -79,6 +78,6 @@ end
 save(filename, 'Results');
 end
 
-function [fvec] = calfun_wrapper(x)
-   [~, fvec, ~] = calfun(x);
+function [fvec] = calfun_wrapper(x, struct, probtype)
+   [~, fvec, ~] = calfun(x, struct, probtype);
 end
