@@ -3,13 +3,12 @@
 
 function [fvec] = calfun_wrapper(x, m, nprob, probtype, fvals, nfev, np)
 
-addpath('../../../../../BenDFO/m')
+    bendfo_location = "../../../../../BenDFO/";
+    addpath([bendfo_location  "m/"]);
 
-global BenDFO
+    BenDFO.nprob = nprob;
+    BenDFO.m = m;
+    BenDFO.n = length(x);
 
-BenDFO.nprob = nprob;
-BenDFO.m = m;
-BenDFO.n = length(x);
-BenDFO.probtype = probtype;
-
-[~, fvec] = calfun(x);
+    [~, fvec] = calfun(x, BenDFO, probtype);
+end
