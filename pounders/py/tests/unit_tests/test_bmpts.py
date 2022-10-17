@@ -21,7 +21,7 @@ class Test_bmpts:
         MdirOutput = dictionaryData['MdirOutput']
         [output1, output2] = bmpts(X, Modeld, Low, Upp, delta, theta)
         assert output2 == mp
-        assert np.linalg.norm(output1 - MdirOutput, 'fro') < 10 ** -20
+        assert np.linalg.norm(output1 - MdirOutput, 'fro') < 10**-20
 
     # Line 194 pounders.m from callpounders.m
     def test_callPounders2(self):
@@ -36,4 +36,4 @@ class Test_bmpts:
         MdirOutput = dictionaryData['MdirOutput']
         [output1, output2] = bmpts(X, Modeld, Low, Upp, delta, theta)
         assert output2 == mp
-        assert np.linalg.norm(output1 - MdirOutput, 'fro') < 10 ** -20
+        assert np.linalg.norm(output1 - MdirOutput, 'fro') < 10**-20

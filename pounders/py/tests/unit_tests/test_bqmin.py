@@ -19,5 +19,5 @@ class Test_bqmin:
         mdec = dictionaryData['mdec']
         mdec = mdec[0, 0]
         [X, f] = bqmin(H, G, Lows, Upps)
-        assert (f - mdec) < 10 ** -10
-        assert np.linalg.norm(X - Xsp, float('inf')) < 10 ** -22
+        assert (f - mdec) < 10**-10
+        assert np.linalg.norm(X - Xsp, float('inf')) < 10**-22
