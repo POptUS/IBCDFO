@@ -5,20 +5,20 @@
 % Assumes that X has points which are row vectors
 %
 % Used to be slower:
-%for i=1:m
+% for i=1:m
 %    A = X(i,:)'*X(i,:)/sqrt(2);
 %    A = A-(sqrt(2)-1)*diag(diag(A))/sqrt(2); % Need to do this to make sure diag is halved
 %    Phi(i,1:.5*n*(n+1)) = A(logical(tril(ones(n))))'; % Put the lower triangular part in a vector
-%end
+% end
 function Phi = phi2eval(X)
-[m,n] = size(X);
-Phi = zeros(m,.5*n*(n+1));
+[m, n] = size(X);
+Phi = zeros(m, .5 * n * (n + 1));
 j = 0;
-for k=1:n
-    j = j+1;
-    Phi(:,j) = .5*X(:,k).^2;
-    for kk=k+1:n
-        j = j+1;
-        Phi(:,j) = X(:,k).*X(:,kk)/sqrt(2);
+for k = 1:n
+    j = j + 1;
+    Phi(:, j) = .5 * X(:, k).^2;
+    for kk = k + 1:n
+        j = j + 1;
+        Phi(:, j) = X(:, k) .* X(:, kk) / sqrt(2);
     end
 end

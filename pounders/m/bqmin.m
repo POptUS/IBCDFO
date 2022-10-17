@@ -17,7 +17,7 @@
 % X       [dbl] [n-by-1] Approximate solution
 % f       [dbl] Function value at X
 %
-function [X,f] = bqmin(A,B,L,U)
+function [X, f] = bqmin(A, B, L, U)
 % --INTERMEDIATE-----------------------------------------------------------
 % G       [dbl] [n-by-1]  Gradient at X
 % it      [dbl] Iteration counter
@@ -26,7 +26,7 @@ function [X,f] = bqmin(A,B,L,U)
 % t       [dbl] Step length along projected gradient
 %
 % --INTERNAL PARAMETERS----------------------------------------------------
-n = size(A,2); % [int] Dimension (number of continuous variables)
+n = size(A, 2); % [int] Dimension (number of continuous variables)
 maxit = 5000; % [int] maximum number of iterations
 pgtol = 1e-13; % [dbl] tolerance on final projected gradient
 % -------------------------------------------------------------------------
@@ -35,25 +35,25 @@ pgtol = 1e-13; % [dbl] tolerance on final projected gradient
 B = B(:); L = L(:); U = U(:);
 
 % Initial point (assumed feasible by L<=0<=U )
-X = zeros(n,1);
-f =  X'*(.5*A*X+B);
-G = A*X+B;
-Projg = X - max(min(X-G,U),L); % Projected gradient
+X = zeros(n, 1);
+f =  X' * (.5 * A * X + B);
+G = A * X + B;
+Projg = X - max(min(X - G, U), L); % Projected gradient
 
 it = 0; % Iteration counter
-while (it<maxit && norm(Projg)>pgtol)
-    it = it+1;
+while it < maxit && norm(Projg) > pgtol
+    it = it + 1;
 
     % Simple line search along the projected gradient
     t = 1; % By default take the full step
-    pap = Projg'*A*Projg;
-    if pap>0
-        t = min(1,(Projg'*G)/pap);
+    pap = Projg' * A * Projg;
+    if pap > 0
+        t = min(1, (Projg' * G) / pap);
     end
 
     % Compute the next point and update everything
-    X = X - t*Projg;
-    f = X'*(.5*A*X+B);
-    G = A*X+B;
-    Projg = X - max(min(X-G,U),L);
+    X = X - t * Projg;
+    f = X' * (.5 * A * X + B);
+    G = A * X + B;
+    Projg = X - max(min(X - G, U), L);
 end
