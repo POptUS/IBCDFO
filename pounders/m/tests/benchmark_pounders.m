@@ -17,67 +17,74 @@ factor = 10;
 
 load dfo.dat
 
-for hfun_cases = 1:2
-    if hfun_cases == 1
-        hfun = @(F)sum(F.^2);
-        combinemodels = @leastsquares;
-    elseif hfun_cases == 2
-        alpha = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
-        hfun = @(F)sum((F - 1/length(F)*sum(F)).^2) - alpha*(1/length(F)*sum(F))^2;
-        combinemodels = @squared_diff_from_mean;
-    end
+for row = 1:53
+    nprob = dfo(row,1);
+    n = dfo(row,2);
+    m = dfo(row,3);
+    factor_power = dfo(row,4);
 
-    filename = ['./benchmark_results/poundersM_nfmax=' num2str(nfmax) '_gtol=' num2str(gtol) '_spsolver=' num2str(spsolver) '_' func2str(combinemodels) '.mat'];
-    if exist(filename,'file')
-        Old_results = load(filename);
-        re_check = 1;
-    else
-        Results = cell(1,53);
-        re_check = 0;
-    end
+    BenDFO.nprob = nprob;
+    BenDFO.m = m;
+    BenDFO.n = n;
 
-    for row = 1:53
-        [row, hfun_cases]
-        nprob = dfo(row,1);
-        n = dfo(row,2);
-        m = dfo(row,3);
-        factor_power = dfo(row,4);
+    xs = dfoxs(n,nprob,factor^factor_power);
 
-        BenDFO.nprob = nprob;
-        BenDFO.m = m;
-        BenDFO.n = n;
+    SolverNumber = 0;
 
-        xs = dfoxs(n,nprob,factor^factor_power);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % POUNDERs
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        SolverNumber = 0;
+    npmax = 2*n+1;  % Maximum number of interpolation points [2*n+1]
+    L = -Inf(1,n);
+    U = Inf(1,n);
+    nfs = 0;
+    X0 = xs';
+    F0 = [];
+    xkin = 1;
+    delta = 0.1;
+    printf = 0;
 
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % POUNDERs
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    objective = @(x)calfun_wrapper(x,BenDFO,'smooth');
 
-        npmax = 2*n+1;  % Maximum number of interpolation points [2*n+1]
-        L = -Inf(1,n);
-        U = Inf(1,n);
-        nfs = 0;
-        X0 = xs';
-        F0 = [];
-        xkin = 1;
-        delta = 0.1;
-        printf = 0;
+    for hfun_cases = 3
+        [row,hfun_cases]
 
-        objective = @(x)calfun_wrapper(x,BenDFO,'smooth');
+        if hfun_cases == 1
+            hfun = @(F)sum(F.^2);
+            combinemodels = @leastsquares;
+        elseif hfun_cases == 2
+            alpha = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
+            hfun = @(F)sum((F - 1/length(F)*sum(F)).^2) - alpha*(1/length(F)*sum(F))^2;
+            combinemodels = @squared_diff_from_mean;
+        elseif hfun_cases == 3
+            if m ~= 3 % Emittance is only defined for the case when m == 3
+                continue
+            end
+            hfun = @emittance_h;
+            combinemodels = @emittance_combine;
+        end
+
+        filename = ['./benchmark_results/poundersM_nfmax=' num2str(nfmax) '_gtol=' num2str(gtol) '_spsolver=' num2str(spsolver) '_' func2str(combinemodels) '.mat'];
+        if exist(filename,'file')
+            Old_results = load(filename);
+            re_check = 1;
+        else
+            Results = cell(1,53);
+            re_check = 0;
+        end
 
         [X,F,flag,xkin] = pounders(objective,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf,spsolver, hfun, combinemodels);
 
         assert(hfun(F(1,:)) > hfun(F(xkin,:)), "Didn't finds decrease over the starting point")
 
         assert(size(X,1) <= nfmax, "POUNDERs grew the size of X")
-        if re_check
-            assert(min(Old_results.Results{1,row}.H) == min(sum(F.^2,2)), "Didn't find the same min")
-            if row~=2 && row~=26 && row~=52
-                assert(all(all(Old_results.Results{1,row}.Fvec == F)), "Didn't find the same Fvec")
-            end
-        end
+%         if re_check
+%             assert(min(Old_results.Results{1,row}.H) == min(sum(F.^2,2)), "Didn't find the same min")
+%             if row~=2 && row~=26 && row~=52
+%                 assert(all(all(Old_results.Results{1,row}.Fvec == F)), "Didn't find the same Fvec")
+%             end
+%         end
 
         SolverNumber = SolverNumber + 1;
         Results{SolverNumber,row}.alg = 'POUNDERs';
@@ -87,8 +94,8 @@ for hfun_cases = 1:2
         Results{SolverNumber,row}.X = X;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %     save('-mat7-binary', filename, 'Results') % Octave save
+        save(filename, 'Results');
     end
-    save(filename, 'Results');
 end
 end
 
