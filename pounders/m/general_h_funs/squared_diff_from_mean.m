@@ -1,6 +1,9 @@
-function [G,H] = beam_loading(Cres,Gres,Hres)
-
-global alpha
+function [G,H] = squared_diff_from_mean(Cres,Gres,Hres)
+% Combines models for the following h function
+%    h = @(F)sum((F - 1/m*sum(F)).^2) - alpha*(1/m*sum(F))^2
+% That is, the objective is to have the vector close to it's mean, and have
+% a small mean (penalized by alpha)
+alpha = 0; 
 
 [n,~,m] = size(Hres);
 
@@ -10,7 +13,7 @@ sumH = sum(Hres,3);
 
 G = zeros(n,1);
 for i = 1:m
-   G = G + (Cres(i) - m_sumF)*(Gres(:,i) - m_sumG);
+    G = G + (Cres(i) - m_sumF)*(Gres(:,i) - m_sumG);
 end
 G = 2*G - 2*alpha*m_sumF*m_sumG;
 
