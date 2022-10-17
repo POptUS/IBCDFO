@@ -37,6 +37,16 @@
 % L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
 % U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
 % printf  [log] 1 Indicates you want output to screen (1)
+% spsolver [int] Trust-region subproblem solver flag
+%
+% Optionally, a user can specify and outer-function that maps the the elements
+% of F to a scalar value (to be minimized). Doing this also requires a function
+% handle (combinemodels) that tells pounders how to map the linear and
+% quadratic terms from the residual models into a single quadratic TRSP model.
+%
+% hfun           [f h] Function handle for mapping output from F
+% combinemodels  [f h] Function handle for combine residual models
+%
 % --OUTPUTS----------------------------------------------------------------
 % X       [dbl] [nfmax+nfs-by-n] Locations of evaluated points
 % F       [dbl] [nfmax+nfs-by-m] Function values of evaluated points
@@ -53,7 +63,13 @@
 % formquad, phi2eval  :  Forms interpolation set and fits quadratic models
 % bmpts, boxline : Generates feasible model-improving points
 function [X,F,flag,xkin] = ...
-    pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf,spsolver)
+    pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf,spsolver,hfun,combinemodels)
+
+if nargin <= 15
+    addpath('../general_h_funs/')
+    hfun = @(F)sum(F.^2);
+    combinemodels = @leastsquares;
+end
 
 %spsolver=1; % Stefan's crappy solver
 if spsolver == 2
@@ -118,7 +134,7 @@ else % Have other function values around
 end
 Fs = zeros(nfmax+nfs,1); % Stores the sum of squares of evaluated points
 for i=1:nf
-    Fs(i) = sum(F(i,:).^2);
+    Fs(i) = hfun(F(i,:));
 end
 
 Res = zeros(size(F)); % Stores the residuals for model updates
@@ -143,7 +159,7 @@ while nf<nfmax
         for i=1:min(n-np,nfmax-nf)
             nf = nf+1;
             X(nf,:) = min(U,max(L,X(xkin,:)+Mdir(i,:))); % Temp safeguard
-            F(nf,:) = fun(X(nf,:)); Fs(nf) = sum(F(nf,:).^2);
+            F(nf,:) = fun(X(nf,:)); Fs(nf) = hfun(F(nf,:));
             if printf
                 fprintf('%4i   Geometry point  %11.5e\n',nf,Fs(nf));
             end
@@ -160,12 +176,7 @@ while nf<nfmax
     % 1b. Update the quadratic model
     Cres = F(xkin,:); Hres = Hres+Hresdel;
     c = Fs(xkin);
-    G = 2*Gres*F(xkin,1:m)';
-    H = zeros(n);
-    for i=1:m
-        H = H + F(xkin,i)*Hres(:,:,i);
-    end
-    H = 2*H + 2*(Gres*Gres');
+    [G,H] = combinemodels(Cres,Gres,Hres);
     ng = norm(G.*( and(X(xkin,:)>L,G'>0) + and(X(xkin,:)<U,G'<0) )');
 
     if printf   % Output stuff: ---------(can be removed later)------------
@@ -195,7 +206,7 @@ while nf<nfmax
             for i = 1:min(n-np,nfmax-nf)
                 nf = nf + 1;
                 X(nf,:) = min(U,max(L,X(xkin,:)+Mdir(i,:))); % Temp safeg.
-                F(nf,:) = fun(X(nf,:)); Fs(nf) = sum(F(nf,:).^2);
+                F(nf,:) = fun(X(nf,:)); Fs(nf) = hfun(F(nf,:));
                 if printf
                     fprintf('%4i   Critical point  %11.5e\n',nf,Fs(nf));
                 end
@@ -204,12 +215,7 @@ while nf<nfmax
             % Recalculate gradient based on a MFN model
             [~,~,valid,Gres,Hres,Mind] = ...
                 formquad(X(1:nf,:),F(1:nf,:),delta,xkin,npmax,Par,0);
-            G = 2*Gres*F(xkin,1:m)';
-            H = zeros(n);
-            for i=1:m
-                H = H + F(xkin,i)*Hres(:,:,i);
-            end
-            H = 2*H + 2*(Gres*Gres');
+            [G,H] = combinemodels(Cres,Gres,Hres);
             ng = norm(G.*(and(X(xkin,:)>L,G'>0)+and(X(xkin,:)<U,G'<0))');
         end
         if ng<gtol % We trust the small gradient norm and return
@@ -261,7 +267,7 @@ while nf<nfmax
 
         nf = nf + 1;
         X(nf,:) = Xsp;
-        F(nf,:) = fun(X(nf,:)); Fs(nf) = sum(F(nf,:).^2);
+        F(nf,:) = fun(X(nf,:)); Fs(nf) = hfun(F(nf,:));
 
         if mdec ~= 0
             rho = (Fs(nf)-Fs(xkin))/mdec;
@@ -309,12 +315,7 @@ while nf<nfmax
                 formquad(X(1:nf,:),Res(1:nf,:),delta,xkin,npmax,Par,0);
             Hres = Hres+Hresdel;
             % Update for modelimp; Cres unchanged b/c xkin unchanged
-            G = 2*Gres*F(xkin,1:m)';
-            H = zeros(n);
-            for i=1:m
-                H = H + F(xkin,i)*Hres(:,:,i);
-            end
-            H = 2*H + 2*(Gres*Gres');
+            [G,H] = combinemodels(Cres,Gres,Hres);
 
             % Evaluate model-improving points to pick best one
             %! May eventually want to normalize Mdir first for infty norm
@@ -339,7 +340,7 @@ while nf<nfmax
 
             nf = nf + 1;
             X(nf,:) = min(U,max(L,X(xkin,:)+Xsp)); % Temp safeguard
-            F(nf,:) = fun(X(nf,:)); Fs(nf) = sum(F(nf,:).^2);
+            F(nf,:) = fun(X(nf,:)); Fs(nf) = hfun(F(nf,:));
             if printf
                 fprintf('%4i   Model point     %11.5e\n',nf,Fs(nf));
             end
