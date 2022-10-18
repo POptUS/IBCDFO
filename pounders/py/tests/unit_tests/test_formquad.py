@@ -32,7 +32,7 @@ class Test_formquad:
         assert np.shape(HOut) == np.shape(H)
         assert MindOut == Mind
         assert validOut == valid
-        assert np.linalg.norm(MdirOut - Mdir, 'fro') < 10 ** -10
+        assert np.linalg.norm(MdirOut - Mdir, 'fro') < 10**-10
 
     # Line 154 Pounders.m from callpounders.m using default X0 in callpounders.m
     def test_formquad2(self):
@@ -53,8 +53,8 @@ class Test_formquad:
         Mind = dictionaryData['Mind']
         [_, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, mpmax, Pars, vf)
         assert mpOut == mp
-        assert np.linalg.norm(Gres - GOut) < 10 ** -10
-        assert np.linalg.norm(Hresdel - HOut) < 10 ** -10
+        assert np.linalg.norm(Gres - GOut) < 10**-10
+        assert np.linalg.norm(Hresdel - HOut) < 10**-10
         assert sum(MindOut - Mind) == 0  # Check indices are the same
         assert validOut == valid
 
@@ -78,11 +78,11 @@ class Test_formquad:
         Mdir = dictionaryData['Mdir']
         [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, mpmax, Pars, vf)
         assert mpOut == mp
-        assert np.linalg.norm(G - GOut) < 10 ** -10
-        assert np.linalg.norm(H - HOut) < 10 ** -10
+        assert np.linalg.norm(G - GOut) < 10**-10
+        assert np.linalg.norm(H - HOut) < 10**-10
         assert sum(abs(MindOut - Mind)) == 0
         assert validOut == valid
-        assert np.linalg.norm(Mdir - MdirOut, 'fro') < 10 ** -10
+        assert np.linalg.norm(Mdir - MdirOut, 'fro') < 10**-10
 
     # Line 205 Pounders.m from callpounders.m using default X0 in callpounders.m
     def test_formquad4(self):
@@ -104,8 +104,8 @@ class Test_formquad:
         Mdir = dictionaryData['Mdir']
         [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, mpmax, Pars, vf)
         assert mpOut == mp - 1
-        assert np.linalg.norm(G - GOut) < 10 ** -10
-        assert np.linalg.norm(H - HOut) < 10 ** -10
-        assert sum(abs(MindOut - (Mind-1))) == 0
+        assert np.linalg.norm(G - GOut) < 10**-10
+        assert np.linalg.norm(H - HOut) < 10**-10
+        assert sum(abs(MindOut - (Mind - 1))) == 0
         assert validOut == valid
-        assert np.linalg.norm(Mdir - MdirOut, 'fro') < 10 ** -10
+        assert np.linalg.norm(Mdir - MdirOut, 'fro') < 10**-10

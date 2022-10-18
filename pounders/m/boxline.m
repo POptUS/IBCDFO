@@ -10,14 +10,14 @@
 % --OUTPUTS----------------------------------------------------------------
 % t      = [dbl] Value of smallest t>=0 for which X+t*D hits a constraint
 %                Set to 1 if t=1 does not hit constraint for t<1.
-function t = boxline(D,X,L,U)
+function t = boxline(D, X, L, U)
 
 n = length(X);
 t = 1;
-for i=1:n
-    if D(i)>0
-        t = min(t,(U(i)-X(i))/D(i));
-    elseif D(i)<0
-        t = min(t,(L(i)-X(i))/D(i));
+for i = 1:n
+    if D(i) > 0
+        t = min(t, (U(i) - X(i)) / D(i));
+    elseif D(i) < 0
+        t = min(t, (L(i) - X(i)) / D(i));
     end
 end

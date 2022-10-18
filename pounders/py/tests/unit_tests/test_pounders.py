@@ -25,7 +25,7 @@ class Testpounders:
         np.random.seed(0)
         mpmax = 2 * n + 1
         nfmax = 200
-        gtol = 10 ** -13
+        gtol = 10**-13
         delta = 0.1
         nfs = 0
         m = n
@@ -39,10 +39,10 @@ class Testpounders:
         # spsolver=2
         [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between XOut and X in test_pounders1 is {error}\n')
         error = np.linalg.norm(FOut - F, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between FOut and F in test_pounders1 is {error}\n')
         assert flagOut == flag
         assert xkin == xkinOut
@@ -64,7 +64,7 @@ class Testpounders:
         np.random.seed(0)
         mpmax = 2 * n + 1
         nfmax = 200
-        gtol = 10 ** -13
+        gtol = 10**-13
         delta = 0.1
         nfs = 0
         m = n
@@ -78,10 +78,10 @@ class Testpounders:
         # spsolver=2
         [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between XOut and X in test_pounders2 is {error}\n')
         error = np.linalg.norm(FOut - F, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between FOut and F in test_pounders2 is {error}\n')
         assert flagOut == flag
         assert xkin == xkinOut
@@ -100,7 +100,7 @@ class Testpounders:
         np.random.seed(0)
         mpmax = 2 * n + 1
         nfmax = 200
-        gtol = 10 ** -13
+        gtol = 10**-13
         delta = 0.1
         nfs = 0
         m = n
@@ -114,10 +114,10 @@ class Testpounders:
         # spsolver=2
         [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between XOut and X in test_pounders3 is {error}\n')
         error = np.linalg.norm(FOut - F, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between FOut and F in test_pounders3 is {error}\n')
         assert flagOut == flag
         assert xkin == xkinOut
@@ -136,7 +136,7 @@ class Testpounders:
         np.random.seed(0)
         mpmax = 2 * n + 1
         nfmax = 200
-        gtol = 10 ** -13
+        gtol = 10**-13
         delta = 0.1
         nfs = 0
         m = n
@@ -150,10 +150,10 @@ class Testpounders:
         # spsolver=2
         [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between XOut and X in test_pounders4 is {error}\n')
         error = np.linalg.norm(FOut - F, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between FOut and F in test_pounders4 is {error}\n')
         assert flagOut == flag
         assert xkin == xkinOut
@@ -172,7 +172,7 @@ class Testpounders:
         np.random.seed(0)
         mpmax = 2 * n + 1
         nfmax = 200
-        gtol = 10 ** -13
+        gtol = 10**-13
         delta = 0.1
         nfs = 0
         m = n
@@ -186,17 +186,18 @@ class Testpounders:
         # spsolver=2
         [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between XOut and X in test_pounders5 is {error}\n')
         error = np.linalg.norm(FOut - F, 'fro')
-        assert error < 10 ** -20
+        assert error < 10**-20
         print(f'Error in the Frobenius norm between FOut and F in test_pounders5 is {error}\n')
         assert flagOut == flag
         assert xkin == xkinOut
         pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
 
+
 flagTest6 = True  # Run this test
-printTest6 = True # Flag to run print statements
+printTest6 = True  # Flag to run print statements
 # Test case when Low = -0.5 * ones(1, n)
 if flagTest6:
     # rand('state', 0) is turned on
@@ -211,7 +212,7 @@ if flagTest6:
     np.random.seed(0)
     mpmax = 2 * n + 1
     nfmax = 200
-    gtol = 10 ** -13
+    gtol = 10**-13
     delta = 0.1
     nfs = 0
     m = n
@@ -228,7 +229,7 @@ if flagTest6:
     count = 0
     # Tuning parameter to check differences between X, F in both matlab / python
     if printTest6:
-        tol = 1 * (10 ** -2)  # Tune this to see how many entries in X, F differ between matlab and python
+        tol = 1 * (10**-2)  # Tune this to see how many entries in X, F differ between matlab and python
         maxError = float('-inf')
         for i in range(np.shape(XOut)[0]):
             for j in range(np.shape(XOut)[1]):
@@ -254,7 +255,7 @@ if flagTest6:
         print(f'that differ more than {tol} between Matlab and Python implementation with largest error {maxError} in some entry of F and the error in the frobenius norm is {matrixError}')
 
 flagTest7 = True  # Run this test
-printTest7 = True # Flag to run print statements
+printTest7 = True  # Flag to run print statements
 # Data generated from matlab using n = 3
 # Before pounders function call in callpounders.m, we save data as test_callpounders_low2.mat
 # We save output of callpounders.m in callpounders7.mat
@@ -267,7 +268,7 @@ if flagTest7:
     n = 3
     mpmax = 2 * n + 1
     nfmax = 200
-    gtol = 10 ** -13
+    gtol = 10**-13
     delta = 0.1
     nfs = 0
     m = n
@@ -292,7 +293,7 @@ if flagTest7:
         print(f'The error of F between matlab / Python is {errorF} in the Frobenius norm\n')
 
 flagTest8 = True  # Run this test
-printTest8 = True # Flag to run print statements
+printTest8 = True  # Flag to run print statements
 # Data generated from matlab using n = 4
 # Before pounders function call in callpounders.m, we save data as test_callpounders_low3.mat
 # We save output of callpounders.m in callpounders8.mat
@@ -305,7 +306,7 @@ if flagTest8:
     n = 4
     mpmax = 2 * n + 1
     nfmax = 200
-    gtol = 10 ** -13
+    gtol = 10**-13
     delta = 0.1
     nfs = 0
     m = n
@@ -330,7 +331,7 @@ if flagTest8:
         print(f'The error of F between matlab / Python is {errorF} in the Frobenius norm\n')
 
 flagTest9 = True  # Run this test
-printTest9 = True # Flag to run print statements
+printTest9 = True  # Flag to run print statements
 # Data generated from matlab using n = 4, nfs = 2
 # Generate X0 = 0.5 + 0.1 * rand(nfs, n) in callpounders.m and save it in test_callpounders_low4.mat
 # Generate F0 by the following steps:
@@ -349,7 +350,7 @@ if flagTest9:
     n = 4
     mpmax = 2 * n + 1
     nfmax = 200
-    gtol = 10 ** -13
+    gtol = 10**-13
     delta = 0.1
     nfs = 2
     m = n
@@ -375,7 +376,7 @@ if flagTest9:
         print(f'The error of F between matlab / Python is {errorF} in the Frobenius norm\n')
 
 flagTest10 = True  # Run this test
-printTest10 = True # Flag to run print statements
+printTest10 = True  # Flag to run print statements
 # Data generated from matlab using n = 4, nfs = 2
 # Generate X0 by the following line in matlab callpounders.m and save it in test_callpounders_low5.mat
 # 1. rand('state',0)
@@ -399,7 +400,7 @@ if flagTest10:
     n = 4
     mpmax = 2 * n + 1
     nfmax = 200
-    gtol = 10 ** -13
+    gtol = 10**-13
     delta = 0.1
     nfs = 2
     m = n
@@ -420,6 +421,8 @@ if flagTest10:
         errorF = np.linalg.norm(F - FOut, 'fro')
         print('\nSimulation #10\n')
         print(f'\nSimulation done when n = {4}, nfs = 2, and when Low = -0.5 * ones(1, {n})\n')
-        print(f'X0(1, :) predefined by X0 = 0.5 + 0.1 * rand(1, {n}) with rand(state, 0)\n\nLet I = eye(n)\n\nfor nf=2:nfs\n\tX0(nf, :) = X0(1, :) + I(nf-1, :)\nend\n\nfor nf=1:nfs\n\tF0(nf, :) = calFun(X0(nf, :))\nend\n')
+        print(
+            f'X0(1, :) predefined by X0 = 0.5 + 0.1 * rand(1, {n}) with rand(state, 0)\n\nLet I = eye(n)\n\nfor nf=2:nfs\n\tX0(nf, :) = X0(1, :) + I(nf-1, :)\nend\n\nfor nf=1:nfs\n\tF0(nf, :) = calFun(X0(nf, :))\nend\n'
+        )
         print(f'The error of X between matlab / Python is {errorX} in the Frobenius norm\n')
         print(f'The error of F between matlab / Python is {errorF} in the Frobenius norm\n')
