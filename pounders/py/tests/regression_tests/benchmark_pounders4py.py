@@ -10,17 +10,17 @@ from mpi4py import MPI
 
 sys.path.append("../../")
 from pounders import pounders
-
-sys.path.append("../../general_h_funs")
+import general_h_funs
 
 os.makedirs("benchmark_results", exist_ok=True)
 np.seterr("raise")
 
 
 def doit():
+    bendfo_root = "../../../../../BenDFO/"
 
-    probs = np.loadtxt("../../../../../BenDFO/data/dfo.dat")
-    octave.addpath("../../../../../BenDFO/m")
+    probs = np.loadtxt(bendfo_root + "/data/dfo.dat")
+    octave.addpath(bendfo_root + "/m/")
 
     probtype = "smooth"
 
@@ -44,20 +44,34 @@ def doit():
         # spsolver = 1
         spsolver = 1
 
-        for hfun_cases in range(1,2):
+        for hfun_cases in range(1, 4):
             if hfun_cases == 1:
                 hfun = lambda F: np.sum(F**2)
-                import leastsquares as combinemodels 
+                combinemodels = general_h_funs.leastsquares
             elif hfun_cases == 2:
-                alpha = 0 # If changed here, also needs to be adjusted in squared_diff_from_mean.py
-                hfun = lambda F: np.sum((F - 1/len(F)*np.sum(F))**2) - alpha*(1/len(F)*np.sum(F))**2
-                import squared_diff_from_mean as combinemodels 
+                alpha = 0  # If changed here, also needs to be adjusted in squared_diff_from_mean.py
+                hfun = lambda F: np.sum((F - 1 / len(F) * np.sum(F)) ** 2) - alpha * (1 / len(F) * np.sum(F)) ** 2
+                combinemodels = general_h_funs.squared_diff_from_mean 
             elif hfun_cases == 3:
-                if m != 3: # Emittance is only defined for the case when m == 3
+                if m != 3:  # Emittance is only defined for the case when m == 3
                     continue
-                import emittance_combine as combinemodels 
+                combinemodels = general_h_funs.emittance_combine
 
-        filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_" + probtype + "_prob=" + str(row) + "_spsolver=" + str(spsolver) +"_hfun" + combinemodels.__name__ + ".mat"
+        filename = (
+            "./benchmark_results/pounders4py_nfmax="
+            + str(nfmax)
+            + "_gtol="
+            + str(gtol)
+            + "_"
+            + probtype
+            + "_prob="
+            + str(row)
+            + "_spsolver="
+            + str(spsolver)
+            + "_hfun="
+            + combinemodels.__name__
+            + ".mat"
+        )
         if os.path.isfile(filename):
             Old = sp.io.loadmat(filename)
             re_check = True

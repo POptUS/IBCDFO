@@ -66,9 +66,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
 
     if hfun is None:
         hfun = lambda F: np.sum(F**2)
-        sys.path.append('../../general_h_funs/')
-        from leastsquares import leastsquares
-        combinemodels = leastsquares
+        sys.path.append('../../')
+        from general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
     if spsolver == 2:
