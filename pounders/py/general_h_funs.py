@@ -20,15 +20,15 @@ def emittance_combine(Cres, Gres, Hres):
 
     assert m == 3, "Emittance calculation requires exactly three quantities"
 
-    G = Cres[0] @ Gres[:, 1] + Cres[1] @ Gres[:, 0] - 2 * Cres[2] @ Gres[:, 2]
-    H = Cres[0] @ Hres[:, :, 1] + Cres[1] @ Hres[:, :, 0] + Gres[:, 1] @ Gres[:, 0].T + Gres[:, 0] @ Gres[:, 1].T - 2 * Cres[2] @ Hres[:, :, 2] - 2 * Gres[:, 2] @ Gres[:, 2].T
+    G = Cres[0] * Gres[:, 1] + Cres[1] * Gres[:, 0] - 2 * Cres[2] * Gres[:, 2]
+    H = Cres[0] * Hres[:, :, 1] + Cres[1] * Hres[:, :, 0] + np.outer(Gres[:, 1], Gres[:, 0]) + np.outer(Gres[:, 0], Gres[:, 1]) - 2 * Cres[2] * Hres[:, :, 2] - 2 * np.outer(Gres[:, 2], Gres[:, 2])
 
     return G, H
 
 
 def emittance_h(F):
 
-    assert length(F) == 3, "Emittance must have exactly 3 inputs"
+    assert len(F) == 3, "Emittance must have exactly 3 inputs"
     h = F[0] * F[1] - F[2] ** 2
 
     return h
@@ -44,20 +44,20 @@ def squared_diff_from_mean(Cres, Gres, Hres):
     n, _, m = Hres.shape
 
     m_sumF = np.mean(Cres)
-    m_sumG = 1 / m * np.sum(Gres, dim=1)
-    sumH = np.sum(Hres, dim=2)
+    m_sumG = 1 / m * np.sum(Gres, axis=1)
+    sumH = np.sum(Hres, axis=2)
 
-    G = np.zeros(n, 1)
+    G = np.zeros(n)
     for i in range(m):
         G = G + (Cres[i] - m_sumF) * (Gres[:, i] - m_sumG)
     G = 2 * G - 2 * alpha * m_sumF * m_sumG
 
     H = np.zeros((n, n))
     for i in range(m):
-        H = H + (Cres[i] - m_sumF) * (Hres[:, :, i] + sumH) + (Gres[:, i] - m_sumG) @ (Gres[:, i] - m_sumG).T
+        H = H + (Cres[i] - m_sumF) * (Hres[:, :, i] + sumH) + np.outer(Gres[:, i] - m_sumG, Gres[:, i] - m_sumG)
 
     H = 2 * H
 
-    H = H - (2 * alpha / m) * m_sumF * sumH - (2 * alpha) * m_sumG @ m_sumG.T
+    H = H - (2 * alpha / m) * m_sumF * sumH - (2 * alpha) * np.outer(m_sumG, m_sumG)
 
     return G, H
