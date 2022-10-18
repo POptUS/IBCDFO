@@ -52,25 +52,13 @@ def doit():
             elif hfun_cases == 2:
                 alpha = 0  # If changed here, also needs to be adjusted in squared_diff_from_mean.py
                 hfun = lambda F: np.sum((F - 1 / len(F) * np.sum(F)) ** 2) - alpha * (1 / len(F) * np.sum(F)) ** 2
-                combinemodels = general_h_funs.squared_diff_from_mean 
+                combinemodels = general_h_funs.squared_diff_from_mean
             elif hfun_cases == 3:
                 if m != 3:  # Emittance is only defined for the case when m == 3
                     continue
                 combinemodels = general_h_funs.emittance_combine
 
-            filename = (
-                "./benchmark_results/pounders4py_nfmax="
-                + str(nfmax)
-                + "_gtol="
-                + str(gtol)
-                + "_prob="
-                + str(row)
-                + "_spsolver="
-                + str(spsolver)
-                + "_hfun="
-                + combinemodels.__name__
-                + ".mat"
-            )
+            filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
             if os.path.isfile(filename):
                 Old = sp.io.loadmat(filename)
                 re_check = True
@@ -107,7 +95,7 @@ def doit():
             h = np.zeros(evals)
 
             for i in range(evals):
-                h[i] = hfun(FO[i,:])
+                h[i] = hfun(FO[i, :])
 
             if re_check:
                 assert np.all(Old["pounders4py" + str(row)]["Fvec"][0, 0] == FO), "Different min found"
