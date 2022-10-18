@@ -21,6 +21,7 @@ class Test_boxline:
         for i in range(np.shape(T)[1]):
             assert T[0, i] == boxline(delta * Modeld[i, :], X, Low, Upp)
             assert T[1, i] == boxline(-delta * Modeld[i, :], X, Low, Upp)
+
     # Line 194 pounders.m from callpounders.m
     def test_callPounders2(self):
         dictionaryData = loadmat('boxlineCallpounders2.mat')
@@ -34,4 +35,5 @@ class Test_boxline:
         for i in range(np.shape(T)[1]):
             assert T[0, i] == boxline(delta * Modeld[i, :], X, Low, Upp)
             assert T[1, i] == boxline(-delta * Modeld[i, :], X, Low, Upp)
+
     # Line 294 & 302 - Not covered

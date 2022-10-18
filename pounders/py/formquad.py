@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.linalg
 from phi2eval import phi2eval
+
 # from flipFirstRow import flipFirstRow
 # from flipSignQ import flipSignQ
 
@@ -49,7 +50,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     assert isinstance(mpmax, int), "Must be an integer"
     assert isinstance(xkin, int), "Must be an integer"
 
-    D = (X[:nf] - X[xkin])/delta
+    D = (X[:nf] - X[xkin]) / delta
     Nd = np.linalg.norm(D, 2, axis=1)
 
     # Get n+1 sufficiently affinely independent points:
@@ -64,7 +65,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     for aff in range(2):
         for i in reversed(range(nf)):
             if Nd[i] <= Pars[aff]:
-                proj = np.linalg.norm(D[i] @ Q[:, mp: n], 2)  # Project D onto null
+                proj = np.linalg.norm(D[i] @ Q[:, mp:n], 2)  # Project D onto null
                 if proj >= Pars[aff + 2]:  # add this index to Mind
                     mp += 1
                     Mind.append(i)
@@ -98,12 +99,12 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     N = phi2eval(D[Mind]).T
 
     mp = len(Mind)
-    M = np.vstack((np.ones(n+1), D[Mind].T))
+    M = np.vstack((np.ones(n + 1), D[Mind].T))
     [Q, R] = np.linalg.qr(M.T, mode='complete')
     # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
     # Now we add points until we have mpmax starting with the most recent ones
     i = nf - 1
-    while mp < mpmax or mpmax == n+1:
+    while mp < mpmax or mpmax == n + 1:
         if Nd[i] <= Pars[1] and i not in Mind:
             Ny = np.hstack((N, phi2eval(D[[i], :]).T))
             # Update QR
@@ -111,7 +112,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((1, D[i])), mp, 'row')
             # [Qy, Ry] = flipFirstRow(Qy, Ry, 0, np.shape(Q)[1]-1)
             # [Qy, Ry] = flipSignQ(Qy, Ry, 0, np.shape(Q)[1]-1)
-            Ly = Ny @ Qy[:, n+1: mp + 1]
+            Ly = Ny @ Qy[:, n + 1 : mp + 1]
             _, s, _ = np.linalg.svd(Ly)
             if min(s) > Pars[3]:
                 mp += 1
@@ -120,7 +121,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
                 Q = Qy
                 R = Ry
                 L = Ly
-                Z = Q[:, n+1: mp]
+                Z = Q[:, n + 1 : mp]
                 # Note that M is growing
                 M = np.hstack((M, np.vstack((1, D[[i]].T))))
         i -= 1
@@ -130,8 +131,8 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             if mp == n + 1:
                 # L = 1
                 L = np.array([[1]])
-                Z = np.zeros((n+1, int(0.5 * n * (n+1))))
-                N = np.zeros((int(0.5 * n * (n+1)), n+1))
+                Z = np.zeros((n + 1, int(0.5 * n * (n + 1))))
+                N = np.zeros((int(0.5 * n * (n + 1)), n + 1))
             break
     F = F[Mind]
     for k in range(m):
@@ -152,16 +153,16 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             else:
                 Alpha = np.linalg.lstsq(M, F[:, [k]] - N.T @ Beta, rcond=None)[0]
             Alpha = np.reshape(Alpha, (np.shape(Alpha)[0], 1))
-        G[:, k] = Alpha[1:n+1, 0]
+        G[:, k] = Alpha[1 : n + 1, 0]
         num = -1
         for i in range(n):
             num += 1
             H[i, i, k] = Beta[num]
-            for j in range(i+1, n):
+            for j in range(i + 1, n):
                 num += 1
                 H[i, j, k] = Beta[num] / np.sqrt(2)
                 H[j, i, k] = H[i, j, k]
-    H = H / (delta ** 2)
+    H = H / (delta**2)
     G = G / delta
 
     return [Mdir, mp, valid, G, H, Mind]
