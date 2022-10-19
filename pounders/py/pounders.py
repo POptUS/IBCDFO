@@ -110,7 +110,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         nfmax = nfmax + nfs
     Fs = np.zeros(nfmax + nfs)
     for i in range(nf + 1):
-        Fs[i] = np.sum(F[i] ** 2)
+        Fs[i] = hfun(F[i])
     Res = np.zeros(np.shape(F))
     Cres = F[xkin]
     Hres = np.zeros((n, n, m))
@@ -127,7 +127,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                 F[nf] = fun(X[nf])
-                Fs[nf] = np.sum(F[nf] ** 2)
+                Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Geometry point  %11.5e\n' % (nf, Fs[nf]))
                 D = Mdir[i, :]
@@ -168,7 +168,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     nf += 1
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                     F[nf] = fun(X[nf])
-                    Fs[nf] = np.sum(F[nf] ** 2)
+                    Fs[nf] = hfun(F[nf])
                     if printf:
                         print('%4i   Critical point  %11.5e\n' % (nf, Fs[nf]))
                 if nf + 1 >= nfmax:
@@ -220,7 +220,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             nf += 1
             X[nf] = Xsp
             F[nf] = fun(X[nf])
-            Fs[nf] = np.sum(F[nf] ** 2)
+            Fs[nf] = hfun(F[nf])
 
             if mdec != 0:
                 rho = (Fs[nf] - Fs[xkin]) / mdec
@@ -284,7 +284,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = fun(X[nf])
-                Fs[nf] = np.sum(F[nf] ** 2)
+                Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Model point     %11.5e\n' % (nf, Fs[nf]))
                 if Fs[nf] < Fs[xkin]:  # ! Eventually check stuff decrease here
