@@ -7,7 +7,7 @@ from bqmin import bqmin
 import sys
 
 
-def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver):
+def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun=None, combinemodels=None):
     # POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
     #   [X,F,flag,xkin] = ...
     #        pounders(fun,X0,n,mpmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
@@ -44,6 +44,16 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     # L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
     # U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
     # printf  [log] 1 Indicates you want output to screen (1)
+    # spsolver [int] Trust-region subproblem solver flag
+    #
+    # Optionally, a user can specify and outer-function that maps the the elements
+    # of F to a scalar value (to be minimized). Doing this also requires a function
+    # handle (combinemodels) that tells pounders how to map the linear and
+    # quadratic terms from the residual models into a single quadratic TRSP model.
+    #
+    # hfun           [f h] Function handle for mapping output from F
+    # combinemodels  [f h] Function handle for combine residual models
+    #
     # --OUTPUTS----------------------------------------------------------------
     # X       [dbl] [nfmax+nfs-by-n] Locations of evaluated points
     # F       [dbl] [nfmax+nfs-by-m] Function values of evaluated points
@@ -53,6 +63,11 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     #               = -1 if input was fatally incorrect (error message shown)
     #               = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, Fs[nf] == Fs[xkin])
     # xkin    [int] Index of point in X representing approximate minimizer
+
+    if hfun is None:
+        hfun = lambda F: np.sum(F**2)
+        sys.path.append('../../')
+        from general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
     if spsolver == 2:
@@ -95,7 +110,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         nfmax = nfmax + nfs
     Fs = np.zeros(nfmax + nfs)
     for i in range(nf + 1):
-        Fs[i] = np.sum(F[i] ** 2)
+        Fs[i] = hfun(F[i])
     Res = np.zeros(np.shape(F))
     Cres = F[xkin]
     Hres = np.zeros((n, n, m))
@@ -112,7 +127,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                 F[nf] = fun(X[nf])
-                Fs[nf] = np.sum(F[nf] ** 2)
+                Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Geometry point  %11.5e\n' % (nf, Fs[nf]))
                 D = Mdir[i, :]
@@ -127,11 +142,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         Cres = F[xkin]
         Hres = Hres + Hresdel
         c = Fs[xkin]
-        G = 2 * Gres @ F[xkin, :m].T
-        H = np.zeros((n, n))
-        for i in range(m):
-            H = H + F[xkin, i] * Hres[:, :, i]
-        H = 2 * H + 2 * (Gres @ Gres.T)
+        G, H = combinemodels(Cres, Gres, Hres)
         ng = np.linalg.norm(G * (np.int64(X[xkin] > L) * np.int64(G.T > 0) + np.int64(X[xkin] < U) * np.int64(G.T < 0)).T, 2)
         if printf:
             IERR = np.zeros(len(Mind))
@@ -157,18 +168,14 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     nf += 1
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                     F[nf] = fun(X[nf])
-                    Fs[nf] = np.sum(F[nf] ** 2)
+                    Fs[nf] = hfun(F[nf])
                     if printf:
                         print('%4i   Critical point  %11.5e\n' % (nf, Fs[nf]))
                 if nf + 1 >= nfmax:
                     break
                 # Recalculate gradient based on a MFN model
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, mpmax, Par, 0)
-                G = 2 * Gres @ F[xkin, :m].T
-                H = np.zeros((n, n))
-                for i in range(m):
-                    H = H + F[xkin, i] * Hres[:, :, i]
-                H = 2 * H + 2 * (Gres @ Gres.T)
+                G, H = combinemodels(Cres, Gres, Hres)
                 ng = np.linalg.norm(G * (np.int64(X[xkin] > L) * np.int64(G.T > 0) + np.int64(X[xkin] < U) * np.int64(G.T < 0)).T, 2)
             if ng < gtol:
                 if printf:
@@ -213,7 +220,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             nf += 1
             X[nf] = Xsp
             F[nf] = fun(X[nf])
-            Fs[nf] = np.sum(F[nf] ** 2)
+            Fs[nf] = hfun(F[nf])
 
             if mdec != 0:
                 rho = (Fs[nf] - Fs[xkin]) / mdec
@@ -254,12 +261,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, mpmax, Par, False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged
-                G = 2 * Gres @ F[xkin, :m].T
-                H = np.zeros((n, n))
-                for i in range(m):
-                    H = H + F[xkin, i] * Hres[:, :, i]
-                H = H[0]
-                H = 2 * H + 2 * (Gres @ Gres.T)
+                G, H = combinemodels(Cres, Gres, Hres)
                 # Evaluate model-improving points to pick best one
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions
@@ -282,7 +284,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = fun(X[nf])
-                Fs[nf] = np.sum(F[nf] ** 2)
+                Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Model point     %11.5e\n' % (nf, Fs[nf]))
                 if Fs[nf] < Fs[xkin]:  # ! Eventually check stuff decrease here

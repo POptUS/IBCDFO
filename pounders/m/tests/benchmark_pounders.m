@@ -11,13 +11,13 @@ addpath([bendfo_location, '/m/']);
 addpath([bendfo_location, '/data/']);
 mkdir('benchmark_results');
 
-nfmax = 100;
+nfmax = 1000;
 gtol = 1e-13;
 factor = 10;
 
 load dfo.dat;
 
-for row = 1:53
+for row = 1:length(dfo)
     nprob = dfo(row, 1);
     n = dfo(row, 2);
     m = dfo(row, 3);
@@ -47,9 +47,9 @@ for row = 1:53
 
     objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 
-    for hfun_cases = 3
-        [row, hfun_cases];
+    Results = cell(3, 53);
 
+    for hfun_cases = 1:3
         if hfun_cases == 1
             hfun = @(F)sum(F.^2);
             combinemodels = @leastsquares;
@@ -64,34 +64,40 @@ for row = 1:53
             hfun = @emittance_h;
             combinemodels = @emittance_combine;
         end
+        disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_nfmax=' num2str(nfmax) '_gtol=' num2str(gtol) '_spsolver=' num2str(spsolver) '_' func2str(combinemodels) '.mat'];
+        filename = ['./benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
         if exist(filename, 'file')
             Old_results = load(filename);
             re_check = 1;
         else
-            Results = cell(1, 53);
             re_check = 0;
         end
 
-        [X, F, flag, xkin] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+        [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
 
-        assert(hfun(F(1, :)) > hfun(F(xkin, :)), "Didn't finds decrease over the starting point");
+        assert(flag ~= -1, "pounders failed");
+
+        assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't finds decrease over the starting point");
 
         assert(size(X, 1) <= nfmax, "POUNDERs grew the size of X");
-%         if re_check
-%             assert(min(Old_results.Results{1,row}.H) == min(sum(F.^2,2)), "Didn't find the same min")
-%             if row~=2 && row~=26 && row~=52
-%                 assert(all(all(Old_results.Results{1,row}.Fvec == F)), "Didn't find the same Fvec")
-%             end
-%         end
+        %         if re_check
+        %             assert(min(Old_results.Results{1,row}.H) == min(sum(F.^2,2)), "Didn't find the same min")
+        %             if row~=2 && row~=26 && row~=52
+        %                 assert(all(all(Old_results.Results{1,row}.Fvec == F)), "Didn't find the same Fvec")
+        %             end
+        %         end
+        evals = size(F, 1);
+        h = zeros(evals, 1);
+        for i = 1:evals
+            h(i) = hfun(F(i, :));
+        end
 
-        SolverNumber = SolverNumber + 1;
-        Results{SolverNumber, row}.alg = 'POUNDERs';
-        Results{SolverNumber, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
-        Results{SolverNumber, row}.Fvec = F;
-        Results{SolverNumber, row}.H = sum(F.^2, 2);
-        Results{SolverNumber, row}.X = X;
+        Results{hfun_cases, row}.alg = 'POUNDERs';
+        Results{hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
+        Results{hfun_cases, row}.Fvec = F;
+        Results{hfun_cases, row}.H = h;
+        Results{hfun_cases, row}.X = X;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %     save('-mat7-binary', filename, 'Results') % Octave save
         save(filename, 'Results');
@@ -100,5 +106,5 @@ end
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)
-    [~, fvec, ~] = calfun(x, struct, probtype);
+[~, fvec, ~] = calfun(x, struct, probtype);
 end
