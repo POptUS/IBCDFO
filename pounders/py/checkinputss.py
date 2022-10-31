@@ -20,6 +20,7 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         flag = -1
         return [flag, X0, mpmax, F0, L, U]
     # Verify X0 is the appropriate size
+    X0 = np.atleast_2d(X0)
     [nfs2, n2] = np.shape(X0)
     if n != n2:
         # Attempt to transpose:
