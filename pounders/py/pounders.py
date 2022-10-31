@@ -43,9 +43,9 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     # xkin    [int] Index of point in X0 at which to start from (1)
     # L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
     # U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-    # printf  [log] 0 No printing to screen 
+    # printf  [log] 0 No printing to screen
     #               1 Debugging level of output to screen (default)
-    #               2 More verbose screen output 
+    #               2 More verbose screen output
     # spsolver [int] Trust-region subproblem solver flag
     #
     # Optionally, a user can specify and outer-function that maps the the elements

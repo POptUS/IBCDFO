@@ -36,7 +36,9 @@
 % xkin    [int] Index of point in X0 at which to start from (1)
 % L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
 % U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-% printf  [log] 1 Indicates you want output to screen (1)
+% printf  [log] 0 No printing to screen
+%               1 Debugging level of output to screen (default)
+%               2 More verbose screen output
 % spsolver [int] Trust-region subproblem solver flag
 %
 % Optionally, a user can specify and outer-function that maps the the elements
@@ -188,7 +190,7 @@ while nf < nfmax
     [G, H] = combinemodels(Cres, Gres, Hres);
     ng = norm(G .* (and(X(xkin, :) > L, G' > 0) + and(X(xkin, :) < U, G' < 0))');
 
-    if printf   % Output stuff: ---------(can be removed later)------------
+    if printf >= 2  % Output stuff: ---------(can be removed later)------------
         IERR = zeros(1, size(Mind, 1));
         for i = 1:size(Mind, 1)
             D = (X(Mind(i), :) - X(xkin, :));
