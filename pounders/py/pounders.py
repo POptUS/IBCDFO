@@ -7,7 +7,6 @@ from bqmin import bqmin
 import sys
 
 
-@profile
 def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun=None, combinemodels=None):
     # POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
     #   [X,F,flag,xkin] = ...
