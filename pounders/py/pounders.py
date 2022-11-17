@@ -121,7 +121,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         #  1a. Compute the interpolation set.
         for i in range(nf + 1):
             D = X[i] - X[xkin]
-            Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1) 
+            Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, mpmax, Par, 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Par[2])
@@ -133,7 +133,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 if printf:
                     print('%4i   Geometry point  %11.5e\n' % (nf, Fs[nf]))
                 D = Mdir[i, :]
-                Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1) 
+                Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nfmax:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, mpmax, Par, False)
@@ -257,7 +257,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 # Update model (exists because delta & xkin unchanged)
                 for i in range(nf + 1):
                     D = X[i, :] - X[xkin]
-                    Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1) 
+                    Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, mpmax, Par, False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged
