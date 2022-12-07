@@ -144,6 +144,7 @@ for i = 1:nf
 end
 
 Res = zeros(size(F)); % Stores the residuals for model updates
+ResJ = zeros(size(F)); % Stores the residuals for model updates
 Cres = F(xkin, :);
 Hres = zeros(n, n, m);
 % H = zeros(n); G = zeros(n,1); c = Fs(xkin);
@@ -157,6 +158,12 @@ while nf < nfmax
         D = X(i, :) - X(xkin, :);
         for j = 1:m
             Res(i, j) = (F(i, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';
+        end
+        ResJ(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+        if norm(Res(i, :)) > 1e-16
+            assert(norm(ResJ(i, :) - Res(i, :)) / norm(Res(i, :)) < 1e-12, "A");
+        else
+            assert(norm(ResJ(i, :) - Res(i, :)) < 1e-12, "A");
         end
     end
     [Mdir, np, valid, Gres, Hresdel, Mind] = ...
@@ -174,6 +181,12 @@ while nf < nfmax
             D = Mdir(i, :);
             for j = 1:m
                 Res(nf, j) = (F(nf, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';
+            end
+            ResJ(nf, :) = F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+            if norm(Res(i, :)) > 1e-16
+                assert(norm(ResJ(nf, :) - Res(nf, :)) / norm(Res(i, :)) < 1e-12, "A");
+            else
+                assert(norm(ResJ(nf, :) - Res(nf, :)) < 1e-12, "A");
             end
         end
         if nf >= nfmax
@@ -339,6 +352,12 @@ while nf < nfmax
                 D = (X(i, :) - X(xkin, :));
                 for j = 1:m
                     Res(i, j) = (F(i, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';
+                end
+                ResJ(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+                if norm(Res(i, :)) > 1e-16
+                    assert(norm(ResJ(i, :) - Res(i, :)) / norm(Res(i, :)) < 1e-12, "A");
+                else
+                    assert(norm(ResJ(i, :) - Res(i, :)) < 1e-12, "A");
                 end
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
