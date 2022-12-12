@@ -144,7 +144,6 @@ for i = 1:nf
 end
 
 Res = zeros(size(F)); % Stores the residuals for model updates
-ResJ = zeros(size(F)); % Stores the residuals for model updates
 Cres = F(xkin, :);
 Hres = zeros(n, n, m);
 % H = zeros(n); G = zeros(n,1); c = Fs(xkin);
@@ -156,15 +155,7 @@ while nf < nfmax
     % 1a. Compute the interpolation set.
     for i = 1:nf
         D = X(i, :) - X(xkin, :);
-        for j = 1:m
-            Res(i, j) = (F(i, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';
-        end
-        ResJ(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
-        if norm(Res(i, :)) > 1e-16
-            assert(norm(ResJ(i, :) - Res(i, :)) / norm(Res(i, :)) < 1e-12, "A");
-        else
-            assert(norm(ResJ(i, :) - Res(i, :)) < 1e-12, "A");
-        end
+        Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
     end
     [Mdir, np, valid, Gres, Hresdel, Mind] = ...
         formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
@@ -179,15 +170,7 @@ while nf < nfmax
                 fprintf('%4i   Geometry point  %11.5e\n', nf, Fs(nf));
             end
             D = Mdir(i, :);
-            for j = 1:m
-                Res(nf, j) = (F(nf, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';
-            end
-            ResJ(nf, :) = F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
-            if norm(Res(i, :)) > 1e-16
-                assert(norm(ResJ(nf, :) - Res(nf, :)) / norm(Res(i, :)) < 1e-12, "A");
-            else
-                assert(norm(ResJ(nf, :) - Res(nf, :)) < 1e-12, "A");
-            end
+            Res(nf, :) = F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
         end
         if nf >= nfmax
             break
@@ -350,15 +333,7 @@ while nf < nfmax
             % Update model (exists because delta & xkin unchanged)
             for i = 1:nf
                 D = (X(i, :) - X(xkin, :));
-                for j = 1:m
-                    Res(i, j) = (F(i, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';
-                end
-                ResJ(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
-                if norm(Res(i, :)) > 1e-16
-                    assert(norm(ResJ(i, :) - Res(i, :)) / norm(Res(i, :)) < 1e-12, "A");
-                else
-                    assert(norm(ResJ(i, :) - Res(i, :)) < 1e-12, "A");
-                end
+                Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
                 formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
