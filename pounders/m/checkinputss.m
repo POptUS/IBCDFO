@@ -69,7 +69,7 @@ if nfs2 ~= max(nfs, 1)
     flag = 0;
 end
 
-% Check vector of initial function values
+% Check matrix of initial function values
 [nfs2, m2] = size(F0);
 if nfs2 < nfs
     disp('  Error: fewer than nfs function values in F0');
@@ -83,6 +83,12 @@ elseif nfs2 > nfs
     disp('  Warning: number of starting f values nfs does not match input F0');
     flag = 0;
 end
+if any(any(isnan(F0)))
+    disp("  Error: F0 contains a NaN.")
+    flag = -1;
+    return
+end
+
 
 % Check starting point
 if xkin > max(nfs, 1) || xkin < 1 || mod(xkin, 1) ~= 0
