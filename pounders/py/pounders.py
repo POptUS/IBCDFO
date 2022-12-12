@@ -108,7 +108,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             X = X[:nf]
             F = F[:nf]
             flag = -3;
-            return
+            return [X, F, flag, xkin]
         if printf:
             print('%4i    Initial point  %11.5e\n' % (nf, np.sum(F[nf, :] ** 2)))
     else:
@@ -139,7 +139,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     X = X[:nf]
                     F = F[:nf]
                     flag = -3;
-                    return
+                    return [X, F, flag, xkin]
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Geometry point  %11.5e\n' % (nf, Fs[nf]))
@@ -185,7 +185,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                         X = X[:nf]
                         F = F[:nf]
                         flag = -3;
-                        return
+                        return [X, F, flag, xkin]
                     Fs[nf] = hfun(F[nf])
                     if printf:
                         print('%4i   Critical point  %11.5e\n' % (nf, Fs[nf]))
@@ -243,7 +243,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 X = X[:nf]
                 F = F[:nf]
                 flag = -3;
-                return
+                return [X, F, flag, xkin]
             Fs[nf] = hfun(F[nf])
 
             if mdec != 0:
@@ -312,7 +312,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     X = X[:nf]
                     F = F[:nf]
                     flag = -3;
-                    return
+                    return [X, F, flag, xkin]
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Model point     %11.5e\n' % (nf, Fs[nf]))
