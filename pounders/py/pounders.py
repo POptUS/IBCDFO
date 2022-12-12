@@ -107,7 +107,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             print("A NaN was encountered in an objective evaluation. Exiting.")
             X = X[:nf]
             F = F[:nf]
-            flag = -3;
+            flag = -3
             return [X, F, flag, xkin]
         if printf:
             print('%4i    Initial point  %11.5e\n' % (nf, np.sum(F[nf, :] ** 2)))
@@ -138,7 +138,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     print("A NaN was encountered in an objective evaluation. Exiting.")
                     X = X[:nf]
                     F = F[:nf]
-                    flag = -3;
+                    flag = -3
                     return [X, F, flag, xkin]
                 Fs[nf] = hfun(F[nf])
                 if printf:
@@ -184,7 +184,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                         print("A NaN was encountered in an objective evaluation. Exiting.")
                         X = X[:nf]
                         F = F[:nf]
-                        flag = -3;
+                        flag = -3
                         return [X, F, flag, xkin]
                     Fs[nf] = hfun(F[nf])
                     if printf:
@@ -242,7 +242,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 print("A NaN was encountered in an objective evaluation. Exiting.")
                 X = X[:nf]
                 F = F[:nf]
-                flag = -3;
+                flag = -3
                 return [X, F, flag, xkin]
             Fs[nf] = hfun(F[nf])
 
@@ -311,7 +311,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     print("A NaN was encountered in an objective evaluation. Exiting.")
                     X = X[:nf]
                     F = F[:nf]
-                    flag = -3;
+                    flag = -3
                     return [X, F, flag, xkin]
                 Fs[nf] = hfun(F[nf])
                 if printf:
