@@ -84,11 +84,10 @@ elseif nfs2 > nfs
     flag = 0;
 end
 if any(any(isnan(F0)))
-    disp("  Error: F0 contains a NaN.")
+    disp("  Error: F0 contains a NaN.");
     flag = -1;
     return
 end
-
 
 % Check starting point
 if xkin > max(nfs, 1) || xkin < 1 || mod(xkin, 1) ~= 0

@@ -131,9 +131,9 @@ if nfs == 0 % Need to do the first evaluation
     nf = 1;
     F(nf, :) = fun(X(nf, :));
     if any(isnan(F(nf, :)))
-        disp("A NaN was encountered in an objective evaluation. Exiting.")
-        X = X(1:nf,:);
-        F = F(1:nf,:);
+        disp("A NaN was encountered in an objective evaluation. Exiting.");
+        X = X(1:nf, :);
+        F = F(1:nf, :);
         flag = -3;
         return
     end
@@ -174,9 +174,9 @@ while nf < nfmax
             X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                disp("A NaN was encountered in an objective evaluation. Exiting.")
-                X = X(1:nf,:);
-                F = F(1:nf,:);
+                disp("A NaN was encountered in an objective evaluation. Exiting.");
+                X = X(1:nf, :);
+                F = F(1:nf, :);
                 flag = -3;
                 return
             end
@@ -230,9 +230,9 @@ while nf < nfmax
                 X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeg.
                 F(nf, :) = fun(X(nf, :));
                 if any(isnan(F(nf, :)))
-                    disp("A NaN was encountered in an objective evaluation. Exiting.")
-                    X = X(1:nf,:);
-                    F = F(1:nf,:);
+                    disp("A NaN was encountered in an objective evaluation. Exiting.");
+                    X = X(1:nf, :);
+                    F = F(1:nf, :);
                     flag = -3;
                     return
                 end
@@ -311,9 +311,9 @@ while nf < nfmax
         X(nf, :) = Xsp;
         F(nf, :) = fun(X(nf, :));
         if any(isnan(F(nf, :)))
-            disp("A NaN was encountered in an objective evaluation. Exiting.")
-            X = X(1:nf,:);
-            F = F(1:nf,:);
+            disp("A NaN was encountered in an objective evaluation. Exiting.");
+            X = X(1:nf, :);
+            F = F(1:nf, :);
             flag = -3;
             return
         end
@@ -395,9 +395,9 @@ while nf < nfmax
             X(nf, :) = min(U, max(L, X(xkin, :) + Xsp)); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                disp("A NaN was encountered in an objective evaluation. Exiting.")
-                X = X(1:nf,:);
-                F = F(1:nf,:);
+                disp("A NaN was encountered in an objective evaluation. Exiting.");
+                X = X(1:nf, :);
+                F = F(1:nf, :);
                 flag = -3;
                 return
             end
