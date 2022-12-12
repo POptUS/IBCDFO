@@ -103,7 +103,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         F = np.zeros((nfmax, m))
         nf = 0  # in Matlab this is 1
         F[nf] = fun(X[nf])
-        if np.any(np.isnan(F[nf]))
+        if np.any(np.isnan(F[nf])):
             print("A NaN was encountered in an objective evaluation. Exiting.")
             X = X[:nf]
             F = F[:nf]
@@ -134,7 +134,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                 F[nf] = fun(X[nf])
-                if np.any(np.isnan(F[nf]))
+                if np.any(np.isnan(F[nf])):
                     print("A NaN was encountered in an objective evaluation. Exiting.")
                     X = X[:nf]
                     F = F[:nf]
@@ -180,7 +180,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     nf += 1
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                     F[nf] = fun(X[nf])
-                    if np.any(np.isnan(F[nf]))
+                    if np.any(np.isnan(F[nf])):
                         print("A NaN was encountered in an objective evaluation. Exiting.")
                         X = X[:nf]
                         F = F[:nf]
@@ -238,7 +238,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             nf += 1
             X[nf] = Xsp
             F[nf] = fun(X[nf])
-            if np.any(np.isnan(F[nf]))
+            if np.any(np.isnan(F[nf])):
                 print("A NaN was encountered in an objective evaluation. Exiting.")
                 X = X[:nf]
                 F = F[:nf]
@@ -307,7 +307,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = fun(X[nf])
-                if np.any(np.isnan(F[nf]))
+                if np.any(np.isnan(F[nf])):
                     print("A NaN was encountered in an objective evaluation. Exiting.")
                     X = X[:nf]
                     F = F[:nf]
