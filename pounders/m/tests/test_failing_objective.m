@@ -28,4 +28,4 @@ rand('seed', 1);
 objective = @(x)failing_objective(x);
 
 [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver);
-assert(flag == -3, "No NaN was encountered in this test, but should have been.");
+assert(flag == -3, "No NaN was encountered in this test, but (with high probability) should have been.");
