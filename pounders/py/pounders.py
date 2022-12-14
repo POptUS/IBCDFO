@@ -75,9 +75,9 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     if spsolver == 2:
         sys.path.append("../../minq/minq5/python/")
         from minqsw import minqsw
-    elif spsolver == 3:
-        sys.path.append("../../minq/minq8/python/")
-        from minq8 import minq8
+    # elif spsolver == 3:
+    #     sys.path.append("../../minq/minq8/python/")
+    #     from minq8 import minq8
 
     [flag, X0, mpmax, F0, L, U] = checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)
     if flag == -1:
@@ -191,9 +191,11 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         if spsolver == 1:  # Stefan's crappy 10line solver
             [Xsp, mdec] = bqmin(H, G, Lows, Upps)
         elif spsolver == 2:  # Arnold Neumaier's minq5
-            [Xsp, mdec, _, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-        elif spsolver == 3:  # Arnold Neumaier's minq8
-            [Xsp, mdec, _, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
+            [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
+            assert minq_err >= 0, "Input error in minq"
+        # elif spsolver == 3:  # Arnold Neumaier's minq8
+        #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
+        #     assert minq_err >= 0, "Input error in minq"
         Xsp = Xsp.squeeze()
         step_norm = np.linalg.norm(Xsp, np.inf)
 
