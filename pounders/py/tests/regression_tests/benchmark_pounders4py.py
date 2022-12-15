@@ -8,8 +8,8 @@ import numpy as np
 import scipy as sp
 from mpi4py import MPI
 
-sys.path.append("../../../../minq/py/minq5/") # Needed for spsolver=2
-sys.path.append("../../") # For importing pounders
+sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
+sys.path.append("../../")  # For importing pounders
 from pounders import pounders
 import general_h_funs
 

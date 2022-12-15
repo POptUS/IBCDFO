@@ -242,8 +242,8 @@ while nf < nfmax
         [Xsp, mdec, minq_err] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
         if minq_err < 0
             disp("Input error in minq");
-            X = X(1: nf, :);
-            F = F(1: nf, :);
+            X = X(1:nf, :);
+            F = F(1:nf, :);
             flag = -3;
             return
         end
