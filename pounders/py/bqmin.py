@@ -28,7 +28,7 @@ def bqmin(A, B, L, U):
     n = np.shape(A)[1]  # [int] Dimension (number of continuous variables)
     maxit = 5000  # [int] maximum number of iterations
     pgtol = 1e-13  # [dbl] tolerance on final projected gradient
-    # Intitial point (assumed feasible by L <= 0 <= U)
+    # Initial point (assumed feasible by L <= 0 <= U)
     X = np.zeros(n)
     f = X.T @ (0.5 * A @ X + B)
     G = A @ X + B
