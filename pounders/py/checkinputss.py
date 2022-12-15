@@ -4,15 +4,15 @@ import numpy as np
 def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
     '''
     checkinputss(fun,X0,n,mpmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U) -> [flag,X0,mpmax,F0,L,U]
-    Checks the inputs provided to pounder.
+    Checks the inputs provided to pounders.
     A warning message is produced if a nonfatal input is given (and the input is changed accordingly).
-    An error message (flag=-1) is produced if the pounder cannot continue.
+    An error message (flag=-1) is produced if the pounders cannot continue.
     --INPUTS-----------------------------------------------------------------
-    see inputs for pounder.py
+    see inputs for pounders.py
     --OUTPUTS----------------------------------------------------------------
     flag  [int] = 1 if inputs pass the test
                 = 0 if a warning was produced (X0,npmax,F0,L,U are changed)
-                = 01 if a fatal error was produced (pounder terminates)
+                = -1 if a fatal error was produced (pounders terminates)
     '''
     flag = 1  # By default, everything is OK
     if not callable(fun):
