@@ -3,8 +3,8 @@ from calFun import calFun
 
 import sys
 
-sys.path.append("../../")
-sys.path.append("../../../../minq/py/minq5/")
+sys.path.append("../../../../minq/py/minq5/") # Needed for spsolver=2
+sys.path.append("../../") # For importing pounders
 from pounders import pounders
 
 
