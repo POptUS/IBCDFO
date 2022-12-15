@@ -64,6 +64,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     #               > 0 exceeded nfmax evals,   flag = norm of grad at final X
     #               = -1 if input was fatally incorrect (error message shown)
     #               = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, Fs[nf] == Fs[xkin])
+    #               = -3 error from TRSP Solver
     # xkin    [int] Index of point in X representing approximate minimizer
 
     if hfun is None:
@@ -189,7 +190,12 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             [Xsp, mdec] = bqmin(H, G, Lows, Upps)
         elif spsolver == 2:  # Arnold Neumaier's minq5
             [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-            assert minq_err >= 0, "Input error in minq"
+            if minq_err < 0:
+                print("Input error in minq")
+                X = X[: nf + 1, :]
+                F = F[: nf + 1, :]
+                flag = -3
+                return [X, F, flag, xkin]
         # elif spsolver == 3:  # Arnold Neumaier's minq8
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"

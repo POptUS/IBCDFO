@@ -2,13 +2,15 @@
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 function [] = benchmark_pounders()
 
-spsolver = 1;
+spsolver = 2;
 
 addpath('../');
 addpath('../general_h_funs');
 bendfo_location = '../../../../BenDFO';
+minq_location = '../../../../minq/m/minq5/';
 addpath([bendfo_location, '/m/']);
 addpath([bendfo_location, '/data/']);
+addpath(minq_location);
 mkdir('benchmark_results');
 
 nfmax = 1000;

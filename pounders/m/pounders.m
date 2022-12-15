@@ -57,6 +57,7 @@
 %               > 0 exceeded nfmax evals,   flag = norm of grad at final X
 %               = -1 if input was fatally incorrect (error message shown)
 %               = -2 model failure
+%               = -3 error from TRSP Solver
 % xkin    [int] Index of point in X representing approximate minimizer
 %
 % --DEPENDS ON-------------------------------------------------------------
@@ -71,13 +72,6 @@ if nargin <= 15
     addpath('../general_h_funs/');
     hfun = @(F)sum(F.^2);
     combinemodels = @leastsquares;
-end
-
-% spsolver=1; % Stefan's crappy solver
-if spsolver == 2
-    addpath('../../minq/minq5/matlab'); % Arnold Neumaier's minq5
-elseif spsolver == 3
-    addpath('../../minq/minq8/matlab'); % Arnold Neumaier's minq8
 end
 
 % 0. Check inputs
@@ -245,7 +239,14 @@ while nf < nfmax
     if spsolver == 1 % Stefan's crappy 10line solver
         [Xsp, mdec] = bqmin(H, G, Lows, Upps);
     elseif spsolver == 2 % Arnold Neumaier's minq5
-        [Xsp, mdec] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
+        [Xsp, mdec, minq_err] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
+        if minq_err < 0
+            disp("Input error in minq");
+            X = X(1: nf, :);
+            F = F(1: nf, :);
+            flag = -3;
+            return
+        end
 
     elseif spsolver == 3 % Arnold Neumaier's minq8
 
