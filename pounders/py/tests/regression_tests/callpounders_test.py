@@ -4,6 +4,7 @@ from calFun import calFun
 import sys
 
 sys.path.append("../../")
+sys.path.append("../../../../minq/py/minq5/")
 from pounders import pounders
 
 
@@ -36,7 +37,7 @@ Low = np.zeros((1, n))
 Upp = np.ones((1, n))
 # printf [log] 1 Indicates you want output to screen (1)
 printf = True
-spsolver = 1
+spsolver = 2
 
 np.random.seed(1)
 F0[0, :] = func(X0[0, :])

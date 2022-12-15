@@ -68,15 +68,12 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
 
     if hfun is None:
         hfun = lambda F: np.sum(F**2)
-        sys.path.append('../../')
         from general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
     if spsolver == 2:
-        sys.path.append("../../minq/minq5/python/")
         from minqsw import minqsw
     # elif spsolver == 3:
-    #     sys.path.append("../../minq/minq8/python/")
     #     from minq8 import minq8
 
     [flag, X0, mpmax, F0, L, U] = checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)

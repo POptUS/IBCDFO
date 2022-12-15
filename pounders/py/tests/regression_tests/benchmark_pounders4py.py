@@ -41,9 +41,9 @@ def doit():
         if row % size != rank:
             continue
 
-        # Choose your solver:  # Currently set in pounders
-        # spsolver = 1
-        spsolver = 1
+        # Choose your TRSP solver
+        spsolver = 2
+        sys.path.append("../../../../minq/py/minq5/")
 
         for hfun_cases in range(1, 4):
             if hfun_cases == 1:
