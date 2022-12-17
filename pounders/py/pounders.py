@@ -103,6 +103,12 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         F = np.zeros((nfmax, m))
         nf = 0  # in Matlab this is 1
         F[nf] = fun(X[nf])
+        if np.any(np.isnan(F[nf])):
+            print("A NaN was encountered in an objective evaluation. Exiting.")
+            X = X[:nf]
+            F = F[:nf]
+            flag = -3
+            return [X, F, flag, xkin]
         if printf:
             print('%4i    Initial point  %11.5e\n' % (nf, np.sum(F[nf, :] ** 2)))
     else:
@@ -128,6 +134,12 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                 F[nf] = fun(X[nf])
+                if np.any(np.isnan(F[nf])):
+                    print("A NaN was encountered in an objective evaluation. Exiting.")
+                    X = X[:nf]
+                    F = F[:nf]
+                    flag = -3
+                    return [X, F, flag, xkin]
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Geometry point  %11.5e\n' % (nf, Fs[nf]))
@@ -168,6 +180,12 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     nf += 1
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                     F[nf] = fun(X[nf])
+                    if np.any(np.isnan(F[nf])):
+                        print("A NaN was encountered in an objective evaluation. Exiting.")
+                        X = X[:nf]
+                        F = F[:nf]
+                        flag = -3
+                        return [X, F, flag, xkin]
                     Fs[nf] = hfun(F[nf])
                     if printf:
                         print('%4i   Critical point  %11.5e\n' % (nf, Fs[nf]))
@@ -220,6 +238,12 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             nf += 1
             X[nf] = Xsp
             F[nf] = fun(X[nf])
+            if np.any(np.isnan(F[nf])):
+                print("A NaN was encountered in an objective evaluation. Exiting.")
+                X = X[:nf]
+                F = F[:nf]
+                flag = -3
+                return [X, F, flag, xkin]
             Fs[nf] = hfun(F[nf])
 
             if mdec != 0:
@@ -283,6 +307,12 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = fun(X[nf])
+                if np.any(np.isnan(F[nf])):
+                    print("A NaN was encountered in an objective evaluation. Exiting.")
+                    X = X[:nf]
+                    F = F[:nf]
+                    flag = -3
+                    return [X, F, flag, xkin]
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Model point     %11.5e\n' % (nf, Fs[nf]))

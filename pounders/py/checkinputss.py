@@ -54,7 +54,7 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
     if nfs2 != max(nfs, 1):
         print('Warning: number of starting f values nfs does not match input X0')
         flag = 0
-    # Check vector of initial function values
+    # Check matrix of initial function values
     # Only check sizes if values are provided
     if nfs > 0:
         [nfs2, m2] = np.shape(F0)
@@ -69,6 +69,11 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         elif nfs2 > nfs:
             print('Warning: number of starting f values nfs does not match input F0')
             flag = 0
+        if np.any(np.isnan(F0)):
+            print("Error: F0 contains a NaN.")
+            flag = -1
+            return [flag, X0, mpmax, F0, L, U]
+
     # Check starting point
     if (xkin > max(nfs - 1, 0)) or (xkin < 0) or (xkin % 1 != 0):  # FixMe: Check what xkin needs to be...
         print('Error: starting point index not an integer between 0 and nfs-1')
