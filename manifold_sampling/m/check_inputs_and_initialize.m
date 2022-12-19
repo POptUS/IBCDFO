@@ -17,8 +17,8 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     fq_pars.npmax = (n + 1) * (n + 2) / 2;     % [int] number of points in model building
 
     % Internal parameters/tolerances for manifold sampling
-    tol.delta_max = 1;
-    tol.delta_min = 1e-13;
+    tol.maxdelta = 1;
+    tol.mindelta = 1e-13;
     tol.gtol = 1e-13;
     tol.norm_g_change =  1e-3;  % Tolerance for the change of norm(g_k)
     tol.kappa_d = 1e-4;  % [dbl] > 0 fraction of Cauchy decrease

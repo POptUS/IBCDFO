@@ -64,7 +64,7 @@ Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
 H_mm = zeros(n);
 
-while nf < nfmax && delta > tol.delta_min
+while nf < nfmax && delta > tol.mindelta
     [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
     if isempty(Gres)
         disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
@@ -103,7 +103,7 @@ while nf < nfmax && delta > tol.delta_min
         [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
         % Convergence test: tiny master model gradient and tiny delta
-        if chi_k <= tol.gtol && delta <= tol.delta_min
+        if chi_k <= tol.gtol && delta <= tol.mindelta
             disp('Convergence satisfied: small stationary measure and small delta');
             X = X(1:nf, :);
             F = F(1:nf, :);
@@ -164,7 +164,7 @@ while nf < nfmax && delta > tol.delta_min
         end
     else
         % iteration is unsuccessful; shrink Delta
-        delta = max(delta * tol.gamma_dec, tol.delta_min);
+        delta = max(delta * tol.gamma_dec, tol.mindelta);
         % h_activity_tol = min(1e-8, delta);
     end
 
