@@ -103,7 +103,7 @@ while nf < nfmax && delta > tol.delta_min
         [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
         % Convergence test: tiny master model gradient and tiny delta
-        if chi_k <= tol.g_tol && delta <= tol.delta_min
+        if chi_k <= tol.gtol && delta <= tol.delta_min
             disp('Convergence satisfied: small stationary measure and small delta');
             X = X(1:nf, :);
             F = F(1:nf, :);
