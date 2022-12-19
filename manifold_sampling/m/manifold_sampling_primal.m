@@ -46,7 +46,9 @@ function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB
 % Deduce p from evaluating Ffun at x0
 try
     F0 = Ffun(x0);
-catch
+catch e
+    fprintf(1,'The identifier was:\n%s',e.identifier);
+    fprintf(1,'There was an error! The message was:\n%s',e.message);
     warning('Problem using Ffun. Exiting');
     X = [];
     F = [];
