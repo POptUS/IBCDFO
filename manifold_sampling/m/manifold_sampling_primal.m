@@ -41,7 +41,7 @@
 %   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
 %   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
-function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch)
 
 % Deduce p from evaluating Ffun at x0
 try
@@ -65,7 +65,7 @@ Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 H_mm = zeros(n);
 
 while nf < nfmax && delta > tol.delta_min
-    [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, LB, UB);
+    [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
     if isempty(Gres)
         disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
         X = X(1:nf, :);
@@ -91,14 +91,14 @@ while nf < nfmax && delta > tol.delta_min
         end
 
         % Find a candidate s_k by solving QP
-        Low = max(LB - X(xkin, :), -delta);
-        Upp = min(UB - X(xkin, :), delta);
+        Low = max(L - X(xkin, :), -delta);
+        Upp = min(U - X(xkin, :), delta);
 
         [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
 
         % Compute stationary measure chi_k
-        Low = max(LB - X(xkin, :), -1.0);
-        Upp = min(UB - X(xkin, :), 1.0);
+        Low = max(L - X(xkin, :), -1.0);
+        Upp = min(U - X(xkin, :), 1.0);
 
         [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
@@ -114,11 +114,11 @@ while nf < nfmax && delta > tol.delta_min
 
         if printf
             trsp_fun = @(x) max_affine(x, h(xkin), f_bar, beta, G_k, H_mm);
-%             plot_again_j(X, xkin, delta, s_k, [], nf, trsp_fun, LB, UB);
+%             plot_again_j(X, xkin, delta, s_k, [], nf, trsp_fun, L, U);
         end
 
         [nf, X, F, h, Hash, hashes_at_nf] = ...
-            call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + s_k', tol, LB, UB, 1);
+            call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + s_k', tol, L, U, 1);
 
         % Compute rho_k
         ared = h(xkin) - h(nf);
@@ -136,7 +136,7 @@ while nf < nfmax && delta > tol.delta_min
             break
         else % stay in the manifold sampling loop
             % Update models now that F(x+s) has been evaluated
-            [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, LB, UB);
+            [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
             if isempty(Gres)
                 disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
                 X = X(1:nf, :);
