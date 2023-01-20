@@ -9,6 +9,9 @@ composite derivative-free optimization.
 
 Relevant references include:
 
+- Some 
+- More 
+- Here
 
 ## Contributing to IBCDFO 
 
