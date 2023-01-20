@@ -1,8 +1,8 @@
-name: black-action
+name: black
 on: [pull_request]
 jobs:
   linter_name:
-    name: runner / black
+    name: black
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
