@@ -57,7 +57,7 @@
 %               > 0 exceeded nfmax evals,   flag = norm of grad at final X
 %               = -1 if input was fatally incorrect (error message shown)
 %               = -2 model failure
-%               = -3 error from TRSP Solver
+%               = -3 error from TRSP Solver or if a NaN was encountered
 % xkin    [int] Index of point in X representing approximate minimizer
 %
 % --DEPENDS ON-------------------------------------------------------------
@@ -91,7 +91,7 @@ gam1 = 2;       % [dbl] Parameter >1 for enlarging delta   (2)
 eta1 = .05;     % [dbl] Parameter 2 for accepting point, 0<eta1<1 (.2)
 Par(1) = sqrt(n); % [dbl] delta multiplier for checking validity
 Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
-Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
+Par(3) = 1ennnn;  % [dbl] Pivot threshold for validity (1e-5)
 Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
 if printf
     disp('  nf   delta    fl  np       f0           g0       ierror');
@@ -123,6 +123,13 @@ if nfs == 0 % Need to do the first evaluation
     F = zeros(nfmax, m); % Stores the function values
     nf = 1;
     F(nf, :) = fun(X(nf, :));
+    if any(isnan(F(nf, :)))
+        disp("A NaN was encountered in an objective evaluation. Exiting.");
+        X = X(1:nf, :);
+        F = F(1:nf, :);
+        flag = -3;
+        return
+    end
     if printf
         fprintf('%4i    Initial point  %11.5e\n', nf, sum(F(nf, :).^2));
     end
@@ -159,7 +166,14 @@ while nf < nfmax
             nf = nf + 1;
             X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
-            Fs(nf) = hfun(F(nf, :));
+            if any(isnan(F(nf, :)))
+                disp("A NaN was encountered in an objective evaluation. Exiting.");
+                X = X(1:nf, :);
+                F = F(1:nf, :);
+                flag = -3;
+                return
+            end
+                Fs(nf) = hfun(F(nf, :));
             if printf
                 fprintf('%4i   Geometry point  %11.5e\n', nf, Fs(nf));
             end
@@ -208,6 +222,13 @@ while nf < nfmax
                 nf = nf + 1;
                 X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeg.
                 F(nf, :) = fun(X(nf, :));
+                if any(isnan(F(nf, :)))
+                    disp("A NaN was encountered in an objective evaluation. Exiting.");
+                    X = X(1:nf, :);
+                    F = F(1:nf, :);
+                    flag = -3;
+                    return
+                end
                 Fs(nf) = hfun(F(nf, :));
                 if printf
                     fprintf('%4i   Critical point  %11.5e\n', nf, Fs(nf));
@@ -289,6 +310,13 @@ while nf < nfmax
         nf = nf + 1;
         X(nf, :) = Xsp;
         F(nf, :) = fun(X(nf, :));
+        if any(isnan(F(nf, :)))
+            disp("A NaN was encountered in an objective evaluation. Exiting.");
+            X = X(1:nf, :);
+            F = F(1:nf, :);
+            flag = -3;
+            return
+        end
         Fs(nf) = hfun(F(nf, :));
 
         if mdec ~= 0
@@ -366,6 +394,13 @@ while nf < nfmax
             nf = nf + 1;
             X(nf, :) = min(U, max(L, X(xkin, :) + Xsp)); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
+            if any(isnan(F(nf, :)))
+                disp("A NaN was encountered in an objective evaluation. Exiting.");
+                X = X(1:nf, :);
+                F = F(1:nf, :);
+                flag = -3;
+                return
+            end
             Fs(nf) = hfun(F(nf, :));
             if printf
                 fprintf('%4i   Model point     %11.5e\n', nf, Fs(nf));

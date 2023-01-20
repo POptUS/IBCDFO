@@ -80,7 +80,7 @@ for row = 1:length(dfo)
 
         assert(flag ~= -1, "pounders failed");
 
-        assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't finds decrease over the starting point");
+        assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't find decrease over the starting point");
 
         assert(size(X, 1) <= nfmax, "POUNDERs grew the size of X");
         %         if re_check
