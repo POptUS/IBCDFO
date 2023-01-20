@@ -91,7 +91,7 @@ gam1 = 2;       % [dbl] Parameter >1 for enlarging delta   (2)
 eta1 = .05;     % [dbl] Parameter 2 for accepting point, 0<eta1<1 (.2)
 Par(1) = sqrt(n); % [dbl] delta multiplier for checking validity
 Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
-Par(3) = 1ennnn;  % [dbl] Pivot threshold for validity (1e-5)
+Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
 Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
 if printf
     disp('  nf   delta    fl  np       f0           g0       ierror');
