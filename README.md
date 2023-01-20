@@ -38,9 +38,9 @@ Contributions are welcome in a variety of forms; please see [CONTRIBUTING](CONTR
 
 ## License 
 
-All code included in ORBIT is open source, with the particular form of license contained in the top-level 
+All code included in IBCDFO is open source, with the particular form of license contained in the top-level 
 subdirectories.  If such a subdirectory does not contain a LICENSE file, then it is automatically licensed 
-as described in the otherwise encompassing ORBIT [LICENSE](/LICENSE).  
+as described in the otherwise encompassing IBCDFO [LICENSE](/LICENSE).  
 
 
 ## Resources
