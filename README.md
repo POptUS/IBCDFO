@@ -9,19 +9,10 @@ composite derivative-free optimization.
 
 Relevant references include:
 
-  - S. M. Wild. POUNDERS in TAO: Solving Derivative-Free Nonlinear
-  Least-Squares Problems with POUNDERS. *Advances and Trends in Optimization with
-  Engineering Applications*. SIAM. 529--539, 2017.
-  [DOI](https://doi.org/10.1137%2F1.9781611974683.ch40)
-
   - J. Larson and M. Menickelly. Structure-aware methods for expensive
   derivative-free nonsmooth composite optimization. *arXiv:2207.08264*. 2022.
   [LINK](https://arxiv.org/abs/2207.08264)
 
-  - J. Larson, M. Menickelly, and S. M. Wild. Manifold sampling for l1 nonconvex
-  optimization. *SIAM Journal on Optimization*. 26(4):2540–2563, 2016. 
-  [DOI](https://doi.org/10.1137/15M1042097)
-  
   - J. Larson, M. Menickelly, and B. Zhou. Manifold sampling for optimizing
   nonsmooth nonconvex compositions. *SIAM Journal on Optimization*.
   31(4):2638–2664, 2021 
@@ -32,6 +23,15 @@ Relevant references include:
   components. *SIAM Journal on Optimization* 28(4):3001--3024, 2018,
   [DOI](https://doi.org/10.1137/17m114741x)
 
+  - S. M. Wild. POUNDERS in TAO: Solving Derivative-Free Nonlinear
+  Least-Squares Problems with POUNDERS. *Advances and Trends in Optimization with
+  Engineering Applications*. SIAM. 529--539, 2017.
+  [DOI](https://doi.org/10.1137%2F1.9781611974683.ch40)
+
+  - J. Larson, M. Menickelly, and S. M. Wild. Manifold sampling for l1 nonconvex
+  optimization. *SIAM Journal on Optimization*. 26(4):2540–2563, 2016. 
+  [DOI](https://doi.org/10.1137/15M1042097)
+  
 ## Contributing to IBCDFO 
 
 Contributions are welcome in a variety of forms; please see [CONTRIBUTING](CONTRIBUTING.rst).
