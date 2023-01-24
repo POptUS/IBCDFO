@@ -55,7 +55,6 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
         end
         % ================================
 
-
         % ================================
         % Construct Gen_k
         col_vecs_for_Genk = construct_Gen_k(hfun, xkin, gentype, nf, delta, F, X);
@@ -116,7 +115,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
             % ================================
 
             if printf
-                trsp_fun = @(x) h_of_quad_models(x, X(xkin,:), F(xkin,:), Gres, Hres, hfun);
+                trsp_fun = @(x) h_of_quad_models(x, X(xkin, :), F(xkin, :), Gres, Hres, hfun);
                 plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, LB, UB);
             end
 
