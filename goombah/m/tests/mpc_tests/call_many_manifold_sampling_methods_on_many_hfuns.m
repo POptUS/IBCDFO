@@ -15,15 +15,19 @@ probtype = 'smooth';
 vecout = 1;
 
 root_dir = '../../../../';
+bendfo_root = '../../../../../BenDFO/';
+trsp_root = [root_dir 'goombah/m/TRSP_files/'];
 
 % Add a bunch of paths
 addpath([root_dir 'goombah/m/']);
 addpath([root_dir 'goombah/m/TRSP_files']);
 addpath([root_dir 'manifold_sampling/m/']);
-addpath([root_dir 'manifold_sampling/m/subproblem_scripts/']); % project_zero_onto_convex_hull_2, solveSubproblem
-addpath([root_dir 'manifold_sampling/m/subproblem_scripts/gqt/']); % mgqt_2
+% addpath([root_dir 'manifold_sampling/m/subproblem_scripts/']); % project_zero_onto_convex_hull_2, solveSubproblem
+% addpath([root_dir 'manifold_sampling/m/subproblem_scripts/gqt/']); % mgqt_2
 addpath([root_dir 'manifold_sampling/m/h_examples/']);
-addpath([root_dir 'regression_tests/test_problems/']);
+addpath([bendfo_root 'data/']);
+addpath([bendfo_root 'm/']);
+addpath('test_problems/');
 addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
 
 % Declare parameters for benchmark study
@@ -154,24 +158,24 @@ for mw_prob_num = 1:53
 
                     elseif s == 4
                         if strcmp(func2str(hfun{1}), 'pw_minimum_squared')
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_min_squared_quadratic_models.gms';
+                            GAMS_options.file = [trsp_root 'minimize_min_squared_quadratic_models.gms'];
                             GAMS_options.solvers = 1:3;
                         elseif strcmp(func2str(hfun{1}), 'pw_maximum_squared')
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_max_squared_quadratic_models.gms';
+                            GAMS_options.file = [trsp_root 'minimize_max_squared_quadratic_models.gms'];
                             GAMS_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'censored_L1_loss')
                             save_censored_L1_loss_data(C, D);
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_censored_L1_loss_quadratic_models.gms';
+                            GAMS_options.file = [trsp_root 'minimize_censored_L1_loss_quadratic_models.gms'];
                             GAMS_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'piecewise_quadratic')
                             save_piecewise_quadratic_data(Qs, zs, cs);
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_max_quadratic_mapping_of_quadratic_models.gms';
+                            GAMS_options.file = [trsp_root 'minimize_max_quadratic_mapping_of_quadratic_models.gms'];
                             GAMS_options.solvers = 1:4;
                         end
                         % subprob_switch = 'GAMS_LP'; % subprob_switch = 'GAMS_QCP';
                         subprob_switch = 'linprog';
 
-                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nfmax, x0, GAMS_options, 'GAMS_LP', LB, UB);
+                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options, 'GAMS_LP');
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];

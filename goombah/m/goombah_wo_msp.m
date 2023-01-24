@@ -12,8 +12,8 @@
 %                         a [1 x m] vector.
 %  nfmax:   [int]         Maximum number of function evaluations.
 %  x0:      [1 x n dbl]   Starting point.
-%  LB:      [1 x n dbl]   Lower bounds.
-%  UB:      [1 x n dbl]   Upper bounds.
+%  L:       [1 x n dbl]   Lower bounds.
+%  U:       [1 x n dbl]   Upper bounds.
 %  GAMS_options:
 %
 % Outputs:
@@ -57,7 +57,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
 
         % ================================
         % Construct Gen_k
-        col_vecs_for_Genk = construct_Gen_k(hfun, xkin, gentype, nf, delta, F, X);
+        col_vecs_for_Genk = construct_Gen_k(hfun, xkin, tol.gentype, nf, delta, F, X);
         % ================================
 
         lambda = project_zero_onto_convex_hull_2(Gres * col_vecs_for_Genk);
@@ -80,7 +80,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
         %     % ================================
 
         % Convergence test: tiny master model gradient and tiny delta
-        if ng <= tol.g_tol && delta <= tol.delta_min
+        if ng <= tol.g_tol && delta <= tol.mindelta
             disp('g is sufficiently small');
             X = X(1:nf, :);
             F = F(1:nf, :);
@@ -103,7 +103,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
 
             [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), GAMS_options, hfun);
             if pred_dec == 0
-                if delta <= tol.delta_min
+                if delta <= tol.mindelta
                     X = X(1:nf, :);
                     F = F(1:nf, :);
                     h = h(1:nf, :);
@@ -131,11 +131,11 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
 
         if rho_k > tol.eta1
             if norm(X(xkin, :) - X(nf, :), 'inf') >= 0.9 * delta
-                delta = min(delta * tol.gamma_inc, tol.delta_max);
+                delta = min(delta * tol.gamma_inc, tol.maxdelta);
             end
             xkin = nf;
         else
-            delta = max(delta * tol.gamma_dec, tol.delta_min);
+            delta = max(delta * tol.gamma_dec, tol.mindelta);
         end
         fprintf('nf: %8d; fval: %8e; ||g||: %8e; radius: %8e; \n', nf, h(xkin), ng, delta);
     end

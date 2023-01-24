@@ -41,17 +41,17 @@ if nprob==8 || nprob==9 || nprob==13 || nprob==16 || nprob==17 || nprob==18
     x = max(x,0);
     for ind = indvec % Do one coordinate direction at a time:
 %         [g_fvec, fvec] = g_dfovec_1d(g_t, t, ind, m, n, g_x, x, nprob);
-        [g_fvec, fvec] = g_dfovec_1d_without_clears(g_t, t, ind, m, n, g_x, x, nprob);
+        [g_fvec, fvec] = g_dfovec_1d(g_t, t, ind, m, n, g_x, x, nprob);
         J(:,ind) = g_fvec;
     end
     if isempty(indvec) % Still need to assign fvec
 %         [~, fvec] = g_dfovec_1d(g_t, t, ind, m, n, g_x, x, nprob);
-        [~, fvec] = g_dfovec_1d_without_clears(g_t, t, ind, m, n, g_x, x, nprob);
+        [~, fvec] = g_dfovec_1d(g_t, t, ind, m, n, g_x, x, nprob);
     end        
 else
     for ind = 1:n % Do one coordinate direction at a time:
 %         [g_fvec, fvec] = g_dfovec_1d(g_t, t, ind, m, n, g_x, x, nprob);
-        [g_fvec, fvec] = g_dfovec_1d_without_clears(g_t, t, ind, m, n, g_x, x, nprob);        
+        [g_fvec, fvec] = g_dfovec_1d(g_t, t, ind, m, n, g_x, x, nprob);        
         J(:,ind) = g_fvec;
     end
 end

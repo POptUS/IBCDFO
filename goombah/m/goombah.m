@@ -46,7 +46,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
     H_mm = zeros(n);
     beta_exp = 1.0;
 
-    while nf < nfmax && delta > tol.delta_min
+    while nf < nfmax && delta > tol.mindelta
         % ================================
         % Build p component models
         [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, LB, UB);
@@ -108,7 +108,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
                 [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, H_k, subprob_switch);
 
                 % Convergence test: tiny master model gradient and tiny delta
-                if chi_k <= tol.g_tol && delta <= tol.delta_min
+                if chi_k <= tol.g_tol && delta <= tol.mindelta
                     disp('Convergence satisfied: small stationary measure and small delta');
                     X = X(1:nf, :);
                     F = F(1:nf, :);
@@ -163,7 +163,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
                 end
             else
                 % iteration is unsuccessful; shrink Delta
-                delta = max(delta * tol.gamma_dec, tol.delta_min);
+                delta = max(delta * tol.gamma_dec, tol.mindelta);
                 % h_activity_tol = min(1e-8, delta);
             end
         end % if-else conditional on success of GOOMBAH step
