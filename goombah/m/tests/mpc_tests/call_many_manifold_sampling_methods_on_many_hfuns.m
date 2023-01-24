@@ -14,15 +14,17 @@ global Qs zs cs h_activity_tol % for piecewise_quadratic h
 probtype = 'smooth';
 vecout = 1;
 
+root_dir = '../../../../';
+
 % Add a bunch of paths
-addpath('../../../GOOMBAH/');
-addpath('../../../GOOMBAH/TRSP_files');
-addpath('../../../manifold_sampling/matlab/');
-addpath('../../../manifold_sampling/matlab/subproblem_scripts/'); % project_zero_onto_convex_hull_2, solveSubproblem
-addpath('../../../manifold_sampling/matlab/subproblem_scripts/gqt/'); % mgqt_2
-addpath('../../../manifold_sampling/matlab/h_examples/');
-addpath('../../regression_tests/test_problems/');
-addpath('../../../pounders/matlab'); % formquad, bmpts, boxline, phi2eval
+addpath([root_dir 'goombah/m/']);
+addpath([root_dir 'goombah/m/TRSP_files']);
+addpath([root_dir 'manifold_sampling/m/']);
+addpath([root_dir 'manifold_sampling/m/subproblem_scripts/']); % project_zero_onto_convex_hull_2, solveSubproblem
+addpath([root_dir 'manifold_sampling/m/subproblem_scripts/gqt/']); % mgqt_2
+addpath([root_dir 'manifold_sampling/m/h_examples/']);
+addpath([root_dir 'regression_tests/test_problems/']);
+addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
 
 % Declare parameters for benchmark study
 nfmax_c = 100; % Multiplied by dimension to set max evals
@@ -31,7 +33,7 @@ num_solvers = 4; % Number of solvers being benchmarked
 solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
 
 num_seeds = 1; % Replications of each problem instance
-mkdir('../benchmark_results');
+mkdir('./benchmark_results');
 
 % Define More-Wild F functions
 % Ffun = @calfun;
@@ -45,8 +47,8 @@ eqtol = 1e-8;
 
 % Defines data for piecewise_quadratic h instances
 if ~exist('Qzb', 'var')
-    Qzb = load('~/public_html/Q_z_and_b_for_benchmark_problems_normalized.mat')';
-    % Qzb = load('~/research/nsdfo20/code/obj_funcs/Q_z_and_b_for_benchmark_problems_normalized.mat')';
+    disp("Might need to download this data from: https://web.cels.anl.gov/~jmlarson/Q_z_and_b_for_benchmark_problems_normalized.mat")
+    Qzb = load('Q_z_and_b_for_benchmark_problems_normalized.mat')';
 end
 h_activity_tol = 1e-8;
 
@@ -74,7 +76,7 @@ for mw_prob_num = 1:53
             for hfun = {@pw_minimum_squared, @pw_maximum_squared, @censored_L1_loss, @piecewise_quadratic}
 
                 if constr
-                    bounds = load(['../../regression_tests/test_problems/' func2str(hfun{1}) '_bounds.mat']);
+                    bounds = load(['./test_problems/' func2str(hfun{1}) '_bounds.mat']);
                     LB = bounds.Masterbounds{mw_prob_num}.LB;
                     UB = bounds.Masterbounds{mw_prob_num}.UB;
                 else
@@ -84,7 +86,7 @@ for mw_prob_num = 1:53
 
                 for s = 1:4
 
-                    filename = ['../benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '.mat'];
+                    filename = ['./benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '.mat'];
                     if exist(filename, 'file')
                         continue
                     end
@@ -94,38 +96,38 @@ for mw_prob_num = 1:53
                         if constr
                             continue
                         end
-                        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        % Dual (SIOPT) manifold sampling
-                        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        [X, F, h, xkin, flag] = manifold_sampling_SIOPT(hfun{1}, Ffun, x0, nfmax);
+                        % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                        % % Dual (SIOPT) manifold sampling
+                        % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                        % [X, F, h, xkin, flag] = manifold_sampling_SIOPT(hfun{1}, Ffun, x0, nfmax);
 
-                        assert(size(X, 1) <= nfmax, "Method grew the size of X");
+                        % assert(size(X, 1) <= nfmax, "Method grew the size of X");
 
-                        Results{s, seed, mw_prob_num}.alg = solver_names{s};
-                        Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
-                        Results{s, seed, mw_prob_num}.Fvec = F;
-                        Results{s, seed, mw_prob_num}.H = h;
-                        Results{s, seed, mw_prob_num}.X = X;
-                        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                        % Results{s, seed, mw_prob_num}.alg = solver_names{s};
+                        % Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
+                        % Results{s, seed, mw_prob_num}.Fvec = F;
+                        % Results{s, seed, mw_prob_num}.H = h;
+                        % Results{s, seed, mw_prob_num}.X = X;
+                        % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                     elseif s == 2
                         if strcmp(func2str(hfun{1}), 'pw_minimum_squared')
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_min_squared_quadratic_models.gms';
+                            GAMS_options.file = '../../../TRSP_files/minimize_min_squared_quadratic_models.gms';
                             GAMS_options.solvers = 1:3;
                         elseif strcmp(func2str(hfun{1}), 'pw_maximum_squared')
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_max_squared_quadratic_models.gms';
+                            GAMS_options.file = '../../../TRSP_files/minimize_max_squared_quadratic_models.gms';
                             GAMS_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'censored_L1_loss')
                             save_censored_L1_loss_data(C, D);
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_censored_L1_loss_quadratic_models.gms';
+                            GAMS_options.file = '../../../TRSP_files/minimize_censored_L1_loss_quadratic_models.gms';
                             GAMS_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'piecewise_quadratic')
                             save_piecewise_quadratic_data(Qs, zs, cs);
-                            GAMS_options.file = '../../../GOOMBAH/TRSP_files/minimize_max_quadratic_mapping_of_quadratic_models.gms';
+                            GAMS_options.file = '../../../TRSP_files/minimize_max_quadratic_mapping_of_quadratic_models.gms';
                             GAMS_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = GOOMBAH(hfun{1}, Ffun, nfmax, x0, LB, UB, 2, GAMS_options);
+                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -169,7 +171,7 @@ for mw_prob_num = 1:53
                         % subprob_switch = 'GAMS_LP'; % subprob_switch = 'GAMS_QCP';
                         subprob_switch = 'linprog';
 
-                        [X, F, h, xkin] = convergent_GOOMBAH(hfun{1}, Ffun, nfmax, x0, GAMS_options, 'GAMS_LP', LB, UB);
+                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nfmax, x0, GAMS_options, 'GAMS_LP', LB, UB);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
