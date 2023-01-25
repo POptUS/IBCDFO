@@ -34,7 +34,9 @@ function [J, fvec] = jacobian(m, n, x, nprob)
 % if strcmp('nondiff',probtype)
 
 % Initialization for adimat objects
-t = 0; g_t = 1; g_x = zeros(size(x));
+t = 0;
+g_t = 1;
+g_x = zeros(size(x));
 J = zeros(m, n);
 if nprob == 8 || nprob == 9 || nprob == 13 || nprob == 16 || nprob == 17 || nprob == 18
     indvec = find(x > 0)';
