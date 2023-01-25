@@ -31,7 +31,8 @@ for hfun = hfuns
             for seed = 1:num_seeds
                 for s = 1:num_solvers
                     s1 = ind_in_H(s);
-                    processed_filename = ['../processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
+                    processed_filename = ['../processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
+                                          int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
                     if ~exist(processed_filename, 'file') || dir(processed_filename).bytes == 0
                         processed_filename;
                         continue

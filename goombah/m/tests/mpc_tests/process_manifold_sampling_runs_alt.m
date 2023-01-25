@@ -82,7 +82,8 @@ for mw_prob_num = 1:53 % The More-Wild benchmark problem number
                         continue
                     end
 
-                    processed_filename = ['../processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
+                    processed_filename = ['../processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
+                                          int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
                     if exist(processed_filename, 'file')
                         continue
                     end
@@ -150,11 +151,11 @@ for mw_prob_num = 1:53 % The More-Wild benchmark problem number
                         end
                         beta = max(0, f_bar' - Hist_h(i, s));
                         subprob_switch = 'GAMS_LP';
-                        Low = max(LB - A.X(i,:), -1.0);
+                        Low = max(LB - A.X(i, :), -1.0);
                         Upp = min(UB - A.X(i, :), 1.0);
                         [~, ~, chi, ~] = minimize_affine_envelope(Hist_h(i, s), f_bar, beta, sampled_grads, zeros(n), 1.0, Low, Upp, zeros(size(sampled_grads, 2), n + 1, n + 1), subprob_switch);
 
-                        assert(chi >= -1e-12, "This stationary metric should not be this negative.")
+                        assert(chi >= -1e-12, "This stationary metric should not be this negative.");
 
                         Hist_norm(i, s) = chi;
                         % if Hist_norm(i, s) == 0 || Hist_norm(i, s) / Hist_norm(1, s) <= 1e-7
