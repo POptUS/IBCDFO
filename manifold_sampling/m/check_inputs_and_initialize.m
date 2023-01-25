@@ -30,12 +30,7 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     tol.hfun_test_mode = 1;   % [bool] Run some checks every time the hfun is called to see if it is implemented correctly.
     % kappa_mh = 0;    % [dbl] > 0 that bounds the component model Hessians
 
-    % ONLY DONE TO CHECK ALL PARTS OF THE CODE DURING REGRESSION TESTS:
-    if n > 2
-        tol.gentype = 1;
-    else
-        tol.gentype = 2;
-    end
+    tol.gentype = 2;
 
     X = [x0; zeros(nfmax - 1, n)]; % Stores the point locations
     F = [F0; zeros(nfmax - 1, p)];         % Stores the simulation values
