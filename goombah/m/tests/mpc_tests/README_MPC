@@ -7,6 +7,13 @@ https://www.gams.com/latest/docs/t_gdxmrw.html
 or 
 https://pages.cs.wisc.edu/~ferris/matlab/gdxmrw.pdf
 
+The GOOMBAH code and tests use two Matlab functions that are not provided in a base installation of Matlab, but are freely available on the MathWorks File Exchange. We are not at liberty to redistribute those functions, but they can be cloned at the following URLS. We recommend putting these in IBCDFO/goombah/m:
+allcomb.m: https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin
+distmat.m: https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/15145/versions/3/previews/distmat.m/index.html
+
+Additionally, the following git repository should be cloned into the folder containing this README:
+https://github.com/altmany/export_fig.git
+
 These tests also have a dependency on our BenDFO repository, which can be cloned at
 https://github.com/POptUS/BenDFO.git
 Ensure that IBCDFO and BenDFO are at the same directory level. 
