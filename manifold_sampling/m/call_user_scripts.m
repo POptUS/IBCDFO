@@ -1,17 +1,17 @@
-function [nf, X, F, h, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, LB, UB, allow_recalc)
+function [nf, X, F, h, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_recalc)
     % Call user scripts Ffun and hfun; saves their output to the appropriate arrays
     if nargin < 12
         allow_recalc = 0;
     end
 
-    xnew = min(UB, max(LB, x_in));
+    xnew = min(U, max(L, x_in));
 
     for i = 1:length(xnew) % ! This will need to be cleaned up eventually
-        if UB(i) - xnew(i) < eps * abs(UB(i)) && UB(i) > xnew(i)
-            xnew(i) = UB(i);
+        if U(i) - xnew(i) < eps * abs(U(i)) && U(i) > xnew(i)
+            xnew(i) = U(i);
             disp('eps project!');
-        elseif xnew(i) - LB(i) < eps * abs(LB(i)) && LB(i) < xnew(i)
-            xnew(i) = LB(i);
+        elseif xnew(i) - L(i) < eps * abs(L(i)) && L(i) < xnew(i)
+            xnew(i) = L(i);
             disp('eps project!');
         end
     end

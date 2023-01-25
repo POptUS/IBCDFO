@@ -8,7 +8,8 @@ import numpy as np
 import scipy as sp
 from mpi4py import MPI
 
-sys.path.append("../../")
+sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
+sys.path.append("../../")  # For importing pounders
 from pounders import pounders
 import general_h_funs
 
@@ -41,9 +42,8 @@ def doit():
         if row % size != rank:
             continue
 
-        # Choose your solver:  # Currently set in pounders
-        # spsolver = 1
-        spsolver = 1
+        # Choose your TRSP solver
+        spsolver = 2
 
         for hfun_cases in range(1, 4):
             if hfun_cases == 1:
