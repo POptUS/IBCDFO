@@ -1,6 +1,20 @@
 addpath('export_fig'); % https://github.com/altmany/export_fig.git
 
+root_dir = '../../../../';
 bendfo_root = '../../../../../BenDFO/';
+trsp_root = [root_dir 'subproblems/'];
+
+% Add a bunch of paths
+addpath([root_dir 'goombah/m/']);
+addpath(trsp_root);
+addpath([trsp_root 'gqt/']);
+addpath([root_dir 'manifold_sampling/m/']);
+addpath([root_dir 'manifold_sampling/m/h_examples/']);
+addpath([bendfo_root 'data/']);
+addpath([bendfo_root 'm/']);
+addpath('test_problems/');
+addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
+
 dfo = load([bendfo_root 'data/dfo.dat']);
 nfmax_c = 20; % 100;
 

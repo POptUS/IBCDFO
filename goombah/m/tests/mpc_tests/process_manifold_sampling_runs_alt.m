@@ -2,6 +2,21 @@
 % call_many_manifold_sampling_methods_on_many_hfuns.m
 % Run that file to get the correct paths.
 
+root_dir = '../../../../';
+bendfo_root = '../../../../../BenDFO/';
+trsp_root = [root_dir 'subproblems/'];
+
+% Add a bunch of paths
+addpath([root_dir 'goombah/m/']);
+addpath(trsp_root);
+addpath([trsp_root 'gqt/']);
+addpath([root_dir 'manifold_sampling/m/']);
+addpath([root_dir 'manifold_sampling/m/h_examples/']);
+addpath([bendfo_root 'data/']);
+addpath([bendfo_root 'm/']);
+addpath('test_problems/');
+addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
+
 global m n nprob probtype vecout % For defintion of F
 global C D eqtol % For censored_L1_loss h
 global Qs zs cs h_activity_tol % for piecewise_quadratic h
