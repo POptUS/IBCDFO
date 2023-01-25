@@ -7,6 +7,10 @@ https://www.gams.com/latest/docs/t_gdxmrw.html
 or 
 https://pages.cs.wisc.edu/~ferris/matlab/gdxmrw.pdf
 
+These tests also have a dependency on our BenDFO repository, which can be cloned at
+https://github.com/POptUS/BenDFO.git
+Ensure that IBCDFO and BenDFO are at the same directory level. 
+
 1. Open matlab and run call_many_manifold_sampling_methods_on_many_hfuns.m.
 (Note that there is caching of runs so that re-running
 call_many_manifold_sampling_methods_on_many_hfuns.m doesn't re-do completed
