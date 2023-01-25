@@ -16,7 +16,7 @@ vecout = 1;
 
 root_dir = '../../../../';
 bendfo_root = '../../../../../BenDFO/';
-trsp_root = [root_dir 'goombah/m/subproblems/'];
+trsp_root = [root_dir 'subproblems/'];
 
 % Add a bunch of paths
 addpath([root_dir 'goombah/m/']);
