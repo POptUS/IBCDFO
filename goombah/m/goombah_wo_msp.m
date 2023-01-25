@@ -80,7 +80,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
         %     % ================================
 
         % Convergence test: tiny master model gradient and tiny delta
-        if ng <= tol.g_tol && delta <= tol.mindelta
+        if ng <= tol.gtol && delta <= tol.mindelta
             disp('g is sufficiently small');
             X = X(1:nf, :);
             F = F(1:nf, :);
@@ -94,9 +94,9 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
             sk = mgqt_2(H_k, g_k, delta, 1e-12, 1e5, 1e-16);
             sk = sk';
 
-            if printf
-                plot_again(X, xkin, delta, sk, [], nf, [], LB, UB);
-            end
+            % if printf
+            %     plot_again(X, xkin, delta, sk, [], nf, [], LB, UB);
+            % end
 
             Low = max(LB - X(xkin, :), -delta);
             Upp = min(UB - X(xkin, :), delta);
@@ -114,10 +114,10 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
             end
             % ================================
 
-            if printf
-                trsp_fun = @(x) h_of_quad_models(x, X(xkin, :), F(xkin, :), Gres, Hres, hfun);
-                plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, LB, UB);
-            end
+            % if printf
+            %     trsp_fun = @(x) h_of_quad_models(x, X(xkin, :), F(xkin, :), Gres, Hres, hfun);
+            %     plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, LB, UB);
+            % end
 
             if pred_dec > 0
                 % ================================

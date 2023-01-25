@@ -117,31 +117,19 @@ $offecho
 option NLP=knitro;
 );
 if (solver = 2, 
-$onecho > lgo.opt
-opmode 1
-CallConopt 0 
+$onecho > snopt.opt
 $offecho
-  option NLP=lgo;
+  option NLP=snopt;
 );
 if (solver = 3, 
-$onecho > msnlp.opt
+$onecho > lindo.opt
 $offecho
-  option NLP=MSNLP;
+  option NLP=LINDOGLOBAL;
 );
 if (solver = 4, 
 $onecho > minos.opt
 $offecho
   option NLP=minos;
-);
-if (solver = 5, 
-$onecho > snopt.opt
-$offecho
-  option NLP=snopt;
-);
-if (solver = 6, 
-$onecho > lindo.opt
-$offecho
-  option NLP=LINDOGLOBAL;
 );
 SOLVE TRSP MINIMIZING tau USING NLP;
 
