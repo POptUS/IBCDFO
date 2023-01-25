@@ -1,6 +1,8 @@
-addpath('../../../../nsdfo20/code/image_scripts/altmany-export_fig-cf9417f/');
-dfo = load('../../regression_tests/test_problems/dfo.dat');
-nfmax_c = 100;
+addpath('export_fig'); % https://github.com/altmany/export_fig.git
+
+bendfo_root = '../../../../../BenDFO/';
+dfo = load([bendfo_root 'data/dfo.dat']);
+nfmax_c = 20; % 100;
 
 num_seeds = 1;
 solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
@@ -8,7 +10,7 @@ num_solvers = length(solver_names);
 ind_in_H = [1 2 3 4];
 
 hfuns = {@pw_minimum_squared, @pw_maximum_squared, @censored_L1_loss, @piecewise_quadratic};
-constrs = [true false];
+constrs = [false]; % [true false];
 % hfuns = {@pw_minimum_squared};
 % hfuns = {@pw_maximum_squared};
 % hfuns = {@censored_L1_loss};
@@ -31,7 +33,7 @@ for hfun = hfuns
             for seed = 1:num_seeds
                 for s = 1:num_solvers
                     s1 = ind_in_H(s);
-                    processed_filename = ['../processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
+                    processed_filename = ['processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
                                           int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
                     if ~exist(processed_filename, 'file') || dir(processed_filename).bytes == 0
                         processed_filename;

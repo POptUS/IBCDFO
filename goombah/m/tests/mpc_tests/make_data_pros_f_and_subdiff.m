@@ -1,6 +1,8 @@
-addpath('../../../../nsdfo20/code/image_scripts/altmany-export_fig-cf9417f/');
-dfo = load('../../regression_tests/test_problems/dfo.dat');
-nfmax_c = 100;
+addpath('export_fig'); % https://github.com/altmany/export_fig.git
+
+bendfo_root = '../../../../../BenDFO/';
+dfo = load([bendfo_root 'data/dfo.dat']);
+nfmax_c = 20; % 100;
 
 num_seeds = 1;
 solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
@@ -32,7 +34,7 @@ for mw_prob_num = 1:53
             for constr = constrs
                 for s = 1:num_solvers
                     s1 = ind_in_H(s);
-                    processed_filename = ['../processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
+                    processed_filename = ['processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
                                           int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
                     if ~exist(processed_filename, 'file') || dir(processed_filename).bytes == 0
                         processed_filename;
@@ -78,7 +80,7 @@ if constr
 else
     neworder = [4 2 3 1];
 end
-for tau = logspace(-5, -1, 5)
+for tau = logspace(-1, -1, 1)
     for c = cases
         ci = c{:};
         close all;

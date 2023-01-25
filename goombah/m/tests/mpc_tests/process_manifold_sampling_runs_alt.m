@@ -1,10 +1,6 @@
-% This drivers benchmarks algorithms on composite nonsmooth problems of the form
-% h(F(x)) where F and the starting point x0 come from the More-Wild SIOPT
-% paper "Benchmarking derivative-free optimization algorithms" and h takes
-% a variety of forms.
-% - F maps from R^n to R^m
-% - h maps from R^m to R
-% Note that the papers have (p) instead of (m).
+% This driver processes the results from the benchmarked algorithms in call_many
+% call_many_manifold_sampling_methods_on_many_hfuns.m
+% Run that file to get the correct paths.
 
 global m n nprob probtype vecout % For defintion of F
 global C D eqtol % For censored_L1_loss h
@@ -13,23 +9,13 @@ global Qs zs cs h_activity_tol % for piecewise_quadratic h
 probtype = 'smooth';
 vecout = 1;
 
-% Add a bunch of paths
-addpath('../../../GOOMBAH/');
-addpath('../../../GOOMBAH/TRSP_files');
-addpath('../../../manifold_sampling/matlab/');
-addpath('../../../manifold_sampling/matlab/subproblem_scripts/'); % project_zero_onto_convex_hull_2, solveSubproblem
-addpath('../../../manifold_sampling/matlab/subproblem_scripts/gqt/'); % mgqt_2
-addpath('../../../manifold_sampling/matlab/h_examples/');
-addpath('../../regression_tests/test_problems/');
-addpath('../../../pounders/matlab'); % formquad, bmpts, boxline, phi2eval
-
 % Declare parameters for benchmark study
-nfmax_c = 100; % Multiplied by dimension to set max evals
+nfmax_c = 20; % Multiplied by dimension to set max evals
 factor = 10; % Multiple for x0 declaration
 num_solvers = 4; % Number of solvers being benchmarked
 solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
 num_seeds = 1; % Replications of each problem instance
-mkdir('../processed_results');
+mkdir('processed_results');
 
 % Define More-Wild F functions
 % Ffun = @calfun;
@@ -50,8 +36,8 @@ h_activity_tol = 1e-8;
 
 eps_ball = 1e-5;
 num_sample_pts = 50;
-for mw_prob_num = 1:53 % The More-Wild benchmark problem number
-    for constr = [false, true]
+for mw_prob_num = [7] % 1:53 % The More-Wild benchmark problem number
+    for constr = [false] % [false, true]
         nprob = dfo(mw_prob_num, 1);
         n = dfo(mw_prob_num, 2);
         m = dfo(mw_prob_num, 3);
@@ -77,12 +63,12 @@ for mw_prob_num = 1:53 % The More-Wild benchmark problem number
 
                 for s = 1:num_solvers
 
-                    run_filename = ['../benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '.mat'];
+                    run_filename = ['benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '.mat'];
                     if ~exist(run_filename, 'file') || dir(run_filename).bytes == 0
                         continue
                     end
 
-                    processed_filename = ['../processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
+                    processed_filename = ['processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
                                           int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
                     if exist(processed_filename, 'file')
                         continue
@@ -106,7 +92,7 @@ for mw_prob_num = 1:53 % The More-Wild benchmark problem number
                         point_fs{i} = hout4;
                         point_grads{i} = G_k;
                     end
-                    Dists = distmat(A.X(1:evals, :));
+                    Dists = distmat(A.X(1:evals, :)); % Can get this here: https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/15145/versions/3/previews/distmat.m/index.html
 
                     if constr
                         bounds = load(['../../regression_tests/test_problems/' func2str(hfun{1}) '_bounds.mat']);

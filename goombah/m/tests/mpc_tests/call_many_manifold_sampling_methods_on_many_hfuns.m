@@ -1,4 +1,4 @@
-% This drivers benchmarks algorithms on composite nonsmooth problems of the form
+% This driver benchmarks algorithms on composite nonsmooth problems of the form
 % h(F(x)) where F and the starting point x0 come from the More-Wild SIOPT
 % paper "Benchmarking derivative-free optimization algorithms" and h takes
 % a variety of forms.
@@ -30,7 +30,7 @@ addpath('test_problems/');
 addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
 
 % Declare parameters for benchmark study
-nfmax_c = 100; % Multiplied by dimension to set max evals
+nfmax_c = 20; % Full tests used 100; % Multiplied by dimension to set max evals
 factor = 10; % Multiple for x0 declaration
 num_solvers = 4; % Number of solvers being benchmarked
 solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
@@ -50,14 +50,15 @@ eqtol = 1e-8;
 
 % Defines data for piecewise_quadratic h instances
 if ~exist('Qzb', 'var')
-    disp("Might need to download this data from: https://web.cels.anl.gov/~jmlarson/Q_z_and_b_for_benchmark_problems_normalized.mat");
+    fprintf("\n**\n  Might need to download this data from: https://web.cels.anl.gov/~jmlarson/Q_z_and_b_for_benchmark_problems_normalized.mat\n**\n\n");
     Qzb = load('Q_z_and_b_for_benchmark_problems_normalized.mat')';
 end
 h_activity_tol = 1e-8;
 
 Results = cell(num_solvers, num_seeds, size(dfo, 1));
-for mw_prob_num = 1:53
-    for constr = [false, true]
+for mw_prob_num = [7] % full tests are 1:53
+    % for constr = [false, true]
+    for constr = [false] % Full tests are also true
         nprob = dfo(mw_prob_num, 1);
         n = dfo(mw_prob_num, 2);
         m = dfo(mw_prob_num, 3);
@@ -96,9 +97,7 @@ for mw_prob_num = 1:53
                     system(['touch ' filename]);
 
                     if s == 1
-                        if constr
-                            continue
-                        end
+                        continue
                         % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % % Dual (SIOPT) manifold sampling
                         % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
