@@ -1,10 +1,10 @@
+import sys
+
 import numpy as np
-from checkinputss import checkinputss
-from formquad import formquad
 from bmpts import bmpts
 from bqmin import bqmin
-
-import sys
+from checkinputss import checkinputss
+from formquad import formquad
 
 
 def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun=None, combinemodels=None):

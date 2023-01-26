@@ -1,17 +1,19 @@
 # This wrapper tests various algorithms against the Benchmark functions from the
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 
-import sys
 import os
-from oct2py import octave
+import sys
+
 import numpy as np
 import scipy as sp
 from mpi4py import MPI
+from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 sys.path.append("../../")  # For importing pounders
-from pounders import pounders
 import general_h_funs
+
+from pounders import pounders
 
 os.makedirs("benchmark_results", exist_ok=True)
 np.seterr("raise")

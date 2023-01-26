@@ -1,12 +1,11 @@
+import sys
+
 import numpy as np
 from calFun import calFun
-
-import sys
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 sys.path.append("../../")  # For importing pounders
 from pounders import pounders
-
 
 # Sample calling syntax for pounders
 # func is a function imported from calFun.py as calFun

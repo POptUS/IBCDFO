@@ -1,10 +1,7 @@
 import numpy as np
-
-
+from phi2eval import phi2eval
 from scipy.io import loadmat
 
-
-from phi2eval import phi2eval
 
 # Tests cases: Line 96-99 in formquad.m
 class Test_phi2eval:
