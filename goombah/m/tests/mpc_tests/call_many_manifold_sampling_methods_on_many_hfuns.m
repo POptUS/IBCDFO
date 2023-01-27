@@ -50,7 +50,7 @@ eqtol = 1e-8;
 
 % Defines data for piecewise_quadratic h instances
 if ~exist('Qzb', 'var')
-    fprintf("\n**\n  Might need to download this data from: https://web.cels.anl.gov/~jmlarson/Q_z_and_b_for_benchmark_problems_normalized.mat -- Recommend putting in bendfo_root/data/ \n**\n\n");
+    fprintf("\n**\n  Might need to download this data from: https://web.cels.anl.gov/~jmlarson/mpc_test_files.zip -- Recommend putting in bendfo_root/data/ \n**\n\n");
     Qzb = load('Q_z_and_b_for_benchmark_problems_normalized.mat')';
 end
 h_activity_tol = 1e-8;
