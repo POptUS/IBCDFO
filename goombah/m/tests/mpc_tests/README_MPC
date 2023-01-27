@@ -1,0 +1,65 @@
+The following instructions will run the four numerical optimization methods on
+a subset of problems, process the runs to determine if each point evaluated is
+approximately stationary, and then produce numerous data profiles. 
+
+A reviewer will need matlab and gams with the gdxmrw interface. see, 
+https://www.gams.com/latest/docs/t_gdxmrw.html
+or 
+https://pages.cs.wisc.edu/~ferris/matlab/gdxmrw.pdf
+
+The GOOMBAH tests use two Matlab functions that are not provided in a base installation of Matlab, but are freely available on the MathWorks File Exchange. We are not at liberty to redistribute those functions, but they can be cloned at the following URLS. We recommend putting these in IBCDFO/goombah/m:
+allcomb.m: https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin
+distmat.m: https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/15145/versions/3/previews/distmat.m/index.html
+
+Additionally this code has a dependency on the GQT trust region subproblem solver. We use a Matlab implementation which can be copied and unzipped from
+https://web.cels.anl.gov/~jmlarson/gqt.zip
+This must be placed in IBCDFO/subproblems/
+We provide a relevant citation for the GQT solver:
+J. J. More ́ and D. C. Sorensen, Computing a trust region step, SIAM Journal on Scientific and
+Statistical Computing, 4 (1983), pp. 553–572, https://doi.org/10.1137/0904038.
+
+Additionally, the following git repository should be cloned into the folder containing this README:
+https://github.com/altmany/export_fig.git
+
+For these tests -- particularly the censored loss and piecewise quadratic test functions, there are some .mat files defining the problem set. These are all available in a .zip file here:
+https://web.cels.anl.gov/~jmlarson/mpc_test_files.zip
+Unzip this, somewhere on your matlab path (in the same directory as this README_MPC is fine).
+
+These tests also have a dependency on our BenDFO repository, which can be cloned at
+https://github.com/POptUS/BenDFO.git
+Ensure that IBCDFO and BenDFO are at the same directory level. 
+
+1. Open matlab and run call_many_manifold_sampling_methods_on_many_hfuns.m.
+(Note that there is caching of runs so that re-running
+call_many_manifold_sampling_methods_on_many_hfuns.m doesn't re-do completed
+runs.) If re-running is desired, remove the directory:
+larmen_mpc/tests/benchmarking/benchmark_results
+
+The runs in the paper were performed in parallel. The goombah method has
+expensive subproblems and can be quite slow on some benchmark problems. To make
+it easier for a reviewer to check the runs in serial, we have reduced the
+number of experiments and the number of function evaluations allowed in each
+experiment. (The number of function evaluations or the number of test problems can
+be reduced by adjusting lines 33, 59, and 60 of
+call_many_manifold_sampling_methods_on_many_hfuns.m)
+
+2. Process results
+after the runs are completed, run process_manifold_sampling_runs_alt.m to
+compute the stationary measure around each point evaluated by each method.
+adjust process_manifold_sampling_runs_alt.m (lines 13, 39, 40 ) if the number
+of function evaluations or problems was decreased. again, this processing may
+take some time to perform in serial.
+
+3. Produce data profiles  
+Run 
+make_data_pros_f_and_subdiff.m
+and
+make_data_pros_f_and_subdiff_sub.m
+to make data profiles from the (partial) runs. Again, if the number of function
+evaluations is increased, adjust line 5 of make_data_pros_f_and_subdiff.m and
+make_data_pros_f_and_subdiff_sub.m. 
+
+Of course, the data profiles differ greatly from those in the paper because of
+the decrease in the number of problems solved and the number of function
+evaluations.
+

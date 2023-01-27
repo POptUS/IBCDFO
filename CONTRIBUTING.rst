@@ -6,11 +6,11 @@ accepted via GitHub pull request to
 
     https://github.com/poptus/IBCDFO/tree/develop
 
-If you are planning a contribution, reporting bugs, or suggesting features, 
+If you are planning a contribution, reporting bugs, or suggesting features,
 we encourage you to discuss the concept by opening a github issue at
 
   https://github.com/poptus/IBCDFO/issues
-  
+
 or by emailing  ``poptus@mcs.anl.gov``
 and interacting with us to ensure that your effort is well-directed.
 
@@ -44,9 +44,9 @@ All pull requests to ``main`` must be reviewed by at least one administrator.
 Developer's Certificate
 -----------------------
 
-IBCDFO is distributed under a default MIT license (see LICENSE_), with 
-exceptions noted in any top-level directory that contains a separate license file.  
-The act of submitting a pull request or patch will be understood as an 
+IBCDFO is distributed under a default MIT license (see LICENSE_), with
+exceptions noted in any top-level directory that contains a separate license file.
+The act of submitting a pull request or patch will be understood as an
 affirmation of the following:
 
 ::
@@ -76,6 +76,5 @@ affirmation of the following:
       personal information I submit with it, including my sign-off) is
       maintained indefinitely and may be redistributed consistent with
       this project or the open source license(s) involved.
-
 
 .. _LICENSE: https://github.com/poptus/IBCDFO/blob/main/LICENSE
