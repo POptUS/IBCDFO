@@ -107,7 +107,6 @@ r.l(P)$(mu.l(P) = m_F.l(P)) = mu.l(P) - C(P);
 lambda.l(P)$(mu.l(P) <> C(P)) = 1;
 gamma.l(P)$(mu.l(P) <> m_F.l(P)) = 1;
 
-
 option limrow = 1000;
 option limcol = 1000;
 option Optca = 0;

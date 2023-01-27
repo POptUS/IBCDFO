@@ -136,13 +136,13 @@ for i = 1:1
     % between the problem formulations in Matlab's optimization toolbox and
     % GAMS.
     duals_g = -r.val;
-    
+
     rs.name = 'x';
     rs.uels = Ns.uels;
     rs.field = 'l';
     r = rgdx(solGDX, rs);
     x = r.val;
-    
+
     rs.field = 'm';
     r = rgdx (solGDX, rs);
     duals_b = r.val;
@@ -161,7 +161,6 @@ for i = 1:1
     assert(length(duals_u) == n);
 
     assert(solveStat <= 4, "Didn't solve the problem");
-
 
 end
 

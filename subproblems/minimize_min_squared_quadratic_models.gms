@@ -51,7 +51,6 @@ each_model(P)..     m_F(P) =e= 0.5*sum((N, M), (x(N) - x0(N))*H(N, M, P)*(x(M) -
 bounds_LB(N)..      x(N) - x0(N) =g= Low(N);
 bounds_UB(N)..      x(N) - x0(N) =l= Upp(N);
 
-
 model TRSP / ALL /;
 
 x.l(N) = x0(N);

@@ -1,5 +1,5 @@
 * Given a set of quadratics Q_l, linear terms z_l, and constant terms b_l, for
-* l=1, ..., L, solve the problem: 
+* l=1, ..., L, solve the problem:
 *
 *       minimize max_l || M(x) - z_l ||_{Q_l}^2 + c_l
 *         s.t.   Low <= (x - x0) <= Upp
@@ -36,7 +36,7 @@ $gdxin
 
 $if NOT exist piecewise_quadratic_data.gdx  $abort File piecewise_quadratic_data.gdx does not exist.
 $gdxin piecewise_quadratic_data.gdx
-$load L Q z c 
+$load L Q z c
 $gdxin
 
 VARIABLES
@@ -54,7 +54,7 @@ each_model
 bounds_LB
 bounds_UB
 
-inner_term 
+inner_term
 ;
 
 * Define model equations
@@ -106,7 +106,7 @@ $offecho
 * option NLP=minos;
 * option NLP=examiner;
 
-if (solver = 1, 
+if (solver = 1,
 $onecho > knitro.opt
 opttol 0.0
 opttolabs 0.0
@@ -116,17 +116,17 @@ ftol_iters 20
 $offecho
 option NLP=knitro;
 );
-if (solver = 2, 
+if (solver = 2,
 $onecho > snopt.opt
 $offecho
   option NLP=snopt;
 );
-if (solver = 3, 
+if (solver = 3,
 $onecho > lindo.opt
 $offecho
   option NLP=LINDOGLOBAL;
 );
-if (solver = 4, 
+if (solver = 4,
 $onecho > minos.opt
 $offecho
   option NLP=minos;
