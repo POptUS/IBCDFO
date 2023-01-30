@@ -1,4 +1,4 @@
-classdef testPounders < matlab.unittest.TestCase
+classdef Testpounders < matlab.unittest.TestCase
     methods (Test)
 
         function realSolution(testCase)

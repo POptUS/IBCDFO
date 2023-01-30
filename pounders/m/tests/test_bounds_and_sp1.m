@@ -66,6 +66,9 @@ for row = [7, 8]
                 alpha = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
                 hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
                 combinemodels = @squared_diff_from_mean;
+            elseif hfun_cases == 3
+                hfun = @(F)-1*sum(F.^2);
+                combinemodels = @neg_leastsquares;
             end
 
             [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
