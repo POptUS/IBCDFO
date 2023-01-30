@@ -13,7 +13,7 @@ addpath([bendfo_location, '/data/']);
 addpath(minq_location);
 mkdir('benchmark_results');
 
-nfmax = 1000;
+nfmax = 100;
 gtol = 1e-13;
 factor = 10;
 
@@ -65,6 +65,7 @@ for row = 1:length(dfo)
             end
             hfun = @emittance_h;
             combinemodels = @emittance_combine;
+            printf = 2; % Just to test this feature
         end
         disp([row, hfun_cases]);
 

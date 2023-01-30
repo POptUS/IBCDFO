@@ -6,7 +6,6 @@
 
 function [] = test_bounds_and_sp1()
 
-
 addpath('../');
 addpath('../general_h_funs');
 bendfo_location = '../../../../BenDFO';
@@ -14,7 +13,6 @@ addpath([bendfo_location, '/m/']);
 addpath([bendfo_location, '/data/']);
 minq_location = '../../../../minq/m/minq8/';
 addpath(minq_location);
-
 
 nfmax = 100;
 gtol = 1e-13;
@@ -42,8 +40,8 @@ for row = [7, 8]
 
     npmax = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
     if row == 7
-        L = -2*ones(1, n);
-        U = 2*ones(1, n);
+        L = -2 * ones(1, n);
+        U = 2 * ones(1, n);
     else
         L = [-12, 0];
         U = [0, 10];

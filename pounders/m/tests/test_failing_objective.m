@@ -29,3 +29,7 @@ objective = @(x)failing_objective(x);
 
 [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver);
 assert(flag == -3, "No NaN was encountered in this test, but (with high probability) should have been.");
+
+% Intentionally not passing a function for an objective
+[X, F, flag, xk_best] = pounders(X0, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver);
+assert(flag == -1, "Should have failed");
