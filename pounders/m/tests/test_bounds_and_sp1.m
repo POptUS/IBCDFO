@@ -67,7 +67,7 @@ for row = [7, 8]
                 hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
                 combinemodels = @squared_diff_from_mean;
             elseif hfun_cases == 3
-                hfun = @(F)-1*sum(F.^2);
+                hfun = @(F)-1 * sum(F.^2);
                 combinemodels = @neg_leastsquares;
             end
 
