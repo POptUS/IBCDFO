@@ -108,7 +108,7 @@ for i = 1:1
     end
 
     % Copy the template gams file
-    copyfile('../../../../subproblems/solve_matts_LP.gms', ['./matts_LP' int2str(i) '.gms']);
+    copyfile('../../subproblems/solve_matts_LP.gms', ['./matts_LP' int2str(i) '.gms']);
 
     % Perform the gams run
     flag = system(['gams matts_LP' int2str(i) '.gms lo=2']);

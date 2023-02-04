@@ -1,5 +1,4 @@
 project_root
-exclude_dir: "minq"
 exclude_dir: "subproblems"
 enable: true
 line_length: 220
