@@ -329,7 +329,7 @@ while nf < nfmax
                 flag = -2;
                 return
             else
-                rho = np.inf * sign(Fs(nf) - Fs(xkin));
+                rho = inf * sign(Fs(nf) - Fs(xkin));
             end
         end
 
