@@ -1,0 +1,10 @@
+project_root
+exclude_dir: "minq"
+enable: true
+line_length: 220
+file_length: 1500
+suppress_rule: "naming_functions"
+suppress_rule: "copyright_notice"
+suppress_rule: "naming_scripts"
+suppress_rule: "indentation"
+suppress_rule: "naming_parameters"

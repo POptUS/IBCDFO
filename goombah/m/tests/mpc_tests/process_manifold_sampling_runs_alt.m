@@ -4,7 +4,7 @@
 
 root_dir = '../../../../';
 bendfo_root = '../../../../../BenDFO/';
-trsp_root = [root_dir 'subproblems/'];
+trsp_root = [root_dir 'goombah/m/subproblems/'];
 
 % Add a bunch of paths
 addpath([root_dir 'goombah/m/']);
