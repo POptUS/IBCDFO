@@ -13,7 +13,7 @@ distmat.m: https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submi
 
 Additionally this code has a dependency on the GQT trust region subproblem solver. We use a Matlab implementation which can be copied and unzipped from
 https://web.cels.anl.gov/~jmlarson/gqt.zip
-This must be placed in IBCDFO/subproblems/
+This must be placed in IBCDFO/goombah/m/subproblems/
 We provide a relevant citation for the GQT solver:
 J. J. More ́ and D. C. Sorensen, Computing a trust region step, SIAM Journal on Scientific and
 Statistical Computing, 4 (1983), pp. 553–572, https://doi.org/10.1137/0904038.
