@@ -57,7 +57,8 @@
 %               > 0 exceeded nfmax evals,   flag = norm of grad at final X
 %               = -1 if input was fatally incorrect (error message shown)
 %               = -2 model failure
-%               = -3 error from TRSP Solver or if a NaN was encountered
+%               = -3 error if a NaN was encountered
+%               = -4 error in TRSP Solver
 % xkin    [int] Index of point in X representing approximate minimizer
 %
 % --DEPENDS ON-------------------------------------------------------------
@@ -124,10 +125,7 @@ if nfs == 0 % Need to do the first evaluation
     nf = 1;
     F(nf, :) = fun(X(nf, :));
     if any(isnan(F(nf, :)))
-        disp("A NaN was encountered in an objective evaluation. Exiting.");
-        X = X(1:nf, :);
-        F = F(1:nf, :);
-        flag = -3;
+        [X, F, flag] = clean_up_before_return(X, F, nf, -3);
         return
     end
     if printf
@@ -167,10 +165,7 @@ while nf < nfmax
             X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                disp("A NaN was encountered in an objective evaluation. Exiting.");
-                X = X(1:nf, :);
-                F = F(1:nf, :);
-                flag = -3;
+                [X, F, flag] = clean_up_before_return(X, F, nf, -3);
                 return
             end
                 Fs(nf) = hfun(F(nf, :));
@@ -223,10 +218,7 @@ while nf < nfmax
                 X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeg.
                 F(nf, :) = fun(X(nf, :));
                 if any(isnan(F(nf, :)))
-                    disp("A NaN was encountered in an objective evaluation. Exiting.");
-                    X = X(1:nf, :);
-                    F = F(1:nf, :);
-                    flag = -3;
+                    [X, F, flag] = clean_up_before_return(X, F, nf, -3);
                     return
                 end
                 Fs(nf) = hfun(F(nf, :));
@@ -244,12 +236,7 @@ while nf < nfmax
             ng = norm(G .* (and(X(xkin, :) > L, G' > 0) + and(X(xkin, :) < U, G' < 0))');
         end
         if ng < gtol % We trust the small gradient norm and return
-            if printf
-                disp('g is sufficiently small');
-            end
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            flag = 0;
+            [X, F, flag] = clean_up_before_return(X, F, nf, 0);
             return
         end
     end
@@ -262,10 +249,7 @@ while nf < nfmax
     elseif spsolver == 2 % Arnold Neumaier's minq5
         [Xsp, mdec, minq_err] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
         if minq_err < 0
-            disp("Input error in minq");
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            flag = -3;
+            [X, F, flag] = clean_up_before_return(X, F, nf, -4);
             return
         end
 
@@ -300,10 +284,7 @@ while nf < nfmax
         end
 
         if mdec == 0 && valid && all(Xsp == X(xkin, :))
-            disp('Terminating because mdec == 0 with a valid model and no change in Xsp');
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            flag = -2;
+            [X, F, flag] = clean_up_before_return(X, F, nf, -2);
             return
         end
 
@@ -311,10 +292,7 @@ while nf < nfmax
         X(nf, :) = Xsp;
         F(nf, :) = fun(X(nf, :));
         if any(isnan(F(nf, :)))
-            disp("A NaN was encountered in an objective evaluation. Exiting.");
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            flag = -3;
+            [X, F, flag] = clean_up_before_return(X, F, nf, -3);
             return
         end
         Fs(nf) = hfun(F(nf, :));
@@ -323,10 +301,7 @@ while nf < nfmax
             rho = (Fs(nf) - Fs(xkin)) / mdec;
         else % Note: this conditional only occurs when model is valid
             if Fs(nf) == Fs(xkin)
-                disp('Terminating because mdec == 0 with a valid model and Fs(nf) == Fs(xkin)');
-                X = X(1:nf, :);
-                F = F(1:nf, :);
-                flag = -2;
+                [X, F, flag] = clean_up_before_return(X, F, nf, -2);
                 return
             else
                 rho = inf * sign(Fs(nf) - Fs(xkin));
@@ -395,10 +370,7 @@ while nf < nfmax
             X(nf, :) = min(U, max(L, X(xkin, :) + Xsp)); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                disp("A NaN was encountered in an objective evaluation. Exiting.");
-                X = X(1:nf, :);
-                F = F(1:nf, :);
-                flag = -3;
+                [X, F, flag] = clean_up_before_return(X, F, nf, -3);
                 return
             end
             Fs(nf) = hfun(F(nf, :));

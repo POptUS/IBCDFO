@@ -45,7 +45,11 @@ for row = 1:length(dfo)
     F0 = [];
     xkin = 1;
     delta = 0.1;
-    printf = 0;
+    if row == 9
+        printf = 1;
+    else
+        printf = 0;
+    end
 
     objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 
