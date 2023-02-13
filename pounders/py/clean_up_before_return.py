@@ -9,8 +9,8 @@
 #               = -3 error from TRSP Solver or if a NaN was encountered
 #               = -4 error in TRSP Solver
 
-def clean_up_before_return(X, F, nf, exit_flag):
 
+def clean_up_before_return(X, F, nf, exit_flag):
     X = X[:nf]
     F = F[:nf]
 
