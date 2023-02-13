@@ -11,8 +11,8 @@
 
 
 def clean_up_before_return(X, F, nf, exit_flag):
-    X = X[:nf]
-    F = F[:nf]
+    X = X[: nf + 1]
+    F = F[: nf + 1]
 
     if exit_flag == -4:
         print("An occured in minq. Exiting.")
