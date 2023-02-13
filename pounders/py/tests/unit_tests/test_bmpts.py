@@ -1,9 +1,5 @@
-from bmpts import bmpts
-
-
 import numpy as np
-
-
+from bmpts import bmpts
 from scipy.io import loadmat
 
 

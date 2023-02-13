@@ -1,9 +1,5 @@
-from boxline import boxline
-
-
 import numpy as np
-
-
+from boxline import boxline
 from scipy.io import loadmat
 
 

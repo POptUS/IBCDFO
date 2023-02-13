@@ -1,6 +1,6 @@
 # Test with 'pytest test_calFun'
-from calFun import calFun
 import numpy as np
+from calFun import calFun
 from scipy.io import loadmat
 
 

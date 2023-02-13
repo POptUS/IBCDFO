@@ -1,11 +1,6 @@
-from scipy.io import loadmat
-
-
 import numpy as np
-
-
 from calFun import calFun
-
+from scipy.io import loadmat
 
 from pounders import pounders
 

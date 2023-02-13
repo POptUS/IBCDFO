@@ -1,9 +1,5 @@
-from bqmin import bqmin
-
-
 import numpy as np
-
-
+from bqmin import bqmin
 from scipy.io import loadmat
 
 

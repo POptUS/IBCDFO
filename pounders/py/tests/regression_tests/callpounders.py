@@ -1,11 +1,11 @@
+import sys
+
 import numpy as np
 from calFun import calFun
 from scipy.io import loadmat
-import sys
 
 sys.path.append("../../")
 from pounders import pounders
-
 
 # Sample calling syntax for pounders
 # func is a function imported from calFun.py as calFun

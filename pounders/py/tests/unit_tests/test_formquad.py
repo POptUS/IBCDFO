@@ -1,9 +1,5 @@
 import numpy as np
-
-
 from formquad import formquad
-
-
 from scipy.io import loadmat
 
 
