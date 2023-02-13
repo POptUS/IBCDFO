@@ -94,8 +94,8 @@ def doit():
 
             assert flagO != 1, "pounders crashed"
 
-            if flagO > 0: 
-                assert XO.shape[0] == nfmax + nfs, "POUNDERs didn't use nfmax evaluations" ;
+            if flagO > 0:
+                assert XO.shape[0] == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
 
             evals = FO.shape[0]
             h = np.zeros(evals)
