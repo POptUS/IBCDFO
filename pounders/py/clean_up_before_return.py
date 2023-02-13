@@ -20,7 +20,7 @@ def clean_up_before_return(X, F, nf, exit_flag):
         print("A NaN was encountered in an objective evaluation. Exiting.")
     elif exit_flag == -2:
         print('Terminating because mdec == 0 with a valid model and no improvement from TRSP solution')
-    elif exit_flag == 0
+    elif exit_flag == 0:
         print('g is sufficiently small')
 
     return X, F, exit_flag
