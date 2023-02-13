@@ -4,8 +4,8 @@ import numpy as np
 from bmpts import bmpts
 from bqmin import bqmin
 from checkinputss import checkinputss
-from formquad import formquad
 from clean_up_before_return import clean_up_before_return
+from formquad import formquad
 
 
 def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun=None, combinemodels=None):
