@@ -16,7 +16,7 @@ function [X, F, exit_flag] = clean_up_before_return(X, F, nf, exit_flag)
 
     if exit_flag == -4
         disp("An occured in minq. Exiting.");
-    elseif exit_flag == -3 
+    elseif exit_flag == -3
         disp("A NaN was encountered in an objective evaluation. Exiting.");
     elseif exit_flag == -2
         disp('Terminating because mdec == 0 with a valid model and no improvement from TRSP solution');
