@@ -23,7 +23,6 @@ def leastsquares(Cres, Gres, Hres):
 
 
 def emittance_combine(Cres, Gres, Hres):
-
     n, _, m = Hres.shape
 
     assert m == 3, "Emittance calculation requires exactly three quantities"
@@ -35,7 +34,6 @@ def emittance_combine(Cres, Gres, Hres):
 
 
 def emittance_h(F):
-
     assert len(F) == 3, "Emittance must have exactly 3 inputs"
     h = F[0] * F[1] - F[2] ** 2
 
