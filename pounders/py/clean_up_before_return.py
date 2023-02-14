@@ -7,7 +7,7 @@ def clean_up_before_return(X, F, nf, exit_flag):
     F = F[: nf + 1]
 
     if exit_flag == -4:
-        print("An occured in minq. Exiting.")
+        print("A minq input error occurred. Exiting.")
     elif exit_flag == -3:
         print("A NaN was encountered in an objective evaluation. Exiting.")
     elif exit_flag == -2:

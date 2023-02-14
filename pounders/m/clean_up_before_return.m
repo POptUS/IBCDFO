@@ -7,7 +7,7 @@ function [X, F, exit_flag] = clean_up_before_return(X, F, nf, exit_flag)
     F = F(1:nf, :);
 
     if exit_flag == -4
-        disp("An occured in minq. Exiting.");
+        disp("A minq input error occurred. Exiting.");
     elseif exit_flag == -3
         disp("A NaN was encountered in an objective evaluation. Exiting.");
     elseif exit_flag == -2
