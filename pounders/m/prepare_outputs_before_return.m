@@ -1,7 +1,7 @@
 % This function is called to cleanup X and F, set the exit value, and display
 % reason for exiting.
 
-function [X, F, exit_flag] = clean_up_before_return(X, F, nf, exit_flag)
+function [X, F, exit_flag] = prepare_outputs_before_return(X, F, nf, exit_flag)
 
     X = X(1:nf, :);
     F = F(1:nf, :);

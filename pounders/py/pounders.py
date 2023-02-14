@@ -4,8 +4,8 @@ import numpy as np
 from bmpts import bmpts
 from bqmin import bqmin
 from checkinputss import checkinputss
-from clean_up_before_return import clean_up_before_return
 from formquad import formquad
+from prepare_outputs_before_return import prepare_outputs_before_return
 
 
 def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun=None, combinemodels=None):
@@ -135,7 +135,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                 F[nf] = fun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    X, F, flag = clean_up_before_return(X, F, nf, -3)
+                    X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                     return X, F, flag, xkin
                 Fs[nf] = hfun(F[nf])
                 if printf:
@@ -178,7 +178,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                     F[nf] = fun(X[nf])
                     if np.any(np.isnan(F[nf])):
-                        X, F, flag = clean_up_before_return(X, F, nf, -3)
+                        X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                         return X, F, flag, xkin
                     Fs[nf] = hfun(F[nf])
                     if printf:
@@ -205,7 +205,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         elif spsolver == 2:  # Arnold Neumaier's minq5
             [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
             if minq_err < 0:
-                X, F, flag = clean_up_before_return(X, F, nf, -4)
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -4)
                 return X, F, flag, xkin
         # elif spsolver == 3:  # Arnold Neumaier's minq8
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
@@ -227,14 +227,14 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     print('eps project!')
 
             if mdec == 0 and valid and np.array_equiv(Xsp, X[xkin]):
-                X, F, flag = clean_up_before_return(X, F, nf, -2)
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
                 return X, F, flag, xkin
 
             nf += 1
             X[nf] = Xsp
             F[nf] = fun(X[nf])
             if np.any(np.isnan(F[nf])):
-                X, F, flag = clean_up_before_return(X, F, nf, -3)
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                 return X, F, flag, xkin
             Fs[nf] = hfun(F[nf])
 
@@ -242,7 +242,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 rho = (Fs[nf] - Fs[xkin]) / mdec
             else:
                 if Fs[nf] == Fs[xkin]:
-                    X, F, flag = clean_up_before_return(X, F, nf, -2)
+                    X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
                     return X, F, flag, xkin
                 else:
                     rho = np.inf * np.sign(Fs[nf] - Fs[xkin])
@@ -297,7 +297,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = fun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    X, F, flag = clean_up_before_return(X, F, nf, -3)
+                    X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                     return X, F, flag, xkin
                 Fs[nf] = hfun(F[nf])
                 if printf:

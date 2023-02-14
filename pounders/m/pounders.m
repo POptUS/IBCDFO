@@ -125,7 +125,7 @@ if nfs == 0 % Need to do the first evaluation
     nf = 1;
     F(nf, :) = fun(X(nf, :));
     if any(isnan(F(nf, :)))
-        [X, F, flag] = clean_up_before_return(X, F, nf, -3);
+        [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
         return
     end
     if printf
@@ -165,7 +165,7 @@ while nf < nfmax
             X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                [X, F, flag] = clean_up_before_return(X, F, nf, -3);
+                [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                 return
             end
                 Fs(nf) = hfun(F(nf, :));
@@ -218,7 +218,7 @@ while nf < nfmax
                 X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeg.
                 F(nf, :) = fun(X(nf, :));
                 if any(isnan(F(nf, :)))
-                    [X, F, flag] = clean_up_before_return(X, F, nf, -3);
+                    [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                     return
                 end
                 Fs(nf) = hfun(F(nf, :));
@@ -236,7 +236,7 @@ while nf < nfmax
             ng = norm(G .* (and(X(xkin, :) > L, G' > 0) + and(X(xkin, :) < U, G' < 0))');
         end
         if ng < gtol % We trust the small gradient norm and return
-            [X, F, flag] = clean_up_before_return(X, F, nf, 0);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, 0);
             return
         end
     end
@@ -249,7 +249,7 @@ while nf < nfmax
     elseif spsolver == 2 % Arnold Neumaier's minq5
         [Xsp, mdec, minq_err] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
         if minq_err < 0
-            [X, F, flag] = clean_up_before_return(X, F, nf, -4);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -4);
             return
         end
 
@@ -284,7 +284,7 @@ while nf < nfmax
         end
 
         if mdec == 0 && valid && all(Xsp == X(xkin, :))
-            [X, F, flag] = clean_up_before_return(X, F, nf, -2);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -2);
             return
         end
 
@@ -292,7 +292,7 @@ while nf < nfmax
         X(nf, :) = Xsp;
         F(nf, :) = fun(X(nf, :));
         if any(isnan(F(nf, :)))
-            [X, F, flag] = clean_up_before_return(X, F, nf, -3);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
             return
         end
         Fs(nf) = hfun(F(nf, :));
@@ -301,7 +301,7 @@ while nf < nfmax
             rho = (Fs(nf) - Fs(xkin)) / mdec;
         else % Note: this conditional only occurs when model is valid
             if Fs(nf) == Fs(xkin)
-                [X, F, flag] = clean_up_before_return(X, F, nf, -2);
+                [X, F, flag] = prepare_outputs_before_return(X, F, nf, -2);
                 return
             else
                 rho = inf * sign(Fs(nf) - Fs(xkin));
@@ -370,7 +370,7 @@ while nf < nfmax
             X(nf, :) = min(U, max(L, X(xkin, :) + Xsp)); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                [X, F, flag] = clean_up_before_return(X, F, nf, -3);
+                [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                 return
             end
             Fs(nf) = hfun(F(nf, :));

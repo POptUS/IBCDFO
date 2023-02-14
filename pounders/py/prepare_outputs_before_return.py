@@ -2,7 +2,7 @@
 # reason for exiting.
 
 
-def clean_up_before_return(X, F, nf, exit_flag):
+def prepare_outputs_before_return(X, F, nf, exit_flag):
     X = X[: nf + 1]
     F = F[: nf + 1]
 
