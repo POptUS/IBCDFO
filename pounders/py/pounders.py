@@ -104,11 +104,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         nf = 0  # in Matlab this is 1
         F[nf] = fun(X[nf])
         if np.any(np.isnan(F[nf])):
-            print("A NaN was encountered in an objective evaluation. Exiting.")
-            X = X[:nf]
-            F = F[:nf]
-            flag = -3
-            return [X, F, flag, xkin]
+            X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
+            return X, F, flag, xkin
         if printf:
             print('%4i    Initial point  %11.5e\n' % (nf, np.sum(F[nf, :] ** 2)))
     else:
@@ -190,12 +187,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 G, H = combinemodels(Cres, Gres, Hres)
                 ng = np.linalg.norm(G * (np.int64(X[xkin] > L) * np.int64(G.T > 0) + np.int64(X[xkin] < U) * np.int64(G.T < 0)).T, 2)
             if ng < gtol:
-                if printf:
-                    print('g is sufficiently small')
-                X = X[: nf + 1, :]
-                F = F[: nf + 1, :]
-                flag = 0
-                return [X, F, flag, xkin]
+                X, F, flag = prepare_outputs_before_return(X, F, nf, 0)
+                return X, F, flag, xkin
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
         Lows = np.maximum(L - X[xkin], -delta * np.ones((np.shape(L))))
