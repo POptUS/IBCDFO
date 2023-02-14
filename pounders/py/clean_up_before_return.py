@@ -1,13 +1,5 @@
 # This function is called to cleanup X and F, set the exit value, and display
-# reason for exiting
-
-# flag    [dbl] Termination criteria flag:
-#               = 0 normal termination because of grad,
-#               > 0 exceeded nfmax evals,   flag = norm of grad at final X
-#               = -1 if input was fatally incorrect (error message shown)
-#               = -2 model failure
-#               = -3 error from TRSP Solver or if a NaN was encountered
-#               = -4 error in TRSP Solver
+# reason for exiting.
 
 
 def clean_up_before_return(X, F, nf, exit_flag):
