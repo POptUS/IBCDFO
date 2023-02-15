@@ -8,7 +8,7 @@ from formquad import formquad
 from prepare_outputs_before_return import prepare_outputs_before_return
 
 
-def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun=None, combinemodels=None):
+def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf=0, spsolver=2, hfun=None, combinemodels=None):
     # POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
     #   [X,F,flag,xkin] = ...
     #        pounders(fun,X0,n,mpmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
@@ -47,7 +47,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     # printf  [log] 0 No printing to screen
     #               1 Debugging level of output to screen (default)
     #               2 More verbose screen output
-    # spsolver [int] Trust-region subproblem solver flag
+    # spsolver [int] Trust-region subproblem solver flag (2)
     #
     # Optionally, a user can specify and outer-function that maps the the elements
     # of F to a scalar value (to be minimized). Doing this also requires a function
