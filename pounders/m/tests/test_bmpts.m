@@ -18,8 +18,8 @@ U = ones(1, n); % Upper bounds
 X0 = zeros(3, n); % Starting points
 
 X0(1, :) = xs; % Near origin
-X0(2, :) = 10*xs; % Farther from origin
-X0(3, :) = 100*xs; % Colinear
+X0(2, :) = 10 * xs; % Farther from origin
+X0(3, :) = 100 * xs; % Colinear
 
 objective = @(x) x; % Identity mapping
 for i = 1:3
