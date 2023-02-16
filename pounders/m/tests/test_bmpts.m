@@ -18,8 +18,8 @@ U = ones(1, n); % Upper bounds
 X0 = zeros(3, n); % Starting points
 
 X0(1, :) = xs; % Near origin
-X0(2, :) = 10; % Not near origin
-X0(3, :) = 100; % Not near origin
+X0(2, :) = 10*xs; % Farther from origin
+X0(3, :) = 100*xs; % Colinear
 
 objective = @(x) x; % Identity mapping
 for i = 1:3
@@ -28,6 +28,6 @@ end
 
 nfs = 3; % Points that have been evaluated
 xkin = 1; % Best point's index in X0
-delta = 0.001; % Starting TR radius
+delta = 1e3; % Starting TR radius
 
 [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, 0, 1);
