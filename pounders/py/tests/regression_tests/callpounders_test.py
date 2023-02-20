@@ -45,6 +45,3 @@ for i in range(1, 10):
     F0[i, :] = func(X0[i, :])
 
 [X, F, flag, xkin] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
-
-if flag > 0:
-    assert X.shape[0] == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"

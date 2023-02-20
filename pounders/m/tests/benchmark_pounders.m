@@ -85,7 +85,9 @@ for row = 1:length(dfo)
 
         assert(size(X, 1) <= nfmax, "POUNDERs grew the size of X");
 
-        if flag > 0
+        if flag == 0
+            assert(size(X, 1) <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations");
+        else
             assert(size(X, 1) == nfmax + nfs, "POUNDERs didn't use nfmax evaluations");
         end
         %         if re_check
