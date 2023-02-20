@@ -36,8 +36,8 @@
 % xkin    [int] Index of point in X0 at which to start from (1)
 % L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
 % U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-% printf  [log] 0 No printing to screen
-%               1 Debugging level of output to screen (default)
+% printf  [log] 0 No printing to screen (default)
+%               1 Debugging level of output to screen
 %               2 More verbose screen output
 % spsolver [int] Trust-region subproblem solver flag (2)
 %
