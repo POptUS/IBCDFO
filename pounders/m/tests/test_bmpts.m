@@ -9,11 +9,11 @@ gtol = 1e-13;
 n = 2;
 m = n;
 
-xs = 1e-8 * ones(1, n);
+xs = [1e-8 -1e-8];
 
 npmax = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
-L = zeros(1, n); % Lower bounds
-U = ones(1, n); % Upper bounds
+L = [0 -1]; % Lower bounds
+U = [1 0]; % Upper bounds
 
 X0 = zeros(3, n); % Starting points
 
