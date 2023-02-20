@@ -36,10 +36,10 @@
 % xkin    [int] Index of point in X0 at which to start from (1)
 % L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
 % U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-% printf  [log] 0 No printing to screen
-%               1 Debugging level of output to screen (default)
+% printf  [log] 0 No printing to screen (default)
+%               1 Debugging level of output to screen
 %               2 More verbose screen output
-% spsolver [int] Trust-region subproblem solver flag
+% spsolver [int] Trust-region subproblem solver flag (2)
 %
 % Optionally, a user can specify and outer-function that maps the the elements
 % of F to a scalar value (to be minimized). Doing this also requires a function
@@ -69,12 +69,18 @@
 function [X, F, flag, xkin] = ...
     pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels)
 
-if nargin <= 15
+if ~exist('hfun', 'var')
+    % Use least-squares hfun by default
     addpath('../general_h_funs/');
     hfun = @(F)sum(F.^2);
     combinemodels = @leastsquares;
 end
-
+if ~exist('spsolver', 'var')
+    spsolver = 2; % Use minq5 by default
+end
+if ~exist('printf', 'var')
+    printf = 0; % Don't print by default
+end
 % 0. Check inputs
 [flag, X0, npmax, F0, L, U] = ...
     checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U);
