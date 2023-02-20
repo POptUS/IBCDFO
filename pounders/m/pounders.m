@@ -59,6 +59,7 @@
 %               = -2 model failure
 %               = -3 error if a NaN was encountered
 %               = -4 error in TRSP Solver
+%               = -5 unable to get model improvement with current parameters
 % xkin    [int] Index of point in X representing approximate minimizer
 %
 % --DEPENDS ON-------------------------------------------------------------
@@ -186,6 +187,10 @@ while nf < nfmax
         end
         [~, np, valid, Gres, Hresdel, Mind] = ...
             formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+        if np < n
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -5);
+            return
+        end
     end
 
     % 1b. Update the quadratic model

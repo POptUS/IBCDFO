@@ -67,6 +67,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     #               = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, Fs[nf] == Fs[xkin])
     #               = -3 error if a NaN was encountered
     #               = -4 error in TRSP Solver
+    #               = -5 unable to get model improvement with current parameters
     # xkin    [int] Index of point in X representing approximate minimizer
 
     if hfun is None:
@@ -142,8 +143,10 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             if nf + 1 >= nfmax:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, mpmax, Par, False)
-            # [~,np,valid,Gres,Hresdel,Mind] = ...
-            # formquad(X(1:nf,:),Res(1:nf,:),delta,xkin,mpmax,Par,0);
+            if mp < n:
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -5)
+                return
+
         #  1b. Update the quadratic model
         Cres = F[xkin]
         Hres = Hres + Hresdel
