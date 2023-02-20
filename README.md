@@ -36,6 +36,14 @@ Relevant references include:
 
 Contributions are welcome in a variety of forms; please see [CONTRIBUTING](CONTRIBUTING.rst).
 
+## Submodule
+Note that IBCDFO depends on the [MINQ](https://github.com/POptUS/minq)
+repository as submodule. From the IBCDFO root directory, run
+
+``git submodule update --init --recursive``
+ 
+to make sure the submodule is up to date.
+
 ## License
 
 All code included in IBCDFO is open source, with the particular form of license contained in the top-level
