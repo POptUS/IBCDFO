@@ -75,6 +75,13 @@ for row = [7, 8]
         end
     end
 end
+
+% Test success without last (optional) arguments to pounders
+minq_location = '../../../../minq/m/minq5/';
+addpath(minq_location);
+
+[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U);
+assert(flag == 0, "Test didn't complete");
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)

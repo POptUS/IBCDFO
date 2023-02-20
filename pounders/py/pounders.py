@@ -5,9 +5,10 @@ from bmpts import bmpts
 from bqmin import bqmin
 from checkinputss import checkinputss
 from formquad import formquad
+from prepare_outputs_before_return import prepare_outputs_before_return
 
 
-def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun=None, combinemodels=None):
+def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf=0, spsolver=2, hfun=None, combinemodels=None):
     # POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
     #   [X,F,flag,xkin] = ...
     #        pounders(fun,X0,n,mpmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
@@ -43,10 +44,10 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     # xkin    [int] Index of point in X0 at which to start from (1)
     # L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
     # U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-    # printf  [log] 0 No printing to screen
-    #               1 Debugging level of output to screen (default)
+    # printf  [log] 0 No printing to screen (default)
+    #               1 Debugging level of output to screen
     #               2 More verbose screen output
-    # spsolver [int] Trust-region subproblem solver flag
+    # spsolver [int] Trust-region subproblem solver flag (2)
     #
     # Optionally, a user can specify and outer-function that maps the the elements
     # of F to a scalar value (to be minimized). Doing this also requires a function
@@ -64,7 +65,9 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     #               > 0 exceeded nfmax evals,   flag = norm of grad at final X
     #               = -1 if input was fatally incorrect (error message shown)
     #               = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, Fs[nf] == Fs[xkin])
-    #               = -3 error from TRSP Solver
+    #               = -3 error if a NaN was encountered
+    #               = -4 error in TRSP Solver
+    #               = -5 unable to get model improvement with current parameters
     # xkin    [int] Index of point in X representing approximate minimizer
 
     if hfun is None:
@@ -81,7 +84,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     if flag == -1:
         X = []
         F = []
-        return [X, F, flag, xkin]
+        return X, F, flag, xkin
     maxdelta = min(0.5 * np.min(U - L), (10**3) * delta)
     mindelta = min(delta * (10**-13), gtol / 10)
     gam0 = 0.5
@@ -102,11 +105,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         nf = 0  # in Matlab this is 1
         F[nf] = fun(X[nf])
         if np.any(np.isnan(F[nf])):
-            print("A NaN was encountered in an objective evaluation. Exiting.")
-            X = X[:nf]
-            F = F[:nf]
-            flag = -3
-            return [X, F, flag, xkin]
+            X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
+            return X, F, flag, xkin
         if printf:
             print('%4i    Initial point  %11.5e\n' % (nf, np.sum(F[nf, :] ** 2)))
     else:
@@ -133,11 +133,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                 F[nf] = fun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    print("A NaN was encountered in an objective evaluation. Exiting.")
-                    X = X[:nf]
-                    F = F[:nf]
-                    flag = -3
-                    return [X, F, flag, xkin]
+                    X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
+                    return X, F, flag, xkin
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Geometry point  %11.5e\n' % (nf, Fs[nf]))
@@ -146,8 +143,10 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             if nf + 1 >= nfmax:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, mpmax, Par, False)
-            # [~,np,valid,Gres,Hresdel,Mind] = ...
-            # formquad(X(1:nf,:),Res(1:nf,:),delta,xkin,mpmax,Par,0);
+            if mp < n:
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -5)
+                return
+
         #  1b. Update the quadratic model
         Cres = F[xkin]
         Hres = Hres + Hresdel
@@ -179,11 +178,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
                     F[nf] = fun(X[nf])
                     if np.any(np.isnan(F[nf])):
-                        print("A NaN was encountered in an objective evaluation. Exiting.")
-                        X = X[:nf]
-                        F = F[:nf]
-                        flag = -3
-                        return [X, F, flag, xkin]
+                        X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
+                        return X, F, flag, xkin
                     Fs[nf] = hfun(F[nf])
                     if printf:
                         print('%4i   Critical point  %11.5e\n' % (nf, Fs[nf]))
@@ -194,12 +190,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 G, H = combinemodels(Cres, Gres, Hres)
                 ng = np.linalg.norm(G * (np.int64(X[xkin] > L) * np.int64(G.T > 0) + np.int64(X[xkin] < U) * np.int64(G.T < 0)).T, 2)
             if ng < gtol:
-                if printf:
-                    print('g is sufficiently small')
-                X = X[: nf + 1, :]
-                F = F[: nf + 1, :]
-                flag = 0
-                return [X, F, flag, xkin]
+                X, F, flag = prepare_outputs_before_return(X, F, nf, 0)
+                return X, F, flag, xkin
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
         Lows = np.maximum(L - X[xkin], -delta * np.ones((np.shape(L))))
@@ -209,11 +201,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         elif spsolver == 2:  # Arnold Neumaier's minq5
             [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
             if minq_err < 0:
-                print("Input error in minq")
-                X = X[: nf + 1, :]
-                F = F[: nf + 1, :]
-                flag = -3
-                return [X, F, flag, xkin]
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -4)
+                return X, F, flag, xkin
         # elif spsolver == 3:  # Arnold Neumaier's minq8
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"
@@ -234,32 +223,23 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     print('eps project!')
 
             if mdec == 0 and valid and np.array_equiv(Xsp, X[xkin]):
-                print('Terminating because mdec == 0 with a valid model and no change in Xsp')
-                X = X[: nf + 1, :]
-                F = F[: nf + 1, :]
-                flag = -2
-                return [X, F, flag, xkin]
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
+                return X, F, flag, xkin
 
             nf += 1
             X[nf] = Xsp
             F[nf] = fun(X[nf])
             if np.any(np.isnan(F[nf])):
-                print("A NaN was encountered in an objective evaluation. Exiting.")
-                X = X[:nf]
-                F = F[:nf]
-                flag = -3
-                return [X, F, flag, xkin]
+                X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
+                return X, F, flag, xkin
             Fs[nf] = hfun(F[nf])
 
             if mdec != 0:
                 rho = (Fs[nf] - Fs[xkin]) / mdec
             else:
                 if Fs[nf] == Fs[xkin]:
-                    print('Terminating because mdec == 0 with a valid model and Fs(nf) == Fs(xkin)')
-                    X = X[: nf + 1, :]
-                    F = F[: nf + 1, :]
-                    flag = -2
-                    return [X, F, flag, xkin]
+                    X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
+                    return X, F, flag, xkin
                 else:
                     rho = np.inf * np.sign(Fs[nf] - Fs[xkin])
 
@@ -313,11 +293,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = fun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    print("A NaN was encountered in an objective evaluation. Exiting.")
-                    X = X[:nf]
-                    F = F[:nf]
-                    flag = -3
-                    return [X, F, flag, xkin]
+                    X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
+                    return X, F, flag, xkin
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print('%4i   Model point     %11.5e\n' % (nf, Fs[nf]))
@@ -334,4 +311,4 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     if printf:
         print('Number of function evals exceeded')
     flag = ng
-    return [X, F, flag, xkin]
+    return X, F, flag, xkin
