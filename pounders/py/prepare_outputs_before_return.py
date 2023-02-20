@@ -12,6 +12,8 @@ def prepare_outputs_before_return(X, F, nf, exit_flag):
         print("A NaN was encountered in an objective evaluation. Exiting.")
     elif exit_flag == -2:
         print('Terminating because mdec == 0 with a valid model and no improvement from TRSP solution')
+    elif exit_flag == -5:
+        print('Unable to improve model with current Pars; try dividing Par[2:3] by 10')
     elif exit_flag == 0:
         print('g is sufficiently small')
 

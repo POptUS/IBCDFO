@@ -59,7 +59,7 @@
 %               = -2 model failure
 %               = -3 error if a NaN was encountered
 %               = -4 error in TRSP Solver
-%               = -5 unable to get modelimprovement with current parameters
+%               = -5 unable to get model improvement with current parameters
 % xkin    [int] Index of point in X representing approximate minimizer
 %
 % --DEPENDS ON-------------------------------------------------------------
