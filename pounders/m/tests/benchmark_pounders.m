@@ -26,7 +26,6 @@ else
     solved = zeros(53, 3);
 end
 
-
 for row = 1:length(dfo)
     nprob = dfo(row, 1);
     n = dfo(row, 2);
@@ -92,7 +91,7 @@ for row = 1:length(dfo)
 
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
-                assert(flag == 0, "This problem was previously solved but it's anymore.")
+                assert(flag == 0, "This problem was previously solved but it's anymore.");
             end
         else
             if flag == 0
@@ -128,7 +127,7 @@ for row = 1:length(dfo)
     end
 end
 if ~ensure_still_solve_problems
-    writematrix(solved,'./benchmark_results/solved.txt')
+    writematrix(solved, './benchmark_results/solved.txt');
 end
 end
 
