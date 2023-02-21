@@ -88,6 +88,12 @@ for row = 1:length(dfo)
         assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't find decrease over the starting point");
 
         assert(size(X, 1) <= nfmax, "POUNDERs grew the size of X");
+
+        if flag == 0
+            assert(size(X, 1) <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations");
+        else
+            assert(size(X, 1) == nfmax + nfs, "POUNDERs didn't use nfmax evaluations");
+        end
         %         if re_check
         %             assert(min(Old_results.Results{1,row}.H) == min(sum(F.^2,2)), "Didn't find the same min")
         %             if row~=2 && row~=26 && row~=52
