@@ -36,13 +36,14 @@ Relevant references include:
 
 Contributions are welcome in a variety of forms; please see [CONTRIBUTING](CONTRIBUTING.rst).
 
-## Submodule
-Note that IBCDFO depends on the [MINQ](https://github.com/POptUS/minq)
-repository as submodule. From the IBCDFO root directory, run
+## Installation & Updating
+Note that this repository depends on one or more submodules.  Aftering cloning this repository, from within the clone please run
 
 ``git submodule update --init --recursive``
- 
-to make sure the submodule is up to date.
+
+to fetch all files contained in the submodules.  This must be done before attempting to use the code in the clone.  Issuing the command `git pull` will update the repository, but not the submodules.  To update the clone and all its submodules simultaneously, run
+
+``git pull --recurse-submodules``.
 
 ## License
 
