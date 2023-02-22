@@ -4,14 +4,6 @@ function [] = benchmark_pounders()
 
 spsolver = 2;
 
-addpath('../');
-addpath('../general_h_funs');
-bendfo_location = '../../../../BenDFO';
-minq_location = '../../../../minq/m/minq5/';
-addpath([bendfo_location, '/m/']);
-addpath([bendfo_location, '/data/']);
-addpath(minq_location);
-
 nfmax = 100;
 gtol = 1e-13;
 factor = 10;

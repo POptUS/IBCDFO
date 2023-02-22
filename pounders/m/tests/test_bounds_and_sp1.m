@@ -6,14 +6,6 @@
 
 function [] = test_bounds_and_sp1()
 
-addpath('../');
-addpath('../general_h_funs');
-bendfo_location = '../../../../BenDFO';
-addpath([bendfo_location, '/m/']);
-addpath([bendfo_location, '/data/']);
-minq_location = '../../../../minq/m/minq8/';
-addpath(minq_location);
-
 nfmax = 100;
 gtol = 1e-13;
 factor = 10;

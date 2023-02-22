@@ -1,8 +1,6 @@
 % This tests bmpts.m when it notes that:
 % "Geometry points need to be coordinate directions!"
 
-addpath('../');
-
 nfmax = 100;
 gtol = 1e-13;
 
