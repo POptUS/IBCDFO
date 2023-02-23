@@ -37,7 +37,7 @@ Relevant references include:
 Contributions are welcome in a variety of forms; please see [CONTRIBUTING](CONTRIBUTING.rst).
 
 ## Installation & Updating
-Note that this repository depends on one or more submodules.  Aftering cloning
+Note that this repository depends on one or more submodules.  After cloning
 this repository, from within the clone please run
 
 ``git submodule update --init --recursive``
