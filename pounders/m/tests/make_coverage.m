@@ -1,4 +1,5 @@
 clear all;
+setup_paths;
 suite = testsuite("Testpounders.m");
 import matlab.unittest.plugins.CodeCoveragePlugin
 import matlab.unittest.plugins.codecoverage.CoverageReport

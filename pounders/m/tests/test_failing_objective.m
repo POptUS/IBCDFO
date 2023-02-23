@@ -6,8 +6,6 @@ function [] = test_failing_objective()
 
 spsolver = 1;
 
-addpath('../');
-
 nfmax = 1000;
 gtol = 1e-13;
 n = 3;

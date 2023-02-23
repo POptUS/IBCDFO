@@ -4,20 +4,19 @@ function [] = benchmark_pounders()
 
 spsolver = 2;
 
-addpath('../');
-addpath('../general_h_funs');
-bendfo_location = '../../../../BenDFO';
-minq_location = '../../../../minq/m/minq5/';
-addpath([bendfo_location, '/m/']);
-addpath([bendfo_location, '/data/']);
-addpath(minq_location);
-mkdir('benchmark_results');
-
 nfmax = 100;
 gtol = 1e-13;
 factor = 10;
 
 load dfo.dat;
+
+ensure_still_solve_problems = 1;
+
+if ensure_still_solve_problems
+    solved = load('./benchmark_results/solved.txt'); % A 0-1 matrix with 1 when problem was previously solved.
+else
+    solved = zeros(53, 3);
+end
 
 for row = 1:length(dfo)
     nprob = dfo(row, 1);
@@ -53,9 +52,8 @@ for row = 1:length(dfo)
 
     objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 
-    Results = cell(3, 53);
-
     for hfun_cases = 1:3
+        Results = cell(3, 53);
         if hfun_cases == 1
             hfun = @(F)sum(F.^2);
             combinemodels = @leastsquares;
@@ -82,6 +80,16 @@ for row = 1:length(dfo)
         end
 
         [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+
+        if ensure_still_solve_problems
+            if solved(row, hfun_cases) == 1
+                assert(flag == 0, "This problem was previously solved but it's anymore.");
+            end
+        else
+            if flag == 0
+                solved(row, hfun_cases) = 1;
+            end
+        end
 
         assert(flag ~= -1, "pounders failed");
 
@@ -115,6 +123,9 @@ for row = 1:length(dfo)
         %     save('-mat7-binary', filename, 'Results') % Octave save
         save(filename, 'Results');
     end
+end
+if ~ensure_still_solve_problems
+    writematrix(solved, './benchmark_results/solved.txt');
 end
 end
 
