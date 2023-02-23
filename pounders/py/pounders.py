@@ -97,8 +97,8 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     Par[3] = 0.001
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
-        print('  nf   delta    fl  np       f0           g0       ierror')
-        progstr = '%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n'  # Line-by-line
+        print("  nf   delta    fl  np       f0           g0       ierror")
+        progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
     if nfs == 0:
         X = np.vstack((X0, np.zeros((nfmax - 1, n))))
         F = np.zeros((nfmax, m))
@@ -108,7 +108,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
             return X, F, flag, xkin
         if printf:
-            print('%4i    Initial point  %11.5e\n' % (nf, np.sum(F[nf, :] ** 2)))
+            print("%4i    Initial point  %11.5e\n" % (nf, np.sum(F[nf, :] ** 2)))
     else:
         X = np.vstack((X0[0 : max(1, nfs), :], np.zeros((nfmax, n))))
         F = np.vstack((F0[0:nfs, :], np.zeros((nfmax, m))))
@@ -137,7 +137,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     return X, F, flag, xkin
                 Fs[nf] = hfun(F[nf])
                 if printf:
-                    print('%4i   Geometry point  %11.5e\n' % (nf, Fs[nf]))
+                    print("%4i   Geometry point  %11.5e\n" % (nf, Fs[nf]))
                 D = Mdir[i, :]
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nfmax:
@@ -182,7 +182,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                         return X, F, flag, xkin
                     Fs[nf] = hfun(F[nf])
                     if printf:
-                        print('%4i   Critical point  %11.5e\n' % (nf, Fs[nf]))
+                        print("%4i   Critical point  %11.5e\n" % (nf, Fs[nf]))
                 if nf + 1 >= nfmax:
                     break
                 # Recalculate gradient based on a MFN model
@@ -217,10 +217,10 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             for i in range(n):  # This will need to be cleaned up eventually
                 if (U[i] - Xsp[i] < eps * abs(U[i])) and (U[i] > Xsp[i] and G[i] >= 0):
                     Xsp[i] = U[i]
-                    print('eps project!')
+                    print("eps project!")
                 elif (Xsp[i] - L[i] < eps * abs(L[i])) and (L[i] < Xsp[i] and G[i] >= 0):
                     Xsp[i] = L[i]
-                    print('eps project!')
+                    print("eps project!")
 
             if mdec == 0 and valid and np.array_equiv(Xsp, X[xkin]):
                 X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
@@ -256,7 +256,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         else:  # Don't evaluate f at Xsp
             rho = -1  # Force yourself to do a model-improving point
             if printf:
-                print('Warning: skipping sp soln!-----------')
+                print("Warning: skipping sp soln!-----------")
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nfmax) and (rho < eta1):  # Implies xkin, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
@@ -297,10 +297,10 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     return X, F, flag, xkin
                 Fs[nf] = hfun(F[nf])
                 if printf:
-                    print('%4i   Model point     %11.5e\n' % (nf, Fs[nf]))
+                    print("%4i   Model point     %11.5e\n" % (nf, Fs[nf]))
                 if Fs[nf] < Fs[xkin]:  # ! Eventually check stuff decrease here
                     if printf:
-                        print('**improvement from model point****')
+                        print("**improvement from model point****")
                     # Update model to reflect new base point
                     D = X[nf] - X[xkin]
                     xkin = nf  # Change current center
@@ -309,6 +309,6 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     for j in range(m):
                         Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
     if printf:
-        print('Number of function evals exceeded')
+        print("Number of function evals exceeded")
     flag = ng
     return X, F, flag, xkin

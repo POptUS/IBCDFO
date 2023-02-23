@@ -2,7 +2,7 @@ import numpy as np
 
 
 def boxline(D, X, L, U):
-    '''
+    """
     boxline.py                                     Created by Stefan Wild
     Modified 12/7/2009
     This routine finds the smallest t>=0 for which X+t*D hits the box [L,U]
@@ -16,7 +16,7 @@ def boxline(D, X, L, U):
     --OUTPUTS----------------------------------------------------------------
     t      = [dbl] Value of smallest t>=0 for which X+t*D hits a constraint
                    Set to 1 if t=1 does not hit constraint for t<1.
-    '''
+    """
     # Number of rows in X
     n = np.shape(X)[0]
     t = 1
