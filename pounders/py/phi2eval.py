@@ -2,12 +2,12 @@ import numpy as np
 
 
 def phi2eval(X):
-    '''
+    """
     Input:
     X is a [m-by-n] numpy array
     Output:
     Phi
-    '''
+    """
     [m, n] = np.shape(X)
     Phi = np.zeros((m, int(0.5 * n * (n + 1))))
     X2 = 0.5 * X**2

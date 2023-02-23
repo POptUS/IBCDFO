@@ -7,7 +7,7 @@ from phi2eval import phi2eval
 
 
 def formquad(X, F, delta, xkin, mpmax, Pars, vf):
-    '''
+    """
     formquad(X,F,delta,xkin,npmax,Pars,vf) -> [Mdir,np,valid,G,H,Mind]
     Computes the parameters for m quadratics
         ### FIX COMMENT Line 15 ###
@@ -35,7 +35,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     G       [dbl] [n-by-m]  Matrix of model gradients at Xk
     H       [dbl] [n-by-n-by-m]  Array of model Hessians at Xk
     Mind    [int] [npmax-by-1] Integer vector of model interpolation indices
-    '''
+    """
     # % --DEPENDS ON-------------------------------------------------------------
     # phi2eval : Evaluates the quadratic basis for vector inputs
     # qrinsert, svd : scipy.linalg and numpy
@@ -70,13 +70,13 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
                     mp += 1
                     Mind.append(i)
                     if np.shape(R)[0] == 0:
-                        [Q, R] = np.linalg.qr(D[[i], :].T, mode='complete')
+                        [Q, R] = np.linalg.qr(D[[i], :].T, mode="complete")
                         # [Q, R] = flipFirstRow(Q, R, 0, np.shape(Q)[1]-1)
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
                     else:
                         # Update QR
                         D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
-                        [Q, R] = scipy.linalg.qr_insert(Q, R, D[[i], :].T, mp - 1, 'col')
+                        [Q, R] = scipy.linalg.qr_insert(Q, R, D[[i], :].T, mp - 1, "col")
                         # [Q, R] = flipFirstRow(Q, R, 0, np.shape(Q)[1]-1)
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
                     if mp == n:
@@ -100,7 +100,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
 
     mp = len(Mind)
     M = np.vstack((np.ones(n + 1), D[Mind].T))
-    [Q, R] = np.linalg.qr(M.T, mode='complete')
+    [Q, R] = np.linalg.qr(M.T, mode="complete")
     # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
     # Now we add points until we have mpmax starting with the most recent ones
     i = nf - 1
@@ -109,7 +109,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             Ny = np.hstack((N, phi2eval(D[[i], :]).T))
             # Update QR
             D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
-            [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((1, D[i])), mp, 'row')
+            [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((1, D[i])), mp, "row")
             # [Qy, Ry] = flipFirstRow(Qy, Ry, 0, np.shape(Q)[1]-1)
             # [Qy, Ry] = flipSignQ(Qy, Ry, 0, np.shape(Q)[1]-1)
             Ly = Ny @ Qy[:, n + 1 : mp + 1]

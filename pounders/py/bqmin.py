@@ -2,7 +2,7 @@ import numpy as np
 
 
 def bqmin(A, B, L, U):
-    '''
+    """
     bqmin(A,B,L,U) -> [X,f]
       Minimizes the quadratic 0.5 * X.T @ A @ X + B subject to L<=X<=U using the
       projected gradient method with a (semi) exact line search.
@@ -23,7 +23,7 @@ def bqmin(A, B, L, U):
      pap     [dbl] The A norm of the projected gradient
      Projg   [dbl] [n-by-1]  Projected gradient at X
      t       [dbl] Step length along projected gradient
-    '''
+    """
     # Internal Parameters
     n = np.shape(A)[1]  # [int] Dimension (number of continuous variables)
     maxit = 5000  # [int] maximum number of iterations

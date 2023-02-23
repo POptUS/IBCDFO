@@ -109,12 +109,12 @@ def doit():
             #     assert np.all(Old["pounders4py" + str(row)]["Fvec"][0, 0] == FO), "Different min found"
             #     print(row, " passed")
 
-            Results["pounders4py_" + str(row) + '_' + str(hfun_cases)] = {}
-            Results["pounders4py_" + str(row) + '_' + str(hfun_cases)]["alg"] = "pounders4py"
-            Results["pounders4py_" + str(row) + '_' + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
-            Results["pounders4py_" + str(row) + '_' + str(hfun_cases)]["Fvec"] = FO
-            Results["pounders4py_" + str(row) + '_' + str(hfun_cases)]["H"] = h
-            Results["pounders4py_" + str(row) + '_' + str(hfun_cases)]["X"] = XO
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = FO
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = h
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = XO
             # oct2py.kill_octave() # This is necessary to restart the octave instance,
             #                      # and thereby remove some caching of inside of oct2py,
             #                      # namely changing problem dimension does not

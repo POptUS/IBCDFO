@@ -12,7 +12,7 @@ def bmpts(X, Modeld, Low, Upp, delta, theta):
         T[0, j] = boxline(delta * Modeld[j], X, Low, Upp)
         T[1, j] = boxline(-delta * Modeld[j], X, Low, Upp)
     # Safe to use our directions
-    Modeld = Modeld.astype('float64')  # Change uint8 to float
+    Modeld = Modeld.astype("float64")  # Change uint8 to float
     if np.min(np.max(T, axis=0)) >= theta:
         mp = n - num
         for j in range(0, num):
@@ -22,7 +22,7 @@ def bmpts(X, Modeld, Low, Upp, delta, theta):
                 Modeld[j] = -delta * Modeld[j] * T[1, j]
     else:
         # May want to turn this display off
-        print('Note: Geometry points need to be coordinate directions!')
+        print("Note: Geometry points need to be coordinate directions!")
         mp = 0
         Modeld = np.zeros((n, n))
         for j in range(0, n):
