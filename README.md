@@ -36,6 +36,19 @@ Relevant references include:
 
 Contributions are welcome in a variety of forms; please see [CONTRIBUTING](CONTRIBUTING.rst).
 
+## Installation & Updating
+Note that this repository depends on one or more submodules.  After cloning
+this repository, from within the clone please run
+
+``git submodule update --init --recursive``
+
+to fetch all files contained in the submodules.  This must be done before
+attempting to use the code in the clone.  Issuing the command `git pull` will
+update the repository, but not the submodules.  To update the clone and all its
+submodules simultaneously, run
+
+``git pull --recurse-submodules``.
+
 ## License
 
 All code included in IBCDFO is open source, with the particular form of license contained in the top-level
