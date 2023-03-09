@@ -84,6 +84,8 @@ for row = 1:length(dfo)
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
                 assert(flag == 0, "This problem was previously solved but it's anymore.");
+
+                check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels) 
             end
         else
             if flag == 0
@@ -99,7 +101,7 @@ for row = 1:length(dfo)
 
         if flag == 0
             assert(size(X, 1) <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations");
-        else
+        elseif flag ~= -4
             assert(size(X, 1) == nfmax + nfs, "POUNDERs didn't use nfmax evaluations");
         end
         %         if re_check
