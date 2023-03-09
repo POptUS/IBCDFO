@@ -65,8 +65,8 @@ for row = [7, 8]
 
             [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
 
-            if flag == 0 
-                check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels)
+            if flag == 0
+                check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
             end
         end
     end
