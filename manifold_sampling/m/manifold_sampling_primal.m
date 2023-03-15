@@ -59,7 +59,7 @@ catch e
 end
 
 [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres] = check_inputs_and_initialize(x0, F0, nfmax);
-[flag, x0, ~, F0, LB, UB] = checkinputss(hfun, x0, n, fq_pars.npmax, nfmax, tol.g_tol, delta, 1, length(F0), F0, xkin, LB, UB);
+[flag, x0, ~, F0, L, U] = checkinputss(hfun, x0, n, fq_pars.npmax, nfmax, tol.gtol, delta, 1, length(F0), F0, xkin, L, U);
 if flag == -1 % Problem with the input
     X = x0;
     F = F0;
