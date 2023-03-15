@@ -74,12 +74,12 @@ Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 H_mm = zeros(n);
 
 while nf < nfmax && delta > tol.mindelta
-    bar_delta = delta
+    bar_delta = delta;
 
     % Line 3: manifold sampling while loop
     while nf < nfmax
 
-        % Line 4: build models 
+        % Line 4: build models
         [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
         if isempty(Gres)
             disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
@@ -144,13 +144,13 @@ while nf < nfmax && delta > tol.mindelta
         else % Line 17: Stay in the manifold sampling loop
 
             % Lines 18-19: See if any new activities
-            if all(ismember(hashes_at_nf, Act_Z_k)) 
+            if all(ismember(hashes_at_nf, Act_Z_k))
 
                 % Line 20: Decrease delta
-                delta = tol.gamma_dec *  delta 
+                delta = tol.gamma_dec *  delta;
 
                 % Line 21: See if intersection is nonempty
-                if any(ismember(hashes_at_nf, Act_Z_k)) 
+                if any(ismember(hashes_at_nf, Act_Z_k))
                     successful = false; % iteration is unsuccessful
                     break
                 end
@@ -166,7 +166,7 @@ while nf < nfmax && delta > tol.mindelta
     end
 
     if successful
-        xkin = nf; % Line 15, Update TR center and radius 
+        xkin = nf; % Line 15, Update TR center and radius
         if rho_k > tol.eta3 && norm(s_k) > 0.8 * bar_delta
             % Update delta if rho is sufficiently large
             delta = bar_delta * tol.gamma_inc;
