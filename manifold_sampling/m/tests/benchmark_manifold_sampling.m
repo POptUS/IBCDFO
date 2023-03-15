@@ -39,34 +39,32 @@ for row = [1, 2, 7, 8, 43, 44, 45]
 
     xs = dfoxs(n, nprob, factor^factor_power);
 
-    SolverNumber = 0;
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Manifold sampling
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    for jj = 2
+    for jj = 1:2
         if jj == 1
             hfun = @pw_maximum_squared;
         end
         if jj == 2
             hfun = @pw_minimum_squared;
         end
+
+        Ffun = @calfun_wrapper;
+        x0 = xs';
+
+        [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch);
+
+        Results{jj, row}.alg = 'Manifold sampling';
+        Results{jj, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun='];
+        Results{jj, row}.Fvec = F;
+        Results{jj, row}.H = h;
+        Results{jj, row}.X = X;
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % save(filename, 'Results');
+        % save('-mat7-binary', filename, 'Results') % Octave save
     end
-    Ffun = @calfun_wrapper;
-    x0 = xs';
-
-    [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch);
-
-    SolverNumber = SolverNumber + 1;
-    Results{SolverNumber, row}.alg = 'Manifold sampling';
-    Results{SolverNumber, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun='];
-    Results{SolverNumber, row}.Fvec = F;
-    Results{SolverNumber, row}.H = h;
-    Results{SolverNumber, row}.X = X;
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % save(filename, 'Results');
-    % save('-mat7-binary', filename, 'Results') % Octave save
 end
 save(filename, 'Results');
 end
