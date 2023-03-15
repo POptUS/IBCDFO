@@ -91,7 +91,7 @@ while nf < nfmax && delta > tol.mindelta
         end
 
         % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-        [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 2, xkin, nf, delta, F, hfun);
+        [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
         G_k = Gres * D_k;
         beta = max(0, f_bar' - h(xkin));
 
@@ -154,13 +154,6 @@ while nf < nfmax && delta > tol.mindelta
                     successful = false; % iteration is unsuccessful
                     break
                 end
-            else
-                % Line 25: Update activities and gradients
-                new_hashes = setdiff(hashes_at_nf, Act_Z_k);
-                Act_Z_k = [Act_Z_k, new_hashes];
-                [new_fbar, new_grads] = hfun(F(xkin, :), new_hashes);
-                D_k = [D_k, new_grads];
-                f_bar = [f_bar, new_fbar];
             end
         end
     end

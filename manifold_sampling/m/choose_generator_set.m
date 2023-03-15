@@ -19,9 +19,9 @@ elseif gentype == 3
     for i = [1:xkin - 1 xkin + 1:nf]
         Act_tmp = Hash(i, ~cellfun(@isempty, Hash(i, :)));
         h_i = hfun(F(xkin, :), Act_tmp);
-        if norm(X(xkin, :) - X(i, :)) <= delta * (1 + 1e-8) && h_i(1) <= hxkin(1)
+        if norm(X(xkin, :) - X(i, :), "inf") <= delta * (1 + 1e-8) && h_i(1) <= hxkin(1)
             Act_Z_k = [Act_Z_k, Act_tmp];
-        elseif norm(X(xkin, :) - X(i, :)) <= delta^2 * (1 + 1e-8) && h_i(1) > hxkin(1)
+        elseif norm(X(xkin, :) - X(i, :), "inf") <= delta^2 * (1 + 1e-8) && h_i(1) > hxkin(1)
             Act_Z_k = [Act_Z_k, Act_tmp];
         end
     end
