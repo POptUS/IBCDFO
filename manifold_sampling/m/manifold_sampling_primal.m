@@ -143,30 +143,33 @@ while nf < nfmax && delta > tol.mindelta
             break
         else % Line 17: Stay in the manifold sampling loop
 
-            % Lines 18-19: See if any new activities
-            if all(ismember(hashes_at_nf, Act_Z_k))
+            % Line 18: Check temporary activities after adding TRSP solution to X
+            [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
 
-                % Line 20: Decrease delta
-                delta = tol.gamma_dec *  delta;
+            % Lines 19: See if any new activities
+            if all(tmp_Act_Z_k == Act_Z_k)
 
-                % Line 21: See if intersection is nonempty
+                % Line 20: See if intersection is nonempty
                 if any(ismember(hashes_at_nf, Act_Z_k))
                     successful = false; % iteration is unsuccessful
                     break
+                else
+                    % Line 24: Shrink delta
+                    delta = tol.gamma_dec * delta;
                 end
             end
         end
     end
 
     if successful
-        xkin = nf; % Line 15, Update TR center and radius
-        if rho_k > tol.eta3 && norm(s_k) > 0.8 * bar_delta
+        xkin = nf; % Line 15: Update TR center and radius
+        if rho_k > tol.eta3 && norm(s_k, "inf") > 0.8 * bar_delta
             % Update delta if rho is sufficiently large
             delta = bar_delta * tol.gamma_inc;
             % h_activity_tol = min(1e-8, delta);
         end
     else
-        % Line 15, Update TR center and radius % iteration is unsuccessful; shrink Delta
+        % Line 21: iteration is unsuccessful; shrink Delta
         delta = max(bar_delta * tol.gamma_dec, tol.mindelta);
         % h_activity_tol = min(1e-8, delta);
     end
