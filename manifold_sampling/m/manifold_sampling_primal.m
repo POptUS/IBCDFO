@@ -147,7 +147,7 @@ while nf < nfmax && delta > tol.mindelta
             [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
 
             % Lines 19: See if any new activities
-            if all(tmp_Act_Z_k == Act_Z_k)
+            if all(ismember(tmp_Act_Z_k, Act_Z_k))
 
                 % Line 20: See if intersection is nonempty
                 if any(ismember(hashes_at_nf, Act_Z_k))
