@@ -12,8 +12,8 @@
 %                         a [1 x m] vector.
 %  nfmax:   [int]         Maximum number of function evaluations.
 %  x0:      [1 x n dbl]   Starting point.
-%  LB:      [1 x n dbl]   Lower bounds.
-%  UB:      [1 x n dbl]   Upper bounds.
+%  L:       [1 x n dbl]   Lower bounds.
+%  U:       [1 x n dbl]   Upper bounds.
 %  GAMS_options:
 %  subprob_switch:
 %
@@ -23,7 +23,7 @@
 %   h:      [nfmax x 1]   The values h(F(x))
 %   xkin:   [int]         Current trust region center
 
-function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, subprob_switch)
+function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, subprob_switch)
 
     % Deduce p from evaluating Ffun at x0
     try
@@ -49,7 +49,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
     while nf < nfmax && delta > tol.mindelta
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, LB, UB);
+        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
@@ -59,8 +59,8 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
             return
         end
 
-        Low = max(LB - X(xkin, :), -delta);
-        Upp = min(UB - X(xkin, :), delta);
+        Low = max(L - X(xkin, :), -delta);
+        Upp = min(U - X(xkin, :), delta);
 
         [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), GAMS_options, hfun);
         if pred_dec == 0
@@ -68,26 +68,40 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
         else
             % Evaluate F
             [nf, X, F, h, Hash, hashes_at_nf] = ...
-                    call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk, tol, LB, UB, 1);
+                    call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk, tol, L, U, 1);
             rho_k = (h(xkin) - h(nf)) / min(1.0, delta^(1.0 + beta_exp));
         end
 
-        if rho_k > tol.eta1 % Success with h of M step
-            if norm(X(xkin, :) - X(nf, :), 'inf') >= 0.9 * delta
+        if rho_k > tol.eta1 % Success with GOOMBAH step
+            if norm(X(xkin, :) - X(nf, :), 'inf') >= 0.8 * delta
                 delta = delta * tol.gamma_inc;
             end
             xkin = nf;
         else
-            %% Need to do one primal MS loop
+            %% Need to do one MS-P loop
 
-            %% Build set of activities Act_Z_k and gradients D_k
-            [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 2, xkin, nf, delta, F, hfun);
+            bar_delta = delta;
 
-            while nf < nfmax % start MS loop
-                % Construct G_k and beta
+            % Line 3: manifold sampling while loop
+            while nf < nfmax
+
+                % Line 4: build models
+                [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
+                if isempty(Gres)
+                    disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
+                    X = X(1:nf, :);
+                    F = F(1:nf, :);
+                    h = h(1:nf, :);
+                    flag = -1;
+                    return
+                end
+
+                % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
+                [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
                 G_k = Gres * D_k;
                 beta = max(0, f_bar' - h(xkin));
 
+                % Line 6: Choose Hessions
                 H_k = zeros(size(G_k, 2), n + 1, n + 1);
                 for i = 1:size(G_k, 2) % would like to vectorize this tensor product ...
                     for j = 1:size(Hres, 3) % p
@@ -95,78 +109,78 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
                     end
                 end
 
-                % Find a candidate s_k by solving QP
-                Low = max(LB - X(xkin, :), -delta);
-                Upp = min(UB - X(xkin, :), delta);
+                % Line 7: Find a candidate s_k by solving QP
+                Low = max(L - X(xkin, :), -delta);
+                Upp = min(U - X(xkin, :), delta);
+                [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
 
-                [s_k, tau_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
+                % Line 8: Compute stationary measure chi_k
+                Low = max(L - X(xkin, :), -1.0);
+                Upp = min(U - X(xkin, :), 1.0);
+                [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
-                % Compute stationary measure chi_k
-                Low = max(LB - X(xkin, :), -1.0);
-                Upp = min(UB - X(xkin, :), 1.0);
-
-                [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, H_k, subprob_switch);
-
-                % Convergence test: tiny master model gradient and tiny delta
+                % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
                 if chi_k <= tol.gtol && delta <= tol.mindelta
                     disp('Convergence satisfied: small stationary measure and small delta');
                     X = X(1:nf, :);
                     F = F(1:nf, :);
                     h = h(1:nf, :);
+                    flag = chi_k;
                     return
                 end
 
-                [nf, X, F, h, Hash, hashes_at_nf] = ...
-                  call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + s_k', tol, LB, UB, 1);
+                if printf
+                    trsp_fun = @(x) max_affine(x, h(xkin), f_bar, beta, G_k, H_mm);
+        %             plot_again_j(X, xkin, delta, s_k, [], nf, trsp_fun, L, U);
+                end
 
-                % Compute rho_k
+                % Line 12: Evaluate F
+                [nf, X, F, h, Hash, hashes_at_nf] = ...
+                    call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + s_k', tol, L, U, 1);
+
+                % Line 13: Compute rho_k
                 ared = h(xkin) - h(nf);
                 pred = -tau_k;
                 rho_k = ared / pred;
 
+                % Lines 14-16: Check for success
                 if rho_k >= tol.eta1 && pred > 0
                     successful = true; % iteration is successful
                     break
-                elseif (rho_k < tol.eta1 || pred < 0) && all(ismember(hashes_at_nf, Act_Z_k))
-                    successful = false;
-                    break
-                elseif pred <= 0
-                    successful = false;
-                    break
-                else % stay in the manifold sampling loop
-                    % Update models now that F(x+s) has been evaluated
-                    [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, LB, UB);
-                    if isempty(Gres)
-                        disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
-                        X = X(1:nf, :);
-                        F = F(1:nf, :);
-                        h = h(1:nf, :);
-                        flag = -1;
-                        return
+                else % Line 17: Stay in the manifold sampling loop
+
+                    % Line 18: Check temporary activities after adding TRSP solution to X
+                    [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
+
+                    % Lines 19: See if any new activities
+                    if all(ismember(tmp_Act_Z_k, Act_Z_k))
+
+                        % Line 20: See if intersection is nonempty
+                        if any(ismember(hashes_at_nf, Act_Z_k))
+                            successful = false; % iteration is unsuccessful
+                            break
+                        else
+                            % Line 24: Shrink delta
+                            delta = tol.gamma_dec * delta;
+                        end
                     end
-
-                    % Update activities and gradients
-                    new_hashes = setdiff(hashes_at_nf, Act_Z_k);
-                    Act_Z_k = [Act_Z_k, new_hashes];
-                    [new_fbar, new_grads] = hfun(F(xkin, :), new_hashes);
-                    D_k = [D_k, new_grads];
-                    f_bar = [f_bar, new_fbar];
                 end
+            end
 
-            end % manifold sampling loop
             if successful
-                xkin = nf; % iteration is successful
-                if rho_k > tol.eta1 && norm(s_k) > 0.8 * delta
-                    % Update Delta if rho is sufficiently large
-                    delta = delta * tol.gamma_inc;
+                xkin = nf; % Line 15: Update TR center and radius
+                if rho_k > tol.eta3 && norm(s_k, "inf") > 0.8 * bar_delta
+                    % Update delta if rho is sufficiently large
+                    delta = bar_delta * tol.gamma_inc;
                     % h_activity_tol = min(1e-8, delta);
                 end
             else
-                % iteration is unsuccessful; shrink Delta
-                delta = max(delta * tol.gamma_dec, tol.mindelta);
+                % Line 21: iteration is unsuccessful; shrink Delta
+                delta = max(bar_delta * tol.gamma_dec, tol.mindelta);
                 % h_activity_tol = min(1e-8, delta);
             end
-        end % if-else conditional on success of GOOMBAH step
+
+        end
         fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, h(xkin), delta);
     end
 
@@ -176,7 +190,5 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
         X = X(1:nf, :);
         F = F(1:nf, :);
         h = h(1:nf, :);
-        flag = chi_k;
     end
-
 end
