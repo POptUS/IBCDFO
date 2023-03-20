@@ -133,7 +133,7 @@ for mw_prob_num = [7] % full tests are 1:53
                             GAMS_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options);
+                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options, subprob_switch);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
