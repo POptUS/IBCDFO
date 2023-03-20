@@ -22,7 +22,7 @@
 %   h:      [nfmax x 1]   The values h(F(x))
 %   xkin:   [int]         Current trust region center
 
-function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options)
+function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_options)
 
     % Deduce p from evaluating Ffun at x0
     try
@@ -44,7 +44,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
     while nf < nfmax
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, LB, UB);
+        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
@@ -95,11 +95,11 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
             sk = sk';
 
             % if printf
-            %     plot_again(X, xkin, delta, sk, [], nf, [], LB, UB);
+            %     plot_again(X, xkin, delta, sk, [], nf, [], L, U);
             % end
 
-            Low = max(LB - X(xkin, :), -delta);
-            Upp = min(UB - X(xkin, :), delta);
+            Low = max(L - X(xkin, :), -delta);
+            Upp = min(U - X(xkin, :), delta);
 
             [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), GAMS_options, hfun);
             if pred_dec == 0
@@ -116,13 +116,13 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, LB, UB, GAMS_op
 
             % if printf
             %     trsp_fun = @(x) h_of_quad_models(x, X(xkin, :), F(xkin, :), Gres, Hres, hfun);
-            %     plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, LB, UB);
+            %     plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, L, U);
             % end
 
             if pred_dec > 0
                 % ================================
                 % Evaluate F
-                [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk1, tol, LB, UB, 1);
+                [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk1, tol, L, U, 1);
                 rho_k = (h(xkin) - h(nf)) / pred_dec;
             end
         else
