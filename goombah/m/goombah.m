@@ -59,7 +59,6 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, su
             return
         end
         if nf >= nfmax
-            flag = 0; % Budget exceeded
             return
         end
 
@@ -97,6 +96,9 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, su
                     F = F(1:nf, :);
                     h = h(1:nf, :);
                     flag = -1;
+                    return
+                end
+                if nf >= nfmax
                     return
                 end
 
