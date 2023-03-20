@@ -59,7 +59,7 @@ catch e
 end
 
 [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres] = check_inputs_and_initialize(x0, F0, nfmax);
-[flag, x0, ~, F0, LB, UB] = checkinputss(hfun, x0, n, fq_pars.npmax, nfmax, tol.g_tol, delta, 1, length(F0), F0, xkin, LB, UB);
+[flag, x0, ~, F0, L, U] = checkinputss(hfun, x0, n, fq_pars.npmax, nfmax, tol.gtol, delta, 1, length(F0), F0, xkin, L, U);
 if flag == -1 % Problem with the input
     X = x0;
     F = F0;
@@ -74,24 +74,32 @@ Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 H_mm = zeros(n);
 
 while nf < nfmax && delta > tol.mindelta
-    [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
-    if isempty(Gres)
-        disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
-        X = X(1:nf, :);
-        F = F(1:nf, :);
-        h = h(1:nf, :);
-        flag = -1;
-        return
-    end
+    bar_delta = delta;
 
-    % Build set of activities Act_Z_k and gradients D_k
-    [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 2, xkin, nf, delta, F, hfun);
-
+    % Line 3: manifold sampling while loop
     while nf < nfmax
-        % Construct G_k and beta
+
+        % Line 4: build models
+        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
+        if isempty(Gres)
+            disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
+            X = X(1:nf, :);
+            F = F(1:nf, :);
+            h = h(1:nf, :);
+            flag = -1;
+            return
+        end
+        if nf >= nfmax
+            flag = 0; % Budget exceeded
+            return
+        end
+
+        % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
+        [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
         G_k = Gres * D_k;
         beta = max(0, f_bar' - h(xkin));
 
+        % Line 6: Choose Hessions
         H_k = zeros(size(G_k, 2), n + 1, n + 1);
         for i = 1:size(G_k, 2) % would like to vectorize this tensor product ...
             for j = 1:size(Hres, 3) % p
@@ -99,19 +107,17 @@ while nf < nfmax && delta > tol.mindelta
             end
         end
 
-        % Find a candidate s_k by solving QP
+        % Line 7: Find a candidate s_k by solving QP
         Low = max(L - X(xkin, :), -delta);
         Upp = min(U - X(xkin, :), delta);
-
         [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
 
-        % Compute stationary measure chi_k
+        % Line 8: Compute stationary measure chi_k
         Low = max(L - X(xkin, :), -1.0);
         Upp = min(U - X(xkin, :), 1.0);
-
         [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
-        % Convergence test: tiny master model gradient and tiny delta
+        % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
         if chi_k <= tol.gtol && delta <= tol.mindelta
             disp('Convergence satisfied: small stationary measure and small delta');
             X = X(1:nf, :);
@@ -126,69 +132,51 @@ while nf < nfmax && delta > tol.mindelta
 %             plot_again_j(X, xkin, delta, s_k, [], nf, trsp_fun, L, U);
         end
 
+        % Line 12: Evaluate F
         [nf, X, F, h, Hash, hashes_at_nf] = ...
             call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + s_k', tol, L, U, 1);
 
-        % Compute rho_k
+        % Line 13: Compute rho_k
         ared = h(xkin) - h(nf);
         pred = -tau_k;
         rho_k = ared / pred;
 
+        % Lines 14-16: Check for success
         if rho_k >= tol.eta1 && pred > 0
             successful = true; % iteration is successful
             break
-        elseif (rho_k < tol.eta1 || pred < 0) && all(ismember(hashes_at_nf, Act_Z_k))
-            successful = false;
-            break
-        elseif pred <= 0
-            successful = false;
-            break
-        else % stay in the manifold sampling loop
-            % Update models now that F(x+s) has been evaluated
-            [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
-            if isempty(Gres)
-                disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
-                X = X(1:nf, :);
-                F = F(1:nf, :);
-                h = h(1:nf, :);
-                flag = -1;
-                return
-            end
+        else % Line 17: Stay in the manifold sampling loop
 
-            % Update activities and gradients
-            new_hashes = setdiff(hashes_at_nf, Act_Z_k);
-            Act_Z_k = [Act_Z_k, new_hashes];
-            [new_fbar, new_grads] = hfun(F(xkin, :), new_hashes);
-            D_k = [D_k, new_grads];
-            f_bar = [f_bar, new_fbar];
+            % Line 18: Check temporary activities after adding TRSP solution to X
+            [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
+
+            % Lines 19: See if any new activities
+            if all(ismember(tmp_Act_Z_k, Act_Z_k))
+
+                % Line 20: See if intersection is nonempty
+                if any(ismember(hashes_at_nf, Act_Z_k))
+                    successful = false; % iteration is unsuccessful
+                    break
+                else
+                    % Line 24: Shrink delta
+                    delta = tol.gamma_dec * delta;
+                end
+            end
         end
     end
 
     if successful
-        xkin = nf; % iteration is successful
-        if rho_k > tol.eta3 && norm(s_k) > 0.8 * delta
-            % Update Delta if rho is sufficiently large
-            delta = delta * tol.gamma_inc;
+        xkin = nf; % Line 15: Update TR center and radius
+        if rho_k > tol.eta3 && norm(s_k, "inf") > 0.8 * bar_delta
+            % Update delta if rho is sufficiently large
+            delta = bar_delta * tol.gamma_inc;
             % h_activity_tol = min(1e-8, delta);
         end
     else
-        % iteration is unsuccessful; shrink Delta
-        delta = max(delta * tol.gamma_dec, tol.mindelta);
+        % Line 21: iteration is unsuccessful; shrink Delta
+        delta = max(bar_delta * tol.gamma_dec, tol.mindelta);
         % h_activity_tol = min(1e-8, delta);
     end
-
-    % Termination criteria, set output
-    if nf >= nfmax
-        disp(delta);
-        disp(chi_k);
-        fprintf('Budget exceeded, terminating.\n');
-    end
-
-    % old_xkin = xkin;
-    % [~, xkin] = min(h(1:nf));
-    % if ~successful && xkin ~= old_xkin
-    %     delta = delta * (1.0 / tol.gamma_dec);
-    % end
 
     fprintf('nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n', nf, h(xkin), chi_k, delta);
 
