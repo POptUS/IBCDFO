@@ -14,7 +14,7 @@ global Qs zs cs h_activity_tol % for piecewise_quadratic h
 probtype = 'smooth';
 vecout = 1;
 
-addpath('mpc_test_files')
+addpath('mpc_test_files');
 root_dir = '../../../../';
 bendfo_root = '../../../../../BenDFO/';
 trsp_root = [root_dir 'goombah/m/subproblems/'];
