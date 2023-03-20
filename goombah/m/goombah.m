@@ -58,6 +58,10 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, LB, UB, GAMS_options, 
             h = h(1:nf, :);
             return
         end
+        if nf >= nfmax
+            flag = 0; % Budget exceeded
+            return
+        end
 
         Low = max(LB - X(xkin, :), -delta);
         Upp = min(UB - X(xkin, :), delta);

@@ -14,6 +14,7 @@ global Qs zs cs h_activity_tol % for piecewise_quadratic h
 probtype = 'smooth';
 vecout = 1;
 
+addpath('mpc_test_files')
 root_dir = '../../../../';
 bendfo_root = '../../../../../BenDFO/';
 trsp_root = [root_dir 'goombah/m/subproblems/'];
@@ -33,7 +34,7 @@ addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
 nfmax_c = 20; % Full tests used 100; % Multiplied by dimension to set max evals
 factor = 10; % Multiple for x0 declaration
 num_solvers = 4; % Number of solvers being benchmarked
-solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
+solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH_wo_MS-P'}; % Used when saving filenames for ease of reference
 
 num_seeds = 1; % Replications of each problem instance
 mkdir('./benchmark_results');
@@ -129,7 +130,7 @@ for mw_prob_num = [7] % full tests are 1:53
                             GAMS_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options);
+                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];

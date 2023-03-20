@@ -89,6 +89,10 @@ while nf < nfmax && delta > tol.mindelta
             flag = -1;
             return
         end
+        if nf >= nfmax
+            flag = 0; % Budget exceeded
+            return
+        end
 
         % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
         [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
