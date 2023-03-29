@@ -152,7 +152,9 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         Hres = Hres + Hresdel
         c = Fs[xkin]
         G, H = combinemodels(Cres, Gres, Hres)
-        ng = np.linalg.norm(G * (np.int64(X[xkin] > L) * np.int64(G.T > 0) + np.int64(X[xkin] < U) * np.int64(G.T < 0)).T, 2)
+        ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
+        ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
+        ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
         if printf >= 2:
             IERR = np.zeros(len(Mind))
             for i in range(len(Mind)):
@@ -188,7 +190,9 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 # Recalculate gradient based on a MFN model
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, mpmax, Par, 0)
                 G, H = combinemodels(Cres, Gres, Hres)
-                ng = np.linalg.norm(G * (np.int64(X[xkin] > L) * np.int64(G.T > 0) + np.int64(X[xkin] < U) * np.int64(G.T < 0)).T, 2)
+                ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
+                ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
+                ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
             if ng < gtol:
                 X, F, flag = prepare_outputs_before_return(X, F, nf, 0)
                 return X, F, flag, xkin
