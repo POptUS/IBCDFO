@@ -198,7 +198,9 @@ while nf < nfmax
     Hres = Hres + Hresdel;
     c = Fs(xkin);
     [G, H] = combinemodels(Cres, Gres, Hres);
-    ng = norm(G .* (and(X(xkin, :) > L, G' > 0) + and(X(xkin, :) < U, G' < 0))');
+    ind_Lnotbinding = and(X(xkin, :) > L, G' > 0);
+    ind_Unotbinding = and(X(xkin, :) < U, G' < 0);
+    ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
 
     if printf >= 2  % Output stuff: ---------(can be removed later)------------
         IERR = zeros(1, size(Mind, 1));
@@ -244,7 +246,9 @@ while nf < nfmax
             [~, ~, valid, Gres, Hres, Mind] = ...
                 formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 0);
             [G, H] = combinemodels(Cres, Gres, Hres);
-            ng = norm(G .* (and(X(xkin, :) > L, G' > 0) + and(X(xkin, :) < U, G' < 0))');
+            ind_Lnotbinding = and(X(xkin, :) > L, G' > 0);
+            ind_Unotbinding = and(X(xkin, :) < U, G' < 0);
+            ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
         end
         if ng < gtol % We trust the small gradient norm and return
             [X, F, flag] = prepare_outputs_before_return(X, F, nf, 0);
