@@ -1,6 +1,10 @@
 import numpy as np
 
 
+def identity_combine(Cres, Gres, Hres):
+    return Gres.squeeze(), Hres.squeeze()
+
+
 def neg_leastsquares(Cres, Gres, Hres):
     G, H = leastsquares(Cres, Gres, Hres)
     G = -G
