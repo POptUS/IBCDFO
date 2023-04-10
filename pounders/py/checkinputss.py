@@ -24,6 +24,7 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
     F0 = np.atleast_2d(F0)
     L = np.atleast_2d(L)
     U = np.atleast_2d(U)
+    xkin = int(xkin)
     [nfs2, n2] = np.shape(X0)
     if n != n2:
         # Attempt to transpose:
@@ -106,4 +107,4 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         return [flag, X0, mpmax, F0, L, U]
     U = U.squeeze()
     L = L.squeeze()
-    return [flag, X0, mpmax, F0, L, U]
+    return [flag, X0, mpmax, F0, L, U, xkin]
