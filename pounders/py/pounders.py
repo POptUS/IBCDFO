@@ -120,6 +120,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     Res = np.zeros(np.shape(F))
     Cres = F[xkin]
     Hres = np.zeros((n, n, m))
+    ng = np.nan
     while nf + 1 < nfmax:
         #  1a. Compute the interpolation set.
         for i in range(nf + 1):
