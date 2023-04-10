@@ -22,11 +22,11 @@ gtol = 10**-13
 # delta [dbl] Positive trust region radius (.1)
 delta = 0.1
 # nfs  [int] Number of function values (at X0) known in advance (0)
-nfs = 0
+nfs = 1
 # m [int] number of residuals
 m = 1
 # F0 [dbl] [fstart-by-1] Set of known function values  ([])
-F0 = []
+F0 = func(X0)
 # xind [int] Index of point in X0 at which to start from (0)
 xind = 0
 # Low [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
