@@ -4,10 +4,12 @@
 
 This code minimizes a blackbox function, solving
 
+````
 min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
+````
 
-where the user-provided F is specified in the handle fun. Evaluation of
-this F must result in the return of a 1-by-m row vector. Bounds must be
+where the user-provided `F` is specified in the handle fun. Evaluation of
+this ``F`` must result in the return of a 1-by-m row vector. Bounds must be
 specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
 unconstrained solution is desired. The algorithm will not evaluate F
 outside of these bounds, but it is possible to take advantage of function
@@ -19,9 +21,12 @@ of the function and minimizes it in an infinity-norm trust region.
 ## API 
 The POUNDERs API is
 
+````
   [X,F,flag,xkin] = pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
+````
 
 
+````
 --INPUTS-----------------------------------------------------------------
 fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
 X0      [dbl] [max(nfs,1)-by-n] Set of initial points (zeros(1,n))
@@ -40,14 +45,17 @@ printf  [log] 0 No printing to screen (default)
               1 Debugging level of output to screen
               2 More verbose screen output
 spsolver [int] Trust-region subproblem solver flag (2)
+````
 
 Optionally, a user can specify and outer-function that maps the the elements
 of F to a scalar value (to be minimized). Doing this also requires a function
 handle (combinemodels) that tells pounders how to map the linear and
 quadratic terms from the residual models into a single quadratic TRSP model.
 
+````
 hfun           [f h] Function handle for mapping output from F
 combinemodels  [f h] Function handle for combine residual models
+````
 
 --OUTPUTS----------------------------------------------------------------
 X       [dbl] [nfmax+nfs-by-n] Locations of evaluated points
