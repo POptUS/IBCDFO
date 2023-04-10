@@ -9,7 +9,6 @@ from prepare_outputs_before_return import prepare_outputs_before_return
 
 
 def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf=0, spsolver=2, hfun=None, combinemodels=None):
-
     if hfun is None:
         hfun = lambda F: np.sum(F**2)
         from general_h_funs import leastsquares as combinemodels
