@@ -1,12 +1,12 @@
-# Tests import sys
+# Tests pounders on an m=1 function
 
-import numpy as np
 import sys
 
+import numpy as np
+
 sys.path.append("../../")
-sys.path.append("../../../../minq/py/minq5/")
-from pounders import pounders
 from general_h_funs import identity_combine as combinemodels
+from pounders import pounders
 
 # Sample calling syntax for pounders
 # func is a function imported from calFun.py as calFun
@@ -37,7 +37,7 @@ Upp = np.inf * np.ones(n)
 # printf = True to indicate you want output to screen
 printf = False
 # Choose your solver:
-spsolver = 2
+spsolver = 1
 
 hfun = lambda F: F
 
