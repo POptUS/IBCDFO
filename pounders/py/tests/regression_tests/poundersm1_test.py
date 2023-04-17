@@ -42,4 +42,4 @@ hfun = lambda F: F
 
 [X, F, flag, xkin] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
-assert np.all(X[xkin] == Low), "The optimum show be the lower bounds."
+assert np.all(X[xkin] == Low), "The optimum should be the lower bounds."
