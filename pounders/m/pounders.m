@@ -153,6 +153,7 @@ Res = zeros(size(F)); % Stores the residuals for model updates
 Cres = F(xkin, :);
 Hres = zeros(n, n, m);
 % H = zeros(n); G = zeros(n,1); c = Fs(xkin);
+ng = nan; % Initialization in case of very early termination
 
 % ! NOTE: Currently do not move to a geometry point (including in
 % the first iteration!) if it has a lower f value
