@@ -154,7 +154,6 @@ Cres = F(xkin, :);
 Hres = zeros(n, n, m);
 ng = NaN; % Needed for early termination, e.g., if a model is never built
 % H = zeros(n); G = zeros(n,1); c = Fs(xkin);
-ng = nan; % Initialization in case of very early termination
 
 % ! NOTE: Currently do not move to a geometry point (including in
 % the first iteration!) if it has a lower f value
