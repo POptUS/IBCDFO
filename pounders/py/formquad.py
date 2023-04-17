@@ -113,7 +113,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             # [Qy, Ry] = flipFirstRow(Qy, Ry, 0, np.shape(Q)[1]-1)
             # [Qy, Ry] = flipSignQ(Qy, Ry, 0, np.shape(Q)[1]-1)
             Ly = Ny @ Qy[:, n + 1 : mp + 1]
-            _, s, _ = np.linalg.svd(Ly)
+            s = np.linalg.svd(Ly, compute_uv=False)
             if min(s) > Pars[3]:
                 mp += 1
                 Mind.append(i)

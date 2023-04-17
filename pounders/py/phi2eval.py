@@ -17,6 +17,6 @@ def phi2eval(X):
         Phi[:, j] = X2[:, k]
         j += 1
         # Hadamard product of column vectors
-        Phi[:, j : j + n - k - 1] = np.multiply(np.tile(X[:, k], (n - k - 1, 1)).T, X[:, k + 1 :]) / np.sqrt(2)
+        Phi[:, j : j + n - k - 1] = np.multiply(X[:, [k]], X[:, k + 1 :]) / np.sqrt(2)
         j += n - k - 1
     return Phi
