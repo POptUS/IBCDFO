@@ -80,7 +80,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     # elif spsolver == 3:
     #     from minq8 import minq8
 
-    [flag, X0, mpmax, F0, L, U] = checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)
+    [flag, X0, mpmax, F0, L, U, xkin] = checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)
     if flag == -1:
         X = []
         F = []
