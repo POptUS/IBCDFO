@@ -31,7 +31,7 @@ setup(
     author_email="jmlarson@anl.gov",
     maintainer="Jeffrey Larson, Matt Menickelly, and Stefan M. Wild",
     maintainer_email="jmlarson@anl.gov",
-    packages=["ibcdfo"],
+    packages=["pounders"],
     package_data=pkg_dict,
     url="https://github.com/POptUS/IBCDFO/",
     license="MIT License",
