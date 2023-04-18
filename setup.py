@@ -1,18 +1,18 @@
 import codecs
-import os.path
 from setuptools import setup
+from pathlib import Path
 
-here = os.path.abspath(os.path.dirname(__file__))
+_FILE_PATH = Path(__file__).parent
 
 
 def readme():
-    fname = os.path.join(here, "README.md")
+    fname = _FILE_PATH.joinpath("README.md")
     with codecs.open(fname, encoding="utf8") as fptr:
         return fptr.read()
 
 
 def version():
-    fname = os.path.join(here, "VERSION")
+    fname = _FILE_PATH.joinpath("VERSION")
     with open(fname, "r") as fptr:
         return fptr.read().strip()
 
@@ -51,7 +51,6 @@ setup(
         "Operating System :: POSIX :: Linux",
         "Operating System :: Unix",
         "Operating System :: MacOS",
-        "Operating System :: Microsoft :: Windows :: Windows 7",
         "Topic :: Scientific/Engineering",
     ],
 )
