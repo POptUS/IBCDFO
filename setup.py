@@ -1,6 +1,7 @@
 import codecs
-from setuptools import setup
 from pathlib import Path
+
+from setuptools import setup
 
 _FILE_PATH = Path(__file__).parent
 
