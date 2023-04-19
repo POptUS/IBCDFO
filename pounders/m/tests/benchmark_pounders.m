@@ -4,7 +4,7 @@ function [] = benchmark_pounders()
 
 load dfo.dat;
 
-ensure_still_solve_problems = 1;
+ensure_still_solve_problems = 0;
 if ensure_still_solve_problems
     solved = load('./benchmark_results/solved.txt'); % A 0-1 matrix with 1 when problem was previously solved.
 else
@@ -72,7 +72,7 @@ for row = 1:length(dfo)
             end
         else
             if flag == 0
-                solved(row, hfun_cases) = 1;
+                solved(row, hfun_cases) = xk_best;
             end
         end
 

@@ -84,7 +84,7 @@ def doit():
                     check_stationary(X[xk_best, :], L, U, BenDFO, combinemodels)
             else:
                 if flag == 0:
-                    solved[row, hfun_cases - 1] = 1
+                    solved[row, hfun_cases - 1] = xk_best + 1
 
             assert flag != 1, "pounders failed"
             assert hfun(F[0]) > hfun(F[xk_best])
