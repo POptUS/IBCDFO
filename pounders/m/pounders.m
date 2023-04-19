@@ -130,7 +130,13 @@ if nfs == 0 % Need to do the first evaluation
     X = [X0; zeros(nfmax - 1, n)]; % Stores the point locations
     F = zeros(nfmax, m); % Stores the function values
     nf = 1;
-    F(nf, :) = fun(X(nf, :));
+    F0 = fun(X(nf, :));
+    if length(F0) ~= m
+        disp('  Error: F0 does not contain the right number of residuals');
+        flag = -1;
+        return
+    end
+    F(nf, :) = F0;
     if any(isnan(F(nf, :)))
         [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
         return
