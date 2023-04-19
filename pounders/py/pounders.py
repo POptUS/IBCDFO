@@ -104,7 +104,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         F = np.zeros((nfmax, m))
         nf = 0  # in Matlab this is 1
         F0 = fun(X[nf])
-        if np.shape(F0)[1] != m:
+        if len(F0) != m:
             X, F, flag = prepare_outputs_before_return(X, F, nf, -1)
             return X, F, flag, xkin
         F[nf] = F0
