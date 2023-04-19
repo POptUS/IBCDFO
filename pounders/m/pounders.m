@@ -148,7 +148,7 @@ if nfs == 0 % Need to do the first evaluation
         fprintf('%4i    Initial point  %11.5e\n', nf, sum(F(nf, :).^2));
     end
 else % Have other function values around
-    X = [X0(1:max(1, nfs), :); zeros(nfmax, n)]; % Stores the point locations
+    X = [X0(1:nfs, :); zeros(nfmax, n)]; % Stores the point locations
     F = [F0(1:nfs, :); zeros(nfmax, m)]; % Stores the function values
     nf = nfs;
     nfmax = nfmax + nfs;
