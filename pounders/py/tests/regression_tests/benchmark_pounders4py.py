@@ -17,6 +17,7 @@ from pounders import pounders
 os.makedirs("benchmark_results", exist_ok=True)
 np.seterr("raise")
 
+
 def doit():
     bendfo_root = "../../../../../BenDFO/"
     octave.addpath(bendfo_root + "/m/")
@@ -25,10 +26,9 @@ def doit():
 
     ensure_still_solve_problems = 0
     if ensure_still_solve_problems:
-        solved = np.loadtxt('./benchmark_results/solved.txt') # A 0-1 matrix with 1 when problem was previously solved.
+        solved = np.loadtxt("./benchmark_results/solved.txt")  # A 0-1 matrix with 1 when problem was previously solved.
     else:
         solved = np.zeros((53, 3))
-
 
     spsolver = 2  # TRSP solver
     nfmax = int(100)
@@ -79,16 +79,16 @@ def doit():
             [X, F, flag, xk_best] = pounders(objective, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 
             if ensure_still_solve_problems:
-                if solved[row, hfun_cases-1] == 1:
+                if solved[row, hfun_cases - 1] == 1:
                     assert flag == 0, "This problem was previously solved but it's anymore."
                     check_stationary(X[xk_best, :], L, U, BenDFO, combinemodels)
             else:
                 if flag == 0:
-                    solved[row, hfun_cases-1] = 1
+                    solved[row, hfun_cases - 1] = 1
 
             assert flag != 1, "pounders failed"
             assert hfun(F[0]) > hfun(F[xk_best])
-            assert X.shape[0] <= nfmax +nfs , "POUNDERs grew the size of X"
+            assert X.shape[0] <= nfmax + nfs, "POUNDERs grew the size of X"
 
             if flag == 0:
                 assert X.shape[0] <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations"
@@ -115,7 +115,8 @@ def doit():
             sp.io.savemat(filename, Results)
 
         if not ensure_still_solve_problems:
-            np.savetxt('./benchmark_results/solved.txt', solved.astype(int), fmt='%s', delimiter=',')
+            np.savetxt("./benchmark_results/solved.txt", solved.astype(int), fmt="%s", delimiter=",")
+
 
 if __name__ == "__main__":
     doit()
