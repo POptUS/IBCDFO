@@ -1,13 +1,13 @@
-% POUNDerS Version 0.1,    Modified 04/9/2010. Copyright 2010
-% Stefan Wild and Jorge More', Argonne National Laboratory.
+% POUNDerS
+% Version 0.1 (4/9/2010) Stefan Wild and Jorge More', Argonne National Laboratory.
 %
 %   [X,F,flag,xkin] = ...
 %        pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
 %
-% This code minimizes a blackbox function, solving
+% This code minimizes a structured blackbox function, solving
 % min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
-% where the user-provided F is specified in the handle fun. Evaluation of
-% this F must result in the return of a 1-by-m row vector. Bounds must be
+% where the user-provided blackbox F is specified in the handle fun. Evaluation
+% of this F must result in the return of a 1-by-m row vector. Bounds must be
 % specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
 % unconstrained solution is desired. The algorithm will not evaluate F
 % outside of these bounds, but it is possible to take advantage of function
@@ -15,12 +15,15 @@
 % In each iteration, the algorithm forms an interpolating quadratic model
 % of the function and minimizes it in an infinity-norm trust region.
 %
-% This is an older MATLAB/OCTAVE implementation of POUNDerS (Practical
+% This is a MATLAB/OCTAVE implementation of POUNDerS (Practical
 % Optimization Using No Derivatives for sums of Squares).
 % It comes with no warranty, is not bug-free, and is not for industrial use
-% or public distribution. Direct requests and bugs to wild@mcs.anl.gov.
+% or public distribution. Direct requests and bugs to wild@lbl.gov.
 % A technical report/manual is forthcoming, a brief description is in
 % Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
+%
+% Additional versions and updates are available from 
+%   https://github.com/POptUS/IBCDFO
 %
 % --INPUTS-----------------------------------------------------------------
 % fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
