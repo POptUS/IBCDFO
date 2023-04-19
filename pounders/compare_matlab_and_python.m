@@ -34,10 +34,10 @@ end
 countpy = 0;
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row-1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename)
             P1 = load(filename);
-            countpy = countpy + 1';            
+            countpy = countpy + 1';
             if strcmp(hfun, 'leastsquares')
                 col = 1;
             elseif strcmp(hfun, 'squared_diff_from_mean')
@@ -45,7 +45,7 @@ for row = 1:53
             elseif strcmp(hfun, 'emittance_combine')
                 col = 3;
             end
-            P{countpy} = P1.([method '4py_' int2str(row-1) '_' int2str(col)]);
+            P{countpy} = P1.([method '4py_' int2str(row - 1) '_' int2str(col)]);
         end
     end
 end
@@ -106,10 +106,10 @@ end
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
         filename_m = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
-        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row-1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename_p)
             M1 = load(filename_m);
-            P1 = load(filename_p);            
+            P1 = load(filename_p);
             col = 0;
             if strcmp(hfun, 'leastsquares')
                 col = 1;
@@ -120,10 +120,10 @@ for row = 1:53
             end
             f = figure;
             Mat = M1.Results{col, row};
-            Py = P1.([method '4py_' int2str(row-1) '_' int2str(col)]);
-            hold off
+            Py = P1.([method '4py_' int2str(row - 1) '_' int2str(col)]);
+            hold off;
             semilogy(Mat.H, 'LineWidth', LW);
-            hold on
+            hold on;
             semilogy(Py.H, 'LineWidth', LW);
             print(f, ['raw_values_row=' int2str(row) '_hfun=' hfun{1} '_' Solvers{1} '_vs_' Solvers{2} '.png'], '-dpng', '-r400');
             close all;
