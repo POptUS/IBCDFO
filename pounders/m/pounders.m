@@ -22,7 +22,7 @@
 % A technical report/manual is forthcoming, a brief description is in
 % Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
 %
-% Additional versions and updates are available from 
+% Additional versions and updates are available from
 %   https://github.com/POptUS/IBCDFO
 %
 % --INPUTS-----------------------------------------------------------------
