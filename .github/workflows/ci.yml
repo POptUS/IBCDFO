@@ -1,0 +1,56 @@
+name: IBCDFO-CI
+on:
+  pull_request:
+    types:
+      - ready_for_review
+      - opened
+      - reopened
+      - synchronize
+jobs:
+    test-ibcdfo:
+        if: '! github.event.pull_request.draft'
+        runs-on: ubuntu-latest
+
+        env:
+            HYDRA_LAUNCHER: "fork"
+            TERM: xterm-256color
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        defaults:
+            run:
+                shell: bash -l {0}
+
+        steps:
+        - uses: actions/checkout@v3
+        - name: Setup conda - Python ${{ matrix.python-version }}
+          uses: conda-incubator/setup-miniconda@v2
+          with:
+            activate-environment: condaenv
+            miniconda-version: "latest"
+            python-version: 3.10
+            channels: conda-forge
+            channel-priority: flexible
+            auto-update-conda: true
+
+        - name: Install dependencies, ibcdfo
+          run: |
+            python -m pip install --upgrade pip
+            conda install mpich mpi4py
+            pip install numpy scipy oct2py
+            pip install -r pounders/py/tests/test_requirements.txt
+            pip install -e .
+
+        - name: Run tests, produce coverage reports
+          env:
+              COVERALLS_PARALLEL: true
+          run: |
+           cd pounders/py/tests/regression_tests
+           pytest --cov --cov-report html:cov_reg
+           coverage html
+
+        - name: Merge coverage, run Coveralls
+          env:
+              COVERALLS_PARALLEL: true
+          run: |
+            mv pounders/py/tests/regression_tests/.cov* .
+            coveralls --service=github
