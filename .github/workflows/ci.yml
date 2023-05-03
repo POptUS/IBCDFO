@@ -27,7 +27,7 @@ jobs:
           with:
             activate-environment: condaenv
             miniconda-version: "latest"
-            python-version: 3.10
+            python-version: "3.10"
             channels: conda-forge
             channel-priority: flexible
             auto-update-conda: true
