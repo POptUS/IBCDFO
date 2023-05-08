@@ -36,7 +36,7 @@ jobs:
           run: |
             python -m pip install --upgrade pip
             conda install mpich mpi4py
-            pip install numpy scipy oct2py
+            pip install numpy scipy oct2py ipdb
             pip install -r pounders/py/tests/test_requirements.txt
             pip install -e .
 
