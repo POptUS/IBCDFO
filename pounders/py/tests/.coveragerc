@@ -2,7 +2,7 @@
 #Individual coverage dirs are created in the relevant directories.
 
 [run]
-data_file = .cov_merge_out_reg
+data_file = .cov_merge_out
 
 [html]
 directory = cov_merge
