@@ -3,6 +3,7 @@ import numpy as np
 # import boxline function from boxline.py
 from ibcdfo.boxline import boxline
 
+
 def bmpts(X, Modeld, Low, Upp, delta, theta):
     [num, n] = np.shape(Modeld)
     # For each ray, find largest t to remain feasible
