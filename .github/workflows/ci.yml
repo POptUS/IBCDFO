@@ -63,6 +63,7 @@ jobs:
           env:
               COVERALLS_PARALLEL: true
           run: |
+            pwd
             mv regression_tests/.cov_merge* .
             mv unit_tests/.cov_merge* .
             coverage combine .cov_merge*
