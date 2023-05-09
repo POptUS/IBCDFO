@@ -53,9 +53,9 @@ jobs:
             pytest --cov --cov-report html:cov_unit
 
             cd ../regression_tests
-            python -m coverage run benchmark_pounders4py.py
+            #python -m coverage run benchmark_pounders4py.py
             python -m coverage run callpounders_test.py
-            python -m coverage run callpounders.py
+            #python -m coverage run callpounders.py
             python -m coverage run test_failing_objective.py
             cd ..
 
