@@ -62,6 +62,7 @@ jobs:
         - name: Merge coverage, run Coveralls
           env:
               COVERALLS_PARALLEL: true
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
             pwd
             mv pounders/py/tests/regression_tests/.cov_merge* .
@@ -69,3 +70,4 @@ jobs:
             coverage combine .cov_merge*
             coverage html
             coveralls --service=github
+            coveralls --finish
