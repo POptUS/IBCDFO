@@ -1,0 +1,73 @@
+name: IBCDFO-CI
+on:
+  pull_request:
+    types:
+      - ready_for_review
+      - opened
+      - reopened
+      - synchronize
+jobs:
+    test-ibcdfo:
+        if: '! github.event.pull_request.draft'
+        runs-on: ubuntu-latest
+
+        env:
+            HYDRA_LAUNCHER: "fork"
+            TERM: xterm-256color
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        defaults:
+            run:
+                shell: bash -l {0}
+
+        steps:
+        - uses: actions/checkout@v3
+        - name: Setup conda - Python ${{ matrix.python-version }}
+          uses: conda-incubator/setup-miniconda@v2
+          with:
+            activate-environment: condaenv
+            miniconda-version: "latest"
+            python-version: "3.10"
+            channels: conda-forge
+            channel-priority: flexible
+            auto-update-conda: true
+
+        - name: Install dependencies, ibcdfo
+          run: |
+            python -m pip install --upgrade pip
+            conda install mpich mpi4py octave
+            pip install numpy scipy oct2py ipdb
+            pip install -r pounders/py/tests/test_requirements.txt
+            pip install -e .
+            git submodule update --init --recursive
+            cwd=$(pwd)
+            cd .. 
+            git clone https://github.com/POptUS/BenDFO.git
+            cd $cwd
+
+        - name: Run tests, produce coverage reports
+          env:
+              COVERALLS_PARALLEL: true
+          run: |
+            cd pounders/py/tests/unit_tests
+            pytest --cov --cov-report html:cov_unit
+
+            cd ../regression_tests
+            #python -m coverage run benchmark_pounders4py.py
+            python -m coverage run callpounders_test.py
+            #python -m coverage run callpounders.py
+            python -m coverage run test_failing_objective.py
+            cd ..
+
+        - name: Merge coverage, run Coveralls
+          env:
+              COVERALLS_PARALLEL: true
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            pwd
+            mv pounders/py/tests/regression_tests/.cov_merge* .
+            mv pounders/py/tests/unit_tests/.cov_merge* .
+            coverage combine .cov_merge*
+            coverage html
+            coveralls --service=github
+            coveralls --finish
