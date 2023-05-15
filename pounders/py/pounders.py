@@ -103,7 +103,11 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         X = np.vstack((X0, np.zeros((nfmax - 1, n))))
         F = np.zeros((nfmax, m))
         nf = 0  # in Matlab this is 1
-        F[nf] = fun(X[nf])
+        F0 = np.atleast_2d(fun(X[nf]))
+        if F0.shape[1] != m:
+            X, F, flag = prepare_outputs_before_return(X, F, nf, -1)
+            return X, F, flag, xkin
+        F[nf] = F0
         if np.any(np.isnan(F[nf])):
             X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
             return X, F, flag, xkin
