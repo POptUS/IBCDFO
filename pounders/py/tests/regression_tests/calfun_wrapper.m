@@ -3,8 +3,8 @@
 
 function [fvec] = calfun_wrapper(x, m, nprob, probtype, fvals, nfev, np)
 
-    bendfo_location = "/home/jlarson/research/poptus/BenDFO/";
-    addpath([bendfo_location  "m/"]);
+    bendfo_root = "/home/jlarson/research/poptus/BenDFO/";
+    addpath([bendfo_root  "m/"]);
 
     BenDFO.nprob = nprob;
     BenDFO.m = m;
