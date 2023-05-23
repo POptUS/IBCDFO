@@ -20,7 +20,7 @@ np.seterr("raise")
 
 
 def doit():
-    bendfo_root = "../../../../../BenDFO/"
+    bendfo_root = "/home/jlarson/research/poptus/BenDFO"
     octave.addpath(bendfo_root + "/m/")
 
     dfo = np.loadtxt(bendfo_root + "/data/dfo.dat")

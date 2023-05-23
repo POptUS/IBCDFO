@@ -47,6 +47,8 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     # Precompute the scaled displacements (could be expensive for larger nfmax)
     D = np.zeros((nf, n))  # Scaled displacements
 
+    Tyler = np.sqrt(2)
+
     assert isinstance(mpmax, int), "Must be an integer"
     assert isinstance(xkin, int), "Must be an integer"
 
@@ -160,7 +162,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
             H[i, i, k] = Beta[num]
             for j in range(i + 1, n):
                 num += 1
-                H[i, j, k] = Beta[num] / np.sqrt(2)
+                H[i, j, k] = Beta[num] / Tyler
                 H[j, i, k] = H[i, j, k]
     H = H / (delta**2)
     G = G / delta
