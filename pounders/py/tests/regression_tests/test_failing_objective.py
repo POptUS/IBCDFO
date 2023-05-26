@@ -6,9 +6,7 @@ import sys
 
 import numpy as np
 
-sys.path.append("../../")
-from pounders import pounders
-
+import ibcdfo.pounders as pdrs
 
 def failing_objective(x):
     fvec = x
@@ -37,5 +35,5 @@ printf = 0
 
 np.random.seed(1)
 
-[X, F, flag, xk_best] = pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
+[X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
 assert flag == -3, "No NaN was encountered in this test, but should have been."

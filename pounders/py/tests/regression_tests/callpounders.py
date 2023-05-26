@@ -4,8 +4,7 @@ import numpy as np
 from calFun import calFun
 from scipy.io import loadmat
 
-sys.path.append("../../")
-from pounders import pounders
+import ibcdfo.pounders as pdrs
 
 # Sample calling syntax for pounders
 # func is a function imported from calFun.py as calFun
@@ -42,4 +41,4 @@ printf = False
 # Choose your solver:
 spsolver = 1
 # spsolver=2
-[X, F, flag, xkin] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+[X, F, flag, xkin] = pdrs.pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
