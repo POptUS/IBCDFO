@@ -36,14 +36,17 @@ jobs:
           run: |
             python -m pip install --upgrade pip
             conda install mpich mpi4py octave
-            pip install numpy scipy oct2py ipdb
+            pip install oct2py ipdb
             pip install -r pounders/py/tests/test_requirements.txt
-            pip install -e .
+            pushd ibcdfo_pypkg
+            rm -rf dist
+            python setup.py sdist
+            pip install dist/ibcdfo-*.tar.gz
+            popd
             git submodule update --init --recursive
-            cwd=$(pwd)
-            cd .. 
+            pushd ..
             git clone https://github.com/POptUS/BenDFO.git
-            cd $cwd
+            popd
 
         - name: Run tests, produce coverage reports
           env:
