@@ -51,6 +51,25 @@ submodules simultaneously, run
 
 ``git pull --recurse-submodules``.
 
+The `ibcdfo` python package can be installed by setting up a terminal with the
+target python and pip pair and executing
+```
+> pushd ibcdfo_pypkg
+> python setup.py sdist
+> pip install ibcdfo-<version>.tar.gz
+> popd
+```
+where `<version>` can be determined by looking at the output of the `sdist`
+command.  The installation can be partially tested by executing
+```
+> python
+>>> import ibcdfo
+>>> ibcdfo.__version__
+<version>
+```
+where the output `<version>` should be identical to the value used during
+installation.
+
 ## License
 
 All code included in IBCDFO is open source, with the particular form of license contained in the top-level

@@ -1,8 +1,10 @@
-# This function is called to cleanup X and F, set the exit value, and display
-# reason for exiting.
 
 
 def prepare_outputs_before_return(X, F, nf, exit_flag):
+    """
+    This function is called to cleanup X and F, set the exit value, and display
+    reason for exiting.
+    """
     X = X[: nf + 1]
     F = F[: nf + 1]
 
