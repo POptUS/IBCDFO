@@ -1,19 +1,15 @@
 import sys
 
 import numpy as np
+from ibcdfo.pounders import bmpts, bqmin, checkinputss, formquad, prepare_outputs_before_return
 
-from ibcdfo.pounders import bmpts
-from ibcdfo.pounders import bqmin
-from ibcdfo.pounders import checkinputss
-from ibcdfo.pounders import formquad
-from ibcdfo.pounders import prepare_outputs_before_return
 
 def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf=0, spsolver=2, hfun=None, combinemodels=None):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
       [X,F,flag,xkin] = ...
            pounders(fun,X0,n,mpmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
-    
+
     This code minimizes a blackbox function, solving
     min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
     where the user-provided F is specified in the handle fun. Evaluation of
@@ -24,13 +20,13 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     values at infeasible X if these are passed initially through (X0,F0).
     In each iteration, the algorithm forms an interpolating quadratic model
     of the function and minimizes it in an infinity-norm trust region.
-    
+
     This software comes with no warranty, is not bug-free, and is not for
     industrial use or public distribution.
     Direct requests and bugs to wild@mcs.anl.gov.
     A technical report/manual is forthcoming, a brief description is in
     Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
-    
+
     --INPUTS-----------------------------------------------------------------
     fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
     X0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
@@ -49,15 +45,15 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                   1 Debugging level of output to screen
                   2 More verbose screen output
     spsolver [int] Trust-region subproblem solver flag (2)
-    
+
     Optionally, a user can specify and outer-function that maps the the elements
     of F to a scalar value (to be minimized). Doing this also requires a function
     handle (combinemodels) that tells pounders how to map the linear and
     quadratic terms from the residual models into a single quadratic TRSP model.
-    
+
     hfun           [f h] Function handle for mapping output from F
     combinemodels  [f h] Function handle for combine residual models
-    
+
     --OUTPUTS----------------------------------------------------------------
     X       [dbl] [nfmax+nfs-by-n] Locations of evaluated points
     F       [dbl] [nfmax+nfs-by-m] Function values of evaluated points

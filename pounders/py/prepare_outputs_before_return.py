@@ -1,5 +1,3 @@
-
-
 def prepare_outputs_before_return(X, F, nf, exit_flag):
     """
     This function is called to cleanup X and F, set the exit value, and display

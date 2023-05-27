@@ -7,5 +7,4 @@ import pkg_resources
 
 # Follow typical version-access interface used by other packages
 # (e.g., numpy, scipy, pandas, matplotlib)
-__version__ = pkg_resources.get_distribution('ibcdfo').version
-
+__version__ = pkg_resources.get_distribution("ibcdfo").version

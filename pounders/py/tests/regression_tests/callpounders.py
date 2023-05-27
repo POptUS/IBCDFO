@@ -1,10 +1,9 @@
 import sys
 
+import ibcdfo.pounders as pdrs
 import numpy as np
 from calFun import calFun
 from scipy.io import loadmat
-
-import ibcdfo.pounders as pdrs
 
 # Sample calling syntax for pounders
 # func is a function imported from calFun.py as calFun

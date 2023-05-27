@@ -1,6 +1,6 @@
 import numpy as np
-
 from ibcdfo.pounders import boxline
+
 
 def bmpts(X, Modeld, Low, Upp, delta, theta):
     [num, n] = np.shape(Modeld)

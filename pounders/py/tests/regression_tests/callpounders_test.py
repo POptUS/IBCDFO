@@ -1,9 +1,8 @@
 import sys
 
+import ibcdfo.pounders as pdrs
 import numpy as np
 from calFun import calFun
-
-import ibcdfo.pounders as pdrs
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 

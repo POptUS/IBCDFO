@@ -4,9 +4,9 @@
 
 import sys
 
+import ibcdfo.pounders as pdrs
 import numpy as np
 
-import ibcdfo.pounders as pdrs
 
 def failing_objective(x):
     fvec = x

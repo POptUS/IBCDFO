@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.linalg
-
 from ibcdfo.pounders import phi2eval
 
 # from flipFirstRow import flipFirstRow
