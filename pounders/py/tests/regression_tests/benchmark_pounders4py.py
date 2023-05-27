@@ -11,7 +11,7 @@ from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 
-from ibcdfo.pounders as pdrs
+import ibcdfo.pounders as pdrs
 
 os.makedirs("benchmark_results", exist_ok=True)
 np.seterr("raise")
