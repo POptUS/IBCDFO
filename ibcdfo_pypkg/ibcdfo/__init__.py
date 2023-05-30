@@ -3,7 +3,7 @@ TODO: Jeff to insert high-level description for here.  After installing with
 pip, this should be visible with `python -m pydoc ibcdfo`.
 """
 
-from importlib_metadata import version
+from importlib.metadata import version
 
 # Follow typical version-access interface used by other packages
 # (e.g., numpy, scipy, pandas, matplotlib)
