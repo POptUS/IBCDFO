@@ -8,7 +8,6 @@ data_file = .cov_merge_out_unit
 directory = cov_merge
 
 #Report files can be controlled here
-#e.g. for libensemble files only - uncomment all below
 [report]
 omit =
     */__init__.py
