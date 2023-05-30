@@ -12,7 +12,6 @@ from oct2py import octave
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 sys.path.append("../../")  # For importing pounders
 import general_h_funs
-
 from pounders import pounders
 
 os.makedirs("benchmark_results", exist_ok=True)

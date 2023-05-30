@@ -64,7 +64,13 @@ if nfs == 0 % Need to do the first evaluation
     X = [X0; zeros(nfmax - 1, n)]; % Stores the point locations
     F = zeros(nfmax, m); % Stores the function values
     nf = 1;
-    F(nf, :) = fun(X(nf, :));
+    F0 = fun(X(nf, :));
+    if length(F0) ~= m
+        disp('  Error: F0 does not contain the right number of residuals');
+        flag = -1;
+        return
+    end
+    F(nf, :) = F0;
     if any(isnan(F(nf, :)))
         [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
         return
@@ -73,7 +79,7 @@ if nfs == 0 % Need to do the first evaluation
         fprintf('%4i    Initial point  %11.5e\n', nf, sum(F(nf, :).^2));
     end
 else % Have other function values around
-    X = [X0(1:max(1, nfs), :); zeros(nfmax, n)]; % Stores the point locations
+    X = [X0(1:nfs, :); zeros(nfmax, n)]; % Stores the point locations
     F = [F0(1:nfs, :); zeros(nfmax, m)]; % Stores the function values
     nf = nfs;
     nfmax = nfmax + nfs;
@@ -86,6 +92,7 @@ end
 Res = zeros(size(F)); % Stores the residuals for model updates
 Cres = F(xkin, :);
 Hres = zeros(n, n, m);
+ng = NaN; % Needed for early termination, e.g., if a model is never built
 % H = zeros(n); G = zeros(n,1); c = Fs(xkin);
 
 % ! NOTE: Currently do not move to a geometry point (including in
