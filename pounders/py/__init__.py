@@ -1,6 +1,9 @@
 """
-TODO: Jeff to insert high-level description for here.  After installing with
-pip, this should be visible with `python -m pydoc ibcdfo.pounders`.
+POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
+Given a user-provided blackbox function F that depends on an n-dimensional
+vector x and returning m scalar values, this code solves the structured
+blackbox optimization problem 
+min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= x_j <= U_j, j=1,...,n }.
 """
 
 from .bmpts import bmpts
