@@ -1,7 +1,11 @@
 import sys
 
 import numpy as np
-from ibcdfo.pounders import bmpts, bqmin, checkinputss, formquad, prepare_outputs_before_return
+from .bmpts import bmpts
+from .bqmin import bqmin
+from .checkinputss import checkinputss
+from .formquad import formquad
+from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
 def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf=0, spsolver=2, hfun=None, combinemodels=None):
@@ -70,8 +74,7 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
 
     if hfun is None:
         hfun = lambda F: np.sum(F**2)
-        # TODO: Is this being tested?
-        from ibcdfo.pounders import leastsquares as combinemodels
+        from .general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
     if spsolver == 2:

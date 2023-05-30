@@ -1,5 +1,5 @@
 import numpy as np
-from ibcdfo.pounders import boxline
+from .boxline import boxline
 
 
 def bmpts(X, Modeld, Low, Upp, delta, theta):
