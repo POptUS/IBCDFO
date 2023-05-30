@@ -14,9 +14,9 @@ from .flipFirstRow import flipFirstRow
 from .flipSignQ import flipSignQ
 from .formquad import formquad
 from .general_h_funs import (
-    identity_combine,
     emittance_combine,
     emittance_h,
+    identity_combine,
     leastsquares,
     neg_leastsquares,
     squared_diff_from_mean,

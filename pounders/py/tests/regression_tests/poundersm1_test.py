@@ -2,9 +2,8 @@
 
 import sys
 
-import numpy as np
-
 import ibcdfo.pounders as pdrs
+import numpy as np
 
 combinemodels = pdrs.identity_combine
 
