@@ -1,7 +1,6 @@
 import numpy as np
 
-# import boxline function from boxline.py
-from boxline import boxline
+from .boxline import boxline
 
 
 def bmpts(X, Modeld, Low, Upp, delta, theta):

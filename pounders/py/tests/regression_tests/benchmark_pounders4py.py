@@ -6,13 +6,11 @@ import sys
 
 import numpy as np
 import scipy as sp
-from mpi4py import MPI
 from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
-sys.path.append("../../")  # For importing pounders
-import general_h_funs
-from pounders import pounders
+
+import ibcdfo.pounders as pdrs
 
 os.makedirs("benchmark_results", exist_ok=True)
 np.seterr("raise")
@@ -31,17 +29,10 @@ def doit():
 
     factor = 10
 
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-
     row = 0
     Results = {}
     for nprob, n, m, ns in probs:
         row += 1
-
-        if row % size != rank:
-            continue
 
         # Choose your TRSP solver
         spsolver = 2
@@ -49,16 +40,16 @@ def doit():
         for hfun_cases in range(1, 4):
             if hfun_cases == 1:
                 hfun = lambda F: np.sum(F**2)
-                combinemodels = general_h_funs.leastsquares
+                combinemodels = pdrs.leastsquares
             elif hfun_cases == 2:
                 alpha = 0  # If changed here, also needs to be adjusted in squared_diff_from_mean.py
                 hfun = lambda F: np.sum((F - 1 / len(F) * np.sum(F)) ** 2) - alpha * (1 / len(F) * np.sum(F)) ** 2
-                combinemodels = general_h_funs.squared_diff_from_mean
+                combinemodels = pdrs.squared_diff_from_mean
             elif hfun_cases == 3:
                 if m != 3:  # Emittance is only defined for the case when m == 3
                     continue
-                hfun = general_h_funs.emittance_h
-                combinemodels = general_h_funs.emittance_combine
+                hfun = pdrs.emittance_h
+                combinemodels = pdrs.emittance_combine
 
             filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
             if os.path.isfile(filename):
@@ -89,7 +80,7 @@ def doit():
             nfs = 1
             xind = 0
 
-            [XO, FO, flagO, xkinO] = pounders(calfun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
+            [XO, FO, flagO, xkinO] = pdrs.pounders(calfun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
             assert flagO != 1, "pounders crashed"
 

@@ -1,9 +1,10 @@
 import numpy as np
 import scipy.linalg
-from phi2eval import phi2eval
 
-# from flipFirstRow import flipFirstRow
-# from flipSignQ import flipSignQ
+from .phi2eval import phi2eval
+
+# from .flipFirstRow import flipFirstRow
+# from .flipSignQ import flipSignQ
 
 
 def formquad(X, F, delta, xkin, mpmax, Pars, vf):

@@ -1,0 +1,73 @@
+name: IBCDFO-CI
+on:
+  pull_request:
+    types:
+      - ready_for_review
+      - opened
+      - reopened
+      - synchronize
+jobs:
+    test-ibcdfo:
+        if: '! github.event.pull_request.draft'
+        runs-on: ubuntu-latest
+
+        env:
+            HYDRA_LAUNCHER: "fork"
+            TERM: xterm-256color
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        defaults:
+            run:
+                shell: bash -l {0}
+
+        steps:
+        - uses: actions/checkout@v3
+        - name: Setup conda - Python ${{ matrix.python-version }}
+          uses: conda-incubator/setup-miniconda@v2
+          with:
+            activate-environment: condaenv
+            miniconda-version: "latest"
+            python-version: "3.10"
+            channels: conda-forge
+            channel-priority: flexible
+            auto-update-conda: true
+
+        - name: Install dependencies, ibcdfo
+          run: |
+            python -m pip install --upgrade pip
+            conda install octave
+            pip install oct2py ipdb
+            pip install -r pounders/py/tests/test_requirements.txt
+            pushd ibcdfo_pypkg
+            rm -rf dist
+            python setup.py sdist
+            pip install dist/ibcdfo-*.tar.gz
+            popd
+            git submodule update --init --recursive
+            pushd ..
+            git clone https://github.com/POptUS/BenDFO.git
+            popd
+
+        - name: Run tests, produce coverage reports
+          env:
+              COVERALLS_PARALLEL: true
+          run: |
+            pushd pounders/py/tests/unit_tests
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_unittests -m pytest
+            popd
+            pushd pounders/py/tests/regression_tests
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_1 callpounders_test.py
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_2 test_failing_objective.py
+            popd
+
+        - name: Merge coverage, run Coveralls
+          env:
+              COVERALLS_PARALLEL: true
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            pwd
+            mv pounders/py/tests/*/.cov_tomerge* .
+            coverage combine .cov_tomerge*
+            coverage html --directory=cov_merge
+            coveralls --service=github
+            coveralls --finish

@@ -15,11 +15,10 @@ unconstrained solution is desired. The algorithm will not evaluate `F`
 outside of these bounds, but it is possible to take advantage of function
 values at infeasible `X` if these are passed initially through `(X0,F0)`.
 In each iteration, the algorithm forms a set of quadratic models interpolating the
-functions in `F` and minimizes an associated scalar-valued model within an 
+functions in `F` and minimizes an associated scalar-valued model within an
 infinity-norm trust region.
 
-
-## API 
+## API
 The POUNDerS API is
 
 ````
@@ -74,7 +73,6 @@ flag    [dbl] Termination criteria flag:
               = -5 unable to get model improvement with current parameters
 xkin    [int] Index of point in X representing approximate minimizer
 ````
-
 
 ## Testing
 

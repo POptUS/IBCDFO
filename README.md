@@ -3,6 +3,8 @@
 Interpolation-Based Composite Derivative-Free Optimization
 
 ![GitHub](https://img.shields.io/github/license/poptus/IBCDFO)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Coverage Status](https://coveralls.io/repos/github/POptUS/IBCDFO/badge.svg?branch=main)](https://coveralls.io/github/POptUS/IBCDFO?branch=main)
 
 This page contains source code for interpolation-based optimization methods for
 composite derivative-free optimization.
@@ -48,6 +50,25 @@ update the repository, but not the submodules.  To update the clone and all its
 submodules simultaneously, run
 
 ``git pull --recurse-submodules``.
+
+The `ibcdfo` python package can be installed by setting up a terminal with the
+target python and pip pair and executing
+```
+> pushd ibcdfo_pypkg
+> python setup.py sdist
+> pip install dist/ibcdfo-<version>.tar.gz
+> popd
+```
+where `<version>` can be determined by looking at the output of the `sdist`
+command.  The installation can be partially tested by executing
+```
+> python
+>>> import ibcdfo
+>>> ibcdfo.__version__
+<version>
+```
+where the output `<version>` should be identical to the value used during
+installation.
 
 ## License
 

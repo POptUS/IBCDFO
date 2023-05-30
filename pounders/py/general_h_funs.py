@@ -45,10 +45,12 @@ def emittance_h(F):
 
 
 def squared_diff_from_mean(Cres, Gres, Hres):
-    # Combines models for the following h function
-    #    h = @(F)sum((F - 1/m*sum(F)).^2) - alpha*(1/m*sum(F))^2
-    # That is, the objective is to have the vector close to it's mean, and have
-    # a small mean (penalized by alpha)
+    """
+    Combines models for the following h function
+       h = @(F)sum((F - 1/m*sum(F)).^2) - alpha*(1/m*sum(F))^2
+    That is, the objective is to have the vector close to it's mean, and have
+    a small mean (penalized by alpha)
+    """
     alpha = 0
 
     n, _, m = Hres.shape

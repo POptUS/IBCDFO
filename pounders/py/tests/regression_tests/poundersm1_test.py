@@ -2,11 +2,10 @@
 
 import sys
 
+import ibcdfo.pounders as pdrs
 import numpy as np
 
-sys.path.append("../../")
-from general_h_funs import identity_combine as combinemodels
-from pounders import pounders
+combinemodels = pdrs.identity_combine
 
 # Sample calling syntax for pounders
 func = lambda x: np.sum(x)
@@ -40,6 +39,6 @@ spsolver = 1
 
 hfun = lambda F: F
 
-[X, F, flag, xkin] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
+[X, F, flag, xkin] = pdrs.pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
 assert np.all(X[xkin] == Low), "The optimum should be the lower bounds."
