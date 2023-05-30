@@ -1,8 +1,8 @@
 """
 IBCDFO: Interpolation-Based Composite Derivative-Free Optimization
 This package contains methods to solve structured blackbox optimization
-problems of the form: 
-    minimize h(F(x)) 
+problems of the form:
+    minimize h(F(x))
 where x is the n-dimensional optimization variable, F(x) is the m-dimensional
 output of blackbox, and h is a known scalar-valued mapping.
 """
