@@ -25,7 +25,7 @@ def version():
 python_requires = ">=3.7"
 install_requires = ["wheel", "numpy>=1.16.5", "scipy>=1.6"]
 # TODO: Can we integrate testing using tox or other solution?
-# test_requires = ["mpi4py", "oct2py"]
+# test_requires = ["oct2py"]
 
 packages = find_packages(include=["ibcdfo", "ibcdfo.pounders"])
 # TODO: This is a hack because these are python files rather than package data,

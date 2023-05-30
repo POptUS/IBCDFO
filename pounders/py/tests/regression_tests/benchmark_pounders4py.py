@@ -6,7 +6,6 @@ import sys
 
 import numpy as np
 import scipy as sp
-from mpi4py import MPI
 from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
@@ -30,17 +29,10 @@ def doit():
 
     factor = 10
 
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-
     row = 0
     Results = {}
     for nprob, n, m, ns in probs:
         row += 1
-
-        if row % size != rank:
-            continue
 
         # Choose your TRSP solver
         spsolver = 2

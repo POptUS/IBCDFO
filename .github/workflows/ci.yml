@@ -35,7 +35,7 @@ jobs:
         - name: Install dependencies, ibcdfo
           run: |
             python -m pip install --upgrade pip
-            conda install mpich mpi4py octave
+            conda install octave
             pip install oct2py ipdb
             pip install -r pounders/py/tests/test_requirements.txt
             pushd ibcdfo_pypkg
