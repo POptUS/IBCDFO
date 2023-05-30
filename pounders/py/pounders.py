@@ -14,10 +14,10 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
       [X,F,flag,xkin] = ...
            pounders(fun,X0,n,mpmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
 
-    This code minimizes a blackbox function, solving
+    This code minimizes output from a structured blackbox function, solving
     min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
-    where the user-provided F is specified in the handle fun. Evaluation of
-    this F must result in the return of a 1-by-m row vector. Bounds must be
+    where the user-provided blackbox F is specified in the handle fun. Evaluation
+    of this F must result in the return of a 1-by-m row vector. Bounds must be
     specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
     unconstrained solution is desired. The algorithm will not evaluate F
     outside of these bounds, but it is possible to take advantage of function
@@ -71,7 +71,6 @@ def pounders(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
-
     if hfun is None:
         hfun = lambda F: np.sum(F**2)
         from .general_h_funs import leastsquares as combinemodels
