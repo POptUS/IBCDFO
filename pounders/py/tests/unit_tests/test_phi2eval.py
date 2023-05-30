@@ -12,3 +12,7 @@ class Test_phi2eval:
 
         P = phi2eval(D)
         assert np.all(P == T), "Test failed"
+
+
+if __name__ == "__main__":
+    test_phi2eval()
