@@ -24,7 +24,7 @@ def doit():
 
     probtype = "smooth"
 
-    nfmax = int(1000)
+    nfmax = int(30)
     gtol = 1e-13
 
     factor = 10

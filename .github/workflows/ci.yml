@@ -58,6 +58,7 @@ jobs:
             pushd pounders/py/tests/regression_tests
             coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_1 callpounders_test.py
             coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_2 test_failing_objective.py
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_3 benchmark_pounders4py.py
             popd
 
         - name: Merge coverage, run Coveralls
