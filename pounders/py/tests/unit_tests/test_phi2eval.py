@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+
 import numpy as np
-from ibcdfo.pounders import phi2eval
+import ibcdfo.pounders as pdrs
 
 
 class Test_phi2eval:
@@ -10,9 +12,10 @@ class Test_phi2eval:
         T[1, 3] = 0.5
         T[2, 5] = 0.5
 
-        P = phi2eval(D)
+        P = pdrs.phi2eval(D)
         assert np.all(P == T), "Test failed"
 
 
 if __name__ == "__main__":
-    test_phi2eval()
+    runner = Test_phi2eval()
+    runner.test_phi2eval()

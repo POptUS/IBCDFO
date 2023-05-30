@@ -52,15 +52,13 @@ jobs:
           env:
               COVERALLS_PARALLEL: true
           run: |
-            cd pounders/py/tests/unit_tests
-            pytest --cov --cov-report html:cov_unit
-
-            cd ../regression_tests
-            #python -m coverage run benchmark_pounders4py.py
-            python -m coverage run callpounders_test.py
-            #python -m coverage run callpounders.py
-            python -m coverage run test_failing_objective.py
-            cd ..
+            pushd pounders/py/tests/unit_tests
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_unittests -m pytest
+            popd
+            pushd pounders/py/tests/regression_tests
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_1 callpounders_test.py
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_2 test_failing_objective.py
+            popd
 
         - name: Merge coverage, run Coveralls
           env:
@@ -68,9 +66,8 @@ jobs:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
             pwd
-            mv pounders/py/tests/regression_tests/.cov_merge* .
-            mv pounders/py/tests/unit_tests/.cov_merge* .
-            coverage combine .cov_merge*
-            coverage html
+            mv pounders/py/tests/*/.cov_tomerge* .
+            coverage combine .cov_tomerge*
+            coverage html --directory=cov_merge
             coveralls --service=github
             coveralls --finish

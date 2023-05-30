@@ -56,7 +56,7 @@ target python and pip pair and executing
 ```
 > pushd ibcdfo_pypkg
 > python setup.py sdist
-> pip install ibcdfo-<version>.tar.gz
+> pip install dist/ibcdfo-<version>.tar.gz
 > popd
 ```
 where `<version>` can be determined by looking at the output of the `sdist`
