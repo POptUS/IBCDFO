@@ -1,6 +1,10 @@
 % This wrapper tests various algorithms against the Benchmark functions from the
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 function [] = benchmark_pounders()
+addpath('../../../goombah/m');
+addpath('../../../goombah/m/subproblems/');
+addpath('../../../manifold_sampling/m');
+addpath('../../../manifold_sampling/m/h_examples/');
 
 spsolver = 2;
 
@@ -80,6 +84,13 @@ for row = 1:length(dfo)
         end
 
         [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+
+
+        GAMS_options.file = '../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
+        GAMS_options.solvers = 1:4;
+        subprob_switch = 'linprog';
+
+        [X, F, h, xkin] = goombah(@sum_squared, objective, nfmax, X0, L, U, GAMS_options, subprob_switch);
 
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
