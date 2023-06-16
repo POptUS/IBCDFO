@@ -19,7 +19,7 @@ function [X, F, h, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xkin,
         Xsp = Mdir1(i, :);
         % Only do this evaluation if the point is new and nf < nfmax
         if ~ismember(X(xkin, :) + Xsp, X(1:nf, :), 'rows') && nf < nfmax
-            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + Xsp, tol, L, U);
+            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + Xsp, tol, L, U, 1);
         end
     end
     [~, ~, valid] = formquad(X(1:nf, :), F(1:nf, :), delta, xkin, fq_pars.npmax, fq_pars.Par, 1);
