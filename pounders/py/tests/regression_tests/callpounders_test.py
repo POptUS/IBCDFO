@@ -14,7 +14,7 @@ n = 2
 # X0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
 X0 = np.zeros((10, 2))
 X0[0, :] = 0.5 * np.ones((1, 2))
-mpmax = int(0.5 * (n + 1) * (n + 2))
+npmax = int(0.5 * (n + 1) * (n + 2))
 # nfmax [int] Maximum number of function evaluations (>n+1) (100)
 nfmax = 60
 # gtol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
@@ -43,4 +43,4 @@ for i in range(1, 10):
     X0[i, :] = X0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
     F0[i, :] = func(X0[i, :])
 
-[X, F, flag, xkin] = pdrs.pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
+[X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
