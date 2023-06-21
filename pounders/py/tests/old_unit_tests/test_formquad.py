@@ -11,7 +11,7 @@ class Test_formquad:
         F = dictionaryData["F"]
         delta = dictionaryData["delta"]
         xkin = dictionaryData["xkin"]
-        mpmax = dictionaryData["mpmax"]
+        npmax = dictionaryData["npmax"]
         Pars = dictionaryData["Pars"]
         vf = dictionaryData["vf"]
         Mdir = dictionaryData["Mdir"]
@@ -22,7 +22,7 @@ class Test_formquad:
         G = dictionaryData["G"]
         H = dictionaryData["H"]
         Mind = dictionaryData["Mind"]
-        [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, mpmax, Pars, vf)
+        [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, npmax, Pars, vf)
         assert mpOut == mp
         assert np.shape(GOut) == np.shape(G)
         assert np.shape(HOut) == np.shape(H)
@@ -37,7 +37,7 @@ class Test_formquad:
         F = dictionaryData["F"]
         delta = dictionaryData["delta"]
         xkin = dictionaryData["xkin"]
-        mpmax = dictionaryData["mpmax"]
+        npmax = dictionaryData["npmax"]
         Pars = dictionaryData["Pars"]
         vf = dictionaryData["vf"]
         mp = dictionaryData["mp"]
@@ -47,7 +47,7 @@ class Test_formquad:
         Gres = dictionaryData["Gres"]
         Hresdel = dictionaryData["Hresdel"]
         Mind = dictionaryData["Mind"]
-        [_, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, mpmax, Pars, vf)
+        [_, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, npmax, Pars, vf)
         assert mpOut == mp
         assert np.linalg.norm(Gres - GOut) < 10**-10
         assert np.linalg.norm(Hresdel - HOut) < 10**-10
@@ -61,7 +61,7 @@ class Test_formquad:
         F = dictionaryData["F"]
         delta = dictionaryData["delta"]
         xkin = dictionaryData["xkin"]
-        mpmax = dictionaryData["mpmax"]
+        npmax = dictionaryData["npmax"]
         Pars = dictionaryData["Pars"]
         vf = dictionaryData["vf"]
         mp = dictionaryData["mp"]
@@ -72,7 +72,7 @@ class Test_formquad:
         H = dictionaryData["H"]
         Mind = dictionaryData["Mind"]
         Mdir = dictionaryData["Mdir"]
-        [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, mpmax, Pars, vf)
+        [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, npmax, Pars, vf)
         assert mpOut == mp
         assert np.linalg.norm(G - GOut) < 10**-10
         assert np.linalg.norm(H - HOut) < 10**-10
@@ -87,7 +87,7 @@ class Test_formquad:
         F = dictionaryData["F"]
         delta = dictionaryData["delta"]
         xkin = dictionaryData["xkin"]
-        mpmax = dictionaryData["mpmax"]
+        npmax = dictionaryData["npmax"]
         Pars = dictionaryData["Pars"]
         vf = dictionaryData["vf"]
         mp = dictionaryData["mp"]
@@ -98,7 +98,7 @@ class Test_formquad:
         H = dictionaryData["H"]
         Mind = dictionaryData["Mind"]
         Mdir = dictionaryData["Mdir"]
-        [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, mpmax, Pars, vf)
+        [MdirOut, mpOut, validOut, GOut, HOut, MindOut] = formquad(X, F, delta, xkin, npmax, Pars, vf)
         assert mpOut == mp - 1
         assert np.linalg.norm(G - GOut) < 10**-10
         assert np.linalg.norm(H - HOut) < 10**-10
