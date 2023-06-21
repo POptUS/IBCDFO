@@ -64,7 +64,7 @@ def doit():
             X0 = octave.dfoxs(float(n), nprob, factor**ns).T
 
             delta = 0.1
-            mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
+            npmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
             Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
             Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
 
@@ -80,7 +80,7 @@ def doit():
             nfs = 1
             xind = 0
 
-            [XO, FO, flagO, xkinO] = pdrs.pounders(calfun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
+            [XO, FO, flagO, xkinO] = pdrs.pounders(calfun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
             assert flagO != 1, "pounders crashed"
 
