@@ -33,9 +33,6 @@ def doit():
     factor = 10
 
     for row, (nprob, n, m, factor_power) in enumerate(dfo):
-        if row % MPI.COMM_WORLD.Get_size() != MPI.COMM_WORLD.Get_rank():
-            continue
-
         n = int(n)
         m = int(m)
 
@@ -73,6 +70,8 @@ def doit():
 
             [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 
+            evals = F.shape[0]
+
             if ensure_still_solve_problems:
                 if solved[row, hfun_cases - 1] == 1:
                     assert flag == 0, "This problem was previously solved but it's anymore."
@@ -86,12 +85,11 @@ def doit():
             assert X.shape[0] <= nfmax + nfs, "POUNDERs grew the size of X"
 
             if flag == 0:
-                assert X.shape[0] <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations"
+                assert evals <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations"
             elif flag != -4:
-                assert X.shape[0] == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
+                assert evals == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
 
             h = np.zeros(evals)
-
             for i in range(evals):
                 h[i] = hfun(F[i, :])
 
