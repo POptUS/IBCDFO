@@ -6,14 +6,10 @@ import sys
 
 import numpy as np
 import scipy as sp
-from mpi4py import MPI
 from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
-sys.path.append("../../")  # For importing pounders
-import general_h_funs
-
-from pounders import pounders
+import ibcdfo.pounders as pdrs
 
 os.makedirs("benchmark_results", exist_ok=True)
 np.seterr("raise")
@@ -58,26 +54,24 @@ def doit():
         xind = 0
         delta = 0.1
         printf = False
-
         for hfun_cases in range(1, 4):
             Results = {}
             if hfun_cases == 1:
                 hfun = lambda F: np.sum(F**2)
-                combinemodels = general_h_funs.leastsquares
+                combinemodels = pdrs.leastsquares
             elif hfun_cases == 2:
                 alpha = 0  # If changed here, also needs to be adjusted in squared_diff_from_mean.py
                 hfun = lambda F: np.sum((F - 1 / len(F) * np.sum(F)) ** 2) - alpha * (1 / len(F) * np.sum(F)) ** 2
-                combinemodels = general_h_funs.squared_diff_from_mean
+                combinemodels = pdrs.squared_diff_from_mean
             elif hfun_cases == 3:
                 if m != 3:  # Emittance is only defined for the case when m == 3
                     continue
-                hfun = general_h_funs.emittance_h
-                combinemodels = general_h_funs.emittance_combine
-            print(row, hfun_cases, flush=True)
+                hfun = pdrs.emittance_h
+                combinemodels = pdrs.emittance_combine
 
             filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
 
-            [X, F, flag, xk_best] = pounders(objective, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
+            [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 
             if ensure_still_solve_problems:
                 if solved[row, hfun_cases - 1] == 1:
@@ -96,7 +90,6 @@ def doit():
             elif flag != -4:
                 assert X.shape[0] == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
 
-            evals = F.shape[0]
             h = np.zeros(evals)
 
             for i in range(evals):

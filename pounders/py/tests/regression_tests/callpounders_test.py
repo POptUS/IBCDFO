@@ -1,11 +1,10 @@
 import sys
 
+import ibcdfo.pounders as pdrs
 import numpy as np
 from calFun import calFun
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
-sys.path.append("../../")  # For importing pounders
-from pounders import pounders
 
 # Sample calling syntax for pounders
 # func is a function imported from calFun.py as calFun
@@ -44,4 +43,4 @@ for i in range(1, 10):
     X0[i, :] = X0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
     F0[i, :] = func(X0[i, :])
 
-[X, F, flag, xkin] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
+[X, F, flag, xkin] = pdrs.pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)

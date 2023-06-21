@@ -1,72 +1,6 @@
 % POUNDerS Version 0.1,    Modified 04/9/2010. Copyright 2010
 % Stefan Wild and Jorge More', Argonne National Laboratory.
-%
-%   [X,F,flag,xkin] = ...
-%        pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
-%
-% This code minimizes a blackbox function, solving
-% min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
-% where the user-provided F is specified in the handle fun. Evaluation of
-% this F must result in the return of a 1-by-m row vector. Bounds must be
-% specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
-% unconstrained solution is desired. The algorithm will not evaluate F
-% outside of these bounds, but it is possible to take advantage of function
-% values at infeasible X if these are passed initially through (X0,F0).
-% In each iteration, the algorithm forms an interpolating quadratic model
-% of the function and minimizes it in an infinity-norm trust region.
-%
-% This is an older MATLAB/OCTAVE implementation of POUNDerS (Practical
-% Optimization Using No Derivatives for sums of Squares).
-% It comes with no warranty, is not bug-free, and is not for industrial use
-% or public distribution. Direct requests and bugs to wild@mcs.anl.gov.
-% A technical report/manual is forthcoming, a brief description is in
-% Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
-%
-% --INPUTS-----------------------------------------------------------------
-% fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
-% X0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
-% n       [int] Dimension (number of continuous variables)
-% npmax   [int] Maximum number of interpolation points (>n+1) (2*n+1)
-% nfmax   [int] Maximum number of function evaluations (>n+1) (100)
-% gtol    [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-% delta   [dbl] Positive trust region radius (.1)
-% nfs     [int] Number of function values (at X0) known in advance (0)
-% m       [int] Number of residual components
-% F0      [dbl] [nfs-by-m] Set of known function values  ([])
-% xkin    [int] Index of point in X0 at which to start from (1)
-% L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
-% U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-% printf  [log] 0 No printing to screen (default)
-%               1 Debugging level of output to screen
-%               2 More verbose screen output
-% spsolver [int] Trust-region subproblem solver flag (2)
-%
-% Optionally, a user can specify and outer-function that maps the the elements
-% of F to a scalar value (to be minimized). Doing this also requires a function
-% handle (combinemodels) that tells pounders how to map the linear and
-% quadratic terms from the residual models into a single quadratic TRSP model.
-%
-% hfun           [f h] Function handle for mapping output from F
-% combinemodels  [f h] Function handle for combine residual models
-%
-% --OUTPUTS----------------------------------------------------------------
-% X       [dbl] [nfmax+nfs-by-n] Locations of evaluated points
-% F       [dbl] [nfmax+nfs-by-m] Function values of evaluated points
-% flag    [dbl] Termination criteria flag:
-%               = 0 normal termination because of grad,
-%               > 0 exceeded nfmax evals,   flag = norm of grad at final X
-%               = -1 if input was fatally incorrect (error message shown)
-%               = -2 model failure
-%               = -3 error if a NaN was encountered
-%               = -4 error in TRSP Solver
-%               = -5 unable to get model improvement with current parameters
-% xkin    [int] Index of point in X representing approximate minimizer
-%
-% --DEPENDS ON-------------------------------------------------------------
-% bqmin or minqsw : Subproblem solver (could be updated!)
-% checkinputss : Checks the inputs are feasible
-% formquad, phi2eval  :  Forms interpolation set and fits quadratic models
-% bmpts, boxline : Generates feasible model-improving points
+
 function [X, F, flag, xkin] = ...
     pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels)
 
@@ -130,7 +64,13 @@ if nfs == 0 % Need to do the first evaluation
     X = [X0; zeros(nfmax - 1, n)]; % Stores the point locations
     F = zeros(nfmax, m); % Stores the function values
     nf = 1;
-    F(nf, :) = fun(X(nf, :));
+    F0 = fun(X(nf, :));
+    if length(F0) ~= m
+        disp('  Error: F0 does not contain the right number of residuals');
+        flag = -1;
+        return
+    end
+    F(nf, :) = F0;
     if any(isnan(F(nf, :)))
         [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
         return
@@ -139,7 +79,7 @@ if nfs == 0 % Need to do the first evaluation
         fprintf('%4i    Initial point  %11.5e\n', nf, sum(F(nf, :).^2));
     end
 else % Have other function values around
-    X = [X0(1:max(1, nfs), :); zeros(nfmax, n)]; % Stores the point locations
+    X = [X0(1:nfs, :); zeros(nfmax, n)]; % Stores the point locations
     F = [F0(1:nfs, :); zeros(nfmax, m)]; % Stores the function values
     nf = nfs;
     nfmax = nfmax + nfs;

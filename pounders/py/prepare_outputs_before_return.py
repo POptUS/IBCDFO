@@ -1,8 +1,8 @@
-# This function is called to cleanup X and F, set the exit value, and display
-# reason for exiting.
-
-
 def prepare_outputs_before_return(X, F, nf, exit_flag):
+    """
+    This function is called to cleanup X and F, set the exit value, and display
+    reason for exiting.
+    """
     X = X[: nf + 1]
     F = F[: nf + 1]
 
@@ -14,6 +14,8 @@ def prepare_outputs_before_return(X, F, nf, exit_flag):
         print("Terminating because mdec == 0 with a valid model and no improvement from TRSP solution")
     elif exit_flag == -5:
         print("Unable to improve model with current Pars; try dividing Par[2:3] by 10")
+    elif exit_flag == -1:
+        print("Number of residuals in output of fun does not match supplied m. Exiting. ")
     elif exit_flag == 0:
         print("g is sufficiently small")
 
