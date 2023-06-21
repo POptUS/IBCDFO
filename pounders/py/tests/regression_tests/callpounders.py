@@ -15,8 +15,8 @@ np.random.seed(0)
 # X0 = 0.5 + 0.1*np.random.rand(1, n)
 dataDictionary = loadmat("callpoundersX0.mat")
 X0 = dataDictionary["X0"]
-# mpmax [int] Maximum number of interpolation points (>n+1) (2*n+1)
-mpmax = 2 * n + 1
+# npmax [int] Maximum number of interpolation points (>n+1) (2*n+1)
+npmax = 2 * n + 1
 # nfmax   [int] Maximum number of function evaluations (>n+1) (100)
 nfmax = 200
 # gtol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
@@ -40,4 +40,4 @@ printf = False
 # Choose your solver:
 spsolver = 1
 # spsolver=2
-[X, F, flag, xkin] = pdrs.pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+[X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
