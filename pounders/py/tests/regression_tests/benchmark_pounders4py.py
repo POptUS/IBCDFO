@@ -41,7 +41,7 @@ def doit():
             return np.squeeze(out)
 
         X0 = octave.dfoxs(float(n), nprob, factor**factor_power).T
-        mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
+        npmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
         L = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
         U = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
         nfs = 1
@@ -67,7 +67,7 @@ def doit():
 
             filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
 
-            [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
+            [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 
             evals = F.shape[0]
 
