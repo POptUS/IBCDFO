@@ -2,21 +2,19 @@
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 function [] = benchmark_pounders()
 
-spsolver = 2;
-
-nfmax = 100;
-gtol = 1e-13;
-factor = 10;
-
 load dfo.dat;
 
-ensure_still_solve_problems = 1;
-
+ensure_still_solve_problems = 0;
 if ensure_still_solve_problems
     solved = load('./benchmark_results/solved.txt'); % A 0-1 matrix with 1 when problem was previously solved.
 else
     solved = zeros(53, 3);
 end
+
+spsolver = 2; % TRSP Solver
+nfmax = 100;
+gtol = 1e-13;
+factor = 10;
 
 for row = 1:length(dfo)
     nprob = dfo(row, 1);
@@ -28,19 +26,13 @@ for row = 1:length(dfo)
     BenDFO.m = m;
     BenDFO.n = n;
 
-    xs = dfoxs(n, nprob, factor^factor_power);
+    objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 
-    SolverNumber = 0;
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % POUNDERs
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+    X0 = dfoxs(n, nprob, factor^factor_power)';
     npmax = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
     L = -Inf(1, n);
     U = Inf(1, n);
     nfs = 0;
-    X0 = xs';
     F0 = [];
     xkin = 1;
     delta = 0.1;
@@ -49,8 +41,6 @@ for row = 1:length(dfo)
     else
         printf = 0;
     end
-
-    objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 
     for hfun_cases = 1:3
         Results = cell(3, 53);
@@ -72,44 +62,30 @@ for row = 1:length(dfo)
         disp([row, hfun_cases]);
 
         filename = ['./benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
-        if exist(filename, 'file')
-            Old_results = load(filename);
-            re_check = 1;
-        else
-            re_check = 0;
-        end
 
         [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
 
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
                 assert(flag == 0, "This problem was previously solved but it's anymore.");
-
                 check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
             end
         else
             if flag == 0
-                solved(row, hfun_cases) = 1;
+                solved(row, hfun_cases) = xk_best;
             end
         end
 
         assert(flag ~= -1, "pounders failed");
-
         assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't find decrease over the starting point");
-
-        assert(size(X, 1) <= nfmax, "POUNDERs grew the size of X");
+        assert(size(X, 1) <= nfmax + nfs, "POUNDERs grew the size of X");
 
         if flag == 0
             assert(size(X, 1) <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations");
         elseif flag ~= -4
             assert(size(X, 1) == nfmax + nfs, "POUNDERs didn't use nfmax evaluations");
         end
-        %         if re_check
-        %             assert(min(Old_results.Results{1,row}.H) == min(sum(F.^2,2)), "Didn't find the same min")
-        %             if row~=2 && row~=26 && row~=52
-        %                 assert(all(all(Old_results.Results{1,row}.Fvec == F)), "Didn't find the same Fvec")
-        %             end
-        %         end
+
         evals = size(F, 1);
         h = zeros(evals, 1);
         for i = 1:evals

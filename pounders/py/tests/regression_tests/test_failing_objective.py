@@ -37,3 +37,9 @@ np.random.seed(1)
 
 [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
 assert flag == -3, "No NaN was encountered in this test, but should have been."
+
+
+F0 = np.array([1.0, 2.0])
+nfs = 2
+[X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
+assert flag == -1, "We are testing proper failure of pounders"
