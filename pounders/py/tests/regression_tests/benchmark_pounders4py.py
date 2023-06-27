@@ -27,6 +27,7 @@ def doit():
         solved = np.zeros((53, 3))
 
     spsolver = 2  # TRSP solver
+    nfmax = 30
     gtol = 1e-13
     factor = 10
 
