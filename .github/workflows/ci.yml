@@ -1,11 +1,5 @@
 name: IBCDFO-CI
-on:
-  pull_request:
-    types:
-      - ready_for_review
-      - opened
-      - reopened
-      - synchronize
+on: ["push", "pull_request"]
 jobs:
     test-ibcdfo:
         if: '! github.event.pull_request.draft'
@@ -70,5 +64,6 @@ jobs:
             mv pounders/py/tests/*/.cov_tomerge* .
             coverage combine .cov_tomerge*
             coverage html --directory=cov_merge
+            pip3 install --upgrade coveralls
             coveralls --service=github
             coveralls --finish

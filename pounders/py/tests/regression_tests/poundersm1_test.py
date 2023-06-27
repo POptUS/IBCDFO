@@ -12,8 +12,8 @@ func = lambda x: np.sum(x)
 n = 16
 
 X0 = np.ones(n)
-# mpmax [int] Maximum number of interpolation points (>n+1) (2*n+1)
-mpmax = 2 * n + 1
+# npmax [int] Maximum number of interpolation points (>n+1) (2*n+1)
+npmax = 2 * n + 1
 # nfmax   [int] Maximum number of function evaluations (>n+1) (100)
 nfmax = 200
 # gtol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
@@ -39,6 +39,6 @@ spsolver = 1
 
 hfun = lambda F: F
 
-[X, F, flag, xkin] = pdrs.pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
+[X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
 assert np.all(X[xkin] == Low), "The optimum should be the lower bounds."

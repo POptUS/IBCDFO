@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
+def checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
     """
-    checkinputss(fun,X0,n,mpmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U) -> [flag,X0,mpmax,F0,L,U]
+    checkinputss(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U) -> [flag,X0,npmax,F0,L,U]
     Checks the inputs provided to pounders.
     A warning message is produced if a nonfatal input is given (and the input is changed accordingly).
     An error message (flag=-1) is produced if the pounders cannot continue.
@@ -18,7 +18,7 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
     if not callable(fun):
         print("Error: fun is not a function handle")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U]
     # Verify X0 is the appropriate size
     X0 = np.atleast_2d(X0)
     F0 = np.atleast_2d(F0)
@@ -35,21 +35,21 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         else:
             print("Error: np.shape(X0)[1] != n")
             flag = -1
-            return [flag, X0, mpmax, F0, L, U]
+            return [flag, X0, npmax, F0, L, U, xkin]
     # Check max number of interpolation points
-    if mpmax < n + 1 or mpmax > int(0.5 * (n + 1) * (n + 2)):
-        mpmax = max(n + 1, min(mpmax, int(0.5 * (n + 1) * (n + 2))))
-        print(f"Warning: mpmax not in [n+1, 0.5 * (n+1) * (n+2) using {mpmax}")
+    if npmax < n + 1 or npmax > int(0.5 * (n + 1) * (n + 2)):
+        npmax = max(n + 1, min(npmax, int(0.5 * (n + 1) * (n + 2))))
+        print(f"Warning: npmax not in [n+1, 0.5 * (n+1) * (n+2) using {npmax}")
         flag = 0
     # Check standard positive quantities
     if nfmax < 1:
         print("Error: max number of evaluations is less than 1")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     elif gtol <= 0:
         print(" Error: gtol must be positive")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     elif delta <= 0:
         print("Error: delta must be positive")
     # Check number of starting points
@@ -63,31 +63,31 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         if nfs2 < nfs:
             print("Error: fewer than nfs function values in F0")
             flag = -1
-            return [flag, X0, mpmax, F0, L, U]
+            return [flag, X0, npmax, F0, L, U, xkin]
         elif nfs > 1 and m != m2:
             print("Error: F0 does not contain the right number of residuals")
             flag = -1
-            return [flag, X0, mpmax, F0, L, U]
+            return [flag, X0, npmax, F0, L, U, xkin]
         elif nfs2 > nfs:
             print("Warning: number of starting f values nfs does not match input F0")
             flag = 0
         if np.any(np.isnan(F0)):
             print("Error: F0 contains a NaN.")
             flag = -1
-            return [flag, X0, mpmax, F0, L, U]
+            return [flag, X0, npmax, F0, L, U, xkin]
 
     # Check starting point
     if (xkin > max(nfs - 1, 0)) or (xkin < 0) or (xkin % 1 != 0):  # FixMe: Check what xkin needs to be...
         print("Error: starting point index not an integer between 0 and nfs-1")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     # Check the bounds
     [nfs2, n2] = np.shape(L)
     [nfs3, n3] = np.shape(U)
     if (n3 != n2) or (nfs2 != nfs3):
         print("Error: bound dimensions inconsistent")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     elif n2 != n and (n2 == 1 and nfs2 == n):
         L = L.T
         U = U.T
@@ -96,15 +96,15 @@ def checkinputss(fun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
     elif n2 != n or nfs2 != 1:
         print("Error: bounds are not 1-by-n vectors")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     if np.min(U - L) <= 0:
         print("Error: must have U > L")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     if np.min([np.min(X0[xkin, :] - L), np.min(U - X0[xkin, :])]) < 0:
         print("Error: starting point outside of bounds (L,U)")
         flag = -1
-        return [flag, X0, mpmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     U = U.squeeze()
     L = L.squeeze()
-    return [flag, X0, mpmax, F0, L, U, xkin]
+    return [flag, X0, npmax, F0, L, U, xkin]

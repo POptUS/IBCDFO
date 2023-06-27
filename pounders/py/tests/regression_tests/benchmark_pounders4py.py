@@ -9,7 +9,6 @@ import scipy as sp
 from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
-
 import ibcdfo.pounders as pdrs
 
 os.makedirs("benchmark_results", exist_ok=True)
@@ -18,26 +17,40 @@ np.seterr("raise")
 
 def doit():
     bendfo_root = "../../../../../BenDFO/"
+    octave.addpath(bendfo_root + "m/")
+    dfo = np.loadtxt(bendfo_root + "data/dfo.dat")
 
-    probs = np.loadtxt(bendfo_root + "/data/dfo.dat")
-    octave.addpath(bendfo_root + "/m/")
+    ensure_still_solve_problems = 0
+    if ensure_still_solve_problems:
+        solved = np.loadtxt("./benchmark_results/solved.txt")  # A 0-1 matrix with 1 when problem was previously solved.
+    else:
+        solved = np.zeros((53, 3))
 
-    probtype = "smooth"
-
-    nfmax = int(30)
+    spsolver = 2  # TRSP solver    
     gtol = 1e-13
-
     factor = 10
 
-    row = 0
-    Results = {}
-    for nprob, n, m, ns in probs:
-        row += 1
+    for row, (nprob, n, m, factor_power) in enumerate(dfo):
+        n = int(n)
+        m = int(m)
 
-        # Choose your TRSP solver
-        spsolver = 2
+        def objective(y):
+            out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
+            assert len(out) == m, "Incorrect output dimension"
+            return np.squeeze(out)
 
+        X0 = octave.dfoxs(float(n), nprob, factor**factor_power).T
+        npmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
+        L = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
+        U = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
+        nfs = 1
+        F0 = np.zeros((1, m))
+        F0[0] = objective(X0)
+        xind = 0
+        delta = 0.1
+        printf = False
         for hfun_cases in range(1, 4):
+            Results = {}
             if hfun_cases == 1:
                 hfun = lambda F: np.sum(F**2)
                 combinemodels = pdrs.leastsquares
@@ -52,65 +65,47 @@ def doit():
                 combinemodels = pdrs.emittance_combine
 
             filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
-            if os.path.isfile(filename):
-                Old = sp.io.loadmat(filename)
-                re_check = True
+
+            [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
+
+            evals = F.shape[0]
+
+            if ensure_still_solve_problems:
+                if solved[row, hfun_cases - 1] == 1:
+                    assert flag == 0, "This problem was previously solved but it's anymore."
+                    check_stationary(X[xk_best, :], L, U, BenDFO, combinemodels)
             else:
-                re_check = False
+                if flag == 0:
+                    solved[row, hfun_cases - 1] = xk_best + 1
 
-            print(row, hfun_cases, flush=True)
-            n = int(n)
-            m = int(m)
-            X0 = octave.dfoxs(float(n), nprob, factor**ns).T
+            assert flag != 1, "pounders failed"
+            assert hfun(F[0]) > hfun(F[xk_best])
+            assert X.shape[0] <= nfmax + nfs, "POUNDERs grew the size of X"
 
-            delta = 0.1
-            mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
-            Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
-            Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
+            if flag == 0:
+                assert evals <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations"
+            elif flag != -4:
+                assert evals == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
 
-            printf = False
-
-            def calfun(y):
-                out = octave.feval("calfun_wrapper", y, m, nprob, probtype, [], 1, 1)
-                assert len(out) == m, "Incorrect output dimension"
-                return np.squeeze(out)
-
-            F0 = np.zeros((1, m))
-            F0[0] = calfun(X0)
-            nfs = 1
-            xind = 0
-
-            [XO, FO, flagO, xkinO] = pdrs.pounders(calfun, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
-
-            assert flagO != 1, "pounders crashed"
-
-            if flagO == 0:
-                assert XO.shape[0] <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations"
-            else:
-                assert XO.shape[0] == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
-
-            evals = FO.shape[0]
             h = np.zeros(evals)
-
             for i in range(evals):
-                h[i] = hfun(FO[i, :])
-
-            # if re_check:
-            #     assert np.all(Old["pounders4py" + str(row)]["Fvec"][0, 0] == FO), "Different min found"
-            #     print(row, " passed")
+                h[i] = hfun(F[i, :])
 
             Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
             Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
             Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
-            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = FO
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
             Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = h
-            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = XO
+            Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
             # oct2py.kill_octave() # This is necessary to restart the octave instance,
             #                      # and thereby remove some caching of inside of oct2py,
             #                      # namely changing problem dimension does not
             #                      # correctly redefine calfun_wrapper
 
             sp.io.savemat(filename, Results)
+
+        if not ensure_still_solve_problems:
+            np.savetxt("./benchmark_results/solved.txt", solved.astype(int), fmt="%s", delimiter=",")
 
 
 if __name__ == "__main__":

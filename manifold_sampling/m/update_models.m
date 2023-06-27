@@ -12,7 +12,7 @@ function [valid, Gres, Hres, X, F, h, nf, Hash] = update_models(hfun, Ffun, n, p
     if np < n && geometry_pt_flag % Must obtain and evaluate bounded geometry points
         [Mdir, np] = bmpts(X(xkin, :), Mdir(1:n - np, :), L, U, delta, fq_pars.Par(3));
         for i = 1:min(n - np, nfmax - nf)
-            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + Mdir(i, :), tol, L, U);
+            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + Mdir(i, :), tol, L, U, 1);
             D = Mdir(i, :);
             for j = 1:p
                 Res(nf, j) = (F(nf, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';

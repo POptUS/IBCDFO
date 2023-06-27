@@ -18,7 +18,7 @@ class Testpounders:
         func = calFun
         n = 16
         np.random.seed(0)
-        mpmax = 2 * n + 1
+        npmax = 2 * n + 1
         nfmax = 200
         gtol = 10**-13
         delta = 0.1
@@ -32,7 +32,7 @@ class Testpounders:
         # Choose your solver:
         spsolver = 1  # FixMe: Set to global in pounders???
         # spsolver=2
-        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, "fro")
         assert error < 10**-20
         print(f"Error in the Frobenius norm between XOut and X in test_pounders1 is {error}\n")
@@ -41,10 +41,10 @@ class Testpounders:
         print(f"Error in the Frobenius norm between FOut and F in test_pounders1 is {error}\n")
         assert flagOut == flag
         assert xkin == xkinOut
-        # [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, -Low, Upp, printf)
-        # pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
+        # [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, -Low, Upp, printf)
+        # pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
         # Increase code coverage in first branch statement of pounders
-        pounders(float("inf"), X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
+        pounders(float("inf"), X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
 
     def test_pounders2(self):
         dataDictionary = loadmat("callpounders2.mat")
@@ -57,7 +57,7 @@ class Testpounders:
         func = calFun
         n = 16
         np.random.seed(0)
-        mpmax = 2 * n + 1
+        npmax = 2 * n + 1
         nfmax = 200
         gtol = 10**-13
         delta = 0.1
@@ -71,7 +71,7 @@ class Testpounders:
         # Choose your solver:
         spsolver = 1  # FixMe: Set to global in pounders???
         # spsolver=2
-        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, "fro")
         assert error < 10**-20
         print(f"Error in the Frobenius norm between XOut and X in test_pounders2 is {error}\n")
@@ -80,7 +80,7 @@ class Testpounders:
         print(f"Error in the Frobenius norm between FOut and F in test_pounders2 is {error}\n")
         assert flagOut == flag
         assert xkin == xkinOut
-        pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
+        pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
 
     def test_pounders3(self):
         dataDictionary = loadmat("callpounders3.mat")
@@ -93,7 +93,7 @@ class Testpounders:
         func = calFun
         n = 16
         np.random.seed(0)
-        mpmax = 2 * n + 1
+        npmax = 2 * n + 1
         nfmax = 200
         gtol = 10**-13
         delta = 0.1
@@ -107,7 +107,7 @@ class Testpounders:
         # Choose your solver:
         spsolver = 1  # FixMe: Set to global in pounders???
         # spsolver=2
-        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, "fro")
         assert error < 10**-20
         print(f"Error in the Frobenius norm between XOut and X in test_pounders3 is {error}\n")
@@ -116,7 +116,7 @@ class Testpounders:
         print(f"Error in the Frobenius norm between FOut and F in test_pounders3 is {error}\n")
         assert flagOut == flag
         assert xkin == xkinOut
-        pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
+        pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
 
     def test_pounders4(self):
         dataDictionary = loadmat("callpounders4.mat")
@@ -129,7 +129,7 @@ class Testpounders:
         func = calFun
         n = 16
         np.random.seed(0)
-        mpmax = 2 * n + 1
+        npmax = 2 * n + 1
         nfmax = 200
         gtol = 10**-13
         delta = 0.1
@@ -143,7 +143,7 @@ class Testpounders:
         # Choose your solver:
         spsolver = 1  # FixMe: Set to global in pounders???
         # spsolver=2
-        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, "fro")
         assert error < 10**-20
         print(f"Error in the Frobenius norm between XOut and X in test_pounders4 is {error}\n")
@@ -152,7 +152,7 @@ class Testpounders:
         print(f"Error in the Frobenius norm between FOut and F in test_pounders4 is {error}\n")
         assert flagOut == flag
         assert xkin == xkinOut
-        pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
+        pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
 
     def test_pounders5(self):
         dataDictionary = loadmat("callpounders5.mat")
@@ -165,7 +165,7 @@ class Testpounders:
         func = calFun
         n = 16
         np.random.seed(0)
-        mpmax = 2 * n + 1
+        npmax = 2 * n + 1
         nfmax = 200
         gtol = 10**-13
         delta = 0.1
@@ -179,7 +179,7 @@ class Testpounders:
         # Choose your solver:
         spsolver = 1  # FixMe: Set to global in pounders???
         # spsolver=2
-        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+        [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
         error = np.linalg.norm(XOut - X, "fro")
         assert error < 10**-20
         print(f"Error in the Frobenius norm between XOut and X in test_pounders5 is {error}\n")
@@ -188,7 +188,7 @@ class Testpounders:
         print(f"Error in the Frobenius norm between FOut and F in test_pounders5 is {error}\n")
         assert flagOut == flag
         assert xkin == xkinOut
-        pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
+        pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, True)
 
 
 flagTest6 = True  # Run this test
@@ -205,7 +205,7 @@ if flagTest6:
     func = calFun
     n = 16
     np.random.seed(0)
-    mpmax = 2 * n + 1
+    npmax = 2 * n + 1
     nfmax = 200
     gtol = 10**-13
     delta = 0.1
@@ -220,7 +220,7 @@ if flagTest6:
     # Choose your solver:
     spsolver = 1  # FixMe: Set to global in pounders???
     # spsolver=2
-    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
     count = 0
     # Tuning parameter to check differences between X, F in both matlab / python
     if printTest6:
@@ -261,7 +261,7 @@ if flagTest7:
     xind = dataDictionary["xind"]
     func = calFun
     n = 3
-    mpmax = 2 * n + 1
+    npmax = 2 * n + 1
     nfmax = 200
     gtol = 10**-13
     delta = 0.1
@@ -276,7 +276,7 @@ if flagTest7:
     # Choose your solver:
     spsolver = 1  # FixMe: Set to global in pounders???
     # spsolver=2
-    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
     if printTest7:
         X = matlabDictionary["X"]
         F = matlabDictionary["F"]
@@ -299,7 +299,7 @@ if flagTest8:
     xind = dataDictionary["xind"]
     func = calFun
     n = 4
-    mpmax = 2 * n + 1
+    npmax = 2 * n + 1
     nfmax = 200
     gtol = 10**-13
     delta = 0.1
@@ -314,7 +314,7 @@ if flagTest8:
     # Choose your solver:
     spsolver = 1  # FixMe: Set to global in pounders???
     # spsolver=2
-    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
     if printTest8:
         X = matlabDictionary["X"]
         F = matlabDictionary["F"]
@@ -343,7 +343,7 @@ if flagTest9:
     xind = dataDictionary["xind"]
     func = calFun
     n = 4
-    mpmax = 2 * n + 1
+    npmax = 2 * n + 1
     nfmax = 200
     gtol = 10**-13
     delta = 0.1
@@ -358,7 +358,7 @@ if flagTest9:
     # Choose your solver:
     spsolver = 1  # FixMe: Set to global in pounders???
     # spsolver=2
-    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
     if printTest9:
         X = matlabDictionary["X"]
         F = matlabDictionary["F"]
@@ -393,7 +393,7 @@ if flagTest10:
     xind = dataDictionary["xind"]
     func = calFun
     n = 4
-    mpmax = 2 * n + 1
+    npmax = 2 * n + 1
     nfmax = 200
     gtol = 10**-13
     delta = 0.1
@@ -408,7 +408,7 @@ if flagTest10:
     # Choose your solver:
     spsolver = 1  # FixMe: Set to global in pounders???
     # spsolver=2
-    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
+    [XOut, FOut, flagOut, xkinOut] = pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf)
     if printTest10:
         X = matlabDictionary["X"]
         F = matlabDictionary["F"]
