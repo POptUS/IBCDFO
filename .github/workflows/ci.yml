@@ -1,11 +1,5 @@
 name: IBCDFO-CI
-on:
-  pull_request:
-    types:
-      - ready_for_review
-      - opened
-      - reopened
-      - synchronize
+on: ["push", "pull_request"]
 jobs:
     test-ibcdfo:
         if: '! github.event.pull_request.draft'
