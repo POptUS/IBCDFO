@@ -26,7 +26,7 @@ def doit():
     else:
         solved = np.zeros((53, 3))
 
-    spsolver = 2  # TRSP solver    
+    spsolver = 2  # TRSP solver
     gtol = 1e-13
     factor = 10
 

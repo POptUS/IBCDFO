@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import numpy as np
 import ibcdfo.pounders as pdrs
+import numpy as np
 
 
 class Test_phi2eval:
