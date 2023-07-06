@@ -21,12 +21,12 @@ if nargin == 1
     grads = zeros(n, 1);
     Hash = cell(1, 1);
     Hash{1} = int2str(1);
-    grads(:) = 2*z;
+    grads(:) = 2 * z;
 
 elseif nargin == 2
-    h = sum(z.^2);    
+    h = sum(z.^2);
     grads = zeros(length(z), 1);
-    grads(:) = 2*z;
+    grads(:) = 2 * z;
 else
     error('Too many inputs to function');
 end

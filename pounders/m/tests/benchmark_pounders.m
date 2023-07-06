@@ -85,7 +85,6 @@ for row = 1:length(dfo)
 
         [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
 
-
         GAMS_options.file = '../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
         GAMS_options.solvers = 1:4;
         subprob_switch = 'linprog';
