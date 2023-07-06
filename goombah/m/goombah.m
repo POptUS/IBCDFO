@@ -52,7 +52,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, su
     beta_exp = 1.0;
 
     while nf < nfmax && delta > tol.mindelta
-        xkin = min(h(1:nf));
+        [~, xkin] = min(h(1:nf));
         % ================================
         % Build p component models
         [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
