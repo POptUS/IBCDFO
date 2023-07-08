@@ -32,7 +32,7 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
 
     tol.gentype = 2;
 
-    assert(nfmax >= n+1, "nfmax is less than n+1, exiting");
+    assert(nfmax >= n + 1, "nfmax is less than n+1, exiting");
 
     X = [x0; zeros(nfmax - 1, n)]; % Stores the point locations
     F = [F0; zeros(nfmax - 1, p)];         % Stores the simulation values
