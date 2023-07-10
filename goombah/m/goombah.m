@@ -70,8 +70,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, su
             rho_k = -inf;
         else
             % Evaluate F
-            [nf, X, F, h, Hash, hashes_at_nf] = ...
-                    call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk, tol, L, U, 1);
+            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk, tol, L, U, 1);
             rho_k = (h(xkin) - h(nf)) / min(1.0, delta^(1.0 + beta_exp));
         end
 
@@ -118,7 +117,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, su
                 % Line 7: Find a candidate s_k by solving QP
                 Low = max(L - X(xkin, :), -delta);
                 Upp = min(U - X(xkin, :), delta);
-                [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
+                [s_k, tau_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
 
                 % Line 8: Compute stationary measure chi_k
                 Low = max(L - X(xkin, :), -1.0);
