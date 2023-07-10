@@ -7,7 +7,7 @@ from .phi2eval import phi2eval
 # from .flipSignQ import flipSignQ
 
 
-def formquad(X, F, delta, xkin, mpmax, Pars, vf):
+def formquad(X, F, delta, xkin, npmax, Pars, vf):
     """
     formquad(X,F,delta,xkin,npmax,Pars,vf) -> [Mdir,np,valid,G,H,Mind]
     Computes the parameters for m quadratics
@@ -48,7 +48,7 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     # Precompute the scaled displacements (could be expensive for larger nfmax)
     D = np.zeros((nf, n))  # Scaled displacements
 
-    assert isinstance(mpmax, int), "Must be an integer"
+    assert isinstance(npmax, int), "Must be an integer"
     assert isinstance(xkin, int), "Must be an integer"
 
     D = (X[:nf] - X[xkin]) / delta
@@ -103,9 +103,9 @@ def formquad(X, F, delta, xkin, mpmax, Pars, vf):
     M = np.vstack((np.ones(n + 1), D[Mind].T))
     [Q, R] = np.linalg.qr(M.T, mode="complete")
     # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
-    # Now we add points until we have mpmax starting with the most recent ones
+    # Now we add points until we have npmax starting with the most recent ones
     i = nf - 1
-    while mp < mpmax or mpmax == n + 1:
+    while mp < npmax or npmax == n + 1:
         if Nd[i] <= Pars[1] and i not in Mind:
             Ny = np.hstack((N, phi2eval(D[[i], :]).T))
             # Update QR
