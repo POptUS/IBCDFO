@@ -93,7 +93,7 @@ for row = 1:length(dfo)
 
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
-                assert(flag == 0, "This problem was previously solved but it's anymore.");
+                assert(flag == 0, "This problem was previously solved but no longer is.");
 
                 check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
             end
