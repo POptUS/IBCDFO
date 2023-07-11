@@ -41,7 +41,13 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
 
     [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
 
+    I_n = eye(n);
+    for i = 1:n
+        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + delta * I_n(i, :), tol, L, U, 1);
+    end
+
     while nf < nfmax
+        [~, xkin] = min(h(1:nf));
         % ================================
         % Build p component models
         [Gres, Hres, X, F, h, nf] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
