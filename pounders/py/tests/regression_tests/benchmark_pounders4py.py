@@ -6,7 +6,6 @@ import sys
 
 import numpy as np
 import scipy as sp
-from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 import ibcdfo.pounders as pdrs
