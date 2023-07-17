@@ -7,7 +7,6 @@ from .phi2eval import phi2eval
 # from .flipSignQ import flipSignQ
 
 
-@profile
 def formquad(X, F, delta, xkin, npmax, Pars, vf):
     """
     formquad(X,F,delta,xkin,npmax,Pars,vf) -> [Mdir,np,valid,G,H,Mind]
