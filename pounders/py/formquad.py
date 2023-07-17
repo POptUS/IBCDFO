@@ -7,6 +7,7 @@ from .phi2eval import phi2eval
 # from .flipSignQ import flipSignQ
 
 
+@profile
 def formquad(X, F, delta, xkin, npmax, Pars, vf):
     """
     formquad(X,F,delta,xkin,npmax,Pars,vf) -> [Mdir,np,valid,G,H,Mind]
@@ -47,7 +48,6 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
     H = np.zeros((n, n, m))
     # Precompute the scaled displacements (could be expensive for larger nfmax)
     D = np.zeros((nf, n))  # Scaled displacements
-    Beta_tmp = np.zeros((n, n))
     scale_mat = np.ones((n, n)) / np.sqrt(2)
     scale_mat[np.diag_indices(n)] = 1
 
@@ -159,10 +159,10 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
             Alpha = np.reshape(Alpha, (np.shape(Alpha)[0], 1))
         G[:, k] = Alpha[1 : n + 1, 0]
 
-        Beta_tmp[np.triu_indices(n)] = Beta.squeeze()  # Set diagonal and above to Beta
-        Beta_tmp[np.tril_indices(n, -1)] = Beta_tmp.T[np.tril_indices(n, -1)]  # Set diagonal and above to Beta
-        Beta_tmp *= scale_mat
-        H[:, :, k] = Beta_tmp
+        H[:, :, k][np.triu_indices(n)] = Beta.squeeze()  # Set diagonal and above to Beta
+        H[:, :, k].T[np.triu_indices(n)] = Beta.squeeze()  # Set diagonal and above to Beta
+        H[:, :, k] *= scale_mat
+
     H = H / (delta**2)
     G = G / delta
 
