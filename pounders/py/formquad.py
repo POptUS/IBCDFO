@@ -47,6 +47,9 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
     H = np.zeros((n, n, m))
     # Precompute the scaled displacements (could be expensive for larger nfmax)
     D = np.zeros((nf, n))  # Scaled displacements
+    Beta_tmp = np.zeros((n, n))
+    scale_mat = np.ones((n,n))/np.sqrt(2)
+    scale_mat[np.diag_indices(n)] = 1 
 
     assert isinstance(npmax, int), "Must be an integer"
     assert isinstance(xkin, int), "Must be an integer"
@@ -155,14 +158,11 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
                 Alpha = np.linalg.lstsq(M, F[:, [k]] - N.T @ Beta, rcond=None)[0]
             Alpha = np.reshape(Alpha, (np.shape(Alpha)[0], 1))
         G[:, k] = Alpha[1 : n + 1, 0]
-        num = -1
-        for i in range(n):
-            num += 1
-            H[i, i, k] = Beta[num]
-            for j in range(i + 1, n):
-                num += 1
-                H[i, j, k] = Beta[num] / np.sqrt(2)
-                H[j, i, k] = H[i, j, k]
+
+        Beta_tmp[np.triu_indices(n)] = Beta.squeeze()  # Set diagonal and above to Beta
+        Beta_tmp[np.tril_indices(n,-1)] = Beta_tmp.T[np.tril_indices(n,-1)] # Set diagonal and above to Beta
+        Beta_tmp *= scale_mat 
+        H[:, :, k] = Beta_tmp
     H = H / (delta**2)
     G = G / delta
 
