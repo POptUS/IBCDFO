@@ -129,9 +129,8 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     ng = np.nan  # Needed for early termination, e.g., if a model is never built
     while nf + 1 < nfmax:
         #  1a. Compute the interpolation set.
-        for i in range(nf + 1):
-            D = X[i] - X[xkin]
-            Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
+        D = X[:nf] - X[xkin] 
+        Res[:nf, :] = (F[:nf, :] - Cres)  - np.diagonal(0.5*D@(np.tensordot(D, Hres, axes = 1))).T
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, npmax, Par, 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Par[2])
@@ -274,9 +273,8 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, npmax, Par, 1)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xkin unchanged)
-                for i in range(nf + 1):
-                    D = X[i, :] - X[xkin]
-                    Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
+                D = X[:nf] - X[xkin] 
+                Res[:nf, :] = (F[:nf, :] - Cres)  - np.diagonal(0.5*D@(np.tensordot(D, Hres, axes = 1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, npmax, Par, False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged
@@ -316,9 +314,9 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     D = X[nf] - X[xkin]
                     xkin = nf  # Change current center
                     Cres = F[xkin]
-                    # Don't actually use
-                    for j in range(m):
-                        Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
+                    # # Don't actually use
+                    # for j in range(m):
+                    #     Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
     if printf:
         print("Number of function evals exceeded")
     flag = ng
