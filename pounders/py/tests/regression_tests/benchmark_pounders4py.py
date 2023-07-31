@@ -22,12 +22,12 @@ def doit():
 
     ensure_still_solve_problems = 0
     if ensure_still_solve_problems:
-        solved = np.loadtxt("./benchmark_results/solved.txt")  # A 0-1 matrix with 1 when problem was previously solved.
+        best_found = np.loadtxt("./benchmark_results/best_found.txt")
     else:
-        solved = np.zeros((53, 3))
+        best_found = np.nan*np.ones((53, 3))
 
     spsolver = 2  # TRSP solver
-    nfmax = 30
+    nfmax = 50
     gtol = 1e-13
     factor = 10
 
@@ -70,14 +70,16 @@ def doit():
             [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 
             evals = F.shape[0]
+            h = np.zeros(evals)
+            for i in range(evals):
+                h[i] = hfun(F[i, :])
 
             if ensure_still_solve_problems:
-                if solved[row, hfun_cases - 1] == 1:
-                    assert flag == 0, "This problem was previously solved but it's anymore."
-                    check_stationary(X[xk_best, :], L, U, BenDFO, combinemodels)
+                assert np.min(h) == best_found[row, hfun_cases - 1], "This problem didn't find the same best value anymore."
+                # if flag == 0: 
+                #     check_stationary(X[xk_best, :], L, U, BenDFO, combinemodels)
             else:
-                if flag == 0:
-                    solved[row, hfun_cases - 1] = xk_best + 1
+                best_found[row, hfun_cases - 1] = np.min(h)
 
             assert flag != 1, "pounders failed"
             assert hfun(F[0]) > hfun(F[xk_best])
@@ -87,10 +89,6 @@ def doit():
                 assert evals <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations"
             elif flag != -4:
                 assert evals == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
-
-            h = np.zeros(evals)
-            for i in range(evals):
-                h[i] = hfun(F[i, :])
 
             Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
             Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
@@ -106,7 +104,7 @@ def doit():
             sp.io.savemat(filename, Results)
 
         if not ensure_still_solve_problems:
-            np.savetxt("./benchmark_results/solved.txt", solved.astype(int), fmt="%s", delimiter=",")
+            np.savetxt("./benchmark_results/best_found.txt", best_found, fmt="%s", delimiter=",")
 
 
 if __name__ == "__main__":
