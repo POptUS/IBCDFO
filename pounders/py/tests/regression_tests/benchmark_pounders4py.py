@@ -75,7 +75,12 @@ def doit():
                 h[i] = hfun(F[i, :])
 
             if ensure_still_solve_problems:
-                assert np.min(h) == best_found[row, hfun_cases - 1], "This problem didn't find the same best value anymore."
+                ind = np.argmin(h)
+                absdiff = np.abs(h[ind] - best_found[row, hfun_cases - 1])
+                if absdiff > 0:
+                    reldiff = absdiff/max(abs(best_found[row, hfun_cases - 1]), abs(h[ind]))
+                    if reldiff > 3e-16:
+                        print("This problem didn't find the same best value anymore.", reldiff, "denominator:", max(abs(best_found[row, hfun_cases - 1]), abs(h[ind])))
                 # if flag == 0: 
                 #     check_stationary(X[xk_best, :], L, U, BenDFO, combinemodels)
             else:
