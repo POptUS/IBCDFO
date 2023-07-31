@@ -104,7 +104,7 @@ def doit():
             sp.io.savemat(filename, Results)
 
         if not ensure_still_solve_problems:
-            np.savetxt("./benchmark_results/best_found.txt", best_found, fmt="%s", delimiter=",")
+            np.savetxt("./benchmark_results/best_found.txt", best_found)
 
 
 if __name__ == "__main__":
