@@ -60,59 +60,66 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
         return X, F, h, xkin, flag
 
     # Evaluate user scripts at x_0
-    h[nf], __, hashes_at_nf = hfun(F[nf, :])
-    Hash[nf, np.arange[1, len[hashes_at_nf] + 1]] = hashes_at_nf
+    h[nf], __, hashes_at_nf = hfun(F[nf])
+    Hash[nf] = hashes_at_nf
+
     H_mm = np.zeros((n, n))
+
     while nf < nfmax and delta > tol.mindelta:
         bar_delta = delta
+
         # Line 3: manifold sampling while loop
         while nf < nfmax:
             # Line 4: build models
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
                 print(np.array(["Model building failed. Empty Gres. Delta = ", num2str(delta)]))
-                X = X[np.arange(1, nf + 1), :]
-                F = F[np.arange(1, nf + 1), :]
-                h = h[np.arange(1, nf + 1), :]
+                X = X[:nf]
+                F = F[:nf]
+                h = h[:nf]
                 flag = -1
                 return X, F, h, xkin, flag
             if nf >= nfmax:
                 flag = 0
                 return X, F, h, xkin, flag
+
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
             G_k = Gres * D_k
             beta = np.amax(0, np.transpose(f_bar) - h(xkin))
-            # Line 6: Choose Hessions
-            H_k = np.zeros((G_k.shape[2 - 1], n + 1, n + 1))
-            for i in np.arange(1, G_k.shape[2 - 1] + 1).reshape(-1):
-                for j in np.arange(1, Hres.shape[3 - 1] + 1).reshape(-1):
-                    H_k[i, np.arange[2, end() + 1], np.arange[2, end() + 1]] = np.squeeze(H_k[i, np.arange(2, end() + 1), np.arange(2, end() + 1)]) + D_k[j, i] * Hres[:, :, j]
+
+            # Line 6: Choose Hessians
+            H_k = np.zeros((G_k.shape[1], n + 1, n + 1))
+            for i in range(G_k.shape[1]):
+                for j in range(p):
+                    H_k[i, 1:, 1:] = np.squeeze(H_k[i, 1:, 1:]) + D_k[j, i] * Hres[:, :, j]
+
             # Line 7: Find a candidate s_k by solving QP
-            Low = np.amax(L - X[xkin, :], -delta)
-            Upp = np.amin(U - X[xkin, :], delta)
+            Low = np.amax(L - X[xkin], -delta)
+            Upp = np.amin(U - X[xkin], delta)
             s_k, tau_k, __, lambda_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch)
+
             # Line 8: Compute stationary measure chi_k
-            Low = np.amax(L - X[xkin, :], -1.0)
-            Upp = np.amin(U - X[xkin, :], 1.0)
+            Low = np.amax(L - X[xkin], -1.0)
+            Upp = np.amin(U - X[xkin], 1.0)
             __, __, chi_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[2 - 1], n + 1, n + 1)), subprob_switch)
+
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol.gtol and delta <= tol.mindelta:
                 print("Convergence satisfied: small stationary measure and small delta")
-                X = X[np.arange(1, nf + 1), :]
-                F = F[np.arange(1, nf + 1), :]
-                h = h[np.arange(1, nf + 1), :]
+                X = X[:nf]
+                F = F[:nf]
+                h = h[:nf]
                 flag = chi_k
                 return X, F, h, xkin, flag
-            if printf:
-                trsp_fun = lambda x: max_affine(x, h[xkin], f_bar, beta, G_k, H_mm)
-                #             plot_again_j(X, xkin, delta, s_k, [], nf, trsp_fun, L, U);
+
             # Line 12: Evaluate F
-            nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin, :] + np.transpose(s_k), tol, L, U, 1)
+            nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
             # Line 13: Compute rho_k
             ared = h[xkin] - h[nf]
             pred = -tau_k
             rho_k = ared / pred
+
             # Lines 14-16: Check for success
             if rho_k >= tol.eta1 and pred > 0:
                 successful = True
@@ -120,6 +127,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             else:
                 # Line 18: Check temporary activities after adding TRSP solution to X
                 __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
+
                 # Lines 19: See if any new activities
                 if np.all(ismember(tmp_Act_Z_k, Act_Z_k)):
                     # Line 20: See if intersection is nonempty
@@ -141,24 +149,13 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             delta = np.amax(bar_delta * tol.gamma_dec, tol.mindelta)
             # h_activity_tol = min(1e-8, delta);
         print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h(xkin), chi_k, delta))
-        # Build primal master model Hessian for next iteration
-    # H_mm = zeros(n);
-    # for i = 1:size(G_k,2) # would like to vectorize this tensor product ...
-    #    Hg = zeros(n);
-    #    for j = 1:size(Hres,3) #p
-    #        Hg = Hg + D_k(j,i)*Hres(:,:,j);
-    #    end
-    #    H_mm = H_mm + lambda_k(i)*Hg;
-    # end
 
     if nf >= nfmax:
         flag = 0
     else:
-        X = X[np.arange(1, nf + 1), :]
-        F = F[np.arange(1, nf + 1), :]
-        h = h[np.arange(1, nf + 1), :]
+        X = X[:nf]
+        F = F[:nf]
+        h = h[:nf]
         flag = chi_k
-
-    return X, F, h, xkin, flag
 
     return X, F, h, xkin, flag
