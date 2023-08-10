@@ -151,7 +151,7 @@ while nf < nfmax
         end
         ierror = norm(IERR ./ max(abs(Fs(Mind, :)'), 0), inf); % Interp. error
         fprintf(progstr, nf, delta, valid, np, Fs(xkin), ng, ierror);
-        if printf >=2 
+        if printf >= 2
             for i = 1:size(Mind, 1)
                 D = (X(Mind(i), :) - X(xkin, :));
                 for j = 1:m
