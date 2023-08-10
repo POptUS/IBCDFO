@@ -174,6 +174,7 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     jerr[i, j] = (Cres[j] - F[Mind[i], j]) + D @ (Gres[:, j] + 0.5 * Hres[:, :, j] @ D)
             print(jerr)
             # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
+        if printf:
             ierror = np.linalg.norm(IERR / np.abs(Fs[Mind]), np.inf)
             print(progstr % (nf, delta, valid, mp, Fs[xkin], ng, ierror))
         # 2. Critically test invoked if the projected model gradient is small

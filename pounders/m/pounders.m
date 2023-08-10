@@ -155,6 +155,9 @@ while nf < nfmax
                 jerr(i, j) = (Cres(j) - F(Mind(i), j)) + D * (Gres(:, j) + .5 * Hres(:, :, j) * D');
             end
         end
+        disp(jerr);
+    end
+    if printf
         ierror = norm(IERR ./ max(abs(Fs(Mind, :)'), 0), inf); % Interp. error
         fprintf(progstr, nf, delta, valid, np, Fs(xkin), ng, ierror);
     end % ------------------------------------------------------------------
