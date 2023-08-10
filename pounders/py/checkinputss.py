@@ -18,7 +18,7 @@ def checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
     if not callable(fun):
         print("Error: fun is not a function handle")
         flag = -1
-        return [flag, X0, npmax, F0, L, U]
+        return [flag, X0, npmax, F0, L, U, xkin]
     # Verify X0 is the appropriate size
     X0 = np.atleast_2d(X0)
     F0 = np.atleast_2d(F0)
