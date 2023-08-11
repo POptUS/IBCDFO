@@ -162,20 +162,21 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
         ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
         ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
-        if printf >= 2:
+        if printf:
             IERR = np.zeros(len(Mind))
             for i in range(len(Mind)):
                 D = X[Mind[i]] - X[xkin]
                 IERR[i] = (c - Fs[Mind[i]]) + [D @ (G + 0.5 * H @ D)]
-            jerr = np.zeros((len(Mind), m))
-            for i in range(len(Mind)):
-                D = X[Mind[i]] - X[xkin]
-                for j in range(m):
-                    jerr[i, j] = (Cres[j] - F[Mind[i], j]) + D @ (Gres[:, j] + 0.5 * Hres[:, :, j] @ D)
-            print(jerr)
-            # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
             ierror = np.linalg.norm(IERR / np.abs(Fs[Mind]), np.inf)
             print(progstr % (nf, delta, valid, mp, Fs[xkin], ng, ierror))
+            if printf >= 2:
+                jerr = np.zeros((len(Mind), m))
+                for i in range(len(Mind)):
+                    D = X[Mind[i]] - X[xkin]
+                    for j in range(m):
+                        jerr[i, j] = (Cres[j] - F[Mind[i], j]) + D @ (Gres[:, j] + 0.5 * Hres[:, :, j] @ D)
+                print(jerr)
+            # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
         # 2. Critically test invoked if the projected model gradient is small
         if ng < gtol:
             delta = max(gtol, np.max(np.abs(X[xkin])) * eps)
