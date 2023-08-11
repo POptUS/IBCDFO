@@ -3,15 +3,15 @@ import numpy as np
 
 def check_inputs_and_initialize(x0, F0, nfmax):
     global h_activity_tol
-    n = len(x0)
-    p = len(F0)
+    n = int(len(x0))
+    p = int(len(F0))
     delta = 0.3
     printf = 1
     h_activity_tol = min(1e-08, delta)
 
     # Internal parameters/tolerances for formquad
 
-    fq_pars = {'Par': {1: np.sqrt(n), 2: max(10, np.sqrt(n)), 3: 0.001, 4: 0.001}, 'npmax': (n + 1) * (n + 2) / 2}
+    fq_pars = {'Par': [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001], 'npmax': (n + 1) * (n + 2) // 2}
 
     # Internal parameters/tolerances for manifold sampling
     tol = {

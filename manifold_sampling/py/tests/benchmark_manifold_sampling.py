@@ -7,7 +7,6 @@ sys.path.append("../")
 sys.path.append("../../../../BenDFO/py/")
 sys.path.append("../../../../BenDFO/data/")
 sys.path.append("../h_examples/")
-sys.path.append("../../../pounders/py")
 
 from calfun import calfun
 from dfoxs import dfoxs

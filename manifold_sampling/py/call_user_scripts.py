@@ -1,42 +1,42 @@
 import numpy as np
 
+def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_recalc=0):
+    if len(x_in) != len(U) or len(x_in) != len(L):
+        raise ValueError("Input vector dimensions do not match the bounds.")
 
-def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_recalc):
-    # Call user scripts Ffun and hfun; saves their output to the appropriate arrays
-    if len(varargin) < 12:
+    if allow_recalc is None:
         allow_recalc = 0
 
-    xnew = np.amin(U, np.amax(L, x_in))
+    xnew = np.minimum(U, np.maximum(L, x_in))
+
     for i in range(len(xnew)):
-        if U[i] - xnew[i] < eps * np.abs(U[i]) and U[i] > xnew[i]:
+        if U[i] - xnew[i] < np.finfo(float).eps * np.abs(U[i]) and U[i] > xnew[i]:
             xnew[i] = U[i]
-            print("eps project!")
-        else:
-            if xnew[i] - L[i] < eps * np.abs(L[i]) and L[i] < xnew[i]:
-                xnew[i] = L[i]
-                print("eps project!")
+            print('eps project!')
+        elif xnew[i] - L[i] < np.finfo(float).eps * np.abs(L[i]) and L[i] < xnew[i]:
+            xnew[i] = L[i]
+            print('eps project!')
 
-    if not allow_recalc and ismember(xnew, X[:nf], "rows"):
-        raise Exception("Your method requested a point that has already been requested. FAIL!")
+    xnew_hashable = tuple(xnew)
 
-    nf = nf + 1
-    X[nf, :] = xnew
-    F[nf, :] = Ffun(X[nf])
-    h[nf], __, hashes_at_nf = hfun(F[nf])
+    if not allow_recalc and xnew_hashable in [tuple(row) for row in X[:nf, :]]:
+        raise ValueError("Your method requested a point that has already been requested. FAIL!")
+
+    nf += 1
+    X[nf] = xnew
+    F[nf] = Ffun(X[nf])
+    h[nf], _, hashes_at_nf = hfun(F[nf])
     Hash[nf] = hashes_at_nf
-    assert_(not np.any(np.isnan(F[nf])), "Got a NaN. FAIL!")
-    # It must be the case hfun values and gradients are the same when called with
-    # and without hashes. Because we assume h is cheap to evaluate, we can
-    # possibly detect errors in the implementation of hfun by checking each time
-    # that the values and gradients agree:
-    if tol.hfun_test_mode:
-        assert_(iscell(hashes_at_nf), "hfun must return a cell of hashes")
-        assert_(np.all(cellfun(ischar, hashes_at_nf)), "Hashes must be character arrays")
-        h_dummy1, grad_dummy1, hash_dummy = hfun(F[nf])
-        h_dummy2, grad_dummy2 = hfun(F[nf], hash_dummy)
-        assert_(np.any(h_dummy1 == h_dummy2), "hfun values don't agree when being re-called with the same inputs")
-        assert_(np.all(np.all(grad_dummy1 == grad_dummy2)), "hfun gradients don't agree when being re-called with the same inputs")
+    if np.any(np.isnan(F[nf, :])):
+        raise ValueError("Got a NaN. FAIL!")
 
-    return nf, X, F, h, Hash, hashes_at_nf
+    if tol['hfun_test_mode']:
+        assert isinstance(hashes_at_nf, list), "hfun must return a list of hashes"
+        assert all(isinstance(hash_val, str) for hash_val in hashes_at_nf), "Hashes must be strings"
+
+        h_dummy1, grad_dummy1, hash_dummy = hfun(F[nf, :])
+        h_dummy2, grad_dummy2 = hfun(F[nf, :], hash_dummy)
+        assert any(h_dummy1 == h_dummy2), "hfun values don't agree when being re-called with the same inputs"
+        assert np.all(grad_dummy1 == grad_dummy2), "hfun gradients don't agree when being re-called with the same inputs"
 
     return nf, X, F, h, Hash, hashes_at_nf
