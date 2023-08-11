@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_recalc=0):
     if len(x_in) != len(U) or len(x_in) != len(L):
         raise ValueError("Input vector dimensions do not match the bounds.")
@@ -12,10 +13,10 @@ def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_reca
     for i in range(len(xnew)):
         if U[i] - xnew[i] < np.finfo(float).eps * np.abs(U[i]) and U[i] > xnew[i]:
             xnew[i] = U[i]
-            print('eps project!')
+            print("eps project!")
         elif xnew[i] - L[i] < np.finfo(float).eps * np.abs(L[i]) and L[i] < xnew[i]:
             xnew[i] = L[i]
-            print('eps project!')
+            print("eps project!")
 
     xnew_hashable = tuple(xnew)
 
@@ -30,7 +31,7 @@ def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_reca
     if np.any(np.isnan(F[nf, :])):
         raise ValueError("Got a NaN. FAIL!")
 
-    if tol['hfun_test_mode']:
+    if tol["hfun_test_mode"]:
         assert isinstance(hashes_at_nf, list), "hfun must return a list of hashes"
         assert all(isinstance(hash_val, str) for hash_val in hashes_at_nf), "Hashes must be strings"
 

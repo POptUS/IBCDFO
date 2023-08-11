@@ -55,7 +55,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
         pass
 
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
-    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars['npmax'], nfmax, tol['gtol'], delta, 1, len(F0), F0, xkin, L, U)
+    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars["npmax"], nfmax, tol["gtol"], delta, 1, len(F0), F0, xkin, L, U)
     if flag == -1:
         X = x0
         F = F0
@@ -68,7 +68,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
     H_mm = np.zeros((n, n))
 
-    while nf < nfmax and delta > tol['mindelta']:
+    while nf < nfmax and delta > tol["mindelta"]:
         bar_delta = delta
 
         # Line 3: manifold sampling while loop
@@ -77,9 +77,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
                 print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
-                X = X[:nf+1]
-                F = F[:nf+1]
-                h = h[:nf+1]
+                X = X[: nf + 1]
+                F = F[: nf + 1]
+                h = h[: nf + 1]
                 flag = -1
                 return X, F, h, xkin, flag
             if nf >= nfmax:
@@ -108,11 +108,11 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             __, __, chi_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[2 - 1], n + 1, n + 1)), subprob_switch)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
-            if chi_k <= tol.gtol and delta <= tol['mindelta']:
+            if chi_k <= tol.gtol and delta <= tol["mindelta"]:
                 print("Convergence satisfied: small stationary measure and small delta")
-                X = X[:nf+1]
-                F = F[:nf+1]
-                h = h[:nf+1]
+                X = X[: nf + 1]
+                F = F[: nf + 1]
+                h = h[: nf + 1]
                 flag = chi_k
                 return X, F, h, xkin, flag
 
@@ -124,7 +124,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             rho_k = ared / pred
 
             # Lines 14-16: Check for success
-            if rho_k >= tol['eta1'] and pred > 0:
+            if rho_k >= tol["eta1"] and pred > 0:
                 successful = True
                 break
             else:
@@ -139,26 +139,26 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                         break
                     else:
                         # Line 24: Shrink delta
-                        delta = tol['gamma_dec'] * delta
+                        delta = tol["gamma_dec"] * delta
 
         if successful:
             xkin = nf
-            if rho_k > tol['eta3'] and norm(s_k, "inf") > 0.8 * bar_delta:
+            if rho_k > tol["eta3"] and norm(s_k, "inf") > 0.8 * bar_delta:
                 # Update delta if rho is sufficiently large
-                delta = bar_delta * tol['gamma_inc']
+                delta = bar_delta * tol["gamma_inc"]
                 # h_activity_tol = min(1e-8, delta);
         else:
             # Line 21: iteration is unsuccessful; shrink Delta
-            delta = np.amax(bar_delta * tol['gamma_dec'], tol['mindelta'])
+            delta = np.amax(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
         print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h(xkin), chi_k, delta))
 
     if nf >= nfmax:
         flag = 0
     else:
-        X = X[:nf+1]
-        F = F[:nf+1]
-        h = h[:nf+1]
+        X = X[: nf + 1]
+        F = F[: nf + 1]
+        h = h[: nf + 1]
         flag = chi_k
 
     return X, F, h, xkin, flag

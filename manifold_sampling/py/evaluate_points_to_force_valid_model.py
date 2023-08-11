@@ -21,10 +21,10 @@ def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, M
         # end
         Xsp = Mdir1[i, :]
         # Only do this evaluation if the point is new and nf < nfmax
-        if not ismember(X[xkin, :] + Xsp, X[:nf+1], "rows") and nf < nfmax:
+        if not ismember(X[xkin, :] + Xsp, X[: nf + 1], "rows") and nf < nfmax:
             nf, X, F, h, Hash = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin, :] + Xsp, tol, L, U, 1)
 
-        __, __, valid = formquad(X[:nf+1], F[:nf+1], delta, xkin, fq_pars.npmax, fq_pars.Par, 1)
+        __, __, valid = formquad(X[: nf + 1], F[: nf + 1], delta, xkin, fq_pars.npmax, fq_pars.Par, 1)
         if not valid and nf < nfmax:
             print(nf)
             print(gentype)
