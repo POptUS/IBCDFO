@@ -1,52 +1,54 @@
 # This wrapper tests various algorithms against the Benchmark functions from the
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 import numpy as np
+import sys,os
 
+sys.path.append("../")
+sys.path.append("../../../../BenDFO/py/")
+sys.path.append("../../../../BenDFO/data/")
+sys.path.append("../h_examples/")
+sys.path.append("../../../pounders/py")
 
-BenDFO.probtype = "smooth"
-addpath("../")
-addpath("../../../../BenDFO/m/")
-addpath("../../../../BenDFO/data/")
-addpath("../h_examples/")
-addpath("../../../pounders/m")
+from calfun import calfun
+from dfoxs import dfoxs
+from pw_maximum_squared import pw_maximum_squared
+from pw_minimum_squared import pw_minimum_squared
+from manifold_sampling_primal import manifold_sampling_primal
 
-mkdir("benchmark_results")
+if not os.path.exists("benchmark_results"):
+    os.makedirs("benchmark_results")
+
 nfmax = 500
 factor = 10
 subprob_switch = "linprog"
-scipy.io.loadmat("dfo.txt")
-filename = np.array(["./benchmark_results/manifold_samplingM_nfmax=", num2str(nfmax), ".mat"])
-Results = cell(1, 53)
-# for row = find(cellfun(@length,Results)==0)
-for row in np.array([1, 2, 7, 8, 43, 44, 45]).reshape(-1):
-    nprob = dfo(row, 1)
-    n = dfo(row, 2)
-    m = dfo(row, 3)
-    factor_power = dfo(row, 4)
-    BenDFO.nprob = nprob
-    BenDFO.n = n
-    BenDFO.m = m
-    LB = -Inf * np.ones((1, n))
-    UB = Inf * np.ones((1, n))
-    xs = dfoxs(n, nprob, factor**factor_power)
-    for jj in np.arange(1, 2 + 1).reshape(-1):
-        if jj == 1:
+dfo = np.loadtxt("../../../../BenDFO/data/dfo.dat")
+filename = "./benchmark_results/manifold_samplingM_nfmax=" + str(nfmax) + ".npy"
+
+Results = {}
+for row, (nprob, n, m, factor_power) in enumerate(dfo[[0, 1, 6, 7, 42, 43, 44],:]):
+    n = int(n)
+    m = int(m)
+    LB = -np.inf * np.ones((1, n))
+    UB = np.inf * np.ones((1, n))
+    x0 = dfoxs(n, nprob, factor**factor_power)
+
+    def Ffun(y):
+        out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
+        assert len(out) == m, "Incorrect output dimension"
+        return np.squeeze(out)
+
+    for hfun_case in [1,2]:
+        if hfun_case == 1:
             hfun = pw_maximum_squared
-        if jj == 2:
+        if hfun_case == 2:
             hfun = pw_minimum_squared
-        Ffun = calfun_wrapper
-        x0 = np.transpose(xs)
+
         X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
-        Results[jj, row].alg = "Manifold sampling"
-        Results[jj, row].problem = np.array(["problem ", num2str(row), " from More/Wild with hfun="])
-        Results[jj, row].Fvec = F
-        Results[jj, row].H = h
-        Results[jj, row].X = X
+        Results["MS-P_" + str(row) + "_" + str(hfun_case)] = {}
+        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["alg"] = "Manifold sampling"
+        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["problem"] = ["problem " + str(row) + " from More/Wild with hfun=" + str(hfun)] 
+        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["Fvec"] = F
+        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["H"] = h
+        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["X"] = X
 
-save(filename, "Results")
-
-
-def calfun_wrapper(x):
-    __, fvec, __ = calfun(x)
-    fvec = np.transpose(fvec)
-    return fvec
+    np.save(filename, "Results")

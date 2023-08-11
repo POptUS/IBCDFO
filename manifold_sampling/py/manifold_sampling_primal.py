@@ -42,6 +42,8 @@
 #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
 import numpy as np
+from check_inputs_and_initialize import check_inputs_and_initialize
+from checkinputss import checkinputss
 
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
@@ -52,7 +54,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
         pass
 
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
-    flag, x0, __, F0, L, U = checkinputss(hfun, x0, n, fq_pars.npmax, nfmax, tol.gtol, delta, 1, len(F0), F0, xkin, L, U)
+    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars['npmax'], nfmax, tol['gtol'], delta, 1, len(F0), F0, xkin, L, U)
     if flag == -1:
         X = x0
         F = F0
