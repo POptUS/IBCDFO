@@ -1,7 +1,12 @@
 % This wrapper tests various algorithms against the Benchmark functions from the
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 function [] = compare_goombah_and_pounders()
+addpath('../../../../BenDFO/data/');
+addpath('../../../../BenDFO/m/');
+addpath('../../../minq/m/minq5');
 addpath('../../../goombah/m');
+addpath('../../../pounders/m/general_h_funs');
+addpath('../../../pounders/m');
 addpath('../../../goombah/m/subproblems/');
 addpath('../../../manifold_sampling/m');
 addpath('../../../manifold_sampling/m/h_examples/');
@@ -33,12 +38,13 @@ for row = 1:length(dfo)
     F0 = [];
     xkin = 1;
     delta = 0.1;
+    printf = 0;
 
-    GAMS_options.file = '../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
+    GAMS_options.file = '../../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
     GAMS_options.solvers = 1:4;
     subprob_switch = 'linprog';
 
-    for hfun_cases = 1:3
+    for hfun_cases = 1:1
         Results = cell(2, 3, 53);
         if hfun_cases == 1
             hfun = @(F)sum(F.^2);
@@ -55,17 +61,16 @@ for row = 1:length(dfo)
             end
             hfun = @emittance_h;
             combinemodels = @emittance_combine;
-            printf = 2; % Just to test this feature
         end
         disp([row, hfun_cases]);
 
         filename = ['./benchmark_results/poundersM_and_GOOMBAH_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
-        for method = [0, 1]
-            if method == 0
+        for method = [1, 2]
+            if method == 1
                 [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
                 Results{method, hfun_cases, row}.alg = 'POUNDERs';
-            elseif method == 1
+            elseif method == 2
                 [X, F, h, xkin] = goombah(@sum_squared, objective, nfmax, X0, L, U, GAMS_options, subprob_switch);
                 Results{method, hfun_cases, row}.alg = 'GOOMBAH';
             end
