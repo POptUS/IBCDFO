@@ -32,7 +32,7 @@ for row = 1:length(dfo)
     nfs = 0;
     F0 = [];
     xkin = 1;
-    delta = 0.1; 
+    delta = 0.1;
 
     GAMS_options.file = '../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
     GAMS_options.solvers = 1:4;
@@ -44,12 +44,12 @@ for row = 1:length(dfo)
             hfun = @(F)sum(F.^2);
             combinemodels = @leastsquares;
         elseif hfun_cases == 2
-            error("Not implemented in GOOMBAH yet")
+            error("Not implemented in GOOMBAH yet");
             alpha = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
             hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
             combinemodels = @squared_diff_from_mean;
         elseif hfun_cases == 3
-            error("Not implemented in GOOMBAH yet")
+            error("Not implemented in GOOMBAH yet");
             if m ~= 3 % Emittance is only defined for the case when m == 3
                 continue
             end
@@ -59,10 +59,9 @@ for row = 1:length(dfo)
         end
         disp([row, hfun_cases]);
 
-
         filename = ['./benchmark_results/poundersM_and_GOOMBAH_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
-        for method = [0,1]
+        for method = [0, 1]
             if method == 0
                 [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
                 Results{method, hfun_cases, row}.alg = 'POUNDERs';
