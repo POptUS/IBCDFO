@@ -124,7 +124,10 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 13: Compute rho_k
             ared = h[xkin] - h[nf]
             pred = -tau_k
-            rho_k = ared / pred
+            if pred == 0:  
+                rho_k = -np.inf
+            else:
+                rho_k = ared / pred
 
             # Lines 14-16: Check for success
             if rho_k >= tol["eta1"] and pred > 0:
