@@ -1,6 +1,6 @@
 import numpy as np
-from ibcdfo.pounders import formquad, bmpts
 from call_user_scripts import call_user_scripts
+from ibcdfo.pounders import bmpts, formquad
 
 
 def update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U):

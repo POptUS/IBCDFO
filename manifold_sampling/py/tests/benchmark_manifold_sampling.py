@@ -1,7 +1,9 @@
 # This wrapper tests various algorithms against the Benchmark functions from the
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
+import os
+import sys
+
 import numpy as np
-import sys, os
 
 sys.path.append("../")
 sys.path.append("../../../../BenDFO/py/")
@@ -10,9 +12,9 @@ sys.path.append("../h_examples/")
 
 from calfun import calfun
 from dfoxs import dfoxs
+from manifold_sampling_primal import manifold_sampling_primal
 from pw_maximum_squared import pw_maximum_squared
 from pw_minimum_squared import pw_minimum_squared
-from manifold_sampling_primal import manifold_sampling_primal
 
 if not os.path.exists("benchmark_results"):
     os.makedirs("benchmark_results")
