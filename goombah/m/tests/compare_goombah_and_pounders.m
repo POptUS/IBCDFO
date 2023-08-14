@@ -1,19 +1,12 @@
 % This wrapper tests various algorithms against the Benchmark functions from the
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
-function [] = benchmark_pounders()
+function [] = compare_goombah_and_pounders()
 addpath('../../../goombah/m');
 addpath('../../../goombah/m/subproblems/');
 addpath('../../../manifold_sampling/m');
 addpath('../../../manifold_sampling/m/h_examples/');
 
 load dfo.dat;
-
-ensure_still_solve_problems = 0;
-if ensure_still_solve_problems
-    solved = load('./benchmark_results/solved.txt'); % A 0-1 matrix with 1 when problem was previously solved.
-else
-    solved = zeros(53, 3);
-end
 
 spsolver = 2; % TRSP Solver
 nfmax = 100;
@@ -39,23 +32,24 @@ for row = 1:length(dfo)
     nfs = 0;
     F0 = [];
     xkin = 1;
-    delta = 0.1;
-    if row == 9
-        printf = 1;
-    else
-        printf = 0;
-    end
+    delta = 0.1; 
+
+    GAMS_options.file = '../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
+    GAMS_options.solvers = 1:4;
+    subprob_switch = 'linprog';
 
     for hfun_cases = 1:3
-        Results = cell(3, 53);
+        Results = cell(2, 3, 53);
         if hfun_cases == 1
             hfun = @(F)sum(F.^2);
             combinemodels = @leastsquares;
         elseif hfun_cases == 2
+            error("Not implemented in GOOMBAH yet")
             alpha = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
             hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
             combinemodels = @squared_diff_from_mean;
         elseif hfun_cases == 3
+            error("Not implemented in GOOMBAH yet")
             if m ~= 3 % Emittance is only defined for the case when m == 3
                 continue
             end
@@ -65,55 +59,33 @@ for row = 1:length(dfo)
         end
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
-        [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+        filename = ['./benchmark_results/poundersM_and_GOOMBAH_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
-        GAMS_options.file = '../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
-        GAMS_options.solvers = 1:4;
-        subprob_switch = 'linprog';
-
-        [X, F, h, xkin] = goombah(@sum_squared, objective, nfmax, X0, L, U, GAMS_options, subprob_switch);
-
-        if ensure_still_solve_problems
-            if solved(row, hfun_cases) == 1
-                assert(flag == 0, "This problem was previously solved but no longer is.");
-                check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
+        for method = [0,1]
+            if method == 0
+                [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+                Results{method, hfun_cases, row}.alg = 'POUNDERs';
+            elseif method == 1
+                [X, F, h, xkin] = goombah(@sum_squared, objective, nfmax, X0, L, U, GAMS_options, subprob_switch);
+                Results{method, hfun_cases, row}.alg = 'GOOMBAH';
             end
-        else
-            if flag == 0
-                solved(row, hfun_cases) = xk_best;
+
+            evals = size(F, 1);
+            h = zeros(evals, 1);
+            for i = 1:evals
+                h(i) = hfun(F(i, :));
             end
         end
 
-        assert(flag ~= -1, "pounders failed");
-        assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't find decrease over the starting point");
-        assert(size(X, 1) <= nfmax + nfs, "POUNDERs grew the size of X");
-
-        if flag == 0
-            assert(size(X, 1) <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations");
-        elseif flag ~= -4
-            assert(size(X, 1) == nfmax + nfs, "POUNDERs didn't use nfmax evaluations");
-        end
-
-        evals = size(F, 1);
-        h = zeros(evals, 1);
-        for i = 1:evals
-            h(i) = hfun(F(i, :));
-        end
-
-        Results{hfun_cases, row}.alg = 'POUNDERs';
-        Results{hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
-        Results{hfun_cases, row}.Fvec = F;
-        Results{hfun_cases, row}.H = h;
-        Results{hfun_cases, row}.X = X;
+        Results{method, hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
+        Results{method, hfun_cases, row}.Fvec = F;
+        Results{method, hfun_cases, row}.H = h;
+        Results{method, hfun_cases, row}.X = X;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %     save('-mat7-binary', filename, 'Results') % Octave save
         save(filename, 'Results');
     end
-end
-if ~ensure_still_solve_problems
-    writematrix(solved, './benchmark_results/solved.txt');
 end
 end
 
