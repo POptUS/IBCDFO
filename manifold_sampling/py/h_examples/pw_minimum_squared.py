@@ -17,7 +17,7 @@ def pw_minimum_squared(z, H0=None):
     n = len(z)
 
     if H0 is None:
-        z2 = z ** 2
+        z2 = z**2
         h = np.min(z2)
 
         atol = 1e-8

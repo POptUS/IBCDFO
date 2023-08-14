@@ -85,7 +85,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 h = h[: nf + 1]
                 flag = -1
                 return X, F, h, xkin, flag
-            if nf + 1>= nfmax:
+            if nf + 1 >= nfmax:
                 flag = 0
                 return X, F, h, xkin, flag
 
@@ -124,7 +124,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 13: Compute rho_k
             ared = h[xkin] - h[nf]
             pred = -tau_k
-            if pred == 0:  
+            if pred == 0:
                 rho_k = -np.inf
             else:
                 rho_k = ared / pred
