@@ -17,7 +17,7 @@ def pw_maximum(z, H0):
     z = z
     n = len(z)
     if len(varargin) == 1:
-        h = np.amax(z)
+        h = np.max(z)
         atol = 1e-08
         rtol = 1e-08
         inds = find(np.abs(h - z) <= atol + rtol * np.abs(z))

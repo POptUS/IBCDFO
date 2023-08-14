@@ -45,6 +45,8 @@ import numpy as np
 from check_inputs_and_initialize import check_inputs_and_initialize
 from ibcdfo.pounders import checkinputss
 from build_p_models import build_p_models
+from choose_generator_set import choose_generator_set
+from minimize_affine_envelope import minimize_affine_envelope
 
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
@@ -88,23 +90,23 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
-            G_k = Gres * D_k
-            beta = np.amax(0, np.transpose(f_bar) - h(xkin))
+            G_k = Gres @ D_k
+            beta = np.maximum(0, f_bar - h[xkin])
 
             # Line 6: Choose Hessians
             H_k = np.zeros((G_k.shape[1], n + 1, n + 1))
             for i in range(G_k.shape[1]):
-                for j in range(p):
+                for j in range(Hres.shape[2]):
                     H_k[i, 1:, 1:] = np.squeeze(H_k[i, 1:, 1:]) + D_k[j, i] * Hres[:, :, j]
 
             # Line 7: Find a candidate s_k by solving QP
-            Low = np.amax(L - X[xkin], -delta)
-            Upp = np.amin(U - X[xkin], delta)
+            Low = np.maximum(L - X[xkin], -delta)
+            Upp = np.minimum(U - X[xkin], delta)
             s_k, tau_k, __, lambda_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch)
 
             # Line 8: Compute stationary measure chi_k
-            Low = np.amax(L - X[xkin], -1.0)
-            Upp = np.amin(U - X[xkin], 1.0)
+            Low = np.maximum(L - X[xkin], -1.0)
+            Upp = np.minimum(U - X[xkin], 1.0)
             __, __, chi_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[2 - 1], n + 1, n + 1)), subprob_switch)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
@@ -149,9 +151,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 # h_activity_tol = min(1e-8, delta);
         else:
             # Line 21: iteration is unsuccessful; shrink Delta
-            delta = np.amax(bar_delta * tol["gamma_dec"], tol["mindelta"])
+            delta = np.max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
-        print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h(xkin), chi_k, delta))
+        print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
 
     if nf >= nfmax:
         flag = 0
