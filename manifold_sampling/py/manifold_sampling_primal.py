@@ -47,6 +47,8 @@ from ibcdfo.pounders import checkinputss
 from build_p_models import build_p_models
 from choose_generator_set import choose_generator_set
 from minimize_affine_envelope import minimize_affine_envelope
+from call_user_scripts import call_user_scripts
+
 
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
@@ -107,10 +109,10 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 8: Compute stationary measure chi_k
             Low = np.maximum(L - X[xkin], -1.0)
             Upp = np.minimum(U - X[xkin], 1.0)
-            __, __, chi_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[2 - 1], n + 1, n + 1)), subprob_switch)
+            __, __, chi_k, __ = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[2 - 1], n + 1, n + 1)), subprob_switch)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
-            if chi_k <= tol.gtol and delta <= tol["mindelta"]:
+            if chi_k <= tol['gtol'] and delta <= tol["mindelta"]:
                 print("Convergence satisfied: small stationary measure and small delta")
                 X = X[: nf + 1]
                 F = F[: nf + 1]
@@ -134,9 +136,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
-                if np.all(ismember(tmp_Act_Z_k, Act_Z_k)):
+                if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
                     # Line 20: See if intersection is nonempty
-                    if np.any(ismember(hashes_at_nf, Act_Z_k)):
+                    if np.any(np.isin(hashes_at_nf, Act_Z_k)):
                         successful = False
                         break
                     else:
@@ -145,13 +147,13 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
         if successful:
             xkin = nf
-            if rho_k > tol["eta3"] and norm(s_k, "inf") > 0.8 * bar_delta:
+            if rho_k > tol["eta3"] and np.linalg.norm(s_k, ord=np.inf) > 0.8 * bar_delta:
                 # Update delta if rho is sufficiently large
                 delta = bar_delta * tol["gamma_inc"]
                 # h_activity_tol = min(1e-8, delta);
         else:
             # Line 21: iteration is unsuccessful; shrink Delta
-            delta = np.max(bar_delta * tol["gamma_dec"], tol["mindelta"])
+            delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
         print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
 

@@ -3,9 +3,6 @@ from scipy.optimize import linprog
 
 
 def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subprob_switch):
-    import ipdb
-
-    ipdb.set_trace()
     G_k_smaller, cols = np.unique(G_k, axis=1, return_index=True)
 
     n, p = G_k_smaller.shape
@@ -17,7 +14,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     A = np.hstack((-np.ones((p, 1)), G_k_smaller.T))
     ff = np.concatenate((np.array([[1]]), np.zeros((n, 1))))
     HH = np.block([[0, np.zeros((1, n))], [np.zeros((n, 1)), H]])
-    x0 = np.concatenate((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
+    x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
 
     if subprob_switch == "GAMS_QCP":
         # Implement solve_matts_QCP function here
@@ -28,21 +25,21 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     elif subprob_switch == "linprog":
         options = {"disp": False}
         try:
-            res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([-np.inf] + [Low] * n, [np.inf] + [Upp] * n)), options=options)
+            res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0)
             x = res.x
-            duals_g = res.slack
-            duals_u = res.fun[1 : n + 1]
-            duals_l = res.fun[n + 1 :]
+            duals_g = res.ineqlin.marginals
+            duals_u = res.lower.marginals[1:]
+            duals_l = res.upper.marginals[1:]
         except:
             normA = np.linalg.norm(A[:, 1:], axis=0)
             rescaledA = np.zeros_like(A)
             rescaledA[:, 0] = -np.ones(p)
             rescaledA[:, 1:] = A[:, 1:] / normA
-            res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([-np.inf] + [Low] * n, [np.inf] + [Upp] * n)), options=options)
+            res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0)
             x = res.x
-            duals_g = res.slack
-            duals_u = res.fun[1 : n + 1] * normA
-            duals_l = res.fun[n + 1 :] * normA
+            duals_g = res.ineqlin.marginals
+            duals_u = res.lower.marginals[1:] @ normA
+            duals_l = res.upper.marginals[1:] @ normA
     else:
         raise ValueError("Unrecognized subprob_switch")
 
