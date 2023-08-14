@@ -4,7 +4,7 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
 
     n = length(x0);
     p = length(F0);
-    delta = 0.3;
+    delta = 0.1;
     printf = 1;
 
     h_activity_tol = min(1e-8, delta);
@@ -14,10 +14,11 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     fq_pars.Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
     fq_pars.Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
     fq_pars.Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
-    fq_pars.npmax = (n + 1) * (n + 2) / 2;     % [int] number of points in model building
+    % fq_pars.npmax = (n + 1) * (n + 2) / 2;     % [int] number of points in model building
+    fq_pars.npmax = 2 * n + 1;     % [int] number of points in model building
 
     % Internal parameters/tolerances for manifold sampling
-    tol.maxdelta = 1;
+    tol.maxdelta = 1e8;
     tol.mindelta = 1e-13;
     tol.gtol = 1e-13;
     tol.norm_g_change =  1e-3;  % Tolerance for the change of norm(g_k)
