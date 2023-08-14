@@ -71,11 +71,11 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
     H_mm = np.zeros((n, n))
 
-    while nf < nfmax and delta > tol["mindelta"]:
+    while nf + 1 < nfmax and delta > tol["mindelta"]:
         bar_delta = delta
 
         # Line 3: manifold sampling while loop
-        while nf < nfmax:
+        while nf + 1 < nfmax:
             # Line 4: build models
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
@@ -85,7 +85,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 h = h[: nf + 1]
                 flag = -1
                 return X, F, h, xkin, flag
-            if nf >= nfmax:
+            if nf + 1>= nfmax:
                 flag = 0
                 return X, F, h, xkin, flag
 
@@ -159,7 +159,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # h_activity_tol = min(1e-8, delta);
         print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
 
-    if nf >= nfmax:
+    if nf + 1 >= nfmax:
         flag = 0
     else:
         X = X[: nf + 1]

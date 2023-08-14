@@ -45,6 +45,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[[0, 1, 6, 7, 42, 43, 44], 
             hfun = pw_minimum_squared
 
         X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+
         Results["MS-P_" + str(row) + "_" + str(hfun_case)] = {}
         Results["MS-P_" + str(row) + "_" + str(hfun_case)]["alg"] = "Manifold sampling"
         Results["MS-P_" + str(row) + "_" + str(hfun_case)]["problem"] = ["problem " + str(row) + " from More/Wild with hfun=" + str(hfun)]
