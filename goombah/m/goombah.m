@@ -28,6 +28,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, su
     % Deduce p from evaluating Ffun at x0
     try
         F0 = Ffun(x0);
+        F0 = F0(:)';
     catch
         warning('Problem using Ffun. Exiting');
         X = [];
