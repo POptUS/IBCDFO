@@ -29,8 +29,7 @@ jobs:
         - name: Install dependencies, ibcdfo
           run: |
             python -m pip install --upgrade pip
-            conda install octave
-            pip install oct2py ipdb
+            pip install ipdb
             pip install -r pounders/py/tests/test_requirements.txt
             pushd ibcdfo_pypkg
             rm -rf dist
@@ -39,7 +38,7 @@ jobs:
             popd
             git submodule update --init --recursive
             pushd ..
-            git clone https://github.com/POptUS/BenDFO.git
+            git clone -b bugfix/case20_zero_indexing https://github.com/POptUS/BenDFO.git
             popd
 
         - name: Run tests, produce coverage reports
