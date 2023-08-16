@@ -129,9 +129,8 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     ng = np.nan  # Needed for early termination, e.g., if a model is never built
     while nf + 1 < nfmax:
         #  1a. Compute the interpolation set.
-        for i in range(nf + 1):
-            D = X[i] - X[xkin]
-            Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
+        D = X[: nf + 1] - X[xkin]
+        Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, npmax, Par, 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Par[2])
@@ -162,20 +161,21 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
         ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
         ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
-        if printf >= 2:
+        if printf:
             IERR = np.zeros(len(Mind))
             for i in range(len(Mind)):
                 D = X[Mind[i]] - X[xkin]
                 IERR[i] = (c - Fs[Mind[i]]) + [D @ (G + 0.5 * H @ D)]
-            jerr = np.zeros((len(Mind), m))
-            for i in range(len(Mind)):
-                D = X[Mind[i]] - X[xkin]
-                for j in range(m):
-                    jerr[i, j] = (Cres[j] - F[Mind[i], j]) + D @ (Gres[:, j] + 0.5 * Hres[:, :, j] @ D)
-            print(jerr)
-            # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
             ierror = np.linalg.norm(IERR / np.abs(Fs[Mind]), np.inf)
             print(progstr % (nf, delta, valid, mp, Fs[xkin], ng, ierror))
+            if printf >= 2:
+                jerr = np.zeros((len(Mind), m))
+                for i in range(len(Mind)):
+                    D = X[Mind[i]] - X[xkin]
+                    for j in range(m):
+                        jerr[i, j] = (Cres[j] - F[Mind[i], j]) + D @ (Gres[:, j] + 0.5 * Hres[:, :, j] @ D)
+                print(jerr)
+            # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
         # 2. Critically test invoked if the projected model gradient is small
         if ng < gtol:
             delta = max(gtol, np.max(np.abs(X[xkin])) * eps)
@@ -274,9 +274,8 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, npmax, Par, 1)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xkin unchanged)
-                for i in range(nf + 1):
-                    D = X[i, :] - X[xkin]
-                    Res[i, :] = (F[i, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
+                D = X[: nf + 1] - X[xkin]
+                Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, npmax, Par, False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged

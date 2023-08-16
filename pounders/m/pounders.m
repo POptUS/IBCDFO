@@ -143,21 +143,24 @@ while nf < nfmax
     ind_Unotbinding = and(X(xkin, :) < U, G' < 0);
     ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
 
-    if printf >= 2  % Output stuff: ---------(can be removed later)------------
+    if printf  % Output stuff: ---------(can be removed later)------------
         IERR = zeros(1, size(Mind, 1));
         for i = 1:size(Mind, 1)
             D = (X(Mind(i), :) - X(xkin, :));
             IERR(i) = (c - Fs(Mind(i))) + D * (G + .5 * H * D');
         end
-        for i = 1:size(Mind, 1)
-            D = (X(Mind(i), :) - X(xkin, :));
-            for j = 1:m
-                jerr(i, j) = (Cres(j) - F(Mind(i), j)) + D * (Gres(:, j) + .5 * Hres(:, :, j) * D');
-            end
-        end
         ierror = norm(IERR ./ max(abs(Fs(Mind, :)'), 0), inf); % Interp. error
         fprintf(progstr, nf, delta, valid, np, Fs(xkin), ng, ierror);
-    end % ------------------------------------------------------------------
+        if printf >= 2
+            for i = 1:size(Mind, 1)
+                D = (X(Mind(i), :) - X(xkin, :));
+                for j = 1:m
+                    jerr(i, j) = (Cres(j) - F(Mind(i), j)) + D * (Gres(:, j) + .5 * Hres(:, :, j) * D');
+                end
+            end
+            disp(jerr);
+        end
+    end
 
     % 2. Criticality test invoked if the projected model gradient is small
     if ng < gtol

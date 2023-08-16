@@ -159,8 +159,8 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
         G[:, k] = Alpha[1 : n + 1, 0]
 
         H[:, :, k][np.triu_indices(n)] = Beta.squeeze()  # Set diagonal and above to Beta
-        H[:, :, k].T[np.triu_indices(n)] = Beta.squeeze()  # Set diagonal and above to Beta
-        H[:, :, k] *= scale_mat
+        H[:, :, k].T[np.triu_indices(n)] = Beta.squeeze()  # Set diagonal and below to Beta
+        H[:, :, k] *= scale_mat  # Scale Beta
 
     H = H / (delta**2)
     G = G / delta
