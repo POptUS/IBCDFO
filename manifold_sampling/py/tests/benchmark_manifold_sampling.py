@@ -4,6 +4,7 @@ import os
 import sys
 
 import numpy as np
+import scipy as sp
 
 sys.path.append("../")
 sys.path.append("../../../../BenDFO/py/")
@@ -23,10 +24,11 @@ nfmax = 500
 factor = 10
 subprob_switch = "linprog"
 dfo = np.loadtxt("../../../../BenDFO/data/dfo.dat")
-filename = "./benchmark_results/manifold_samplingM_nfmax=" + str(nfmax) + ".npy"
+filename = "./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat"
 
 Results = {}
-for row, (nprob, n, m, factor_power) in enumerate(dfo[[0, 1, 6, 7, 42, 43, 44], :]):
+probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
+for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
     m = int(m)
     LB = -np.inf * np.ones((1, n))
@@ -46,11 +48,12 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[[0, 1, 6, 7, 42, 43, 44], 
 
         X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
-        Results["MS-P_" + str(row) + "_" + str(hfun_case)] = {}
-        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["alg"] = "Manifold sampling"
-        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["problem"] = ["problem " + str(row) + " from More/Wild with hfun=" + str(hfun)]
-        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["Fvec"] = F
-        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["H"] = h
-        Results["MS-P_" + str(row) + "_" + str(hfun_case)]["X"] = X
+        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)] = {}
+        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["alg"] = "Manifold sampling"
+        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["problem"] = ["problem " + str(probs_to_solve[row]+1) + " from More/Wild with hfun=" + str(hfun)]
+        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["Fvec"] = F
+        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["H"] = h
+        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["X"] = X
 
-    np.save(filename, "Results")
+    sp.io.savemat(filename, Results)
+
