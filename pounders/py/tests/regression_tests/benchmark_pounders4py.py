@@ -10,7 +10,8 @@ import scipy as sp
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 import ibcdfo.pounders as pdrs
 
-sys.path.append("./cutest/")
+BenDFO_root = "../../../../../BenDFO/"
+sys.path.append(BenDFO_root + "py/")  # Needed for spsolver=2
 from dfoxs import dfoxs
 from calfun import calfun
 
@@ -19,7 +20,7 @@ os.makedirs("benchmark_results", exist_ok=True)
 
 
 def doit():
-    dfo = np.loadtxt("./cutest/dfo.txt")
+    dfo = np.loadtxt(BenDFO_root + "data/dfo.dat")
 
     ensure_still_solve_problems = 0
     if ensure_still_solve_problems:
@@ -37,6 +38,12 @@ def doit():
         m = int(m)
 
         def objective(y):
+            # It is possible to have python use the same objective values via
+            # octave. This can be slow on some systems. To (for example)
+            # test difference between matlab and python, used the following
+            # line and add "from oct2py import octave" on a system with octave
+            # installed. 
+            # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
             out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
             assert len(out) == m, "Incorrect output dimension"
             return np.squeeze(out)
