@@ -42,7 +42,7 @@ def doit():
             # octave. This can be slow on some systems. To (for example)
             # test difference between matlab and python, used the following
             # line and add "from oct2py import octave" on a system with octave
-            # installed. 
+            # installed.
             # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
             out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
             assert len(out) == m, "Incorrect output dimension"
