@@ -19,7 +19,7 @@ from pw_minimum_squared import pw_minimum_squared
 if not os.path.exists("benchmark_results"):
     os.makedirs("benchmark_results")
 
-nfmax = 30
+nfmax = 500
 factor = 10
 subprob_switch = "linprog"
 dfo = np.loadtxt("../../../../BenDFO/data/dfo.dat")
