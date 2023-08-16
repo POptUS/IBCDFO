@@ -48,12 +48,11 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
         X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
-        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)] = {}
-        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["alg"] = "Manifold sampling"
-        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["problem"] = ["problem " + str(probs_to_solve[row]+1) + " from More/Wild with hfun=" + str(hfun)]
-        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["Fvec"] = F
-        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["H"] = h
-        Results["MSP_" + str(probs_to_solve[row]+1) + "_" + str(hfun_case)]["X"] = X
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(hfun_case)] = {}
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(hfun_case)]["alg"] = "Manifold sampling"
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(hfun_case)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + str(hfun)]
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(hfun_case)]["Fvec"] = F
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(hfun_case)]["H"] = h
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(hfun_case)]["X"] = X
 
     sp.io.savemat(filename, Results)
-
