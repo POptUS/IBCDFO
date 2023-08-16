@@ -8,7 +8,6 @@ import scipy as sp
 
 sys.path.append("../")
 sys.path.append("../../../../BenDFO/py/")
-sys.path.append("../../../../BenDFO/data/")
 sys.path.append("../h_examples/")
 
 from calfun import calfun
