@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def piecewise_quadratic(z, H0):
+def piecewise_quadratic(z, H0=None, **kwargs):
     # Evaluates the piecewise quadratic function
     #   max_j { || z - z_j ||_{Q_j}^2 + b_j }
 
@@ -18,35 +18,39 @@ def piecewise_quadratic(z, H0):
     #   Hash{i} = 'j' if quadratic j is active at z (or H0{i} = 'j' if the
     #   value/gradient of quadratic j at z is desired)
 
-    global Qs, zs, cs, h_activity_tol
-    if len(h_activity_tol) == 0:
-        h_activity_tol = 0
+    Qs = kwargs['Qs']
+    zs = kwargs['zs']
+    cs = kwargs['cs']
 
-    z = z
-    if len(varargin) == 1:
+    if H0 is None:
         n, J = zs.shape
-        manifolds = np.zeros((1, J))
-        for j in np.arange(1, J + 1).reshape(-1):
-            manifolds[j] = np.transpose((z - zs[:, j])) * Qs[:, :, j] * (z - zs[:, j]) + cs(j)
-        h = np.amax(manifolds)
-        atol = h_activity_tol
-        rtol = h_activity_tol
-        inds = find(np.abs(h - manifolds) <= atol + rtol * np.abs(manifolds))
-        grads = np.zeros((n, len(inds)))
-        Hash = cell(1, len(inds))
-        for j in np.arange(1, len(inds) + 1).reshape(-1):
-            Hash[j] = int2str(inds[j])
-            grads[:, j] = 2 * Qs[:, :, inds[j]] * (z - zs[:, inds[j]])
-    else:
-        if len(varargin) == 2:
-            J = len(H0)
-            h = np.zeros((1, J))
-            grads = np.zeros((len(z), J))
-            for k in np.arange(1, J + 1).reshape(-1):
-                j = str2num(H0[k])
-                h[k] = np.transpose((z - zs[:, j])) * Qs[:, :, j] * (z - zs[:, j]) + cs[j]
-                grads[:, k] = 2 * Qs[:, :, j] * (z - zs[:, j])
-        else:
-            raise Exception("Too many inputs to function")
+        manifolds = np.zeros(J)
+        for j in range(J):
+            manifolds[j] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
 
-    return h, grads, Hash
+        h = np.max(manifolds)
+
+        atol = 1e-8
+        rtol = 1e-8
+        inds = np.where(np.abs(h - manifolds) <= atol + rtol * np.abs(manifolds))[0]
+
+        grads = np.zeros((n, len(inds)))
+
+        Hash = [str(ind) for ind in inds]
+        for j in range(len(inds)):
+            grads[:, j] = 2 * np.dot(Qs[:, :, inds[j]], (z - zs[:, inds[j]]))
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
+            grads[:, k] = 2 * np.dot(Qs[:, :, j], (z - zs[:, j]))
+
+
+        return h, grads
