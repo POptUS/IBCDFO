@@ -29,7 +29,7 @@ def doit():
         best_found = np.nan * np.ones((53, 3))
 
     spsolver = 2  # TRSP solver
-    nfmax = 50
+    nfmax = 500
     gtol = 1e-13
     factor = 10
 
