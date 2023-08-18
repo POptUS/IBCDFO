@@ -18,9 +18,9 @@ def piecewise_quadratic(z, H0=None, **kwargs):
     #   Hash{i} = 'j' if quadratic j is active at z (or H0{i} = 'j' if the
     #   value/gradient of quadratic j at z is desired)
 
-    Qs = kwargs['Qs']
-    zs = kwargs['zs']
-    cs = kwargs['cs']
+    Qs = kwargs["Qs"]
+    zs = kwargs["zs"]
+    cs = kwargs["cs"]
 
     if H0 is None:
         n, J = zs.shape
@@ -51,6 +51,5 @@ def piecewise_quadratic(z, H0=None, **kwargs):
             j = int(H0[k])
             h[k] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
             grads[:, k] = 2 * np.dot(Qs[:, :, j], (z - zs[:, j]))
-
 
         return h, grads

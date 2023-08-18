@@ -17,7 +17,6 @@ def pw_maximum(z, H0=None):
     n = len(z)
 
     if H0 is None:
-
         h = np.max(z)
 
         atol = 1e-8
