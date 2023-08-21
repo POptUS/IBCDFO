@@ -46,4 +46,3 @@ def quantile(z, H0=None):
             grads[j, k] = 2 * z_sort[j]
 
         return h, grads
-
