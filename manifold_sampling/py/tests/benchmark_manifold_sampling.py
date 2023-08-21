@@ -51,9 +51,7 @@ subprob_switch = "linprog"
 
 
 # hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, max_sum_beta_plus_const_viol, quantile, pw_minimum_squared, pw_minimum]
-hfuns = [pw_maximum_squared, pw_maximum, pw_minimum_squared]
-
-global Qs, zs, cs
+hfuns = [pw_maximum_squared, pw_maximum, pw_minimum_squared, pw_minimum]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
