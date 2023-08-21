@@ -26,6 +26,17 @@ from quantile import quantile
 if not os.path.exists("benchmark_results"):
     os.makedirs("benchmark_results")
 
+if not os.path.exists("mpc_test_files_smaller_Q"):
+    os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
+    os.system("unzip mpc_test_files_smaller_Q.zip")
+
+# www.mcs.anl.gov/~jlarson/mpc_test_files_smaller_Q.zip
+# Defines data for censored-L1 loss h instances
+C_L1_loss = np.loadtxt("mpc_test_files_smaller_Q/C_for_benchmark_probs.csv", delimiter=",")
+D_L1_loss = np.loadtxt("mpc_test_files_smaller_Q/D_for_benchmark_probs.csv", delimiter=",")
+# Defines data for piecewise_quadratic h instances
+Qzb = sio.loadmat("mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized_subset.mat")
+
 nfmax = 50
 factor = 10
 subprob_switch = "linprog"
@@ -35,13 +46,6 @@ filename = "./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".ma
 Results = {}
 probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
-# www.mcs.anl.gov/~jlarson/mpc_test_files.zip
-# Defines data for censored-L1 loss h instances
-C_L1_loss = np.loadtxt("mpc_test_files/C_for_benchmark_probs.csv", delimiter=",")
-D_L1_loss = np.loadtxt("mpc_test_files/D_for_benchmark_probs.csv", delimiter=",")
-
-# Defines data for piecewise_quadratic h instances
-Qzb = sio.loadmat("mpc_test_files/Q_z_and_b_for_benchmark_problems_normalized.mat")
 
 subprob_switch = "linprog"
 
