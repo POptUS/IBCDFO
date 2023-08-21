@@ -10,11 +10,10 @@ sys.path.append("../h_examples/")
 from manifold_sampling_primal import manifold_sampling_primal
 from pw_maximum import pw_maximum as hfun
 
-np.random.seed(0)
-A = {}
-
 n = 10
 
+np.random.seed(0)
+A = {}
 for i in range(n):
     # Make 5 random positive-and negative-definite matricies
     B = np.random.uniform(-1, 1, (20, 20))
@@ -37,7 +36,6 @@ def Ffun(y):
 
 nfmax = 80
 subprob_switch = "linprog"
-
 LB = -1 * np.ones((1, n))
 UB = np.ones((1, n))
 # x0 = np.array([(-1)**(i) for i in range(n)])
