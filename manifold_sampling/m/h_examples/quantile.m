@@ -16,7 +16,7 @@ q = 2; % hard-coded. Eventually, make global or (preferred) pass it in as an arg
 z = z(:);
 n = length(z);
 z2 = z.^2;
-sortedz2 = sort(z2);
+[sortedz2, sort_inds] = sort(z2);
 
 if nargin == 1
     h = sortedz2(q);
@@ -37,6 +37,7 @@ elseif nargin == 2
     J = length(H0);
     h = zeros(1, J);
     grads = zeros(length(z), J);
+    z = z(sort_inds);
 
     for k = 1:J
         j = str2num(H0{k});
