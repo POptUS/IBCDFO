@@ -44,14 +44,14 @@ dfo = np.loadtxt("../../../../BenDFO/data/dfo.dat")
 filename = "./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat"
 
 Results = {}
-probs_to_solve = [6, 7, 42, 43, 44]
+probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
 
 subprob_switch = "linprog"
 
 
 # hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, max_sum_beta_plus_const_viol, quantile, pw_minimum_squared, pw_minimum]
-hfuns = [pw_maximum_squared, pw_maximum, pw_minimum_squared, pw_minimum, quantile]
+hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
@@ -65,14 +65,14 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
-    ind = np.where((C_L1_loss[:, 0] == row) & (C_L1_loss[:, 1] == 0))
+    ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row]) & (C_L1_loss[:, 1] == 0))
     C = C_L1_loss[ind, 3 : m + 3]
     D = D_L1_loss[ind, 3 : m + 3]
 
     # Individual for piecewise_quadratic h instance
-    Qs = Qzb["Q_mat"][row, 0]
-    zs = Qzb["z_mat"][row, 0]
-    cs = Qzb["b_mat"][row, 0]
+    Qs = Qzb["Q_mat"][probs_to_solve[row], 0]
+    zs = Qzb["z_mat"][probs_to_solve[row], 0]
+    cs = Qzb["b_mat"][probs_to_solve[row], 0]
 
     for i, hfun in enumerate(hfuns):
         if hfun.__name__ == "piecewise_quadratic":
