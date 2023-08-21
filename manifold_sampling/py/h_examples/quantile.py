@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def quantile(z, H0):
+def quantile(z, H0=None):
     # Evaluates the q^th quantile of the values
     #  { z_j^2 }
 
@@ -14,32 +14,36 @@ def quantile(z, H0):
     #  grads: [p x l]                 gradients of each of the l quadratics active at z
     #  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
 
-    q = 2
+    q = 1
 
-    z = z
     n = len(z)
     z2 = z**2
-    sortedz2 = __builtint__.sorted(z2)
-    if len(varargin) == 1:
-        h = sortedz2(q)
+    sorted_inds = np.argsort(z2)
+    z2_sort = z2[sorted_inds]
+    z_sort = z[sorted_inds]
+
+    if H0 is None:
+        h = z2_sort[q]
         atol = 1e-08
         rtol = 1e-08
-        inds = find(np.abs(h - z2) <= atol + rtol * np.abs(z2))
-        grads = np.zeros((n, len(inds)))
-        Hash = cell(1, len(inds))
-        for j in np.arange(1, len(inds) + 1).reshape(-1):
-            Hash[j] = int2str(inds(j))
-            grads[inds[j], j] = 2 * z(inds(j))
-    else:
-        if len(varargin) == 2:
-            J = len(H0)
-            h = np.zeros((1, J))
-            grads = np.zeros((len(z), J))
-            for k in np.arange(1, J + 1).reshape(-1):
-                j = str2num(H0[k])
-                h[k] = z(j) ** 2
-                grads[j, k] = 2 * z(j)
-        else:
-            raise Exception("Too many inputs to function")
+        inds = np.where(np.abs(h - z2_sort) <= atol + rtol * np.abs(z2_sort))[0]
 
-    return h, grads, Hash
+        grads = np.zeros((n, len(inds)))
+        Hash = [str(ind) for ind in inds]
+
+        for j in range(len(inds)):
+            grads[inds[j], j] = 2 * z_sort[inds[j]]
+
+        return h, grads, Hash
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = z2_sort[j]
+            grads[j, k] = 2 * z_sort[j]
+
+        return h, grads
+
