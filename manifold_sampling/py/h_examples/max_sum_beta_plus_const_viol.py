@@ -2,6 +2,20 @@ import numpy as np
 
 
 def max_sum_beta_plus_const_viol(z, H0=None):
+    # This the outer h function required by manifold sampling.
+    # If z \in R^p
+    # It encodes the objective
+    #    max_{i = 1,...,p1} z_i + alpha *sum_{i = p1+1}^{p} max(z_i, 0)^2
+    #
+    # Hashes are output (and must be input) in the following fashion:
+    #   Hash elements are strings of p integers.
+    #     0 in position 1 <= i <= p1 means max_{i = 1,...,p1} z_i > z_i
+    #     1 in position 1 <= i <= p1 means max_{i = 1,...,p1} z_i = z_i
+    #     0 in position p1+1 <= i <= p means max(z_i,0) = 0
+    #     1 in position p1+1 <= i <= p means max(z_i,0) = z_i
+    #
+    #   Similarly, if H0 has a 1 in position i uses z_i in the calculation of h and grads.
+
     p = len(z)
     alpha = 0
     p1 = p

@@ -46,7 +46,8 @@ Qzb = sio.loadmat("mpc_test_files/Q_z_and_b_for_benchmark_problems_normalized.ma
 subprob_switch = "linprog"
 
 
-hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, max_sum_beta_plus_const_viol, quantile, pw_minimum_squared, pw_minimum]
+# hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, max_sum_beta_plus_const_viol, quantile, pw_minimum_squared, pw_minimum]
+hfuns = [pw_maximum_squared, pw_maximum, pw_minimum_squared]
 
 global Qs, zs, cs
 
