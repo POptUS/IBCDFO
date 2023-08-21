@@ -15,7 +15,6 @@ from calfun import calfun
 from dfoxs import dfoxs
 from manifold_sampling_primal import manifold_sampling_primal
 
-from max_sum_beta_plus_const_viol import max_sum_beta_plus_const_viol
 from piecewise_quadratic import piecewise_quadratic
 from pw_maximum import pw_maximum
 from pw_maximum_squared import pw_maximum_squared
