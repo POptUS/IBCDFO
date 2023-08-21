@@ -14,7 +14,6 @@ sys.path.append("../h_examples/")
 from calfun import calfun
 from dfoxs import dfoxs
 from manifold_sampling_primal import manifold_sampling_primal
-
 from piecewise_quadratic import piecewise_quadratic
 from pw_maximum import pw_maximum
 from pw_maximum_squared import pw_maximum_squared
