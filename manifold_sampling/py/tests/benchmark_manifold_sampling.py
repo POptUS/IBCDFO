@@ -50,7 +50,6 @@ probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 subprob_switch = "linprog"
 
 
-# hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, max_sum_beta_plus_const_viol, quantile, pw_minimum_squared, pw_minimum]
 hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
