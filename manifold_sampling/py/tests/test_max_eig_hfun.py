@@ -116,12 +116,12 @@ def Ffun_all_perms(y):
     eigvals, eigvecs = compute_M_and_eig(y)
 
     if len(AllX):
-        ind_of_closest_past_point = np.argmin(np.linalg.norm(AllX - y,axis=1))
+        ind_of_closest_past_point = np.argmin(np.linalg.norm(AllX - y, axis=1))
         last_eig_vecs = AllEigVecs[ind_of_closest_past_point]
 
         best_dist = np.inf
         for p in itertools.permutations(np.arange(len(eigvals))):
-            this_perm_dist = np.linalg.norm(eigvecs[:,p] - last_eig_vecs)
+            this_perm_dist = np.linalg.norm(eigvecs[:, p] - last_eig_vecs)
             if this_perm_dist < best_dist:
                 best_dist = this_perm_dist
                 best_perm = p
@@ -129,11 +129,12 @@ def Ffun_all_perms(y):
         eigvals = eigvals[list(best_perm)]
         eigvecs = eigvecs[:, best_perm]
 
-    AllX = np.vstack((AllX,y))
+    AllX = np.vstack((AllX, y))
     AllEigVecs[count] = eigvecs
-    count+=1
+    count += 1
 
     return eigvals
+
 
 nfmax = 80
 subprob_switch = "linprog"
