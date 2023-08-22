@@ -111,31 +111,29 @@ def Ffun_slow_sort2(y):
     return eigvals
 
 
-# def Ffun_all_perms(y):
-#     global AllX, AllEigVecs, count
-#     eigvals, eigvecs = compute_M_and_eig(y)
+def Ffun_all_perms(y):
+    global AllX, AllEigVecs, count
+    eigvals, eigvecs = compute_M_and_eig(y)
 
-#     if len(AllX):
-#         import ipdb; ipdb.set_trace()
+    if len(AllX):
+        ind_of_closest_past_point = np.argmin(np.linalg.norm(AllX - y,axis=1))
+        last_eig_vecs = AllEigVecs[ind_of_closest_past_point]
 
-#         ind_of_closest_past_point = np.argmin(np.linalg.norm(AllX - y,axis=1))
-#         last_eig_vecs = AllEigVecs[ind_of_closest_past_point]
+        best_dist = np.inf
+        for p in itertools.permutations(np.arange(len(eigvals))):
+            this_perm_dist = np.linalg.norm(eigvecs[:,p] - last_eig_vecs)
+            if this_perm_dist < best_dist:
+                best_dist = this_perm_dist
+                best_perm = p
 
-#         best_dist = np.inf
-#         for p in itertools.permutations(np.arange(20)):
-#             this_perm_dist = np.linalg.norm(eigvecs[:,p] - last_eig_vecs)
-#             if this_perm_dist < best_dist:
-#                 best_dist = this_perm_dist
-#                 best_perm = p
+        eigvals = eigvals[list(best_perm)]
+        eigvecs = eigvecs[:, best_perm]
 
-#         eigvals = eigvals[list(best_perm)]
-#         eigvecs = eigvecs[:, best_perm]
+    AllX = np.vstack((AllX,y))
+    AllEigVecs[count] = eigvecs
+    count+=1
 
-#     AllX = np.vstack((AllX,y))
-#     AllEigVecs[count] = eigvecs
-#     count+=1
-
-#     return eigvals
+    return eigvals
 
 nfmax = 80
 subprob_switch = "linprog"
@@ -161,6 +159,9 @@ plt.plot(h, linewidth=6, alpha=0.8, solid_joinstyle="miter", label="Sorted")
 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_slow_sort2, x0, LB, UB, nfmax, subprob_switch)
 plt.plot(h, linewidth=6, alpha=0.8, solid_joinstyle="miter", label="Hopefully smarter mapping")
+
+X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_all_perms, x0, LB, UB, nfmax, subprob_switch)
+plt.plot(h, linewidth=6, alpha=0.8, solid_joinstyle="miter", label="All permutations")
 
 
 plt.legend()

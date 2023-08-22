@@ -1,7 +1,7 @@
 import numpy as np
 
 n = 10  # Number of matrices to sum together
-m = 20  # Dimension of the square matrices
+m = 5  # Dimension of the square matrices
 
 np.random.seed(0)
 A = {}
