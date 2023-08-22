@@ -1,18 +1,18 @@
-import matplotlib.pyplot as plt
+import itertools
 import os
 import sys
-import itertools
 
-from scipy.optimize import linear_sum_assignment
+import matplotlib.pyplot as plt
 import numpy as np
+from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import cdist
 
 sys.path.append("../")
 sys.path.append("../../../../BenDFO/py/")
 sys.path.append("../h_examples/")
 from manifold_sampling_primal import manifold_sampling_primal
-from pw_maximum import pw_maximum as hfun
 from matrix_Ffuns import Ffun_default, Ffun_sort, compute_M_and_eig
+from pw_maximum import pw_maximum as hfun
 
 n = 10
 AllX = np.empty((0, n))
