@@ -2,7 +2,6 @@ import numpy as np
 
 
 def check_inputs_and_initialize(x0, F0, nfmax):
-    global h_activity_tol
     n = int(len(x0))
     p = int(len(F0))
     delta = 0.1
@@ -26,11 +25,10 @@ def check_inputs_and_initialize(x0, F0, nfmax):
         "gamma_dec": 0.5,
         "gamma_inc": 2,
         "hfun_test_mode": 1,
+        "gentype": 2,
     }
 
     # kappa_mh = 0;    # [dbl] > 0 that bounds the component model Hessians
-
-    tol["gentype"] = 2
 
     assert nfmax >= n + 1, "nfmax is less than n+1, exiting"
 
