@@ -2,7 +2,8 @@
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 function [] = benchmark_manifold_sampling()
 
-nfmax = 50;
+global C D Qs zs cs
+nfmax = 100;
 factor = 10;
 
 subprob_switch = 'linprog';
@@ -12,9 +13,14 @@ load dfo.dat;
 filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat'];
 Results = cell(1, 53);
 
-C_L1_loss = load('C_for_benchmark_probs.csv');
-D_L1_loss = load('D_for_benchmark_probs.csv');
-Qzb = load('../mpc_test_files/Q_z_and_b_for_benchmark_problems_normalized.mat')';
+if ~exist("mpc_test_files_smaller_Q", "dir")
+    system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
+    system("unzip mpc_test_files_smaller_Q.zip")
+end
+
+C_L1_loss = load('mpc_test_files_smaller_Q/C_for_benchmark_probs.csv');
+D_L1_loss = load('mpc_test_files_smaller_Q/D_for_benchmark_probs.csv');
+Qzb = load('mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized_subset.mat')';
 
 % for row = find(cellfun(@length,Results)==0)
 for row = [1, 2, 7, 8, 43, 44, 45]
@@ -32,19 +38,19 @@ for row = [1, 2, 7, 8, 43, 44, 45]
 
     xs = dfoxs(n, nprob, factor^factor_power);
 
-    ind = find(C_L1_loss(:, 1) == mw_prob_num & C_L1_loss(:, 2) == seed);
+    ind = find(C_L1_loss(:, 1) == row & C_L1_loss(:, 2) == 1);
     C = C_L1_loss(ind, 4:m + 3);
     D = D_L1_loss(ind, 4:m + 3);
-    Qs = Qzb.Q_mat{row, 0};
-    zs = Qzb.z_mat{row, 0};
-    cs = Qzb.b_mat{row, 0};
+    Qs = Qzb.Q_mat{row, 1};
+    zs = Qzb.z_mat{row, 1};
+    cs = Qzb.b_mat{row, 1};
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Manifold sampling
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     jj = 1;
-    for hfuns = {@censored_L1_loss,  @censored_L1_loss_quad_MSG,  @max_sum_beta_plus_const_viol, @piecewise_quadratic,  @pw_maximum,  @pw_maximum_squared,  @pw_minimum, @pw_minimum_squared, @quantile}
-        hfun = hfuns{1}
+    for hfuns = {@censored_L1_loss,  @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1,  @pw_maximum,  @pw_maximum_squared,  @pw_minimum, @pw_minimum_squared, @quantile}
+        hfun = hfuns{1};
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
 
