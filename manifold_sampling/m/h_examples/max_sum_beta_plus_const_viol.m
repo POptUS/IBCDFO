@@ -14,7 +14,9 @@ function [h, grads, Hashes] = max_sum_beta_plus_const_viol(z, H0)
 %   Similarly, if H0 has a 1 in position i uses z_i in the calculation of h and grads.
 
 % Get data from outside of this function
-global h_activity_tol p1 alpha
+p1 = length(z)-1;
+alpha = 0;
+h_activity_tol = 1e-8;
 
 p = length(z);
 
@@ -63,7 +65,4 @@ elseif nargin == 2
         end
         h(k) = h1 + h2;
     end
-
-else
-    error('Too many inputs to function');
 end

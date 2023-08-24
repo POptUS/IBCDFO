@@ -27,6 +27,4 @@ elseif nargin == 2
     h = sum(z.^2);
     grads = zeros(length(z), 1);
     grads(:) = 2 * z;
-else
-    error('Too many inputs to function');
 end

@@ -43,7 +43,4 @@ elseif nargin == 2
         h(k) = z(j)^2;
         grads(j, k) = 2 * z(j);
     end
-
-else
-    error('Too many inputs to function');
 end

@@ -16,7 +16,9 @@ function [h, grads, Hash] = censored_L1_loss_quad_MSG(z, H0)
 %   ... in the calculation of h and grads.
 
 % Get data from outside of this function
-global C D eqtol n_h hvals_mat
+global C D n_h hvals_mat
+
+eqtol = 1e-8;
 
 % Ensure column vector and collect dimensions
 zin = z(:);
@@ -116,9 +118,6 @@ elseif nargin == 2
         end
         h(k) = sum(vals(:, k));
     end
-
-else
-    error('Too many inputs to function');
 end
 
 if ~isempty(n_h)
