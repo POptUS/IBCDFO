@@ -14,8 +14,8 @@ filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat
 Results = cell(1, 53);
 
 if ~exist("mpc_test_files_smaller_Q", "dir")
-    system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
-    system("unzip mpc_test_files_smaller_Q.zip")
+    system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip");
+    system("unzip mpc_test_files_smaller_Q.zip");
 end
 
 C_L1_loss = load('mpc_test_files_smaller_Q/C_for_benchmark_probs.csv');
