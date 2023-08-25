@@ -2,11 +2,12 @@
 import numpy as np
 import subprocess
 
+
 def save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x1, val_at_x0, GAMS_options, hfun):
     n, P = g.shape
 
     # Loop over solvers
-    for i in GAMS_options['solvers']:
+    for i in GAMS_options["solvers"]:
         solver_val = i
 
         # Put problem data to a gdx file
@@ -49,7 +50,7 @@ def save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x1, val_at_x0, GAMS_options
     obj_vals_PYTHON = np.zeros(num_rand_samp)
     allx = np.random.uniform(x0 + Low, x0 + Upp, (num_rand_samp, n))
     z = np.zeros(P)
-    for j, x  in enumerate(allx):
+    for j, x in enumerate(allx):
         for i in range(P):
             z[i] = 0.5 * (x - x0) @ H[:, :, i] @ (x - x0) + (x - x0) @ g[:, i] + b[i]
         obj_vals_PYTHON[j] = hfun(z)[0]

@@ -5,14 +5,14 @@ import numpy as np
 import scipy as sp
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
-sys.path.append("../")  
+sys.path.append("../")
 from ibcdfo.pounders import pounders
 
 BenDFO_root = "../../../../BenDFO/"
 sys.path.append(BenDFO_root + "py/")  # Needed for spsolver=2
-sys.path.append('../../../manifold_sampling/py/')
-sys.path.append('../../../pounders/py/')
-sys.path.append('../../../manifold_sampling/py/h_examples')
+sys.path.append("../../../manifold_sampling/py/")
+sys.path.append("../../../pounders/py/")
+sys.path.append("../../../manifold_sampling/py/h_examples")
 
 from sum_squared import sum_squared
 from dfoxs import dfoxs
@@ -61,13 +61,13 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
     filename = "./benchmark_results/poundersM_and_GOOMBAH_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + ".mat"
 
     Results[row] = {}
-    for method in [1,2]:
+    for method in [1, 2]:
         if method == 1:
             [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver)
             Results[row]["alg"] = "pounders4py"
         elif method == 2:
             GAMS_options["solvers"] = range(4)
-            [X, F, flag, xk_best] = goombah(sum_squared, objective, nfmax, X0, L, U, GAMS_options, "linprog")
+            [X, F, h, xk_best, flag] = goombah(sum_squared, objective, nfmax, X0, L, U, GAMS_options, "linprog")
             Results[row]["alg"] = "goombah"
 
         evals = F.shape[0]
