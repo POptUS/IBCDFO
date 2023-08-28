@@ -51,7 +51,7 @@ def save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x1, val_at_x0, GAMS_options
     allx = np.random.uniform(x0 + Low, x0 + Upp, (num_rand_samp, n))
     z = np.zeros(P)
     for j, x in enumerate(allx):
-        z = 0.5 * (x-x0)@ ((x-x0) @ H) + (x - x0) @ g + b
+        z = 0.5 * (x - x0) @ ((x - x0) @ H) + (x - x0) @ g + b
         obj_vals_PYTHON[j] = hfun(z)[0]
 
     val_at_new = np.min(obj_vals_PYTHON)
