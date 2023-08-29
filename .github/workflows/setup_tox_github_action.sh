@@ -14,8 +14,7 @@ pip --version
 tox --version
 echo
 pip list
-pushd
 git clone -b bugfix/case20_zero_indexing https://github.com/POptUS/BenDFO.git
-cd BenDFO/py
+cd BenDFO/py/
 export PYTHONPATH="$PYTHONPATH:$(pwd)"
-popd
+cd ../
