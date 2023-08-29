@@ -23,7 +23,7 @@ D_L1_loss = load('mpc_test_files_smaller_Q/D_for_benchmark_probs.csv');
 Qzb = load('mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized_subset.mat')';
 
 % for row = find(cellfun(@length,Results)==0)
-for row = [1, 2, 7, 8, 43, 44, 45]
+for row = [2, 1, 7, 8, 43, 44, 45]
     nprob = dfo(row, 1);
     n = dfo(row, 2);
     m = dfo(row, 3);
@@ -49,7 +49,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     jj = 1;
-    for hfuns = {@censored_L1_loss,  @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1,  @pw_maximum,  @pw_maximum_squared,  @pw_minimum, @pw_minimum_squared, @quantile}
+    for hfuns = {@censored_L1_loss_quad_MSG, @censored_L1_loss, @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1, @pw_maximum,  @pw_maximum_squared, @pw_minimum, @pw_minimum_squared, @quantile}
         hfun = hfuns{1};
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
