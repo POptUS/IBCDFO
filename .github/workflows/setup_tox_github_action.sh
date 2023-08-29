@@ -14,3 +14,4 @@ pip --version
 tox --version
 echo
 pip list
+git clone -b bugfix/case20_zero_indexing https://github.com/POptUS/BenDFO.git
