@@ -10,10 +10,12 @@ import numpy as np
 
 
 import sys
+
 BenDFO_root = "../../../../BenDFO/"
 sys.path.append(BenDFO_root + "py/")
 from dfoxs import dfoxs
 from calfun import calfun
+
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
@@ -65,7 +67,7 @@ class TestPounders(unittest.TestCase):
                     combinemodels = pdrs.emittance_combine
 
                 # filename = ("./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat")
-                filename = ("dummy.mat")
+                filename = "dummy.mat"
 
                 [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 
