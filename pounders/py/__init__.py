@@ -24,3 +24,7 @@ from .general_h_funs import (
 from .phi2eval import phi2eval
 from .pounders import pounders
 from .prepare_outputs_before_return import prepare_outputs_before_return
+
+# ----- Python unittest-based test framework
+# Used for automatic test discovery by main package
+from .load_tests import load_tests
