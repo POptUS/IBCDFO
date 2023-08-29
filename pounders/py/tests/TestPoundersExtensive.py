@@ -11,8 +11,6 @@ import numpy as np
 
 import sys
 
-BenDFO_root = "../../../../BenDFO/"
-sys.path.append(BenDFO_root + "py/")
 from dfoxs import dfoxs
 from calfun import calfun
 
