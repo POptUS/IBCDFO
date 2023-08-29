@@ -7,6 +7,7 @@ from pathlib import Path
 
 import ibcdfo.pounders as pdrs
 import numpy as np
+import scipy as sp
 
 
 import sys
@@ -17,7 +18,7 @@ from calfun import calfun
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
-        dfo = np.loadtxt(BenDFO_root + "data/dfo.dat")
+        dfo = np.loadtxt("dfo.dat")
 
         spsolver = 2  # TRSP solver
         nfmax = 50
@@ -95,6 +96,3 @@ class TestPounders(unittest.TestCase):
                 #                      # correctly redefine calfun_wrapper
 
                 sp.io.savemat(filename, Results)
-
-    if __name__ == "__main__":
-        doit()
