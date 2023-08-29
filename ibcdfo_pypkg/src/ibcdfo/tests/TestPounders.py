@@ -19,7 +19,6 @@ class TestCompute(unittest.TestCase):
     def testSomething(self):
         self.assertTrue(len(self.__tests) > 0)
 
-
     # def testAgain(self):
     #     # This is just running all of the tests again...
     #     myt.test()
