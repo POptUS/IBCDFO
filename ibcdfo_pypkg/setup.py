@@ -22,7 +22,7 @@ def version():
 # GitHub Action config files.
 python_requires = ">=3.8"
 code_requires = ["numpy", "scipy"]
-test_requires = [] # "BenDFO" is required, but not yet installable
+test_requires = []  # "BenDFO" is required, but not yet installable
 install_requires = code_requires + test_requires
 
 package_data = {
