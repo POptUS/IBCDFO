@@ -8,6 +8,7 @@ from pathlib import Path
 import ibcdfo.pounders as pdrs
 import numpy as np
 
+
 class TestPounders(unittest.TestCase):
     def test_phi2eval(self):
         D = np.eye(3)
@@ -18,7 +19,6 @@ class TestPounders(unittest.TestCase):
 
         P = pdrs.phi2eval(D)
         assert np.all(P == T), "Test failed"
-            
 
     def test_failing_objective(self):
         def failing_objective(x):
@@ -28,7 +28,6 @@ class TestPounders(unittest.TestCase):
                 fvec[0] = np.nan
 
             return fvec
-
 
         spsolver = 1
         nfmax = 1000
@@ -51,12 +50,10 @@ class TestPounders(unittest.TestCase):
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
         assert flag == -3, "No NaN was encountered in this test, but should have been."
 
-
         F0 = np.array([1.0, 2.0])
         nfs = 2
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
         assert flag == -1, "We are testing proper failure of pounders"
-
 
     def test_basic_pounders_usage(self):
         def vecFun(x):
@@ -69,6 +66,7 @@ class TestPounders(unittest.TestCase):
             if np.shape(x)[0] > 1:
                 x = np.reshape(x, (1, max(np.shape(x))))
             return x + (x**2)
+
         # Sample calling syntax for pounders
         # func is a function imported from calFun.py as calFun
         func = vecFun
@@ -107,7 +105,6 @@ class TestPounders(unittest.TestCase):
             F0[i, :] = func(X0[i, :])
 
         [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
-
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
