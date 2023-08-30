@@ -18,4 +18,8 @@ git clone -b bugfix/case20_zero_indexing https://github.com/POptUS/BenDFO.git
 cd BenDFO/py/
 export PYTHONPATH="$PYTHONPATH:$(pwd)"
 cd ../
+git clone https://github.com/POptUS/MINQ.git
+cd MINQ/py/minq5/
+export PYTHONPATH="$PYTHONPATH:$(pwd)"
+cd ../
 echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
