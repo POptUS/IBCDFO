@@ -10,8 +10,6 @@ from .bmpts import bmpts
 from .boxline import boxline
 from .bqmin import bqmin
 from .checkinputss import checkinputss
-from .flipFirstRow import flipFirstRow
-from .flipSignQ import flipSignQ
 from .formquad import formquad
 from .general_h_funs import (
     emittance_combine,
