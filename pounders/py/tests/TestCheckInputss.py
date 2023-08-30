@@ -59,12 +59,12 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == -1
 
     def test_checkinputts8(self):
-        F0_to_warn = np.zeros((7,1))
+        F0_to_warn = np.zeros((7, 1))
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0_to_warn, xkin, L, U)[0]
         assert flag == 0
 
     def test_checkinputts9(self):
-        F0_to_fail = np.nan*F0
+        F0_to_fail = np.nan * F0
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0_to_fail, xkin, L, U)[0]
         assert flag == -1
 
@@ -74,7 +74,7 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == -1
 
     def test_checkinputts11(self):
-        L_to_fail = np.hstack((L,L))
+        L_to_fail = np.hstack((L, L))
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin_to_fail, L, U)[0]
         assert flag == -1
 
@@ -90,9 +90,10 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == -1
 
     def test_checkinputts14(self):
-        L_to_error = -1*U
+        L_to_error = -1 * U
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, x, L_to_warn, U_to_warn)[0]
         assert flag == -1
+
     # def test_checkinputts5(self):
     #     F0_to_fail = np.zeros(2 * m)
     #     flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0_to_fail, xkin, L, U)[0]

@@ -98,4 +98,3 @@ class TestPounders(unittest.TestCase):
 
 if __name__ == "__main__":  # pragma: no cover
     TestPounders.test_benchmark_pounders()
-
