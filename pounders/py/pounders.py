@@ -82,7 +82,9 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     # choose your spsolver
     if spsolver == 2:
         _FILE_LOCATION = Path(__file__).resolve().parent
+        print("INSIDE POUNDERS", _FILE_LOCATION, flush=True)
         sys.path.append(os.path.join(_FILE_LOCATION, "../../minq/py/minq5/"))
+        print("INSIDE POUNDERS2", sys.path, flush=True)
         from minqsw import minqsw
     # elif spsolver == 3:
     #     from minq8 import minq8
