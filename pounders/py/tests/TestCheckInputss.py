@@ -75,23 +75,23 @@ class TestLotsOfFeatures(unittest.TestCase):
 
     def test_checkinputts11(self):
         L_to_fail = np.hstack((L, L))
-        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin_to_fail, L, U)[0]
+        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_fail, U)[0]
         assert flag == -1
 
     def test_checkinputts12(self):
         L_to_warn = np.atleast_2D(L).T
         U_to_warn = np.atleast_2D(U).T
-        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, x, L_to_warn, U_to_warn)[0]
+        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_warn, U_to_warn)[0]
         assert flag == 0
 
     def test_checkinputts13(self):
         L_to_error = U
-        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, x, L_to_warn, U_to_warn)[0]
+        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_error, U)[0]
         assert flag == -1
 
     def test_checkinputts14(self):
         L_to_error = -1 * U
-        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, x, L_to_warn, U_to_warn)[0]
+        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_error, U)[0]
         assert flag == -1
 
     # def test_checkinputts5(self):
