@@ -48,7 +48,10 @@ class TestPounders(unittest.TestCase):
             F0[0] = objective(X0)
             xind = 0
             delta = 0.1
-            printf = False
+            if row in [8, 9]:
+                printf = True
+            else:
+                printf = False
             for hfun_cases in range(1, 4):
                 Results = {}
                 if hfun_cases == 1:
@@ -97,4 +100,4 @@ class TestPounders(unittest.TestCase):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    TestPounders.test_benchmark_pounders()
+    TestPounders.test_benchmark_pounders([])

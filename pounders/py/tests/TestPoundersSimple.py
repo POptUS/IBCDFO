@@ -162,3 +162,6 @@ class TestPounders(unittest.TestCase):
 
 if __name__ == "__main__":  # pragma: no cover
     TestPounders.test_pounders_maximizing_sum_squares([])
+    TestPounders.test_failing_objective([])
+    TestPounders.test_basic_pounders_usage([])
+    TestPounders.test_pounders_one_output([])

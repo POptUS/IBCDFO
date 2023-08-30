@@ -4,8 +4,8 @@ Unit test of compute function
 
 import unittest
 
-from ibcdfo.pounders.checkinputss import checkinputss
 import numpy as np
+from ibcdfo.pounders.checkinputss import checkinputss
 
 fun = np.linalg.norm
 n = 3
