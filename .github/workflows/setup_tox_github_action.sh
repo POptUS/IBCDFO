@@ -14,12 +14,14 @@ pip --version
 tox --version
 echo
 pip list
+
+# The following two packages are used for testing. One way to get them inside
+# tox is to use the PYTHONPATH environment variable.
 git clone -b bugfix/case20_zero_indexing https://github.com/POptUS/BenDFO.git
-cd BenDFO/py/
-export PYTHONPATH="$PYTHONPATH:$(pwd)"
-cd ../
 git clone https://github.com/POptUS/MINQ.git
-cd MINQ/py/minq5/
+pushd BenDFO/py/
 export PYTHONPATH="$PYTHONPATH:$(pwd)"
-cd ../
+popd
+pushd MINQ/py/minq5/
+export PYTHONPATH="$PYTHONPATH:$(pwd)"
 echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV

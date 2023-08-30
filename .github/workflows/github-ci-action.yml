@@ -8,10 +8,8 @@ jobs:
       # python-versions must be maintained consistent with associated setup.py
       # and tox.ini configuration.
       matrix:
-        #os: [ubuntu-latest, macos-latest]
-        #python-version: ["3.8", "3.9", "3.10", "3.11"]
-        os: [ubuntu-latest]
-        python-version: ["3.11"]
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
     ##-- General Setup Steps
     - uses: actions/checkout@v3
