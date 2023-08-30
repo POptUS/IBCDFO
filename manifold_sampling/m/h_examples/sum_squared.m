@@ -1,5 +1,5 @@
 function [h, grads, Hash] = sum_squared(z, H0)
-% Evaluates the sum-sqaured objective
+% Evaluates the sum-squared objective
 %   min sum_j { z_j^2 }
 %
 % Inputs:
