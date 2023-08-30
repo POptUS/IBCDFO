@@ -49,7 +49,7 @@ class TestLotsOfFeatures(unittest.TestCase):
     #     assert flag == -1
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     TestLotsOfFeatures.test_checkinputts1([])
     TestLotsOfFeatures.test_checkinputts2([])
     TestLotsOfFeatures.test_checkinputts3([])
