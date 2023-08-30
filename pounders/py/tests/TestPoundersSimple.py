@@ -112,7 +112,7 @@ class TestPounders(unittest.TestCase):
         func = lambda x: np.sum(x)
         n = 16
 
-        X0 = np.ones((n,1)) # Test giving of column vector
+        X0 = np.ones((n, 1))  # Test giving of column vector
         npmax = 2 * n + 1
         nfmax = 200
         gtol = 10**-13

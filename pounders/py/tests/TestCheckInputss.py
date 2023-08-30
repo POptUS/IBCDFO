@@ -9,7 +9,7 @@ import numpy as np
 
 fun = np.linalg.norm
 n = 3
-X0 = 0.5*np.ones(3)
+X0 = 0.5 * np.ones(3)
 npmax = 2 * n + 1
 nfmax = 10
 gtol = 1e-13
@@ -20,6 +20,7 @@ F0 = np.linalg.norm(X0)
 xkin = 0
 L = np.zeros(n)
 U = np.ones(n)
+
 
 class TestLotsOfFeatures(unittest.TestCase):
     def test_checkinputts1(self):
@@ -43,7 +44,7 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == -1
 
     def test_checkinputts5(self):
-        F0_to_fail = np.zeros(2*m)
+        F0_to_fail = np.zeros(2 * m)
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0_to_fail, xkin, L, U)[0]
         assert flag == -1
 
