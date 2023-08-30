@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .bmpts import *
+from .bmpts import bmpts
 from .bqmin import bqmin
 from .checkinputss import checkinputss
 from .formquad import formquad
