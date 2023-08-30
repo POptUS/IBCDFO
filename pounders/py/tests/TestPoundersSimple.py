@@ -131,3 +131,36 @@ class TestPounders(unittest.TestCase):
         [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
         assert np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds."
+
+
+    def test_pounders_maximizing_sum_squares(self):
+        combinemodels = pdrs.neg_leastsquares
+
+        # Sample calling syntax for pounders
+        func = lambda x: x
+        n = 16
+
+        X0 = 0.4*np.ones(n)
+        npmax = 2 * n + 1
+        nfmax = 200
+        gtol = 10**-13
+        delta = 0.1
+        nfs = 0
+        m = n
+        F0 = []
+        xind = 0
+        Low = 0.1 * np.ones(n)
+        Upp = np.ones(n)
+        printf = True
+        spsolver = 1
+
+        hfun = lambda F: -1.0 * np.sum(F**2)
+
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
+
+        assert np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds."
+
+if __name__ == "__main__":  # pragma: no cover
+    TestPounders.test_pounders_maximizing_sum_squares([])
+
+
