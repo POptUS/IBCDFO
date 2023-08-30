@@ -85,11 +85,17 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == 0
 
     def test_checkinputts13(self):
+        L_to_fail = np.zeros((2,n))
+        U_to_fail = np.zeros((2,n))
+        flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_fail, U_to_fail)[0]
+        assert flag == -1
+
+    def test_checkinputts14(self):
         L_to_error = U
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_error, U)[0]
         assert flag == -1
 
-    def test_checkinputts14(self):
+    def test_checkinputts15(self):
         L_to_error = 0.9 * U
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_error, U)[0]
         assert flag == -1
@@ -115,3 +121,4 @@ if __name__ == "__main__":  # pragma: no cover
     TestLotsOfFeatures.test_checkinputts12([])
     TestLotsOfFeatures.test_checkinputts13([])
     TestLotsOfFeatures.test_checkinputts14([])
+    TestLotsOfFeatures.test_checkinputts15([])
