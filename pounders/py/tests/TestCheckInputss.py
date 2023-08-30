@@ -85,8 +85,8 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == 0
 
     def test_checkinputts13(self):
-        L_to_fail = np.zeros((2,n))
-        U_to_fail = np.zeros((2,n))
+        L_to_fail = np.zeros((2, n))
+        U_to_fail = np.zeros((2, n))
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_fail, U_to_fail)[0]
         assert flag == -1
 
