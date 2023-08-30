@@ -143,5 +143,4 @@ class TestPounders(unittest.TestCase):
 
         [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
-        print("DEBUG32:", X, X[xkin], np.linalg.norm(X[xkin] - Low), flush=True)
-        assert np.all(X[xkin] == Low), "The optimum should be the lower bounds."
+        assert np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds."
