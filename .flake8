@@ -12,8 +12,13 @@ ignore =
 exclude =
         # Don't need to check .git
         .git,
-        pounders/python/tests/unit_tests/*
+        ibcdfo_pypkg/build/,
+        minq5,
+        __init__.py
+
 
 per-file-ignores =
-        # Need to add pounders to the path before importing it
-        pounders/python/tests/regression_tests/*.py:E402
+        # Allow lambda expressions
+        pounders/py/tests/*.py:E731
+        # These are old test
+        pounders/py/tests/old_unit_tests/test_pounders.py:F841,E501

@@ -3,14 +3,10 @@ Unit test of compute function
 """
 
 import unittest
-from pathlib import Path
 
 import ibcdfo.pounders as pdrs
 import numpy as np
 import scipy as sp
-
-
-import sys
 
 from dfoxs import dfoxs
 from calfun import calfun
@@ -65,8 +61,7 @@ class TestPounders(unittest.TestCase):
                     hfun = pdrs.emittance_h
                     combinemodels = pdrs.emittance_combine
 
-                # filename = ("./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_gtol=" + str(gtol) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat")
-                filename = "dummy.mat"
+                filename = ("./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat")
 
                 [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 

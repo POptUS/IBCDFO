@@ -3,7 +3,6 @@ Unit test of compute function
 """
 
 import unittest
-from pathlib import Path
 
 import ibcdfo.pounders as pdrs
 import numpy as np
