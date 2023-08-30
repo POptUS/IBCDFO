@@ -1,6 +1,6 @@
 name: Flake8 Check
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   flake8:
