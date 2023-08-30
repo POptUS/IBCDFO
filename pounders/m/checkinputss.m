@@ -61,6 +61,8 @@ elseif gtol <= 0
     return
 elseif delta <= 0
     disp('  Error: delta must be positive');
+    flag = -1;
+    return
 end
 
 % Check number of starting points
