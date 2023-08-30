@@ -7,9 +7,8 @@ import unittest
 import ibcdfo.pounders as pdrs
 import numpy as np
 import scipy as sp
-
-from dfoxs import dfoxs
 from calfun import calfun
+from dfoxs import dfoxs
 
 
 class TestPounders(unittest.TestCase):
