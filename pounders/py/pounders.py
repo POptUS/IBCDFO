@@ -75,8 +75,10 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     xkin    [int] Index of point in X representing approximate minimizer
     """
     if hfun is None:
+
         def hfun(F):
             return np.sum(F**2)
+
         from .general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
