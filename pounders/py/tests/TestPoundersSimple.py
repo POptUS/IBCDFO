@@ -150,7 +150,7 @@ class TestPounders(unittest.TestCase):
         xind = 0
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
-        printf = True
+        printf = 2
         spsolver = 1
 
         hfun = lambda F: -1.0 * np.sum(F**2)
