@@ -79,8 +79,8 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == -1
 
     def test_checkinputts12(self):
-        L_to_warn = np.atleast_2D(L).T
-        U_to_warn = np.atleast_2D(U).T
+        L_to_warn = np.atleast_2d(L).T
+        U_to_warn = np.atleast_2d(U).T
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_warn, U_to_warn)[0]
         assert flag == 0
 
@@ -90,7 +90,7 @@ class TestLotsOfFeatures(unittest.TestCase):
         assert flag == -1
 
     def test_checkinputts14(self):
-        L_to_error = -1 * U
+        L_to_error = 0.9 * U
         flag = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L_to_error, U)[0]
         assert flag == -1
 
