@@ -96,5 +96,6 @@ class TestPounders(unittest.TestCase):
                 sp.io.savemat(filename, Results)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     TestPounders.test_benchmark_pounders()
+
