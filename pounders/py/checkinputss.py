@@ -47,11 +47,13 @@ def checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         flag = -1
         return [flag, X0, npmax, F0, L, U, xkin]
     elif gtol <= 0:
-        print(" Error: gtol must be positive")
+        print("Error: gtol must be positive")
         flag = -1
         return [flag, X0, npmax, F0, L, U, xkin]
     elif delta <= 0:
         print("Error: delta must be positive")
+        flag = -1
+        return [flag, X0, npmax, F0, L, U, xkin]
     # Check number of starting points
     if nfs2 != max(nfs, 1):
         print("Warning: number of starting f values nfs does not match input X0")
