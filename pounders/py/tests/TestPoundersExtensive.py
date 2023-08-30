@@ -3,6 +3,7 @@ Unit test of compute function
 """
 
 import unittest
+import os
 
 import ibcdfo.pounders as pdrs
 import numpy as np
@@ -13,6 +14,9 @@ from dfoxs import dfoxs
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
+        if not os.path.exists("benchmark_results"):
+            os.makedirs("benchmark_results")
+
         dfo = np.loadtxt("dfo.dat")
 
         spsolver = 2  # TRSP solver
@@ -90,3 +94,7 @@ class TestPounders(unittest.TestCase):
                 #                      # correctly redefine calfun_wrapper
 
                 sp.io.savemat(filename, Results)
+
+
+if __name__ == "__main__":
+    TestPounders.test_benchmark_pounders()
