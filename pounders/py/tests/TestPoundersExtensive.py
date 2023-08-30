@@ -2,8 +2,8 @@
 Unit test of compute function
 """
 
-import unittest
 import os
+import unittest
 
 import ibcdfo.pounders as pdrs
 import numpy as np
