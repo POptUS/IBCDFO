@@ -54,7 +54,7 @@ class TestLotsOfFeatures(unittest.TestCase):
         self.assertEqual(out[0], -1, "Should have failed")
         self.assertEqual(len(out), 7, "Should always have 7 outputs from checkinputss")
 
-    def test_checkinputts7(self):
+    def test_checkinputts6(self):
         delta_to_fail = 0
         out = checkinputss(self.fun, self.X0, self.n, self.npmax, self.nfmax, self.gtol, delta_to_fail, self.nfs, self.m, self.F0, self.xkin, self.L, self.U)
         self.assertEqual(out[0], -1, "Should have failed")
