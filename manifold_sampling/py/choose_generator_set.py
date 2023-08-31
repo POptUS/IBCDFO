@@ -12,9 +12,11 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
 
     elif gentype == 3:
         hxkin, _ = hfun(F[xkin, :], Act_Z_k)
+        hxkin = np.atleast_1d(hxkin)
         for i in [ind for ind in range(nf) if ind != xkin]:
             Act_tmp = Hash[i]
             h_i, _ = hfun(F[xkin], Act_tmp)
+            h_i = np.atleast_1d(h_i)
             if np.linalg.norm(X[xkin] - X[i], ord=np.inf) <= delta * (1 + 1e-8) and h_i[0] <= hxkin[0]:
                 Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
             elif np.linalg.norm(X[xkin] - X[i], ord=np.inf) <= delta**2 * (1 + 1e-8) and h_i[0] > hxkin[0]:
@@ -22,6 +24,7 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
 
     Act_Z_k = np.unique(Act_Z_k)
     f_k, D_k = hfun(F[xkin], Act_Z_k)
+    f_k = np.atleast_1d(f_k)
     unique_indices = np.unique(D_k, axis=1, return_index=True)[1]
     D_k = D_k[:, unique_indices]
     Act_Z_k = Act_Z_k[unique_indices]
