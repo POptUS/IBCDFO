@@ -3,4 +3,4 @@ omit =
     */minq5/*
     */BenDFO/*
     ./src/ibcdfo/test.py
-    */unused_code/* 
+    */unused_code/*
