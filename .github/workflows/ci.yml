@@ -38,7 +38,7 @@ jobs:
             popd
             git submodule update --init --recursive
             pushd ..
-            git clone -b bugfix/case20_zero_indexing https://github.com/POptUS/BenDFO.git
+            git clone -b py_calfun https://github.com/POptUS/BenDFO.git
             popd
 
         - name: Run tests, produce coverage reports
