@@ -82,4 +82,5 @@ jobs:
       with:
         name: tested-ibcdfo-packages
         path: |
-          ibcdfo/.tox/.pkg/dist/*
+          ibcdfo_pypkg/.tox/.pkg/dist/ibcdfo-*.whl
+          ibcdfo_pypkg/.tox/.pkg/dist/ibcdfo-*.tar.gz
