@@ -17,7 +17,7 @@ class TestPounders(unittest.TestCase):
         T[2, 5] = 0.5
 
         P = pdrs.phi2eval(D)
-        assert np.all(P == T), "Test failed"
+        self.assertTrue(np.all(P == T), "Test failed")
 
     def test_failing_objective(self):
         def failing_objective(x):
@@ -47,12 +47,12 @@ class TestPounders(unittest.TestCase):
         np.random.seed(1)
 
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
-        assert flag == -3, "No NaN was encountered in this test, but should have been."
+        self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
         F0 = np.array([1.0, 2.0])
         nfs = 2
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
-        assert flag == -1, "We are testing proper failure of pounders"
+        self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
     def test_basic_pounders_usage(self):
         def vecFun(x):
@@ -130,7 +130,7 @@ class TestPounders(unittest.TestCase):
 
         [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
-        assert np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds."
+        self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
     def test_pounders_maximizing_sum_squares(self):
         combinemodels = pdrs.neg_leastsquares
@@ -157,11 +157,4 @@ class TestPounders(unittest.TestCase):
 
         [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
-        assert np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds."
-
-
-if __name__ == "__main__":  # pragma: no cover
-    TestPounders.test_pounders_maximizing_sum_squares([])
-    TestPounders.test_failing_objective([])
-    TestPounders.test_basic_pounders_usage([])
-    TestPounders.test_pounders_one_output([])
+        self.assertTrue(np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds.")

@@ -76,14 +76,14 @@ class TestPounders(unittest.TestCase):
                 for i in range(evals):
                     h[i] = hfun(F[i, :])
 
-                assert flag != 1, "pounders failed"
-                assert hfun(F[0]) > hfun(F[xk_best])
-                assert X.shape[0] <= nfmax + nfs, "POUNDERs grew the size of X"
+                self.assertNotEqual(flag, 1, "pounders failed")
+                self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), "No improvement found")
+                self.assertTrue(X.shape[0] <= nfmax + nfs, "POUNDERs grew the size of X")
 
                 if flag == 0:
-                    assert evals <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations"
+                    self.assertTrue(evals <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations")
                 elif flag != -4:
-                    assert evals == nfmax + nfs, "POUNDERs didn't use nfmax evaluations"
+                    self.assertTrue(evals == nfmax + nfs, "POUNDERs didn't use nfmax evaluations")
 
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
