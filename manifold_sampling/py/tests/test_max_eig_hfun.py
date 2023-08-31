@@ -11,8 +11,9 @@ sys.path.append("../")
 sys.path.append("../../../../BenDFO/py/")
 sys.path.append("../h_examples/")
 from manifold_sampling_primal import manifold_sampling_primal
-from matrix_Ffuns import Ffun_default, Ffun_sort, compute_M_and_eig
+from matrix_Ffuns import Ffun_default, Ffun_sort, compute_M_and_eig, Ffun_mattrix
 from pw_maximum import pw_maximum as hfun
+from pw_maximum_eig import pw_maximum_eig as hfun2
 
 n = 10
 AllX = np.empty((0, n))
@@ -163,6 +164,9 @@ plt.plot(h, linewidth=6, alpha=0.8, solid_joinstyle="miter", label="Hopefully sm
 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_all_perms, x0, LB, UB, nfmax, subprob_switch)
 plt.plot(h, linewidth=6, alpha=0.8, solid_joinstyle="miter", label="All permutations")
+
+X, F, h, xkin, flag = manifold_sampling_primal(hfun2, Ffun_mattrix, x0, LB, UB, nfmax, subprob_switch)
+plt.plot(h, linewidth=6, alpha=0.8, solid_joinstyle="miter", label="Matt")
 
 
 plt.legend()

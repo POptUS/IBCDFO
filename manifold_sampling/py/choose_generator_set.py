@@ -20,7 +20,7 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
             elif np.linalg.norm(X[xkin] - X[i], ord=np.inf) <= delta**2 * (1 + 1e-8) and h_i[0] > hxkin[0]:
                 Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
 
-    Act_Z_k = np.unique(Act_Z_k)
+    Act_Z_k = np.unique(Act_Z_k, axis=0)
     f_k, D_k = hfun(F[xkin], Act_Z_k)
     unique_indices = np.unique(D_k, axis=1, return_index=True)[1]
     D_k = D_k[:, unique_indices]

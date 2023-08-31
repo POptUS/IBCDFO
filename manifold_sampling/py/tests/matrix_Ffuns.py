@@ -34,3 +34,13 @@ def Ffun_sort(y):
     eigvals.sort()
 
     return eigvals
+
+
+def Ffun_mattrix(y):
+    y = y.squeeze()
+    assert len(y) == n, "Wrong input dimension"
+    M = np.zeros((m, m))
+    for i, val in enumerate(y):
+        M += val * A[i]
+
+    return np.reshape(M, (1, m ** 2)).squeeze()

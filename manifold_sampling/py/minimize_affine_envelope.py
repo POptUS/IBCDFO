@@ -27,7 +27,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
         try:
             res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0)
             x = res.x
-            duals_g = res.ineqlin.marginals
+            duals_g = -1.0 * res.ineqlin.marginals
             duals_u = res.lower.marginals[1:]
             duals_l = res.upper.marginals[1:]
         except:
@@ -37,7 +37,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             rescaledA[:, 1:] = A[:, 1:] / normA
             res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0)
             x = res.x
-            duals_g = res.ineqlin.marginals
+            duals_g = -1.0 * res.ineqlin.marginals
             duals_u = res.lower.marginals[1:] * normA
             duals_l = res.upper.marginals[1:] * normA
     else:
