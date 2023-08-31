@@ -97,7 +97,3 @@ class TestPounders(unittest.TestCase):
                 #                      # correctly redefine calfun_wrapper
 
                 sp.io.savemat(filename, Results)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    TestPounders.test_benchmark_pounders([])
