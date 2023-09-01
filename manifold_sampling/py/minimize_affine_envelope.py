@@ -3,6 +3,7 @@ from scipy.optimize import linprog
 
 
 def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subprob_switch):
+
     G_k_smaller, cols = np.unique(G_k, axis=1, return_index=True)
 
     n, p = G_k_smaller.shape
@@ -28,8 +29,8 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0)
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
-            duals_u = res.lower.marginals[1:]
-            duals_l = res.upper.marginals[1:]
+            duals_u = -1.0 * res.upper.marginals[1:]
+            duals_l = res.lower.marginals[1:]
         except:
             normA = np.linalg.norm(A[:, 1:])
             rescaledA = np.zeros_like(A)
@@ -38,8 +39,8 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0)
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
-            duals_u = res.lower.marginals[1:] * normA
-            duals_l = res.upper.marginals[1:] * normA
+            duals_u = -1.0 * res.upper.marginals[1:] * normA
+            duals_l = res.lower.marginals[1:] * normA
     else:
         raise ValueError("Unrecognized subprob_switch")
 
