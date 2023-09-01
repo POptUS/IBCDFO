@@ -8,7 +8,7 @@
 #  hfun:    [func]   Given point z, returns
 #                      - [scalar] the value h(z)
 #                      - [p x l] gradients for all l limiting gradients at z
-#                      - [1 x l set of strings] hashes for each manifold active at z
+#                      - [1 x l list of hashes] for each manifold active at z
 #                    Given point z and l hashes H, returns
 #                      - [1 x l] the value h_i(z) for each hash in H
 #                      - [p x l] gradients of h_i(z) for each hash in H
@@ -37,7 +37,7 @@
 #   Gres [n x p]        Model gradients for each of the p outputs from Ffun
 #   Hres [n x n x p]    Model Hessians for each of the p outputs from Ffun
 #   Hash [cell]         Contains the hashes active at each evaluated point in X
-#   Act_Z_k [l cell]      Set of hashes for active selection functions in TR
+#   Act_Z_k [l cell]    List of hashes for active selection functions in TR
 #   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
 #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
@@ -108,7 +108,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 8: Compute stationary measure chi_k
             Low = np.maximum(L - X[xkin], -1.0)
             Upp = np.minimum(U - X[xkin], 1.0)
-            __, __, chi_k, __ = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[2 - 1], n + 1, n + 1)), subprob_switch)
+            __, __, chi_k, __ = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:

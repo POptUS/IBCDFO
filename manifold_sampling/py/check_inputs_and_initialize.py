@@ -2,6 +2,7 @@ import numpy as np
 
 
 def check_inputs_and_initialize(x0, F0, nfmax):
+    x0 = x0.squeeze()
     n = int(len(x0))
     p = int(len(F0))
     delta = 0.1
