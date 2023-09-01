@@ -45,51 +45,6 @@ def Ffun_fast_sort(y):
     return eigvals
 
 
-def Ffun_slow_sort(y):
-    global AllX, AllEigVecs, count
-    eigvals, eigvecs = compute_M_and_eig(y)
-
-    if len(AllX):
-        ind_of_closest_past_point = np.argmin(np.linalg.norm(AllX - y, axis=1))
-        last_eig_vecs = AllEigVecs[ind_of_closest_past_point]
-
-        unsorted = np.arange(20, dtype=int)
-        perm = np.zeros(20, dtype=int)
-
-        Old = last_eig_vecs.T
-        New = eigvecs.T
-
-        for i in range(20):
-            alldists = cdist(Old, New)
-            min_value = np.min(alldists)
-            old_index, new_index = np.where(alldists == min_value)
-
-            if len(old_index) > 1:
-                import ipdb
-
-                ipdb.set_trace()
-
-            if old_index != new_index:
-                import ipdb
-
-                ipdb.set_trace()
-
-            perm[new_index] = unsorted[old_index]
-            Old = np.delete(Old, old_index, axis=0)
-            New = np.delete(New, new_index, axis=0)
-
-        # print(best_perm)
-        # print(len(np.unique(best_perm)))
-        eigvals = eigvals[perm]
-        eigvecs = eigvecs[:, perm]
-
-    AllX = np.vstack((AllX, y))
-    AllEigVecs[count] = eigvecs
-    count += 1
-
-    return eigvals
-
-
 def Ffun_slow_sort2(y):
     global AllX, AllEigVecs, count
     eigvals, eigvecs = compute_M_and_eig(y)

@@ -33,7 +33,7 @@ def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_reca
 
     if tol["hfun_test_mode"]:
         assert isinstance(hashes_at_nf, list), "hfun must return a list of hashes"
-        #assert all(isinstance(hash_val, str) for hash_val in hashes_at_nf), "Hashes must be strings"
+        # assert all(isinstance(hash_val, str) for hash_val in hashes_at_nf), "Hashes must be strings"
 
         h_dummy1, grad_dummy1, hash_dummy = hfun(F[nf, :])
         h_dummy2, grad_dummy2 = hfun(F[nf, :], hash_dummy)

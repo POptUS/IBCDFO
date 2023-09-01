@@ -4,7 +4,6 @@ from scipy import spatial
 
 
 def pw_maximum_eig(z, H0=None):
-
     n2 = len(z)
     n = np.int(np.sqrt(n2))
 
@@ -55,5 +54,3 @@ def pw_maximum_eig(z, H0=None):
             grads[:, k] = np.reshape(grad, (1, n2))
 
         return h, grads
-
-

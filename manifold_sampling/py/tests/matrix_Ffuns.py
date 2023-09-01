@@ -43,4 +43,4 @@ def Ffun_mattrix(y):
     for i, val in enumerate(y):
         M += val * A[i]
 
-    return np.reshape(M, (1, m ** 2)).squeeze()
+    return np.reshape(M, (1, m**2)).squeeze()
