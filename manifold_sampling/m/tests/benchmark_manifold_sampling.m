@@ -2,9 +2,6 @@
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 function [] = benchmark_manifold_sampling()
 
-global BenDFO
-BenDFO.probtype = 'smooth';
-
 addpath('../');
 addpath('../../../../BenDFO/m/');
 addpath('../../../../BenDFO/data/');
@@ -51,7 +48,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
             hfun = @pw_minimum_squared;
         end
 
-        Ffun = @calfun_wrapper;
+        Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
 
         [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch);
@@ -69,7 +66,7 @@ end
 save(filename, 'Results');
 end
 
-function [fvec] = calfun_wrapper(x)
-[~, fvec, ~] = calfun(x);
-fvec = fvec';
+function [fvec] = calfun_wrapper(x, struct, probtype)
+    [~, fvec, ~] = calfun(x, struct, probtype);
+    fvec = fvec';
 end
