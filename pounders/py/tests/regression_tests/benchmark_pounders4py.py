@@ -6,19 +6,21 @@ import sys
 
 import numpy as np
 import scipy as sp
-from oct2py import octave
 
 sys.path.append("../../../../minq/py/minq5/")  # Needed for spsolver=2
 import ibcdfo.pounders as pdrs
 
+BenDFO_root = "../../../../../BenDFO/"
+sys.path.append(BenDFO_root + "py/")  # Needed for spsolver=2
+from dfoxs import dfoxs
+from calfun import calfun
+
 os.makedirs("benchmark_results", exist_ok=True)
-np.seterr("raise")
+# np.seterr("raise")
 
 
 def doit():
-    bendfo_root = "../../../../../BenDFO/"
-    octave.addpath(bendfo_root + "m/")
-    dfo = np.loadtxt(bendfo_root + "data/dfo.dat")
+    dfo = np.loadtxt(BenDFO_root + "data/dfo.dat")
 
     ensure_still_solve_problems = 0
     if ensure_still_solve_problems:
@@ -36,11 +38,17 @@ def doit():
         m = int(m)
 
         def objective(y):
-            out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
+            # It is possible to have python use the same objective values via
+            # octave. This can be slow on some systems. To (for example)
+            # test difference between matlab and python, used the following
+            # line and add "from oct2py import octave" on a system with octave
+            # installed.
+            # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
+            out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
             assert len(out) == m, "Incorrect output dimension"
             return np.squeeze(out)
 
-        X0 = octave.dfoxs(float(n), nprob, factor**factor_power).T
+        X0 = dfoxs(n, nprob, int(factor**factor_power))
         npmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
         L = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
         U = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]

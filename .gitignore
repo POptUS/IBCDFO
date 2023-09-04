@@ -85,6 +85,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Matlab autosave files
+*.asv
+
 # Environments
 .env
 .venv
@@ -111,3 +114,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*.egg-info

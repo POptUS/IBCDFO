@@ -29,8 +29,7 @@ jobs:
         - name: Install dependencies, ibcdfo
           run: |
             python -m pip install --upgrade pip
-            conda install octave
-            pip install oct2py ipdb
+            pip install ipdb
             pip install -r pounders/py/tests/test_requirements.txt
             pushd ibcdfo_pypkg
             rm -rf dist
@@ -39,7 +38,7 @@ jobs:
             popd
             git submodule update --init --recursive
             pushd ..
-            git clone https://github.com/POptUS/BenDFO.git
+            git clone -b py_calfun https://github.com/POptUS/BenDFO.git
             popd
 
         - name: Run tests, produce coverage reports
@@ -53,6 +52,9 @@ jobs:
             coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_1 callpounders_test.py
             coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_2 test_failing_objective.py
             coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_3 benchmark_pounders4py.py
+            popd
+            pushd manifold_sampling/py/tests/
+            coverage run --source=ibcdfo --data-file=.cov_tomerge_regtest_4 benchmark_manifold_sampling.py
             popd
 
         - name: Merge coverage, run Coveralls
