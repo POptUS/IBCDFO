@@ -29,8 +29,6 @@ def load_tests(loader, *_):
     here_dir = Path(__file__).resolve().parent
     start_dir = here_dir.joinpath("tests")
 
-    print()
-    print(f"Discover tests in {start_dir}")
     suites = loader.discover(
         start_dir=str(start_dir),
         top_level_dir=str(here_dir),
@@ -38,6 +36,5 @@ def load_tests(loader, *_):
     )
     suites = load_tests_pounders(loader, suites, None)
     # suites = load_tests_manifold_sampling(loader, suites, None)
-    print()
 
     return suites

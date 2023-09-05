@@ -19,8 +19,6 @@ def load_tests(loader, suite, _):
     """
     start_dir = Path(__file__).resolve().parent.joinpath("tests")
 
-    print(f"Discover tests in {start_dir}")
-
     pkg_tests = loader.discover(
         start_dir=str(start_dir),
         top_level_dir=str(start_dir),
