@@ -4,9 +4,6 @@ from ibcdfo.pounders import bmpts, formquad
 
 
 def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nfmax, L, U):
-    # global nprob Qs zs bs p x0 nfmax h_activity_tol row_in_dfo_dat s inst
-    # A.n=n; A.nf=nf; A.xkin=xkin; A.delta=delta; A.X=X; A.F=F; A.h=h; A.gentype=gentype; A.Mdir=Mdir; A.np=np; A.hfun=hfun; A.Ffun=Ffun; A.Hash=Hash; A.fq_pars=fq_pars; A.tol=tol; A.nfmax=nfmax; A.L=L; A.U=U;
-
     # Evaluate model-improving points to pick best one
     # ! May eventually want to normalize Mdir first for infty norm
     # Plus directions

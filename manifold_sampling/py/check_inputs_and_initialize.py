@@ -7,7 +7,6 @@ def check_inputs_and_initialize(x0, F0, nfmax):
     p = int(len(F0))
     delta = 0.1
     printf = 1
-    h_activity_tol = min(1e-08, delta)
 
     # Internal parameters/tolerances for formquad
 
