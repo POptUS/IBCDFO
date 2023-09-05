@@ -9,11 +9,9 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
 
     bk = -(f_bar - f - beta)
     bk_smaller = bk[cols]
-    H_k_smaller = H_k[cols, :, :]
 
     A = np.hstack((-np.ones((p, 1)), G_k_smaller.T))
     ff = np.concatenate((np.array([[1]]), np.zeros((n, 1))))
-    HH = np.block([[0, np.zeros((1, n))], [np.zeros((n, 1)), H]])
     x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
 
     if subprob_switch == "GAMS_QCP":
@@ -30,7 +28,8 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             duals_g = -1.0 * res.ineqlin.marginals
             duals_u = -1.0 * res.upper.marginals[1:]
             duals_l = res.lower.marginals[1:]
-        except:
+        except Exception as e:
+            print(e)
             normA = np.linalg.norm(A[:, 1:])
             rescaledA = np.zeros_like(A)
             rescaledA[:, 0] = -np.ones(p)

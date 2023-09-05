@@ -60,7 +60,7 @@ VARIABLES
   x(N)    decision
   d(N)    'd := (x - x0) / dsc, i.e. d * dsc := (x - x0)'
   m_F(P)  value of each quadratic
-  y(L)    auxillary variable
+  y(L)    auxiliary variable
 
 option decimals=8;
 

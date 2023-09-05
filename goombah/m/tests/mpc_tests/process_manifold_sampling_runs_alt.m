@@ -17,7 +17,7 @@ addpath([bendfo_root 'm/']);
 addpath('test_problems/');
 addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
 
-global m n nprob probtype vecout % For defintion of F
+global m n nprob probtype vecout % For definition of F
 global C D eqtol % For censored_L1_loss h
 global Qs zs cs h_activity_tol % for piecewise_quadratic h
 

@@ -9,8 +9,13 @@ output of blackbox, and h is a known scalar-valued mapping.
 
 from importlib.metadata import version
 
-# Follow typical version-access interface used by other packages
-# (e.g., numpy, scipy, pandas, matplotlib)
 __version__ = version("ibcdfo")
 
 from . import pounders
+
+# ----- Python unittest-based test framework
+# Used for automatic test discovery
+from .load_tests import load_tests
+
+# Allow users to run full test suite as mytemplate.test()
+from .test import test

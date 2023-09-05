@@ -10,8 +10,6 @@ from .bmpts import bmpts
 from .boxline import boxline
 from .bqmin import bqmin
 from .checkinputss import checkinputss
-from .flipFirstRow import flipFirstRow
-from .flipSignQ import flipSignQ
 from .formquad import formquad
 from .general_h_funs import (
     emittance_combine,
@@ -21,6 +19,7 @@ from .general_h_funs import (
     neg_leastsquares,
     squared_diff_from_mean,
 )
+from .load_tests import load_tests  # Used for automatic unittest-based discovery by main package
 from .phi2eval import phi2eval
 from .pounders import pounders
 from .prepare_outputs_before_return import prepare_outputs_before_return

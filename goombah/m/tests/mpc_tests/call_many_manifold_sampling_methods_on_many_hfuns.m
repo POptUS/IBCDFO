@@ -6,7 +6,7 @@
 % - h maps from R^m to R
 % Note that the papers have (p) instead of (m).
 
-global m n nprob probtype vecout % For defintion of F
+global m n nprob probtype vecout % For definition of F
 global C D eqtol % For censored_L1_loss h
 global Qs zs cs h_activity_tol % for piecewise_quadratic h
 % global mw_prob_num hfun % For saving when there is a model-building failure.

@@ -1,5 +1,4 @@
 import itertools
-import os
 import sys
 
 import matplotlib.pyplot as plt
@@ -8,10 +7,9 @@ from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import cdist
 
 sys.path.append("../")
-sys.path.append("../../../../BenDFO/py/")
 sys.path.append("../h_examples/")
 from manifold_sampling_primal import manifold_sampling_primal
-from matrix_Ffuns import Ffun_default, Ffun_sort, compute_M_and_eig, Ffun_mattrix
+from matrix_Ffuns import Ffun_default, Ffun_mattrix, Ffun_sort, compute_M_and_eig
 from pw_maximum import pw_maximum as hfun
 from pw_maximum_eig import pw_maximum_eig as hfun2
 

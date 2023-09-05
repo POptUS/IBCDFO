@@ -1,0 +1,86 @@
+name: GitHub CI Action
+on: ["push", "pull_request"]
+jobs:
+  #####----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
+  test_ibcdfo:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # python-versions must be maintained consistent with associated setup.py
+      # and tox.ini configuration.
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+    steps:
+    ##-- General Setup Steps
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Setup python with tox
+      run: ./.github/workflows/setup_tox_github_action.sh
+
+    ##-- Test Execution Step
+    - name: Test ibcdfo python package
+      run: |
+        pushd ibcdfo_pypkg
+        tox -r -e nocoverage
+        popd
+
+  #####----- MEASURE COVERAGE ACROSS ALL PACKAGES
+  coverage_ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      # We only need to measure coverage with a single python version.  Ideally
+      # this will be the latest version of python used in the action.
+      matrix:
+        python-version: ["3.11"]
+    steps:
+    ##-- General Setup Steps
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Setup python with tox
+      run: ./.github/workflows/setup_tox_github_action.sh
+
+    ##-- Run Coverage for All Packages
+    # Coverage is full test suite run on local clone so that coveralls
+    # has nice output.  Generate html report to export as artifact.
+    - name: Generate all coverage for coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # We want to preserve all individual coverage results as artifacts.
+        # Therefore, save each of these to a unique file .coverage_<package name>
+        # Save all in root of repo for later aggregation.
+        pushd ibcdfo_pypkg
+        COVERAGE_FILE=../.coverage_ibcdfo  tox -r -e coverage
+        popd
+        # This aggregates into .coverage for coveralls
+        tox -r -e aggregate,coveralls,report -- ./.coverage_*
+
+    ##-- Publish full coverage report as artifact
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage-results
+        path: |
+            .coverage*
+            htmlcov
+
+    ##-- Publish ibcdfo distributions
+    # These are pure python and don't depend on OS or python version used
+    # for testing
+    - name: Archive tested ibcdfo distributions
+      uses: actions/upload-artifact@v3
+      with:
+        name: tested-ibcdfo-packages
+        path: |
+          ibcdfo_pypkg/.tox/.pkg/dist/ibcdfo-*.whl
+          ibcdfo_pypkg/.tox/.pkg/dist/ibcdfo-*.tar.gz
