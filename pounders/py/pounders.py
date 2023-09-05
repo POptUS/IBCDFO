@@ -83,9 +83,12 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
 
     # choose your spsolver
     if spsolver == 2:
-        _FILE_LOCATION = Path(__file__).resolve().parent
-        sys.path.append(os.path.join(_FILE_LOCATION, "../../minq/py/minq5/"))
-        from minqsw import minqsw
+        try:
+            from minqsw import minqsw
+        except ModuleNotFoundError:
+            raise 
+
+
     # elif spsolver == 3:
     #     from minq8 import minq8
 
