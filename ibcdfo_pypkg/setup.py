@@ -27,7 +27,7 @@ install_requires = code_requires + test_requires
 
 package_data = {
     "IBCDFO": [
-        "pounders/tests/regression_tests/benchmark_resutls/*.txt",
+        "pounders/tests/benchmark_results/*.txt",
     ]
 }
 
