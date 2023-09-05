@@ -85,12 +85,9 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     if spsolver == 2:
         try:
             from minqsw import minqsw
-        except ModuleNotFoundError:
-            raise 
-
-
-    # elif spsolver == 3:
-    #     from minq8 import minq8
+        except ModuleNotFoundError as e:
+            print(e)
+            sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
     [flag, X0, npmax, F0, L, U, xkin] = checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)
     if flag == -1:
