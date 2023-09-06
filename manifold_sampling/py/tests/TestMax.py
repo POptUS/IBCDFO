@@ -1,14 +1,12 @@
 import itertools
-import sys
 
 import numpy as np
-from scipy.optimize import linear_sum_assignment
-from scipy.spatial.distance import cdist
-
-from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
-from matrix_Ffuns import Ffun_default, Ffun_mattrix, Ffun_sort, compute_M_and_eig
 from ibcdfo.manifold_sampling.h_examples.pw_maximum import pw_maximum as hfun
 from ibcdfo.manifold_sampling.h_examples.pw_maximum_eig import pw_maximum_eig as hfun2
+from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
+from matrix_Ffuns import Ffun_default, Ffun_mattrix, Ffun_sort, compute_M_and_eig
+from scipy.optimize import linear_sum_assignment
+from scipy.spatial.distance import cdist
 
 n = 10
 AllX = np.empty((0, n))
