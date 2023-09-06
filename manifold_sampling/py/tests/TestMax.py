@@ -14,30 +14,6 @@ AllEigVecs = {}
 count = 0
 
 
-def Ffun_fast_sort(y):
-    global AllX, AllEigVecs, count
-    eigvals, eigvecs = compute_M_and_eig(y)
-
-    if len(AllX):
-        ind_of_closest_past_point = np.argmin(np.linalg.norm(AllX - y, axis=1))
-        last_eig_vecs = AllEigVecs[ind_of_closest_past_point]
-        v = np.conjugate(np.transpose(eigvecs)) @ last_eig_vecs
-        b = np.argsort(v, axis=0)
-        best_perm = b[-1, :]
-        assert len(np.unique(best_perm)) == len(best_perm)
-
-        # print(best_perm)
-        # print(len(np.unique(best_perm)))
-        eigvals = eigvals[list(best_perm)]
-        eigvecs = eigvecs[:, best_perm]
-
-    AllX = np.vstack((AllX, y))
-    AllEigVecs[count] = eigvecs
-    count += 1
-
-    return eigvals
-
-
 def Ffun_slow_sort2(y):
     global AllX, AllEigVecs, count
     eigvals, eigvecs = compute_M_and_eig(y)
