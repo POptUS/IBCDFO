@@ -171,7 +171,10 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             for i in range(len(Mind)):
                 D = X[Mind[i]] - X[xkin]
                 IERR[i] = (c - Fs[Mind[i]]) + [D @ (G + 0.5 * H @ D)]
-            ierror = np.linalg.norm(IERR / np.abs(Fs[Mind]), np.inf)
+            if Fs[Mind] ~= 0:
+                ierror = np.linalg.norm(IERR / np.abs(Fs[Mind]), np.inf)
+            else:
+                ierror = np.nan
             print(progstr % (nf, delta, valid, mp, Fs[xkin], ng, ierror))
             if printf >= 2:
                 jerr = np.zeros((len(Mind), m))
