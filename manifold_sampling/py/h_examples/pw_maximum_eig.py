@@ -5,7 +5,7 @@ from scipy import spatial
 
 def pw_maximum_eig(z, H0=None):
     n2 = len(z)
-    n = np.int(np.sqrt(n2))
+    n = int(np.sqrt(n2))
 
     # reshape z into a matrix
     M = np.reshape(z, (n, n))
