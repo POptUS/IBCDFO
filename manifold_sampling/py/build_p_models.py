@@ -1,5 +1,6 @@
-from .evaluate_points_to_force_valid_model import evaluate_points_to_force_valid_model
 from ibcdfo.pounders import formquad
+
+from .evaluate_points_to_force_valid_model import evaluate_points_to_force_valid_model
 from .update_models import update_models
 
 

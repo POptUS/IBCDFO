@@ -42,11 +42,12 @@
 #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
 import numpy as np
+from ibcdfo.pounders import checkinputss
+
 from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts
 from .check_inputs_and_initialize import check_inputs_and_initialize
 from .choose_generator_set import choose_generator_set
-from ibcdfo.pounders import checkinputss
 from .minimize_affine_envelope import minimize_affine_envelope
 
 
