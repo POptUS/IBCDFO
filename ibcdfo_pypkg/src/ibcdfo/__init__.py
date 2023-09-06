@@ -12,6 +12,7 @@ from importlib.metadata import version
 __version__ = version("ibcdfo")
 
 from . import pounders
+from . import manifold_sampling
 
 # ----- Python unittest-based test framework
 # Used for automatic test discovery

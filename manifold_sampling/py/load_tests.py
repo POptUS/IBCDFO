@@ -10,7 +10,7 @@ def load_tests(loader, suite, _):
     Developers and users can run tests using this indirectly via
                          python -m unittest ibcdfo
     to run as part of the package's full suite or via
-                         python -m unittest ibcdfo.pounders
+                         python -m unittest ibcdfo.manifold_sampling
     to run alone.
 
     Parameters:

@@ -1,5 +1,5 @@
 import numpy as np
-from call_user_scripts import call_user_scripts
+from .call_user_scripts import call_user_scripts
 from ibcdfo.pounders import bmpts, formquad
 
 

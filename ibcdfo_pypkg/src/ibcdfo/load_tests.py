@@ -2,7 +2,7 @@ from pathlib import Path
 
 from .pounders import load_tests as load_tests_pounders
 
-# from .manifold_sampling import load_tests as load_tests_manifold_sampling
+from .manifold_sampling import load_tests as load_tests_manifold_sampling
 
 
 def load_tests(loader, *_):
@@ -35,6 +35,6 @@ def load_tests(loader, *_):
         pattern="Test*.py",
     )
     suites = load_tests_pounders(loader, suites, None)
-    # suites = load_tests_manifold_sampling(loader, suites, None)
+    suites = load_tests_manifold_sampling(loader, suites, None)
 
     return suites
