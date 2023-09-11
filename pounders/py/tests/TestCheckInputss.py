@@ -24,7 +24,7 @@ class TestLotsOfFeatures(unittest.TestCase):
         self.L = np.zeros(self.n)
         self.U = np.ones(self.n)
 
-    def _testCommonFinalConditions(self, out, flag): 
+    def _testCommonFinalConditions(self, out, flag):
         if flag == "success":
             self.assertEqual(out[0], 0, "Should not have failed")
         elif flag == "fail":
