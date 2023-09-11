@@ -99,7 +99,7 @@ while nf < nfmax && delta > tol.mindelta
         G_k = Gres * D_k;
         beta = max(0, f_bar' - h(xkin));
 
-        % Line 6: Choose Hessions
+        % Line 6: Choose Hessians
         H_k = zeros(size(G_k, 2), n + 1, n + 1);
         for i = 1:size(G_k, 2) % would like to vectorize this tensor product ...
             for j = 1:size(Hres, 3) % p
