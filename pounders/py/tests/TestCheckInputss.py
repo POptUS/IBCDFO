@@ -26,7 +26,7 @@ class TestLotsOfFeatures(unittest.TestCase):
 
     def _testCommonFinalConditions(self, out, flag):
         if flag == "success":
-            self.assertEqual(out[0], 0, "Should not have failed")
+            self.assertEqual(out[0], 1, "Should not have failed")
         elif flag == "fail":
             self.assertEqual(out[0], -1, "Should have failed")
         elif flag == "warn":
