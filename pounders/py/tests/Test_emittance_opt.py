@@ -16,38 +16,36 @@ def call_beamline_simulation(x):
     return np.squeeze(out)
 
 
-def doit():
-    # Adjust these:
-    n = 4  # Nubmer of parameters to be optimized
-    X0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
-    nfmax = int(100)  # Max number of evaluations to be used by optimizer
-    Low = -1 * np.ones((1, n))  # 1-by-n Vector of lower bounds
-    Upp = np.ones((1, n))  # 1-by-n Vector of upper bounds
-    printf = True
+# Adjust these:
+n = 4  # Number of parameters to be optimized
+X0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
+nfmax = int(100)  # Max number of evaluations to be used by optimizer
+Low = -1 * np.ones((1, n))  # 1-by-n Vector of lower bounds
+Upp = np.ones((1, n))  # 1-by-n Vector of upper bounds
+printf = True
 
-    # Don't adjust these:
-    hfun = general_h_funs.emittance_h
-    combinemodels = general_h_funs.emittance_combine
-    m = 3
-    gtol = 1e-8
-    delta = 0.1
-    mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
-    F0 = np.zeros((1, m))
-    F0[0] = call_beamline_simulation(X0)
-    nfs = 1
-    xind = 0
+# Not as important to adjust:
+hfun = general_h_funs.emittance_h
+combinemodels = general_h_funs.emittance_combine
+m = 3 # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
+gtol = 1e-8 # Stopping tolerance
+delta = 0.1 # Initial trust-region radius
+mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
+F0 = np.zeros((1, m)) # Initial evaluations (parameters with completed simulations)
+F0[0] = call_beamline_simulation(X0)
+nfs = 1 # Number of initial evaluations
+xind = 0 # Index in F0 for starting the optimization (usually the point with minimal emittance)
 
-    # The call to the method
-    [Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, 1, hfun, combinemodels)
+# The call to the method
+[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, 1, hfun, combinemodels)
 
-    assert flag != 1, "pounders crashed"
+assert flag != 1, "pounders crashed"
 
-    evals = Fout.shape[0]
-    h = np.zeros(evals)
+h = np.zeros(Fout.shape[0])
 
-    for i in range(evals):
-        h[i] = hfun(Fout[i, :])
+# Compute the emittance values for inspection after optimization 
+for i in range(len(h)):
+    h[i] = hfun(Fout[i, :])
 
+assert h[xkinout] == np.min(h), "The minimum emittance is not at xkinout"
 
-if __name__ == "__main__":
-    doit()
