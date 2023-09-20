@@ -27,14 +27,14 @@ printf = True
 # Not as important to adjust:
 hfun = general_h_funs.emittance_h
 combinemodels = general_h_funs.emittance_combine
-m = 3 # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
-gtol = 1e-8 # Stopping tolerance
-delta = 0.1 # Initial trust-region radius
+m = 3  # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
+gtol = 1e-8  # Stopping tolerance
+delta = 0.1  # Initial trust-region radius
 mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
-F0 = np.zeros((1, m)) # Initial evaluations (parameters with completed simulations)
+F0 = np.zeros((1, m))  # Initial evaluations (parameters with completed simulations)
 F0[0] = call_beamline_simulation(X0)
-nfs = 1 # Number of initial evaluations
-xind = 0 # Index in F0 for starting the optimization (usually the point with minimal emittance)
+nfs = 1  # Number of initial evaluations
+xind = 0  # Index in F0 for starting the optimization (usually the point with minimal emittance)
 
 # The call to the method
 [Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, 1, hfun, combinemodels)
@@ -43,9 +43,8 @@ assert flag != 1, "pounders crashed"
 
 h = np.zeros(Fout.shape[0])
 
-# Compute the emittance values for inspection after optimization 
+# Compute the emittance values for inspection after optimization
 for i in range(len(h)):
     h[i] = hfun(Fout[i, :])
 
 assert h[xkinout] == np.min(h), "The minimum emittance is not at xkinout"
-
