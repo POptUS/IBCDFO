@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .manifold_sampling import load_tests as load_tests_manifold_sampling
+# from .manifold_sampling import load_tests as load_tests_manifold_sampling
 from .pounders import load_tests as load_tests_pounders
 
 
