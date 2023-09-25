@@ -5,8 +5,8 @@ Unit test of compute function
 import unittest
 
 import ibcdfo.manifold_sampling as msp
-from ibcdfo.manifold_sampling.h_examples.pw_maximum import pw_maximum
 import numpy as np
+from ibcdfo.manifold_sampling.h_examples.pw_maximum import pw_maximum
 
 
 class TestManifoldSampling(unittest.TestCase):

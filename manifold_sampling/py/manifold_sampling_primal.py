@@ -51,6 +51,7 @@ from .choose_generator_set import choose_generator_set
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
     # Deduce p from evaluating Ffun at x0
     try:
@@ -81,7 +82,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
                 print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
-                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, -1) 
+                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, -1)
                 return X, F, h, xkin, flag
             if nf + 1 >= nfmax:
                 flag = 0
