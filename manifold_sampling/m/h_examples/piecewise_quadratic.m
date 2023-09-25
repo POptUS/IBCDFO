@@ -55,7 +55,4 @@ elseif nargin == 2
         h(k) = (z - zs(:, j))' * Qs(:, :, j) * (z - zs(:, j)) + cs(j);
         grads(:, k) = 2 * Qs(:, :, j) * (z - zs(:, j));
     end
-
-else
-    error('Too many inputs to function');
 end

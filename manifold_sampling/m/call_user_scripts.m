@@ -38,7 +38,7 @@ function [nf, X, F, h, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, h, Hash
 
         [h_dummy1, grad_dummy1, hash_dummy] = hfun(F(nf, :));
         [h_dummy2, grad_dummy2] = hfun(F(nf, :), hash_dummy);
-        assert(any(h_dummy1 == h_dummy2), "hfun values don't agree when being re-called with the same inputs");
-        assert(all(all(grad_dummy1 == grad_dummy2)), "hfun gradients don't agree when being re-called with the same inputs");
+        assert(any(h_dummy1 == h_dummy2), ['hfun values do not agree when ' func2str(hfun) ' is re-called with the same inputs']);
+        assert(all(all(grad_dummy1 == grad_dummy2)), ['hfun gradients do not agree when '  func2str(hfun) ' is re-called with the same inputs']);
     end
 end

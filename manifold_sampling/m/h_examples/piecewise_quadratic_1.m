@@ -1,6 +1,6 @@
 function [h, grads, Hash] = piecewise_quadratic_1(z, H0)
 % Evaluates the piecewise quadratic function
-%   max_j { 0.5*z'*Q_j*z + c_j'*z + b_j }
+%   max_j { 0.5*z'*Qs_j*z + zs_j'*z + cs_j }
 %
 % Inputs:
 %  z:              [1 x p]   point where we are evaluating h
@@ -11,14 +11,15 @@ function [h, grads, Hash] = piecewise_quadratic_1(z, H0)
 %  grads: [p x l]                 gradients of each of the l quadratics active at z
 %  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
 
+global Qs zs cs
+
 z = z(:);
-global Q c b
 
 if nargin == 1
-    J = length(b);
+    [n, J] = size(zs);
     manifolds = zeros(1, J);
     for j = 1:J
-        manifolds(j) = 0.5 * z' * Q(:, :, j) * z + c(:, j)' * z + b(j);
+        manifolds(j) = 0.5 * z' * Qs(:, :, j) * z + zs(:, j)' * z + cs(j);
     end
 
     h = max(manifolds);
@@ -27,11 +28,12 @@ if nargin == 1
     rtol = 1e-12;
     inds = find(abs(h - manifolds) <= atol + rtol * abs(h - manifolds));
 
-    grads = Q(:, :, inds) * z + c(:, inds);
+    grads = zeros(n, length(inds));
 
     Hash = cell(1, length(inds));
     for j = 1:length(inds)
         Hash{j} = int2str(inds(j));
+        grads(:, j) = Qs(:, :, inds(j)) * z + zs(:, inds(j));
     end
 
 elseif nargin == 2
@@ -41,10 +43,7 @@ elseif nargin == 2
 
     for k = 1:J
         j = str2num(H0{k});
-        h(k) = 0.5 * z' * Q(:, :, j) * z + c(:, j)' * z + b(j);
-        grads(:, k) = Q(:, :, j) * z + c(:, j);
+        h(k) = 0.5 * z' * Qs(:, :, j) * z + zs(:, j)' * z + cs(j);
+        grads(:, k) = Qs(:, :, j) * z + zs(:, j);
     end
-
-else
-    error('Too many inputs to function');
 end

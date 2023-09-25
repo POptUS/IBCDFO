@@ -14,18 +14,17 @@ function [h, grads, Hash] = quantile(z, H0)
 q = 2; % hard-coded. Eventually, make global or (preferred) pass it in as an argument.
 
 z = z(:);
-n = length(z);
-z2 = z.^2;
-[sortedz2, sort_inds] = sort(z2);
 
 if nargin == 1
+    z2 = z.^2;
+    sortedz2 = sort(z2);
     h = sortedz2(q);
 
     atol = 1e-8;
     rtol = 1e-8;
     inds = find(abs(h - z2) <= atol + rtol * abs(z2));
 
-    grads = zeros(n, length(inds));
+    grads = zeros(length(z), length(inds));
 
     Hash = cell(1, length(inds));
     for j = 1:length(inds)
@@ -37,14 +36,10 @@ elseif nargin == 2
     J = length(H0);
     h = zeros(1, J);
     grads = zeros(length(z), J);
-    z = z(sort_inds);
 
     for k = 1:J
         j = str2num(H0{k});
         h(k) = z(j)^2;
         grads(j, k) = 2 * z(j);
     end
-
-else
-    error('Too many inputs to function');
 end
