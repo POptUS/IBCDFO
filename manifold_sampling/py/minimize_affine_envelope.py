@@ -14,13 +14,9 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     ff = np.concatenate((np.array([[1]]), np.zeros((n, 1))))
     x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
 
-    if subprob_switch == "GAMS_QCP":
-        # Implement solve_matts_QCP function here
-        pass
-    elif subprob_switch == "GAMS_LP":
-        # Implement solve_matts_LP function here
-        pass
-    elif subprob_switch == "linprog":
+    assert subprob_switch == "linprog", "Unrecognized subprob_switch"
+
+    if subprob_switch == "linprog":
         options = {"disp": False}
         try:
             res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0)
@@ -39,8 +35,6 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             duals_g = -1.0 * res.ineqlin.marginals
             duals_u = -1.0 * res.upper.marginals[1:] * normA
             duals_l = res.lower.marginals[1:] * normA
-    else:
-        raise ValueError("Unrecognized subprob_switch")
 
     lambda_star = np.zeros(G_k.shape[1])
     lambda_star[cols] = duals_g
