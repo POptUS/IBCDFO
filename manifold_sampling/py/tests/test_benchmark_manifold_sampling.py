@@ -68,7 +68,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
         else:
-            if hfun.__name__ == "pw_maximum_squared" and nprob == 0:
+            if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
                 nfmax = 10000
             else:
                 nfmax = 50
