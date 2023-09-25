@@ -1,25 +1,20 @@
 # This wrapper tests various algorithms against the Benchmark functions from the
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 import os
-import sys
 
 import numpy as np
 import scipy as sp
 import scipy.io as sio
 
-sys.path.append("../")
-sys.path.append("../../../../BenDFO/py/")
-sys.path.append("../h_examples/")
-
 from calfun import calfun
 from dfoxs import dfoxs
-from manifold_sampling_primal import manifold_sampling_primal
-from piecewise_quadratic import piecewise_quadratic
-from pw_maximum import pw_maximum
-from pw_maximum_squared import pw_maximum_squared
-from pw_minimum import pw_minimum
-from pw_minimum_squared import pw_minimum_squared
-from quantile import quantile
+from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
+from ibcdfo.manifold_sampling.h_examples.piecewise_quadratic import piecewise_quadratic
+from ibcdfo.manifold_sampling.h_examples.pw_maximum import pw_maximum
+from ibcdfo.manifold_sampling.h_examples.pw_maximum_squared import pw_maximum_squared
+from ibcdfo.manifold_sampling.h_examples.pw_minimum import pw_minimum
+from ibcdfo.manifold_sampling.h_examples.pw_minimum_squared import pw_minimum_squared
+from ibcdfo.manifold_sampling.h_examples.quantile import quantile
 
 if not os.path.exists("benchmark_results"):
     os.makedirs("benchmark_results")
@@ -38,7 +33,7 @@ Qzb = sio.loadmat("mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_nor
 nfmax = 50
 factor = 10
 subprob_switch = "linprog"
-dfo = np.loadtxt("../../../../BenDFO/data/dfo.dat")
+dfo = np.loadtxt("dfo.dat")
 filename = "./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat"
 
 Results = {}
