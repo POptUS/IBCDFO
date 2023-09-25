@@ -15,8 +15,8 @@ from ibcdfo.manifold_sampling.h_examples.pw_minimum_squared import pw_minimum_sq
 from ibcdfo.manifold_sampling.h_examples.quantile import quantile
 from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
 
-if not os.path.exists("benchmark_results"):
-    os.makedirs("benchmark_results")
+if not os.path.exists("msp_benchmark_results"):
+    os.makedirs("msp_benchmark_results")
 
 if not os.path.exists("mpc_test_files_smaller_Q"):
     os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
@@ -82,4 +82,4 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
 
-    sp.io.savemat("./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat", Results)
+    sp.io.savemat("./msp_benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat", Results)
