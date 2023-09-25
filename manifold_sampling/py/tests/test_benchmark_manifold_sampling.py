@@ -62,11 +62,6 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     zs = Qzb["z_mat"][probs_to_solve[row], 0]
     cs = Qzb["b_mat"][probs_to_solve[row], 0]
 
-    if nprob < 2:
-        nfmax = 10000
-    else:
-        nfmax = 50
-
     for i, hfun in enumerate(hfuns):
         if hfun.__name__ == "piecewise_quadratic":
 
@@ -75,6 +70,11 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
         else:
+            if hfun.__name__ == "pw_maximum_squared" and nprob == 0:
+                nfmax = 10000
+            else:
+                nfmax = 50
+
             X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
