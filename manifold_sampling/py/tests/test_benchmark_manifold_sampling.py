@@ -35,9 +35,8 @@ dfo = np.loadtxt("dfo.dat")
 Results = {}
 probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
-
 subprob_switch = "linprog"
-
+nfmax = 50
 
 hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
