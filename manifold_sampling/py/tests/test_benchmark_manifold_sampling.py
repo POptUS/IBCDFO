@@ -30,11 +30,7 @@ D_L1_loss = np.loadtxt("mpc_test_files_smaller_Q/D_for_benchmark_probs.csv", del
 # Defines data for piecewise_quadratic h instances
 Qzb = sio.loadmat("mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized_subset.mat")
 
-nfmax = 50
-factor = 10
-subprob_switch = "linprog"
 dfo = np.loadtxt("dfo.dat")
-filename = "./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat"
 
 Results = {}
 probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
@@ -50,7 +46,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     m = int(m)
     LB = -np.inf * np.ones((1, n))
     UB = np.inf * np.ones((1, n))
-    x0 = dfoxs(n, nprob, factor**factor_power)
+    x0 = dfoxs(n, nprob, 10**factor_power)
 
     def Ffun(y):
         out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
@@ -65,6 +61,11 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     Qs = Qzb["Q_mat"][probs_to_solve[row], 0]
     zs = Qzb["z_mat"][probs_to_solve[row], 0]
     cs = Qzb["b_mat"][probs_to_solve[row], 0]
+
+    if nprob < 2:
+        nfmax = 10000
+    else:
+        nfmax = 50
 
     for i, hfun in enumerate(hfuns):
         if hfun.__name__ == "piecewise_quadratic":
@@ -83,4 +84,4 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
 
-    sp.io.savemat(filename, Results)
+    sp.io.savemat("./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat", Results)
