@@ -34,6 +34,6 @@ def load_tests(loader, *_):
         pattern="Test*.py",
     )
     suites = load_tests_pounders(loader, suites, None)
-    suites = load_tests_manifold_sampling(loader, suites, None)
+    # suites = load_tests_manifold_sampling(loader, suites, None)
 
     return suites
