@@ -89,7 +89,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 return X, F, h, xkin, flag
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-            D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
+            D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
             G_k = Gres @ D_k
             beta = np.maximum(0, f_bar - h[xkin])
 
@@ -131,7 +131,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 break
             else:
                 # Line 18: Check temporary activities after adding TRSP solution to X
-                __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
+                __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
                 if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
