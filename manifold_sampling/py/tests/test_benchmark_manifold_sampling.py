@@ -47,7 +47,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     x0 = dfoxs(n, nprob, 10**factor_power)
 
     def Ffun(y):
-        out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
+        out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 

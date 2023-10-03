@@ -67,7 +67,7 @@ class TestPounders(unittest.TestCase):
             return x + (x**2)
 
         # Sample calling syntax for pounders
-        # func is a function imported from calFun.py as calFun
+        # func is the "simulation" vector-output function 
         func = vecFun
         # n [int] Dimension (number of continuous variables)
         n = 2
