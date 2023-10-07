@@ -18,8 +18,8 @@ def call_beamline_simulation(x):
 
 # Adjust these:
 n = 4  # Number of parameters to be optimized
-X0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
-nfmax = int(100)  # Max number of evaluations to be used by optimizer
+X_0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
+nf_max = int(100)  # Max number of evaluations to be used by optimizer
 Low = -1 * np.ones((1, n))  # 1-by-n Vector of lower bounds
 Upp = np.ones((1, n))  # 1-by-n Vector of upper bounds
 printf = True
@@ -28,18 +28,21 @@ printf = True
 hfun = general_h_funs.emittance_h
 combinemodels = general_h_funs.emittance_combine
 m = 3  # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
-gtol = 1e-8  # Stopping tolerance
-delta = 0.1  # Initial trust-region radius
-mpmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
+g_tol = 1e-8  # Stopping tolerance
+delta_0 = 0.1  # Initial trust-region radius
 F0 = np.zeros((1, m))  # Initial evaluations (parameters with completed simulations)
-F0[0] = call_beamline_simulation(X0)
-nfs = 1  # Number of initial evaluations
+F0[0] = call_beamline_simulation(X_0)
+n0fs = 1  # Number of initial evaluations
 xind = 0  # Index in F0 for starting the optimization (usually the point with minimal emittance)
 
-# The call to the method
-[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X0, n, mpmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, 1, hfun, combinemodels)
+Options = {}
+Options['hfun'] = hfun
+Options['combinemodels'] = combinemodels
 
-assert flag != 1, "pounders crashed"
+# The call to the method
+[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options = Options)
+
+assert flag >= 0, "pounders crashed"
 
 h = np.zeros(Fout.shape[0])
 
