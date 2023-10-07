@@ -114,8 +114,8 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
         X = []
         F = []
         return X, F, flag, xkin
-    maxdelta = min(0.5 * np.min(U - L), (10**3) * delta)
-    mindelta = min(delta * (10**-13), g_tol / 10)
+    delta_max = min(0.5 * np.min(U - L), (10**3) * delta)
+    delta_min = min(delta * (10**-13), g_tol / 10)
     gam0 = 0.5
     gam1 = 2
     eta1 = 0.05
@@ -283,9 +283,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                 xkin = nf  # Change current center
             # 4b. Update the trust-region radius:
             if (rho >= eta1) and (step_norm > 0.75 * delta):
-                delta = min(delta * gam1, maxdelta)
+                delta = min(delta * gam1, delta_max)
             elif valid:
-                delta = max(delta * gam0, mindelta)
+                delta = max(delta * gam0, delta_min)
         else:  # Don't evaluate f at Xsp
             rho = -1  # Force yourself to do a model-improving point
             if printf:

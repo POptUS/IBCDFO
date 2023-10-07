@@ -73,7 +73,7 @@ Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
 H_mm = zeros(n);
 
-while nf < nfmax && delta > tol.mindelta
+while nf < nfmax && delta > tol.delta_min
     bar_delta = delta;
 
     % Line 3: manifold sampling while loop
@@ -118,7 +118,7 @@ while nf < nfmax && delta > tol.mindelta
         [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
         % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
-        if chi_k <= tol.gtol && delta <= tol.mindelta
+        if chi_k <= tol.gtol && delta <= tol.delta_min
             disp('Convergence satisfied: small stationary measure and small delta');
             X = X(1:nf, :);
             F = F(1:nf, :);
@@ -174,7 +174,7 @@ while nf < nfmax && delta > tol.mindelta
         end
     else
         % Line 21: iteration is unsuccessful; shrink Delta
-        delta = max(bar_delta * tol.gamma_dec, tol.mindelta);
+        delta = max(bar_delta * tol.gamma_dec, tol.delta_min);
         % h_activity_tol = min(1e-8, delta);
     end
 

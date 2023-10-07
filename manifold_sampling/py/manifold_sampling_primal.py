@@ -71,7 +71,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
     H_mm = np.zeros((n, n))
 
-    while nf + 1 < nfmax and delta > tol["mindelta"]:
+    while nf + 1 < nfmax and delta > tol["delta_min"]:
         bar_delta = delta
 
         # Line 3: manifold sampling while loop
@@ -111,7 +111,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             __, __, chi_k, __ = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
-            if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
+            if chi_k <= tol["gtol"] and delta <= tol["delta_min"]:
                 print("Convergence satisfied: small stationary measure and small delta")
                 X = X[: nf + 1]
                 F = F[: nf + 1]
@@ -155,7 +155,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 # h_activity_tol = min(1e-8, delta);
         else:
             # Line 21: iteration is unsuccessful; shrink Delta
-            delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
+            delta = max(bar_delta * tol["gamma_dec"], tol["delta_min"])
             # h_activity_tol = min(1e-8, delta);
         print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
 

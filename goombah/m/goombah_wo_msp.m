@@ -89,7 +89,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
         %     % ================================
 
         % Convergence test: tiny master model gradient and tiny delta
-        if ng <= tol.gtol && delta <= tol.mindelta
+        if ng <= tol.gtol && delta <= tol.delta_min
             disp('g is sufficiently small');
             X = X(1:nf, :);
             F = F(1:nf, :);
@@ -112,7 +112,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
 
             [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), GAMS_options, hfun);
             if pred_dec == 0
-                if delta <= tol.mindelta
+                if delta <= tol.delta_min
                     X = X(1:nf, :);
                     F = F(1:nf, :);
                     h = h(1:nf, :);
@@ -140,11 +140,11 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
 
         if rho_k > tol.eta1
             if norm(X(xkin, :) - X(nf, :), 'inf') >= 0.9 * delta
-                delta = min(delta * tol.gamma_inc, tol.maxdelta);
+                delta = min(delta * tol.gamma_inc, tol.delta_max);
             end
             xkin = nf;
         else
-            delta = max(delta * tol.gamma_dec, tol.mindelta);
+            delta = max(delta * tol.gamma_dec, tol.delta_min);
         end
         fprintf('nf: %8d; fval: %8e; ||g||: %8e; radius: %8e; \n', nf, h(xkin), ng, delta);
     end
