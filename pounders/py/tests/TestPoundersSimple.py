@@ -30,7 +30,7 @@ class TestPounders(unittest.TestCase):
 
         spsolver = 1
         nfmax = 1000
-        gtol = 1e-13
+        g_tol = 1e-13
         n = 3
         m = 3
 
@@ -46,12 +46,12 @@ class TestPounders(unittest.TestCase):
 
         np.random.seed(1)
 
-        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
+        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
         F0 = np.array([1.0, 2.0])
         nfs = 2
-        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
+        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U, printf, spsolver)
         self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
     def test_basic_pounders_usage(self):
@@ -77,8 +77,8 @@ class TestPounders(unittest.TestCase):
         npmax = int(0.5 * (n + 1) * (n + 2))
         # nfmax [int] Maximum number of function evaluations (>n+1) (100)
         nfmax = 60
-        # gtol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-        gtol = 10**-13
+        # g_tol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
+        g_tol = 10**-13
         # delta [dbl] Positive trust region radius (.1)
         delta = 0.1
         # nfs [int] Number of function values (at X0) known in advance (0)
@@ -103,7 +103,7 @@ class TestPounders(unittest.TestCase):
             X0[i, :] = X0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
             F0[i, :] = func(X0[i, :])
 
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver)
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
@@ -115,7 +115,7 @@ class TestPounders(unittest.TestCase):
         X0 = np.ones((n, 1))  # Test giving of column vector
         npmax = 2 * n + 1
         nfmax = 200
-        gtol = 10**-13
+        g_tol = 10**-13
         delta = 0.1
         nfs = 1
         m = 1
@@ -128,7 +128,7 @@ class TestPounders(unittest.TestCase):
 
         hfun = lambda F: F
 
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
         self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
@@ -142,7 +142,7 @@ class TestPounders(unittest.TestCase):
         X0 = 0.4 * np.ones(n)
         npmax = 2 * n + 1
         nfmax = 200
-        gtol = 10**-13
+        g_tol = 10**-13
         delta = 0.1
         nfs = 0
         m = n
@@ -155,6 +155,6 @@ class TestPounders(unittest.TestCase):
 
         hfun = lambda F: -1.0 * np.sum(F**2)
 
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 
         self.assertTrue(np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds.")

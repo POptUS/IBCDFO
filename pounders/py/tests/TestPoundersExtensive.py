@@ -21,7 +21,7 @@ class TestPounders(unittest.TestCase):
 
         spsolver = 2  # TRSP solver
         nfmax = 50
-        gtol = 1e-13
+        g_tol = 1e-13
         factor = 10
 
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
@@ -69,7 +69,7 @@ class TestPounders(unittest.TestCase):
 
                 filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
 
-                [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
+                [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
 
                 evals = F.shape[0]
                 h = np.zeros(evals)

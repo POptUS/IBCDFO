@@ -28,7 +28,7 @@ function [X, f] = bqmin(A, B, L, U)
 % --INTERNAL PARAMETERS----------------------------------------------------
 n = size(A, 2); % [int] Dimension (number of continuous variables)
 maxit = 5000; % [int] maximum number of iterations
-pgtol = 1e-13; % [dbl] tolerance on final projected gradient
+pg_tol = 1e-13; % [dbl] tolerance on final projected gradient
 % -------------------------------------------------------------------------
 
 % Make everything a column vector:
@@ -43,7 +43,7 @@ G = A * X + B;
 Projg = X - max(min(X - G, U), L); % Projected gradient
 
 it = 0; % Iteration counter
-while it < maxit && norm(Projg) > pgtol
+while it < maxit && norm(Projg) > pg_tol
     it = it + 1;
 
     % Simple line search along the projected gradient

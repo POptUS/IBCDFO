@@ -2,7 +2,7 @@
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 %
 % [flag,X0,npmax,F0,L,U] = ...
-%          checkinputss(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U)
+%          checkinputss(fun,X0,n,npmax,nfmax,g_tol,delta,nfs,m,F0,xkin,L,U)
 %
 % Checks the inputs provided to pounders.
 % A warning message is produced if a nonfatal input is given (and the
@@ -17,7 +17,7 @@
 %             = -1 if a fatal error was produced (pounders terminates)
 %
 function [flag, X0, npmax, F0, L, U] = ...
-    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)
+    checkinputss(fun, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U)
 
 flag = 1; % By default, everything is OK
 
@@ -55,8 +55,8 @@ if nfmax < 1
     disp('  Error: max number of evaluations is less than 1');
     flag = -1;
     return
-elseif gtol <= 0
-    disp('  Error: gtol must be positive');
+elseif g_tol <= 0
+    disp('  Error: g_tol must be positive');
     flag = -1;
     return
 elseif delta <= 0

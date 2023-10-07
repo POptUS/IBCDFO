@@ -16,7 +16,7 @@ def check_inputs_and_initialize(x0, F0, nfmax):
     tol = {
         "delta_max": 1,
         "delta_min": 1e-13,
-        "gtol": 1e-13,
+        "g_tol": 1e-13,
         "norm_g_change": 0.001,
         "kappa_d": 0.0001,
         "eta1": 0.01,

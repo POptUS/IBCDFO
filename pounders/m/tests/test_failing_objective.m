@@ -7,7 +7,7 @@ function [] = test_failing_objective()
 spsolver = 1;
 
 nfmax = 1000;
-gtol = 1e-13;
+g_tol = 1e-13;
 n = 3;
 m = 3;
 
@@ -25,9 +25,9 @@ printf = 0;
 rand('seed', 1);
 objective = @(x)failing_objective(x);
 
-[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver);
+[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U, printf, spsolver);
 assert(flag == -3, "No NaN was encountered in this test, but (with high probability) should have been.");
 
 % Intentionally not passing a function for an objective
-[X, F, flag, xk_best] = pounders(X0, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver);
+[X, F, flag, xk_best] = pounders(X0, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U, printf, spsolver);
 assert(flag == -1, "Should have failed");

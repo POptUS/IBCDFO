@@ -27,14 +27,14 @@ def bqmin(A, B, L, U):
     # Internal Parameters
     n = np.shape(A)[1]  # [int] Dimension (number of continuous variables)
     maxit = 5000  # [int] maximum number of iterations
-    pgtol = 1e-13  # [dbl] tolerance on final projected gradient
+    pg_tol = 1e-13  # [dbl] tolerance on final projected gradient
     # Initial point (assumed feasible by L <= 0 <= U)
     X = np.zeros(n)
     f = X.T @ (0.5 * A @ X + B)
     G = A @ X + B
     Projg = X - np.maximum(np.minimum(X - G, U), L)  # Projected gradient
     it = 0  # iteration counter
-    while it < maxit and np.linalg.norm(Projg, 2) > pgtol:
+    while it < maxit and np.linalg.norm(Projg, 2) > pg_tol:
         it += 1
         # Simple line search along the projected gradient
         t = 1  # By default take the full step

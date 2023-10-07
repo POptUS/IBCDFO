@@ -2,7 +2,7 @@
 % "Geometry points need to be coordinate directions!"
 
 nfmax = 100;
-gtol = 1e-13;
+g_tol = 1e-13;
 
 n = 2;
 m = n;
@@ -28,4 +28,4 @@ nfs = 3; % Points that have been evaluated
 xkin = 1; % Best point's index in X0
 delta = 1e3; % Starting TR radius
 
-[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, 0, 1);
+[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U, 0, 1);

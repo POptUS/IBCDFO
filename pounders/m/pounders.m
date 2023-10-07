@@ -2,7 +2,7 @@
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
 function [X, F, flag, xkin] = ...
-    pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels)
+    pounders(fun, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels)
 
 if ~exist('hfun', 'var')
     % Use least-squares hfun by default
@@ -18,7 +18,7 @@ if ~exist('printf', 'var')
 end
 % 0. Check inputs
 [flag, X0, npmax, F0, L, U] = ...
-    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U);
+    checkinputss(fun, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U);
 if flag == -1 % Problem with the input
     X = [];
     F = [];
@@ -27,7 +27,7 @@ end
 
 % --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
 delta_max = min(.5 * min(U - L), 1e3 * delta); % [dbl] Maximum tr radius
-delta_min = min(delta * 1e-13, gtol / 10); % [dbl] Min tr radius (technically 0)
+delta_min = min(delta * 1e-13, g_tol / 10); % [dbl] Min tr radius (technically 0)
 gam0 = .5;      % [dbl] Parameter in (0,1) for shrinking delta  (.5)
 gam1 = 2;       % [dbl] Parameter >1 for enlarging delta   (2)
 eta1 = .05;     % [dbl] Parameter 2 for accepting point, 0<eta1<1 (.2)
@@ -163,9 +163,9 @@ while nf < nfmax
     end
 
     % 2. Criticality test invoked if the projected model gradient is small
-    if ng < gtol
-        % Check to see if the model is valid within a region of size gtol
-        delta = max(gtol, max(abs(X(xkin, :))) * eps); % Safety for tiny gtols
+    if ng < g_tol
+        % Check to see if the model is valid within a region of size g_tol
+        delta = max(g_tol, max(abs(X(xkin, :))) * eps); % Safety for tiny g_tols
         [Mdir, ~, valid] = ...
             formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 1);
         if ~valid % Make model valid in this small region
@@ -194,7 +194,7 @@ while nf < nfmax
             ind_Unotbinding = and(X(xkin, :) < U, G' < 0);
             ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
         end
-        if ng < gtol % We trust the small gradient norm and return
+        if ng < g_tol % We trust the small gradient norm and return
             [X, F, flag] = prepare_outputs_before_return(X, F, nf, 0);
             return
         end

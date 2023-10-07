@@ -58,7 +58,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
         pass
 
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
-    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars["npmax"], nfmax, tol["gtol"], delta, 1, len(F0), F0, xkin, L, U)
+    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars["npmax"], nfmax, tol["g_tol"], delta, 1, len(F0), F0, xkin, L, U)
     if flag == -1:
         X = x0
         F = F0
@@ -111,7 +111,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             __, __, chi_k, __ = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
-            if chi_k <= tol["gtol"] and delta <= tol["delta_min"]:
+            if chi_k <= tol["g_tol"] and delta <= tol["delta_min"]:
                 print("Convergence satisfied: small stationary measure and small delta")
                 X = X[: nf + 1]
                 F = F[: nf + 1]

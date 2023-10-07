@@ -89,7 +89,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
         %     % ================================
 
         % Convergence test: tiny master model gradient and tiny delta
-        if ng <= tol.gtol && delta <= tol.delta_min
+        if ng <= tol.g_tol && delta <= tol.delta_min
             disp('g is sufficiently small');
             X = X(1:nf, :);
             F = F(1:nf, :);

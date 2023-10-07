@@ -7,7 +7,7 @@
 function [] = test_bounds_and_sp1()
 
 nfmax = 100;
-gtol = 1e-13;
+g_tol = 1e-13;
 factor = 10;
 
 load dfo.dat;
@@ -63,7 +63,7 @@ for row = [7, 8]
                 combinemodels = @neg_leastsquares;
             end
 
-            [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+            [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
 
             if flag == 0
                 check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
@@ -76,7 +76,7 @@ end
 minq_location = '../../../../minq/m/minq5/';
 addpath(minq_location);
 
-[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U);
+[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U);
 assert(flag == 0, "Test didn't complete");
 end
 

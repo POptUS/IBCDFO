@@ -1,8 +1,8 @@
 % Compares the matlab and python implementations of a method.
 
-% method = 'orbit'; gtol = 1e-9;
+% method = 'orbit'; g_tol = 1e-9;
 method = 'pounders';
-gtol = 1e-13;
+g_tol = 1e-13;
 
 spsolver = 2;
 LW = 2;
@@ -15,7 +15,7 @@ probtype = 'smooth';
 countm = 0;
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_g_tol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename)
             if strcmp(hfun, 'leastsquares')
                 col = 1;
@@ -34,7 +34,7 @@ end
 countpy = 0;
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_g_tol=' num2str(g_tol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename)
             P1 = load(filename);
             countpy = countpy + 1';
@@ -105,8 +105,8 @@ end
 
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename_m = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
-        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename_m = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_g_tol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_g_tol=' num2str(g_tol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename_p)
             M1 = load(filename_m);
             P1 = load(filename_p);

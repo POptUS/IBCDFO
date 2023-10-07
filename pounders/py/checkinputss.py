@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
+def checkinputss(fun, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U):
     """
-    checkinputss(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U) -> [flag,X0,npmax,F0,L,U]
+    checkinputss(fun,X0,n,npmax,nfmax,g_tol,delta,nfs,m,F0,xkin,L,U) -> [flag,X0,npmax,F0,L,U]
     Checks the inputs provided to pounders.
     A warning message is produced if a nonfatal input is given (and the input is changed accordingly).
     An error message (flag=-1) is produced if the pounders cannot continue.
@@ -46,8 +46,8 @@ def checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U):
         print("Error: max number of evaluations is less than 1")
         flag = -1
         return [flag, X0, npmax, F0, L, U, xkin]
-    elif gtol <= 0:
-        print("Error: gtol must be positive")
+    elif g_tol <= 0:
+        print("Error: g_tol must be positive")
         flag = -1
         return [flag, X0, npmax, F0, L, U, xkin]
     elif delta <= 0:
