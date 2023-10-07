@@ -71,34 +71,35 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
-    if 'hfun' in Options:
-        hfun = Options['hfun'] 
-        combinemodels = Options['combinemodels']
+    if "hfun" in Options:
+        hfun = Options["hfun"]
+        combinemodels = Options["combinemodels"]
 
     else:
+
         def hfun(F):
             return np.sum(F**2)
 
         from .general_h_funs import leastsquares as combinemodels
 
-    if 'Par' not in Model:
-        Model['Par'] = np.zeros(4)
-        Model['Par'][0] = np.sqrt(n)
-        Model['Par'][1] = max(10, np.sqrt(n))
-        Model['Par'][2] = 10**-3
-        Model['Par'][3] = 0.001
-    if 'npmax' not in Model:
-        Model['npmax'] = 2*n+1
-    if Prior=={}:
-        Prior['nfs'] = 0
-        Prior['X_init'] = []
-        Prior['F_init'] = []
-        Prior['xk_init'] = 0
+    if "Par" not in Model:
+        Model["Par"] = np.zeros(4)
+        Model["Par"][0] = np.sqrt(n)
+        Model["Par"][1] = max(10, np.sqrt(n))
+        Model["Par"][2] = 10**-3
+        Model["Par"][3] = 0.001
+    if "npmax" not in Model:
+        Model["npmax"] = 2 * n + 1
+    if Prior == {}:
+        Prior["nfs"] = 0
+        Prior["X_init"] = []
+        Prior["F_init"] = []
+        Prior["xk_init"] = 0
 
-    nfs = Prior['nfs']
-    spsolver = Options.get('spsolver', 2)
+    nfs = Prior["nfs"]
+    spsolver = Options.get("spsolver", 2)
     delta = delta_0
-    printf = Options.get('printf', 0)
+    printf = Options.get("printf", 0)
 
     # choose your spsolver
     if spsolver == 2:
@@ -108,7 +109,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
-    [flag, X_0, npmax, F0, L, U, xkin] = checkinputss(fun, X_0, n, Model['npmax'], nf_max, g_tol, delta_0, Prior['nfs'], m, Prior['F_init'], Prior['xk_init'], L, U)
+    [flag, X_0, npmax, F0, L, U, xkin] = checkinputss(fun, X_0, n, Model["npmax"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
     if flag == -1:
         X = []
         F = []
@@ -122,7 +123,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
         progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
-    if Prior['nfs'] == 0:
+    if Prior["nfs"] == 0:
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
         nf = 0  # in Matlab this is 1
@@ -152,9 +153,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xkin]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model['npmax'], Model['Par'], 0)
+        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 0)
         if mp < n:
-            [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Model['Par'][2])
+            [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Model["Par"][2])
             for i in range(int(min(n - mp, nf_max - (nf + 1)))):
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
@@ -169,7 +170,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
                 break
-            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model['npmax'], Model['Par'], False)
+            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], False)
             if mp < n:
                 X, F, flag = prepare_outputs_before_return(X, F, nf, -5)
                 return
@@ -200,9 +201,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
             delta = max(g_tol, np.max(np.abs(X[xkin])) * eps)
-            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model['npmax'], Model['Par'], 1)
+            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 1)
             if not valid:
-                [Mdir, mp] = bmpts(X[xkin], Mdir, L, U, delta, Model['Par'][2])
+                [Mdir, mp] = bmpts(X[xkin], Mdir, L, U, delta, Model["Par"][2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
                     nf += 1
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
@@ -216,7 +217,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
-                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model['npmax'], Model['Par'], 0)
+                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 0)
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
                 ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
@@ -292,19 +293,19 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta1):  # Implies xkin, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
-            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model['npmax'], Model['Par'], 1)
+            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 1)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xkin unchanged)
                 D = X[: nf + 1] - X[xkin]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, Model['npmax'], Model['Par'], False)
+                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
                 # Evaluate model-improving points to pick best one
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions
-                [Mdir1, mp1] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Par[2])
+                [Mdir1, mp1] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Model["Par"][2])
                 for i in range(n - mp1):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
@@ -312,7 +313,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                 a1 = np.min(Res[: n - mp1, 0:1])
                 Xsp = Mdir1[b, :]
                 # Minus directions
-                [Mdir1, mp2] = bmpts(X[xkin], -Mdir[0 : n - mp, :], L, U, delta, Par[2])
+                [Mdir1, mp2] = bmpts(X[xkin], -Mdir[0 : n - mp, :], L, U, delta, Model["Par"][2])
                 for i in range(n - mp2):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)

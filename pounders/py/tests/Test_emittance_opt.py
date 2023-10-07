@@ -36,11 +36,11 @@ n0fs = 1  # Number of initial evaluations
 xind = 0  # Index in F0 for starting the optimization (usually the point with minimal emittance)
 
 Options = {}
-Options['hfun'] = hfun
-Options['combinemodels'] = combinemodels
+Options["hfun"] = hfun
+Options["combinemodels"] = combinemodels
 
 # The call to the method
-[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options = Options)
+[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options)
 
 assert flag >= 0, "pounders crashed"
 
