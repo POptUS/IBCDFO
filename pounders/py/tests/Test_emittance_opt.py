@@ -38,7 +38,7 @@ Options["hfun"] = hfun
 Options["combinemodels"] = combinemodels
 
 # The call to the method
-[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options)
+[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 
