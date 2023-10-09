@@ -46,12 +46,15 @@ class TestPounders(unittest.TestCase):
 
         np.random.seed(1)
 
-        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Options={'spsolver': spsolver, 'printf':printf})
+        Opts = {"spsolver": spsolver, "printf": printf}
+        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Options=Opts)
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
         F0 = np.array([1.0, 2.0])
         nfs = 2
-        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior={'X_init': X0, 'F_init': F0, 'nfs':2, 'xk_init': 0}, Options={'spsolver': spsolver, 'printf':printf})
+        Prior = {"X_init": X0, "F_init": F0, "nfs": 2, "xk_init": 0}
+        Opts = {"spsolver": spsolver, "printf": printf}
+        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
         self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
     def test_basic_pounders_usage(self):
@@ -101,7 +104,8 @@ class TestPounders(unittest.TestCase):
             X0[i, :] = X0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
             F0[i, :] = func(X0[i, :])
 
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options={'spsolver': spsolver, 'printf':True}, Model={})
+        Opts = {"spsolver": spsolver, "printf": True}
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
@@ -125,8 +129,8 @@ class TestPounders(unittest.TestCase):
         spsolver = 1
 
         hfun = lambda F: F
-
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options={'spsolver':1, 'hfun': hfun, 'combinemodels': combinemodels}, Model={})
+        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
 
         self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
@@ -153,6 +157,7 @@ class TestPounders(unittest.TestCase):
 
         hfun = lambda F: -1.0 * np.sum(F**2)
 
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options={'spsolver':1, 'hfun': hfun, 'combinemodels': combinemodels}, Model={})
+        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
 
         self.assertTrue(np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds.")

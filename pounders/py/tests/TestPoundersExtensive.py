@@ -68,8 +68,10 @@ class TestPounders(unittest.TestCase):
                     combinemodels = pdrs.emittance_combine
 
                 filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
+                Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
+                Prior = {"nfs": 1, "F_init": F0, "X_init": X0, "xk_init": xind}
 
-                [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior={'nfs':1, 'F_init': F0, 'X_init': X0, 'xk_init': xind},Options={'printf':printf, 'spsolver': spsolver, 'hfun': hfun, 'combinemodels':combinemodels}, Model = {})
+                [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
                 h = np.zeros(evals)
