@@ -35,12 +35,11 @@ class TestPounders(unittest.TestCase):
         m = 3
 
         X0 = np.array([10, 20, 30])
-        npmax = 2 * n + 1
         L = -np.inf * np.ones(n)
         U = np.inf * np.ones(n)
-        nfs = 0
-        F0 = []
-        xkin = 0
+        # nfs = 0
+        # F0 = []
+        # xkin = 0
         delta = 0.1
         printf = 0
 
@@ -51,7 +50,6 @@ class TestPounders(unittest.TestCase):
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
         F0 = np.array([1.0, 2.0])
-        nfs = 2
         Prior = {"X_init": X0, "F_init": F0, "nfs": 2, "xk_init": 0}
         Opts = {"spsolver": spsolver, "printf": printf}
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
@@ -77,7 +75,6 @@ class TestPounders(unittest.TestCase):
         # X0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
         X0 = np.zeros((10, 2))
         X0[0, :] = 0.5 * np.ones((1, 2))
-        npmax = int(0.5 * (n + 1) * (n + 2))
         # nfmax [int] Maximum number of function evaluations (>n+1) (100)
         nfmax = 60
         # g_tol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
@@ -104,8 +101,9 @@ class TestPounders(unittest.TestCase):
             X0[i, :] = X0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
             F0[i, :] = func(X0[i, :])
 
+        Prior = {"X_init": X0, "F_init": F0, "nfs": nfs, "xk_init": xind}
         Opts = {"spsolver": spsolver, "printf": True}
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={"npmax": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
@@ -115,7 +113,6 @@ class TestPounders(unittest.TestCase):
         n = 16
 
         X0 = np.ones((n, 1))  # Test giving of column vector
-        npmax = 2 * n + 1
         nfmax = 200
         g_tol = 10**-13
         delta = 0.1
@@ -125,12 +122,11 @@ class TestPounders(unittest.TestCase):
         xind = 0
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
-        printf = False
-        spsolver = 1
 
         hfun = lambda F: F
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
-        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
+        Prior = {"X_init": X0, "F_init": F0, "nfs": nfs, "xk_init": xind}
+        [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={}, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
@@ -142,22 +138,16 @@ class TestPounders(unittest.TestCase):
         n = 16
 
         X0 = 0.4 * np.ones(n)
-        npmax = 2 * n + 1
         nfmax = 200
         g_tol = 10**-13
         delta = 0.1
-        nfs = 0
         m = n
-        F0 = []
-        xind = 0
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
-        printf = 2
-        spsolver = 1
 
         hfun = lambda F: -1.0 * np.sum(F**2)
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
         [X, F, flag, xkin] = pdrs.pounders(func, X0, n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
 
         self.assertTrue(np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds.")

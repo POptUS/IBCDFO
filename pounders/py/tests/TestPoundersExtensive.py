@@ -40,7 +40,6 @@ class TestPounders(unittest.TestCase):
                 return np.squeeze(out)
 
             X0 = dfoxs(n, nprob, int(factor**factor_power))
-            npmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
             L = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
             U = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
             nfs = 1
