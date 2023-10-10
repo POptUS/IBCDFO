@@ -5,6 +5,7 @@ import numpy as np
 from .bmpts import bmpts
 from .bqmin import bqmin
 from .checkinputss import checkinputss
+from .initialize import initialize
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
@@ -116,9 +117,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
         return X, F, flag, xkin
     delta_max = min(0.5 * np.min(U - L), (10**3) * delta)
     delta_min = min(delta * (10**-13), g_tol / 10)
-    gam0 = 0.5
-    gam1 = 2
-    eta1 = 0.05
+    gamma_dec = 0.5
+    gamma_inc = 2
+    eta_1 = 0.05
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
@@ -277,21 +278,21 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                     rho = np.inf * np.sign(Fs[nf] - Fs[xkin])
 
             # 4a. Update the center
-            if (rho >= eta1) or (rho > 0 and valid):
+            if (rho >= eta_1) or (rho > 0 and valid):
                 # Update model to reflect new center
                 Cres = F[xkin]
                 xkin = nf  # Change current center
             # 4b. Update the trust-region radius:
-            if (rho >= eta1) and (step_norm > 0.75 * delta):
-                delta = min(delta * gam1, delta_max)
+            if (rho >= eta_1) and (step_norm > 0.75 * delta):
+                delta = min(delta * gamma_inc, delta_max)
             elif valid:
-                delta = max(delta * gam0, delta_min)
+                delta = max(delta * gamma_dec, delta_min)
         else:  # Don't evaluate f at Xsp
             rho = -1  # Force yourself to do a model-improving point
             if printf:
                 print("Warning: skipping sp soln!-----------")
         # 5. Evaluate a model-improving point if necessary
-        if not valid and (nf + 1 < nf_max) and (rho < eta1):  # Implies xkin, delta unchanged
+        if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xkin, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 1)
             if not valid:  # ! One strategy for choosing model-improving point:
