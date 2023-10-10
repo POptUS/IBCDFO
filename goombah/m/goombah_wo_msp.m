@@ -140,7 +140,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
 
         if rho_k > tol.eta1
             if norm(X(xkin, :) - X(nf, :), 'inf') >= 0.9 * delta
-                delta = min(delta * tol.gamma_inc, tol.delta_max);
+                delta = min(delta * tol.gamma_inc, tol.maxdelta);
             end
             xkin = nf;
         else
