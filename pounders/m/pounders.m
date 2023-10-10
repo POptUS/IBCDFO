@@ -27,7 +27,7 @@ end
 
 % --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
 delta_max = min(.5 * min(U - L), 1e3 * delta); % [dbl] Maximum tr radius
-delta_min = min(delta * 1e-13, g_tol / 10); % [dbl] Min tr radius (technically 0)
+mindelta = min(delta * 1e-13, g_tol / 10); % [dbl] Min tr radius (technically 0)
 gam0 = .5;      % [dbl] Parameter in (0,1) for shrinking delta  (.5)
 gam1 = 2;       % [dbl] Parameter >1 for enlarging delta   (2)
 eta1 = .05;     % [dbl] Parameter 2 for accepting point, 0<eta1<1 (.2)
@@ -278,7 +278,7 @@ while nf < nfmax
         if (rho >= eta1)  &&  (step_norm > .75 * delta)
             delta = min(delta * gam1, delta_max);
         elseif valid
-            delta = max(delta * gam0, delta_min);
+            delta = max(delta * gam0, mindelta);
         end
     else % Don't evaluate f at Xsp
         rho = -1; % Force yourself to do a model-improving point

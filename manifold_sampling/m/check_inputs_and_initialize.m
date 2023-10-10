@@ -19,7 +19,7 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
 
     % Internal parameters/tolerances for manifold sampling
     tol.delta_max = 1e8;
-    tol.delta_min = 1e-13;
+    tol.mindelta = 1e-13;
     tol.g_tol = 1e-13;
     tol.norm_g_change =  1e-3;  % Tolerance for the change of norm(g_k)
     tol.kappa_d = 1e-4;  % [dbl] > 0 fraction of Cauchy decrease
