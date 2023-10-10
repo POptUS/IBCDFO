@@ -132,7 +132,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nfmax, x0, L, U, GAMS_options, su
                 [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
                 % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
-                if chi_k <= tol.g_tol && delta <= tol.mindelta
+                if chi_k <= tol.gtol && delta <= tol.mindelta
                     disp('Convergence satisfied: small stationary measure and small delta');
                     X = X(1:nf, :);
                     F = F(1:nf, :);
