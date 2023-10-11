@@ -71,7 +71,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
-    print('Model inside pounders.py', Model)
+    print("Model inside pounders.py", Model)
     if "hfun" in Options:
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
