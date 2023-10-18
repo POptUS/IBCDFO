@@ -95,7 +95,6 @@ class TestPounders(unittest.TestCase):
         Low = np.zeros((1, n))
         # Upp [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
         Upp = np.ones((1, n))
-        spsolver = 2
 
         np.random.seed(1)
         F0[0, :] = func(X0[0, :])
