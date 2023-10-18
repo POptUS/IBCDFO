@@ -9,7 +9,19 @@ from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
-def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={}, Model={}):
+def _default_model_par_values(n):
+    par = np.zeros(4)
+    par[0] = np.sqrt(n)
+    par[1] = max(10, np.sqrt(n))
+    par[2] = 10**-3
+    par[3] = 0.001
+
+    return par
+
+def _default_model_npmax(n):
+    return 2 * n + 1
+
+def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={}, Model=None):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
       [X, F, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U)
@@ -71,6 +83,20 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
+    print("Fake Model at start of pounders.py", Model)
+    # Avoid mutable default value Python gotcha and set default full-featured,
+    # rich default value
+    if Model == None:
+        Model = {}
+        Model["Par"] = _default_model_par_values(n)
+        Model["npmax"] = _default_model_npmax(n)
+    else:
+        if "Par" not in Model:
+            Model["Par"] = _default_model_par_values(n)
+        if "npmax" not in Model:
+            Model["npmax"] = _default_model_npmax(n)
+    print("Final Model inside pounders.py", Model)
+
     if "hfun" in Options:
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
@@ -82,14 +108,6 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
 
         from .general_h_funs import leastsquares as combinemodels
 
-    if "Par" not in Model:
-        Model["Par"] = np.zeros(4)
-        Model["Par"][0] = np.sqrt(n)
-        Model["Par"][1] = max(10, np.sqrt(n))
-        Model["Par"][2] = 10**-3
-        Model["Par"][3] = 0.001
-    if "npmax" not in Model:
-        Model["npmax"] = 2 * n + 1
     if Prior == {}:
         Prior["nfs"] = 0
         Prior["X_init"] = []
