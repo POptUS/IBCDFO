@@ -83,7 +83,6 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
-    print("Fake Model at start of pounders.py", Model)
     # Avoid mutable default value Python gotcha and set default full-featured,
     # rich default value
     if Model == None:
@@ -95,7 +94,6 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
             Model["Par"] = _default_model_par_values(n)
         if "npmax" not in Model:
             Model["npmax"] = _default_model_npmax(n)
-    print("Final Model inside pounders.py", Model)
 
     if "hfun" in Options:
         hfun = Options["hfun"]
