@@ -104,8 +104,7 @@ class TestPounders(unittest.TestCase):
             F0[i, :] = func(X0[i, :])
 
         Prior = {"X_init": X0, "F_init": F0, "nfs": nfs, "xk_init": xind}
-        Opts = {"spsolver": spsolver, "printf": True}
-        [X, F, flag, xkin] = pdrs.pounders(func, X0[xind], n, nfmax, g_tol, delta, m, Low, Upp, Options=Opts, Model={"npmax": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
+        [X, F, flag, xkin] = pdrs.pounders(func, X0[xind], n, nfmax, g_tol, delta, m, Low, Upp, Model={"npmax": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
