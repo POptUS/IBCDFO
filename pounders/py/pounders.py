@@ -112,6 +112,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
         key_list = ["nfs", "X_init", "F_init", "xk_init"]
         assert set(Prior.keys()) == set(key_list), "Prior keys must be {key_list}"
         assert (np.atleast_2d(Prior["X_init"]).shape[0] == Prior["nfs"]) and (np.atleast_2d(Prior["F_init"]).shape[0] == Prior["nfs"]), "Prior X_init and F_init must have nfs rows"
+        if not np.array_equiv(np.atleast_2d(Prior["X_init"])[Prior["xk_init"]], X_0):
+            print("jeff", np.atleast_2d(Prior["X_init"])[Prior["xk_init"]])
+            print("jeff", X_0)
         assert np.array_equiv(np.atleast_2d(Prior["X_init"])[Prior["xk_init"]], X_0), "Starting point X_0 doesn't match row in Prior['X_init']"
 
     if Options is None:
