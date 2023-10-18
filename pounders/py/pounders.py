@@ -18,10 +18,22 @@ def _default_model_par_values(n):
 
     return par
 
+
 def _default_model_npmax(n):
     return 2 * n + 1
 
-def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={}, Model=None):
+
+def _default_prior():
+    Prior = {}
+    Prior["nfs"] = 0
+    Prior["X_init"] = []
+    Prior["F_init"] = []
+    Prior["xk_init"] = 0
+
+    return Prior
+
+
+def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=None, Model=None):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
       [X, F, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U)
@@ -83,9 +95,8 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
-    # Avoid mutable default value Python gotcha and set default full-featured,
-    # rich default value
-    if Model == None:
+    # Avoid mutable default value Python gotcha and set default full-featured, rich default value
+    if Model is None:
         Model = {}
         Model["Par"] = _default_model_par_values(n)
         Model["npmax"] = _default_model_npmax(n)
@@ -94,6 +105,17 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
             Model["Par"] = _default_model_par_values(n)
         if "npmax" not in Model:
             Model["npmax"] = _default_model_npmax(n)
+
+    if Prior is None:
+        Prior = _default_prior()
+    else:
+        key_list = ["nfs", "X_init", "F_init", "xk_init"]
+        assert set(Prior.keys()) == set(["nfs", "X_init", "F_init", "xk_init"]), "Prior keys must be {key_list}"
+        assert all(Prior["X_init"][Prior["xk_init"]] == X0), "Starting point X_0 doesn't match row in Prior['X_init']"
+        assert Prior["X_init"].shape(0) == Prior["nfs"] and Prior["F_init"].shape(0) == Prior["nfs"], "Prior X_init and F_init must have nfs rows"
+
+    if Options is None:
+        Options = {}
 
     if "hfun" in Options:
         hfun = Options["hfun"]
@@ -105,12 +127,6 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
             return np.sum(F**2)
 
         from .general_h_funs import leastsquares as combinemodels
-
-    if Prior == {}:
-        Prior["nfs"] = 0
-        Prior["X_init"] = []
-        Prior["F_init"] = []
-        Prior["xk_init"] = 0
 
     nfs = Prior["nfs"]
     spsolver = Options.get("spsolver", 2)
@@ -154,8 +170,8 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior={}, Options={},
         if printf:
             print("%4i    Initial point  %11.5e\n" % (nf, np.sum(F[nf, :] ** 2)))
     else:
-        X = np.vstack((X_0[0 : max(1, nfs), :], np.zeros((nf_max, n))))
-        F = np.vstack((F0[0:nfs, :], np.zeros((nf_max, m))))
+        X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
+        F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
         nf = nfs - 1
         nf_max = nf_max + nfs
     Fs = np.zeros(nf_max + nfs)
