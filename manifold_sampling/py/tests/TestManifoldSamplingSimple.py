@@ -6,7 +6,7 @@ import unittest
 
 import ibcdfo.manifold_sampling as msp
 import numpy as np
-from ibcdfo.manifold_sampling.h_examples.pw_maximum import pw_maximum
+from ibcdfo.manifold_sampling.h_examples import pw_maximum
 
 
 class TestManifoldSampling(unittest.TestCase):
@@ -27,12 +27,8 @@ class TestManifoldSampling(unittest.TestCase):
 
         np.random.seed(1)
 
-        try:
+        with self.assertRaises(ValueError):
             [X, F, h, xk_best, flag] = msp.manifold_sampling_primal(pw_maximum, failing_objective, X0, L, U, nfmax, subprob_switch)
-        except ValueError:
-            assert 1, "Failed like it should have"
-        else:
-            assert 0, "Didn't fail like it should have"
 
         L = np.append(L, L)
         [X, F, h, xk_best, flag] = msp.manifold_sampling_primal(pw_maximum, failing_objective, X0, L, U, nfmax, subprob_switch)

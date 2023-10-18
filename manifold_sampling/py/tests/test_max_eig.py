@@ -1,10 +1,10 @@
 import itertools
 
 import numpy as np
-from ibcdfo.manifold_sampling.h_examples.pw_maximum import pw_maximum as hfun
-from ibcdfo.manifold_sampling.h_examples.pw_maximum_eig import pw_maximum_eig as hfun2
+from ibcdfo.manifold_sampling.h_examples import pw_maximum as hfun
+from ibcdfo.manifold_sampling.h_examples import pw_maximum_eig as hfun2
 from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
-from matrix_Ffuns import Ffun_default, Ffun_mattrix, Ffun_sort, compute_M_and_eig
+from ibcdfo.manifold_sampling.matrix_Ffuns import Ffun_default, Ffun_mattrix, Ffun_sort, compute_M_and_eig
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial.distance import cdist
 
@@ -70,7 +70,12 @@ x0 = np.ones((1, n))
 # x0 = np.array([(-1)**(i+1) for i in range(10)])
 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_default, x0, LB, UB, nfmax, subprob_switch)
+assert flag == 0, "Didn't exhaust budget" 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_sort, x0, LB, UB, nfmax, subprob_switch)
+assert flag == 0, "Didn't exhaust budget" 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_slow_sort2, x0, LB, UB, nfmax, subprob_switch)
+assert flag == 0, "Didn't exhaust budget" 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_all_perms, x0, LB, UB, nfmax, subprob_switch)
+assert flag == 0, "Didn't exhaust budget" 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun2, Ffun_mattrix, x0, LB, UB, nfmax, subprob_switch)
+assert flag == 0, "Didn't exhaust budget" 
