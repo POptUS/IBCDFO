@@ -52,8 +52,10 @@ class TestPounders(unittest.TestCase):
         F0 = np.array([1.0, 2.0])
         Prior = {"X_init": X0, "F_init": F0, "nfs": 2, "xk_init": 0}
         Opts = {"spsolver": spsolver, "printf": printf}
-        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
-        self.assertEqual(flag, -1, "We are testing proper failure of pounders")
+
+        with self.assertRaises(AssertionError):
+            # We are testing proper failure of pounders
+            [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
 
     def test_basic_pounders_usage(self):
         def vecFun(x):
@@ -112,7 +114,7 @@ class TestPounders(unittest.TestCase):
         func = lambda x: np.sum(x)
         n = 16
 
-        X0 = np.ones((n, 1))  # Test giving of column vector
+        X0 = np.ones(n)
         nfmax = 200
         g_tol = 10**-13
         delta = 0.1
@@ -137,7 +139,7 @@ class TestPounders(unittest.TestCase):
         func = lambda x: x
         n = 16
 
-        X0 = 0.4 * np.ones(n)
+        X0 = 0.4 * np.ones((n, 1)) # Test giving of column vector
         nfmax = 200
         g_tol = 10**-13
         delta = 0.1
