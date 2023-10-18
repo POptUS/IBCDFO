@@ -1,8 +1,6 @@
-
+import numpy as np
 import numpy.linalg as LA
 from scipy import spatial
-
-import numpy as np
 
 
 def pw_maximum(z, H0=None):
@@ -46,9 +44,6 @@ def pw_maximum(z, H0=None):
             grads[j, k] = 1
 
         return h, grads
-
-
-import numpy as np
 
 
 def pw_maximum_squared(z, H0=None):
@@ -148,7 +143,6 @@ def pw_maximum_eig(z, H0=None):
         return h, grads
 
 
-
 def piecewise_quadratic(z, H0=None, **kwargs):
     # Evaluates the piecewise quadratic function
     #   max_j { || z - z_j ||_{Q_j}^2 + b_j }
@@ -203,7 +197,6 @@ def piecewise_quadratic(z, H0=None, **kwargs):
         return h, grads
 
 
-
 def pw_minimum(z, H0=None):
     # Evaluates the pointwise minimum function
     #   min_j { z_j }
@@ -245,7 +238,6 @@ def pw_minimum(z, H0=None):
             grads[j, k] = 1
 
         return h, grads
-
 
 
 def pw_minimum_squared(z, H0=None):
@@ -290,7 +282,6 @@ def pw_minimum_squared(z, H0=None):
             grads[j, k] = 2 * z[j]
 
         return h, grads
-
 
 
 def quantile(z, H0=None):

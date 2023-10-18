@@ -70,12 +70,12 @@ x0 = np.ones((1, n))
 # x0 = np.array([(-1)**(i+1) for i in range(10)])
 
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_default, x0, LB, UB, nfmax, subprob_switch)
-assert flag == 0, "Didn't exhaust budget" 
+assert flag == 0, "Didn't exhaust budget"
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_sort, x0, LB, UB, nfmax, subprob_switch)
-assert flag == 0, "Didn't exhaust budget" 
+assert flag == 0, "Didn't exhaust budget"
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_slow_sort2, x0, LB, UB, nfmax, subprob_switch)
-assert flag == 0, "Didn't exhaust budget" 
+assert flag == 0, "Didn't exhaust budget"
 X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun_all_perms, x0, LB, UB, nfmax, subprob_switch)
-assert flag == 0, "Didn't exhaust budget" 
+assert flag == 0, "Didn't exhaust budget"
 X, F, h, xkin, flag = manifold_sampling_primal(hfun2, Ffun_mattrix, x0, LB, UB, nfmax, subprob_switch)
-assert flag == 0, "Didn't exhaust budget" 
+assert flag == 0, "Didn't exhaust budget"
