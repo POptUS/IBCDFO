@@ -2,7 +2,8 @@ import numpy as np
 import numpy.linalg as LA
 from scipy import spatial
 
-def _activities_and_inds(h, z, n=None, atol = 1e-8, rtol = 1e-8):
+
+def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     if n is None:
         n = len(z)
 
@@ -12,6 +13,7 @@ def _activities_and_inds(h, z, n=None, atol = 1e-8, rtol = 1e-8):
     Hashes = [str(ind) for ind in inds]
 
     return inds, grads, Hashes
+
 
 def pw_maximum(z, H0=None):
     # Evaluates the pointwise maximum function
