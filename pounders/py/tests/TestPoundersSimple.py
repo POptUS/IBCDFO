@@ -37,9 +37,6 @@ class TestPounders(unittest.TestCase):
         X0 = np.array([10, 20, 30])
         L = -np.inf * np.ones(n)
         U = np.inf * np.ones(n)
-        # nfs = 0
-        # F0 = []
-        # xkin = 0
         delta = 0.1
         printf = 0
 
@@ -53,9 +50,8 @@ class TestPounders(unittest.TestCase):
         Prior = {"X_init": X0, "F_init": F0, "nfs": 2, "xk_init": 0}
         Opts = {"spsolver": spsolver, "printf": printf}
 
-        with self.assertRaises(AssertionError):
-            # We are testing proper failure of pounders
-            [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
+        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
+        self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
     def test_basic_pounders_usage(self):
         def vecFun(x):
