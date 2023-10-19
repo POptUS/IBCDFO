@@ -122,8 +122,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     else:
         key_list = ["nfs", "X_init", "F_init", "xk_init"]
         assert set(Prior.keys()) == set(key_list), "Prior keys must be {key_list}"
-        # assert (np.atleast_2d(Prior["X_init"]).shape[0] == Prior["nfs"]) and (np.atleast_2d(Prior["F_init"]).shape[0] == Prior["nfs"]), "Prior X_init and F_init must have nfs rows"
-        assert np.array_equiv(np.atleast_2d(Prior["X_init"])[Prior["xk_init"]], X_0), "Starting point X_0 doesn't match row in Prior['X_init']"
+        Prior["X_init"] = np.atleast_2d(Prior["X_init"])
+        if Prior["X_init"].ndim == 2 and Prior["X_init"].shape[1] == 1:
+            Prior["X_init"] = Prior["X_init"].T
 
     nfs = Prior["nfs"]
     delta = delta_0
@@ -151,7 +152,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
-    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
+    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_init"], L, U)
     if flag == -1:
         X = []
         F = []

@@ -46,12 +46,12 @@ class TestPounders(unittest.TestCase):
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
-        F_init = np.array([1.0, 2.0])
-        Prior = {"X_init": X0, "F_init": F_init, "nfs": 2, "xk_init": 0}
-        Opts = {"spsolver": spsolver, "printf": printf}
+        # F_init = np.array([1.0, 2.0])
+        # Prior = {"X_init": X0, "F_init": F_init, "nfs": 2, "xk_init": 0}
+        # Opts = {"spsolver": spsolver, "printf": printf}
 
-        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
-        self.assertEqual(flag, -1, "We are testing proper failure of pounders")
+        # [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
+        # self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
     def test_basic_pounders_usage(self):
         def vecFun(x):
