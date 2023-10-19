@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def checkinputss(fun, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U):
+def checkinputss(Ffun, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U):
     """
-    checkinputss(fun,X0,n,npmax,nfmax,g_tol,delta,nfs,m,F0,xkin,L,U) -> [flag,X0,npmax,F0,L,U]
+    checkinputss(Ffun,X0,n,npmax,nfmax,g_tol,delta,nfs,m,F0,xkin,L,U) -> [flag,X0,npmax,F0,L,U]
     Checks the inputs provided to pounders.
     A warning message is produced if a nonfatal input is given (and the input is changed accordingly).
     An error message (flag=-1) is produced if the pounders cannot continue.
@@ -15,8 +15,8 @@ def checkinputss(fun, X0, n, npmax, nfmax, g_tol, delta, nfs, m, F0, xkin, L, U)
                 = -1 if a fatal error was produced (pounders terminates)
     """
     flag = 1  # By default, everything is OK
-    if not callable(fun):
-        print("Error: fun is not a function handle")
+    if not callable(Ffun):
+        print("Error: Ffun is not a function handle")
         flag = -1
         return [flag, X0, npmax, F0, L, U, xkin]
     # Verify X0 is the appropriate size

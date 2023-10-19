@@ -28,8 +28,8 @@ class TestPounders(unittest.TestCase):
             n = int(n)
             m = int(m)
 
-            def objective(y):
-                # It is possible to have python use the same objective values via
+            def Ffun(y):
+                # It is possible to have python use the same Ffun values via
                 # octave. This can be slow on some systems. To (for example)
                 # test difference between matlab and python, used the following
                 # line and add "from oct2py import octave" on a system with octave
@@ -44,7 +44,7 @@ class TestPounders(unittest.TestCase):
             U = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
             nfs = 1
             F0 = np.zeros((1, m))
-            F0[0] = objective(X0)
+            F0[0] = Ffun(X0)
             xind = 0
             delta = 0.1
             if row in [8, 9]:
@@ -70,7 +70,7 @@ class TestPounders(unittest.TestCase):
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F0, "X_init": X0, "xk_init": xind}
 
-                [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts, Model={})
+                [X, F, flag, xk_best] = pdrs.pounders(Ffun, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
                 h = np.zeros(evals)
