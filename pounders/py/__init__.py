@@ -11,7 +11,14 @@ from .boxline import boxline
 from .bqmin import bqmin
 from .checkinputss import checkinputss
 from .formquad import formquad
-from .general_h_funs import emittance_combine, emittance_h, identity_combine, leastsquares, neg_leastsquares, squared_diff_from_mean
+from .general_h_funs import (
+    emittance_combine,
+    emittance_h,
+    identity_combine,
+    leastsquares,
+    neg_leastsquares,
+    squared_diff_from_mean,
+)
 from .load_tests import load_tests  # Used for automatic unittest-based discovery by main package
 from .phi2eval import phi2eval
 from .pounders import pounders
