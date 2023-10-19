@@ -89,7 +89,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                   = 0 normal termination because of grad,
                   > 0 exceeded nf_max evals,   flag = norm of grad at final X
                   = -1 if input was fatally incorrect (error message shown)
-                  = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, Fs[nf] == Fs[xkin])
+                  = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, hF[nf] == hF[xkin])
                   = -3 error if a NaN was encountered
                   = -4 error in TRSP Solver
                   = -5 unable to get model improvement with current parameters
@@ -170,9 +170,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
         F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
         nf = nfs - 1
         nf_max = nf_max + nfs
-    Fs = np.zeros(nf_max + nfs)
+    hF = np.zeros(nf_max + nfs)
     for i in range(nf + 1):
-        Fs[i] = hfun(F[i])
+        hF[i] = hfun(F[i])
     Res = np.zeros(np.shape(F))
     Cres = F[xkin]
     Hres = np.zeros((n, n, m))
@@ -191,9 +191,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                 if np.any(np.isnan(F[nf])):
                     X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                     return X, F, flag, xkin
-                Fs[nf] = hfun(F[nf])
+                hF[nf] = hfun(F[nf])
                 if printf:
-                    print("%4i   Geometry point  %11.5e\n" % (nf, Fs[nf]))
+                    print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
                 D = Mdir[i, :]
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
@@ -206,7 +206,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
         #  1b. Update the quadratic model
         Cres = F[xkin]
         Hres = Hres + Hresdel
-        c = Fs[xkin]
+        c = hF[xkin]
         G, H = combinemodels(Cres, Gres, Hres)
         ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
         ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
@@ -215,9 +215,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
             IERR = np.zeros(len(Mind))
             for i in range(len(Mind)):
                 D = X[Mind[i]] - X[xkin]
-                IERR[i] = (c - Fs[Mind[i]]) + [D @ (G + 0.5 * H @ D)]
-            ierror = np.linalg.norm(IERR / np.abs(Fs[Mind]), np.inf)
-            print(progstr % (nf, delta, valid, mp, Fs[xkin], ng, ierror))
+                IERR[i] = (c - hF[Mind[i]]) + [D @ (G + 0.5 * H @ D)]
+            ierror = np.linalg.norm(IERR / np.abs(hF[Mind]), np.inf)
+            print(progstr % (nf, delta, valid, mp, hF[xkin], ng, ierror))
             if printf >= 2:
                 jerr = np.zeros((len(Mind), m))
                 for i in range(len(Mind)):
@@ -239,9 +239,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                     if np.any(np.isnan(F[nf])):
                         X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                         return X, F, flag, xkin
-                    Fs[nf] = hfun(F[nf])
+                    hF[nf] = hfun(F[nf])
                     if printf:
-                        print("%4i   Critical point  %11.5e\n" % (nf, Fs[nf]))
+                        print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
@@ -293,16 +293,16 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
             if np.any(np.isnan(F[nf])):
                 X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                 return X, F, flag, xkin
-            Fs[nf] = hfun(F[nf])
+            hF[nf] = hfun(F[nf])
 
             if mdec != 0:
-                rho = (Fs[nf] - Fs[xkin]) / mdec
+                rho = (hF[nf] - hF[xkin]) / mdec
             else:
-                if Fs[nf] == Fs[xkin]:
+                if hF[nf] == hF[xkin]:
                     X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
                     return X, F, flag, xkin
                 else:
-                    rho = np.inf * np.sign(Fs[nf] - Fs[xkin])
+                    rho = np.inf * np.sign(hF[nf] - hF[xkin])
 
             # 4a. Update the center
             if (rho >= eta_1) or (rho > 0 and valid):
@@ -355,10 +355,10 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                 if np.any(np.isnan(F[nf])):
                     X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                     return X, F, flag, xkin
-                Fs[nf] = hfun(F[nf])
+                hF[nf] = hfun(F[nf])
                 if printf:
-                    print("%4i   Model point     %11.5e\n" % (nf, Fs[nf]))
-                if Fs[nf] < Fs[xkin]:  # ! Eventually check stuff decrease here
+                    print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
+                if hF[nf] < hF[xkin]:  # ! Eventually check stuff decrease here
                     if printf:
                         print("**improvement from model point****")
                     # Update model to reflect new base point
