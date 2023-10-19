@@ -33,14 +33,14 @@ def _default_prior():
     return Prior
 
 
-def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=None, Model=None):
+def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=None, Model=None):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
       [X, F, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U)
 
     This code minimizes output from a structured blackbox function, solving
     min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
-    where the user-provided blackbox F is specified in the handle fun. Evaluation
+    where the user-provided blackbox F is specified in the handle Ffun. Evaluation
     of this F must result in the return of a 1-by-m row vector. Bounds must be
     specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
     unconstrained solution is desired. The algorithm will not evaluate F
@@ -56,7 +56,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
     Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
 
     --INPUTS-----------------------------------------------------------------
-    fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
+    Ffun     [f h] Function handle so that Ffun(x) evaluates F (@calfun)
     X_0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
     n       [int] Dimension (number of continuous variables)
     npmax   [int] Maximum number of interpolation points (>n+1) (2*n+1)
@@ -84,7 +84,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
 
     --OUTPUTS----------------------------------------------------------------
     X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
-    F       [dbl] [nf_max+nfs-by-m] Function values of evaluated points
+    F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points
     flag    [dbl] Termination criteria flag:
                   = 0 normal termination because of grad,
                   > 0 exceeded nf_max evals,   flag = norm of grad at final X
@@ -142,7 +142,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
-    [flag, X_0, _, F0, L, U, xkin] = checkinputss(fun, X_0, n, Model["npmax"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
+    [flag, X_0, _, F0, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["npmax"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
     if flag == -1:
         X = []
         F = []
@@ -155,7 +155,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
         nf = 0  # in Matlab this is 1
-        F0 = np.atleast_2d(fun(X[nf]))
+        F0 = np.atleast_2d(Ffun(X[nf]))
         if F0.shape[1] != m:
             X, F, flag = prepare_outputs_before_return(X, F, nf, -1)
             return X, F, flag, xkin
@@ -187,7 +187,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
             for i in range(int(min(n - mp, nf_max - (nf + 1)))):
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
-                F[nf] = fun(X[nf])
+                F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
                     X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                     return X, F, flag, xkin
@@ -235,7 +235,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                 for i in range(min(n - mp, nf_max - (nf + 1))):
                     nf += 1
                     X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
-                    F[nf] = fun(X[nf])
+                    F[nf] = Ffun(X[nf])
                     if np.any(np.isnan(F[nf])):
                         X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                         return X, F, flag, xkin
@@ -289,7 +289,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
 
             nf += 1
             X[nf] = Xsp
-            F[nf] = fun(X[nf])
+            F[nf] = Ffun(X[nf])
             if np.any(np.isnan(F[nf])):
                 X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                 return X, F, flag, xkin
@@ -351,7 +351,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                     Xsp = Mdir1[b, :]
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
-                F[nf] = fun(X[nf])
+                F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
                     X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
                     return X, F, flag, xkin
