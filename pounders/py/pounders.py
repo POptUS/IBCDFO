@@ -95,7 +95,9 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
-    # Avoid mutable default value Python gotcha and set default full-featured, rich default value
+    if Options is None:
+        Options = {}
+
     if Model is None:
         Model = {}
         Model["Par"] = _default_model_par_values(n)
@@ -114,24 +116,23 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
         # assert (np.atleast_2d(Prior["X_init"]).shape[0] == Prior["nfs"]) and (np.atleast_2d(Prior["F_init"]).shape[0] == Prior["nfs"]), "Prior X_init and F_init must have nfs rows"
         assert np.array_equiv(np.atleast_2d(Prior["X_init"])[Prior["xk_init"]], X_0), "Starting point X_0 doesn't match row in Prior['X_init']"
 
-    if Options is None:
-        Options = {}
+    nfs = Prior["nfs"]
+    delta = delta_0
+    spsolver = Options.get("spsolver", 2)
+    delta_max = Options.get("delta_max", min(0.5 * np.min(U - L), (10**3) * delta))
+    delta_min = Options.get("delta_min", min(delta * (10**-13), g_tol / 10))
+    gamma_dec = Options.get("gamma_dec", 0.5)
+    gamma_inc = Options.get("gamma_inc", 2)
+    eta_1 = Options.get("eta1", 0.05)
+    printf = Options.get("printf", 0)
+    delta_inact = Options.get("delta_inact", 0.75)
 
     if "hfun" in Options:
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
-
     else:
-
-        def hfun(F):
-            return np.sum(F**2)
-
+        hfun = lambda F: -1.0 * np.sum(F**2)
         from .general_h_funs import leastsquares as combinemodels
-
-    nfs = Prior["nfs"]
-    spsolver = Options.get("spsolver", 2)
-    delta = delta_0
-    printf = Options.get("printf", 0)
 
     # choose your spsolver
     if spsolver == 2:
@@ -146,11 +147,6 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
         X = []
         F = []
         return X, F, flag, xkin
-    delta_max = min(0.5 * np.min(U - L), (10**3) * delta)
-    delta_min = min(delta * (10**-13), g_tol / 10)
-    gamma_dec = 0.5
-    gamma_inc = 2
-    eta_1 = 0.05
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
@@ -314,7 +310,7 @@ def pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=N
                 Cres = F[xkin]
                 xkin = nf  # Change current center
             # 4b. Update the trust-region radius:
-            if (rho >= eta_1) and (step_norm > 0.75 * delta):
+            if (rho >= eta_1) and (step_norm > delta_inact * delta):
                 delta = min(delta * gamma_inc, delta_max)
             elif valid:
                 delta = max(delta * gamma_dec, delta_min)
