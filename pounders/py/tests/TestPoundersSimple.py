@@ -46,8 +46,8 @@ class TestPounders(unittest.TestCase):
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
-        F0 = np.array([1.0, 2.0])
-        Prior = {"X_init": X0, "F_init": F0, "nfs": 2, "xk_init": 0}
+        F_init = np.array([1.0, 2.0])
+        Prior = {"X_init": X0, "F_init": F_init, "nfs": 2, "xk_init": 0}
         Opts = {"spsolver": spsolver, "printf": printf}
 
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
@@ -82,8 +82,8 @@ class TestPounders(unittest.TestCase):
         nfs = 10
         # m [int] number of residuals
         m = 2
-        # F0 [dbl] [fstart-by-1] Set of known function values  ([])
-        F0 = np.zeros((10, 2))
+        # F_init [dbl] [fstart-by-1] Set of known function values  ([])
+        F_init = np.zeros((10, 2))
         # xind [int] Index of point in X0 at which to start from (1)
         xind = 0
         # Low [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
@@ -92,12 +92,12 @@ class TestPounders(unittest.TestCase):
         Upp = np.ones((1, n))
 
         np.random.seed(1)
-        F0[0, :] = Ffun(X0[0, :])
+        F_init[0, :] = Ffun(X0[0, :])
         for i in range(1, 10):
             X0[i, :] = X0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
-            F0[i, :] = Ffun(X0[i, :])
+            F_init[i, :] = Ffun(X0[i, :])
 
-        Prior = {"X_init": X0, "F_init": F0, "nfs": nfs, "xk_init": xind}
+        Prior = {"X_init": X0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
         [X, F, flag, xkin] = pdrs.pounders(Ffun, X0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
@@ -113,14 +113,14 @@ class TestPounders(unittest.TestCase):
         delta = 0.1
         nfs = 1
         m = 1
-        F0 = Ffun(X0)
+        F_init = Ffun(X0)
         xind = 0
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
         hfun = lambda F: F
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
-        Prior = {"X_init": X0, "F_init": F0, "nfs": nfs, "xk_init": xind}
+        Prior = {"X_init": X0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
         [X, F, flag, xkin] = pdrs.pounders(Ffun, X0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Model={}, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
