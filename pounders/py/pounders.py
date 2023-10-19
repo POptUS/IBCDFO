@@ -45,9 +45,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
     unconstrained solution is desired. The algorithm will not evaluate F
     outside of these bounds, but it is possible to take advantage of function
-    values at infeasible X if these are passed initially through (X_0,F0).
+    values at infeasible X if these are passed initially through (X_init, F_init).
     In each iteration, the algorithm forms an interpolating quadratic model
     of the function and minimizes it in an infinity-norm trust region.
+
+    Optionally, a user can specify an outer function (hfun) that maps the
+    elements of F to a scalar value (to be minimized). Doing this also requires
+    a function handle (combinemodels) that tells pounders how to map the linear
+    and quadratic terms from the residual models into a single quadratic TRSP
+    model.
 
     This software comes with no warranty, is not bug-free, and is not for
     industrial use or public distribution.
@@ -56,31 +62,34 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
 
     --INPUTS-----------------------------------------------------------------
-    Ffun     [f h] Function handle so that Ffun(x) evaluates F (@calfun)
-    X_0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
+    Ffun    [f h] Function handle so that Ffun(x) evaluates F (@calfun)
+    X_0     [dbl] [1-by-n] Initial point (zeros(1,n))
     n       [int] Dimension (number of continuous variables)
-    npmax   [int] Maximum number of interpolation points (>n+1) (2*n+1)
-    nf_max   [int] Maximum number of function evaluations (>n+1) (100)
-    g_tol    [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-    delta_0   [dbl] Positive initial trust region radius (.1)
-    nfs     [int] Number of function values (at X_0) known in advance (0)
+    nf_max  [int] Maximum number of function evaluations (>n+1) (100)
+    g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
+    delta_0 [dbl] Positive initial trust region radius (.1)
     m       [int] Number of residual components
-    F0      [dbl] [nfs-by-m] Set of known function values  ([])
-    xkin    [int] Index of point in X_0 at which to start from (1)
     L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
     U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-    printf  [log] 0 No printing to screen (default)
-                  1 Debugging level of output to screen
-                  2 More verbose screen output
-    spsolver [int] Trust-region subproblem solver flag (2)
 
-    Optionally, a user can specify and outer-function that maps the the elements
-    of F to a scalar value (to be minimized). Doing this also requires a function
-    handle (combinemodels) that tells pounders how to map the linear and
-    quadratic terms from the residual models into a single quadratic TRSP model.
+    Prior   [dict] of past evaluations of values Ffun with keys:
+     X_init  [dbl] [nfs-by-n] Set of initial points
+     F_init  [dbl] [nfs-by-m] Set of values for points in X_init
+     xk_init [int] Index in X_init for initial starting point
+     nfs     [int] Number of function values in F_init known in advance
 
-    hfun           [f h] Function handle for mapping output from F
-    combinemodels  [f h] Function handle for combine residual models
+    Options [dict] of options to the method
+     printf   [log] 0 No printing to screen (default)
+                    1 Debugging level of output to screen
+                    2 More verbose screen output
+     spsolver [int] Trust-region subproblem solver flag (2)
+     hfun           [f h] Function handle for mapping output from F
+     combinemodels  [f h] Function handle for combine residual models
+
+    Model   [dict] of options for model building
+     npmax   [int] Maximum number of interpolation points (>n+1) (2*n+1)
+     Par     [1-by-4] list for formquad
+
 
     --OUTPUTS----------------------------------------------------------------
     X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
@@ -142,7 +151,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
-    [flag, X_0, _, F0, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["npmax"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
+    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["npmax"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
     if flag == -1:
         X = []
         F = []
@@ -155,11 +164,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
         nf = 0  # in Matlab this is 1
-        F0 = np.atleast_2d(Ffun(X[nf]))
-        if F0.shape[1] != m:
+        F_0 = np.atleast_2d(Ffun(X[nf]))
+        if F_0.shape[1] != m:
             X, F, flag = prepare_outputs_before_return(X, F, nf, -1)
             return X, F, flag, xkin
-        F[nf] = F0
+        F[nf] = F_0
         if np.any(np.isnan(F[nf])):
             X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
             return X, F, flag, xkin
