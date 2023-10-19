@@ -19,7 +19,7 @@ def _default_model_par_values(n):
     return par
 
 
-def _default_model_npmax(n):
+def _default_model_np_max(n):
     return 2 * n + 1
 
 
@@ -87,7 +87,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
      combinemodels  [f h] Function handle for combine residual models
 
     Model   [dict] of options for model building
-     npmax   [int] Maximum number of interpolation points (>n+1) (2*n+1)
+     np_max   [int] Maximum number of interpolation points (>n+1) (2*n+1)
      Par     [1-by-4] list for formquad
 
 
@@ -110,12 +110,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     if Model is None:
         Model = {}
         Model["Par"] = _default_model_par_values(n)
-        Model["npmax"] = _default_model_npmax(n)
+        Model["np_max"] = _default_model_np_max(n)
     else:
         if "Par" not in Model:
             Model["Par"] = _default_model_par_values(n)
-        if "npmax" not in Model:
-            Model["npmax"] = _default_model_npmax(n)
+        if "np_max" not in Model:
+            Model["np_max"] = _default_model_np_max(n)
 
     if Prior is None:
         Prior = _default_prior()
@@ -151,7 +151,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
-    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["npmax"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
+    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["F_init"], Prior["xk_init"], L, U)
     if flag == -1:
         X = []
         F = []
@@ -190,7 +190,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xkin]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 0)
+        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Model["Par"][2])
             for i in range(int(min(n - mp, nf_max - (nf + 1)))):
@@ -207,7 +207,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
                 break
-            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], False)
+            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], False)
             if mp < n:
                 X, F, flag = prepare_outputs_before_return(X, F, nf, -5)
                 return
@@ -238,7 +238,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
             delta = max(g_tol, np.max(np.abs(X[xkin])) * eps)
-            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 1)
+            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], 1)
             if not valid:
                 [Mdir, mp] = bmpts(X[xkin], Mdir, L, U, delta, Model["Par"][2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
@@ -254,7 +254,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
-                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 0)
+                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], 0)
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
                 ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
@@ -330,12 +330,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xkin, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
-            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], 1)
+            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], 1)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xkin unchanged)
                 D = X[: nf + 1] - X[xkin]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, Model["npmax"], Model["Par"], False)
+                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged
                 G, H = combinemodels(Cres, Gres, Hres)

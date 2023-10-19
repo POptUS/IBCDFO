@@ -20,7 +20,7 @@ class TestPounders(unittest.TestCase):
         dfo = np.loadtxt("dfo.dat")
 
         spsolver = 2  # TRSP solver
-        nfmax = 50
+        nf_max = 50
         g_tol = 1e-13
         factor = 10
 
@@ -66,11 +66,11 @@ class TestPounders(unittest.TestCase):
                     hfun = pdrs.emittance_h
                     combinemodels = pdrs.emittance_combine
 
-                filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
+                filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F0, "X_init": X0, "xk_init": xind}
 
-                [X, F, flag, xk_best] = pdrs.pounders(Ffun, X0, n, nfmax, g_tol, delta, m, L, U, Prior=Prior, Options=Opts, Model={})
+                [X, F, flag, xk_best] = pdrs.pounders(Ffun, X0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
                 h = np.zeros(evals)
@@ -79,12 +79,12 @@ class TestPounders(unittest.TestCase):
 
                 self.assertNotEqual(flag, 1, "pounders failed")
                 self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), "No improvement found")
-                self.assertTrue(X.shape[0] <= nfmax + nfs, "POUNDERs grew the size of X")
+                self.assertTrue(X.shape[0] <= nf_max + nfs, "POUNDERs grew the size of X")
 
                 if flag == 0:
-                    self.assertTrue(evals <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations")
+                    self.assertTrue(evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations")
                 elif flag != -4:
-                    self.assertTrue(evals == nfmax + nfs, "POUNDERs didn't use nfmax evaluations")
+                    self.assertTrue(evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations")
 
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
