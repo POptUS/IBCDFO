@@ -34,7 +34,7 @@ class TestPounders(unittest.TestCase):
         n = 3
         m = 3
 
-        X0 = np.array([10, 20, 30])
+        X_0 = np.array([10, 20, 30])
         L = -np.inf * np.ones(n)
         U = np.inf * np.ones(n)
         delta = 0.1
@@ -43,14 +43,14 @@ class TestPounders(unittest.TestCase):
         np.random.seed(1)
 
         Opts = {"spsolver": spsolver, "printf": printf}
-        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
+        [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
         # F_init = np.array([1.0, 2.0])
-        # Prior = {"X_init": X0, "F_init": F_init, "nfs": 2, "xk_init": 0}
+        # Prior = {"X_init": X_0, "F_init": F_init, "nfs": 2, "xk_init": 0}
         # Opts = {"spsolver": spsolver, "printf": printf}
 
-        # [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
+        # [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts)
         # self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
     def test_basic_pounders_usage(self):
@@ -69,22 +69,22 @@ class TestPounders(unittest.TestCase):
         Ffun = vecFun
         # n [int] Dimension (number of continuous variables)
         n = 2
-        # X0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
-        X0 = np.zeros((10, 2))
-        X0[0, :] = 0.5 * np.ones((1, 2))
+        # X_0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
+        X_0 = np.zeros((10, 2))
+        X_0[0, :] = 0.5 * np.ones((1, 2))
         # nf_max [int] Maximum number of function evaluations (>n+1) (100)
         nf_max = 60
         # g_tol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
         g_tol = 10**-13
         # delta [dbl] Positive trust region radius (.1)
         delta = 0.1
-        # nfs [int] Number of function values (at X0) known in advance (0)
+        # nfs [int] Number of function values (at X_0) known in advance (0)
         nfs = 10
         # m [int] number of residuals
         m = 2
         # F_init [dbl] [fstart-by-1] Set of known function values  ([])
         F_init = np.zeros((10, 2))
-        # xind [int] Index of point in X0 at which to start from (1)
+        # xind [int] Index of point in X_0 at which to start from (1)
         xind = 0
         # Low [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
         Low = np.zeros((1, n))
@@ -92,13 +92,13 @@ class TestPounders(unittest.TestCase):
         Upp = np.ones((1, n))
 
         np.random.seed(1)
-        F_init[0, :] = Ffun(X0[0, :])
+        F_init[0, :] = Ffun(X_0[0, :])
         for i in range(1, 10):
-            X0[i, :] = X0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
-            F_init[i, :] = Ffun(X0[i, :])
+            X_0[i, :] = X_0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
+            F_init[i, :] = Ffun(X_0[i, :])
 
-        Prior = {"X_init": X0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
-        [X, F, flag, xkin] = pdrs.pounders(Ffun, X0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
+        Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
+        [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
@@ -107,21 +107,21 @@ class TestPounders(unittest.TestCase):
         Ffun = lambda x: np.sum(x)
         n = 16
 
-        X0 = np.ones(n)
+        X_0 = np.ones(n)
         nf_max = 200
         g_tol = 10**-13
         delta = 0.1
         nfs = 1
         m = 1
-        F_init = Ffun(X0)
+        F_init = Ffun(X_0)
         xind = 0
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
         hfun = lambda F: F
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
-        Prior = {"X_init": X0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
-        [X, F, flag, xkin] = pdrs.pounders(Ffun, X0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Model={}, Prior=Prior)
+        Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
+        [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Model={}, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
@@ -132,7 +132,7 @@ class TestPounders(unittest.TestCase):
         Ffun = lambda x: x
         n = 16
 
-        X0 = 0.4 * np.ones((n, 1))  # Test giving of column vector
+        X_0 = 0.4 * np.ones((n, 1))  # Test giving of column vector
         nf_max = 200
         g_tol = 10**-13
         delta = 0.1
@@ -143,6 +143,9 @@ class TestPounders(unittest.TestCase):
         hfun = lambda F: -1.0 * np.sum(F**2)
 
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
-        [X, F, flag, xkin] = pdrs.pounders(Ffun, X0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
+
+        F_init = Ffun(X_0)
+        Prior = {"X_init": X_0, "F_init": F_init, "nfs": 1, "xk_init": 0}
+        [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Model={})
 
         self.assertTrue(np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds.")
