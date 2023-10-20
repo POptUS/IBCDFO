@@ -141,7 +141,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
     else:
-        hfun = lambda F: -1.0 * np.sum(F**2)
+        hfun = lambda F: np.sum(F**2)
         from .general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
@@ -174,7 +174,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
             X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
             return X, F, flag, xkin
         if printf:
-            print("%4i    Initial point  %11.5e\n" % (nf, np.sum(F[nf, :] ** 2)))
+            print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
     else:
         X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
         F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
