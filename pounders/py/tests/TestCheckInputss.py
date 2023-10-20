@@ -47,7 +47,7 @@ class TestLotsOfFeatures(unittest.TestCase):
     def test_checkinputts2(self):
         n_to_fail = 2
         with self.assertRaises(AssertionError):
-            out = checkinputss(self.Ffun, self.X_0, n_to_fail, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xkin, self.L, self.U)
+            checkinputss(self.Ffun, self.X_0, n_to_fail, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xkin, self.L, self.U)
 
     def test_checkinputts3(self):
         np_max_to_warn = 1
@@ -77,7 +77,7 @@ class TestLotsOfFeatures(unittest.TestCase):
     def test_checkinputts8(self):
         F_init_to_error = np.zeros((3 * self.nfs, 1))
         with self.assertRaises(AssertionError):
-            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_error, self.xkin, self.L, self.U)
+            checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_error, self.xkin, self.L, self.U)
 
     def test_checkinputts9(self):
         F_init_to_fail = np.nan * self.F_init
@@ -87,7 +87,7 @@ class TestLotsOfFeatures(unittest.TestCase):
     def test_checkinputts10(self):
         xkin_to_fail = -1
         with self.assertRaises(AssertionError):
-            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, xkin_to_fail, self.L, self.U)
+            checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, xkin_to_fail, self.L, self.U)
 
     def test_checkinputts11(self):
         L_to_fail = np.hstack((self.L, self.L))
