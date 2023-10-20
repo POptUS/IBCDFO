@@ -20,10 +20,10 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(np.all(P == T), "Test failed")
 
     def test_failing_objective(self):
-        def failing_objective(x):
+        def failing_objective(x, nan_freq = 0.1):
             fvec = x
 
-            if np.random.uniform() < 0.1:
+            if np.random.uniform() < nan_freq:
                 fvec[0] = np.nan
 
             return fvec
@@ -45,6 +45,14 @@ class TestPounders(unittest.TestCase):
         Opts = {"spsolver": spsolver, "printf": printf}
         [X, F, flag, xk_best] = pdrs.pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
+
+        Ffun_to_fail = lambda x: failing_objective(x, 1.0)
+        [X, F, flag, xk_best] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
+        self.assertEqual(flag, -3, "NaN should have been encountered on first eval.")
+
+        Ffun_to_fail = lambda x: np.hstack((x,x))
+        [X, F, flag, xk_best] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
+        self.assertEqual(flag, -1, "Dimension error on should have occured on first eval.")
 
         # Intentionally crashing pounders
         [X, F, flag, xk_best] = pdrs.pounders({}, X_0, n, nf_max, g_tol, delta, m, L, U)
@@ -116,7 +124,7 @@ class TestPounders(unittest.TestCase):
         Upp = np.inf * np.ones(n)
 
         hfun = lambda F: F
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": True}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
         [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
