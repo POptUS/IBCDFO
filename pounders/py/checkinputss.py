@@ -40,7 +40,6 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
             return [flag, X_0, np_max, F_init, L, U, xkin]
 
     if len(X_init):
-        print("Jeff", X_init.shape[0] == nfs, F_init.shape[0] == nfs)
         assert (X_init.shape[0] == nfs) and (F_init.shape[0] == nfs), "Prior X_init and F_init must have nfs rows"
         assert np.array_equiv(np.atleast_2d(X_init)[xkin], X_0), "Starting point X_0 doesn't match row in Prior['X_init']"
 
@@ -62,10 +61,6 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         print("Error: delta must be positive")
         flag = -1
         return [flag, X_0, np_max, F_init, L, U, xkin]
-    # Check number of starting points
-    if nfs2 != max(nfs, 1):
-        print("Warning: number of starting f values nfs does not match input X_0")
-        flag = 0
     # Check matrix of initial function values
     # Only check sizes if values are provided
     if nfs > 0:
