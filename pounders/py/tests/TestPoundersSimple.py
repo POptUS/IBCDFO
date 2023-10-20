@@ -38,7 +38,7 @@ class TestPounders(unittest.TestCase):
         L = -np.inf * np.ones(n)
         U = np.inf * np.ones(n)
         delta = 0.1
-        printf = 0
+        printf = 1
 
         np.random.seed(1)
 
@@ -124,7 +124,7 @@ class TestPounders(unittest.TestCase):
         Upp = np.inf * np.ones(n)
 
         hfun = lambda F: F
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": True}
+        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_init": xind}
         [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
