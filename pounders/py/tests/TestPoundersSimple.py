@@ -20,7 +20,7 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(np.all(P == T), "Test failed")
 
     def test_failing_objective(self):
-        def failing_objective(x, nan_freq = 0.1):
+        def failing_objective(x, nan_freq=0.1):
             fvec = x
 
             if np.random.uniform() < nan_freq:
@@ -50,7 +50,7 @@ class TestPounders(unittest.TestCase):
         [X, F, flag, xk_best] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
         self.assertEqual(flag, -3, "NaN should have been encountered on first eval.")
 
-        Ffun_to_fail = lambda x: np.hstack((x,x))
+        Ffun_to_fail = lambda x: np.hstack((x, x))
         [X, F, flag, xk_best] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, L, U, Options=Opts)
         self.assertEqual(flag, -1, "Dimension error on should have occured on first eval.")
 
