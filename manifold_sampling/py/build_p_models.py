@@ -1,6 +1,7 @@
-from evaluate_points_to_force_valid_model import evaluate_points_to_force_valid_model
 from ibcdfo.pounders import formquad
-from update_models import update_models
+
+from .evaluate_points_to_force_valid_model import evaluate_points_to_force_valid_model
+from .update_models import update_models
 
 
 def build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U):

@@ -19,7 +19,7 @@ class TestPounders(unittest.TestCase):
 
         dfo = np.loadtxt("dfo.dat")
 
-        spsolver = 2  # TRSP solver
+        spsolver = 2
         nfmax = 50
         gtol = 1e-13
         factor = 10
@@ -35,7 +35,7 @@ class TestPounders(unittest.TestCase):
                 # line and add "from oct2py import octave" on a system with octave
                 # installed.
                 # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
-                out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
+                out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
                 assert len(out) == m, "Incorrect output dimension"
                 return np.squeeze(out)
 

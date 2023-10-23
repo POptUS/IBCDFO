@@ -1,28 +1,17 @@
 # This wrapper tests various algorithms against the Benchmark functions from the
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 import os
-import sys
 
 import numpy as np
 import scipy as sp
 import scipy.io as sio
-
-sys.path.append("../")
-sys.path.append("../../../../BenDFO/py/")
-sys.path.append("../h_examples/")
-
 from calfun import calfun
 from dfoxs import dfoxs
-from manifold_sampling_primal import manifold_sampling_primal
-from piecewise_quadratic import piecewise_quadratic
-from pw_maximum import pw_maximum
-from pw_maximum_squared import pw_maximum_squared
-from pw_minimum import pw_minimum
-from pw_minimum_squared import pw_minimum_squared
-from quantile import quantile
+from ibcdfo.manifold_sampling.h_examples import piecewise_quadratic, pw_maximum, pw_maximum_squared, pw_minimum, pw_minimum_squared, quantile
+from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
 
-if not os.path.exists("benchmark_results"):
-    os.makedirs("benchmark_results")
+if not os.path.exists("msp_benchmark_results"):
+    os.makedirs("msp_benchmark_results")
 
 if not os.path.exists("mpc_test_files_smaller_Q"):
     os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
@@ -35,18 +24,13 @@ D_L1_loss = np.loadtxt("mpc_test_files_smaller_Q/D_for_benchmark_probs.csv", del
 # Defines data for piecewise_quadratic h instances
 Qzb = sio.loadmat("mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized_subset.mat")
 
-nfmax = 50
-factor = 10
-subprob_switch = "linprog"
-dfo = np.loadtxt("../../../../BenDFO/data/dfo.dat")
-filename = "./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat"
+dfo = np.loadtxt("dfo.dat")
 
 Results = {}
 probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
-
 subprob_switch = "linprog"
-
+nfmax = 50
 
 hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
@@ -55,10 +39,10 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     m = int(m)
     LB = -np.inf * np.ones((1, n))
     UB = np.inf * np.ones((1, n))
-    x0 = dfoxs(n, nprob, factor**factor_power)
+    x0 = dfoxs(n, nprob, 10**factor_power)
 
     def Ffun(y):
-        out = calfun(y, m, int(nprob), "smooth", 0, vecout=True)
+        out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
@@ -79,6 +63,11 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
         else:
+            if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
+                nfmax = 10000
+            else:
+                nfmax = 50
+
             X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
@@ -88,4 +77,4 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
 
-    sp.io.savemat(filename, Results)
+    sp.io.savemat("./msp_benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat", Results)

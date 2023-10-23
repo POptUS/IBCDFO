@@ -4,13 +4,14 @@ import numpy as np
 def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     Act_Z_k = Hash[xkin]
 
-    if gentype == 2:
-        for i in [ind for ind in range(nf) if ind != xkin]:
-            if np.linalg.norm(X[xkin] - X[i]) <= delta * (1 + 1e-8):
-                Act_tmp = Hash[i]
-                Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
+    assert gentype == 3, "Only gentype == 3 currently supported"
 
-    elif gentype == 3:
+    # if gentype == 2:
+    #     for i in [ind for ind in range(nf) if ind != xkin]:
+    #         if np.linalg.norm(X[xkin] - X[i]) <= delta * (1 + 1e-8):
+    #             Act_tmp = Hash[i]
+    #             Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
+    if gentype == 3:
         hxkin, _ = hfun(F[xkin, :], Act_Z_k)
         for i in [ind for ind in range(nf) if ind != xkin]:
             Act_tmp = Hash[i]

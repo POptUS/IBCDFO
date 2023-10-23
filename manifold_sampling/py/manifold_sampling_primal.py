@@ -42,12 +42,14 @@
 #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
 import numpy as np
-from build_p_models import build_p_models
-from call_user_scripts import call_user_scripts
-from check_inputs_and_initialize import check_inputs_and_initialize
-from choose_generator_set import choose_generator_set
 from ibcdfo.pounders import checkinputss
-from minimize_affine_envelope import minimize_affine_envelope
+
+from .build_p_models import build_p_models
+from .call_user_scripts import call_user_scripts
+from .check_inputs_and_initialize import check_inputs_and_initialize
+from .choose_generator_set import choose_generator_set
+from .minimize_affine_envelope import minimize_affine_envelope
+from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
@@ -80,17 +82,14 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
                 print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
-                X = X[: nf + 1]
-                F = F[: nf + 1]
-                h = h[: nf + 1]
-                flag = -1
+                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, -1)
                 return X, F, h, xkin, flag
             if nf + 1 >= nfmax:
                 flag = 0
                 return X, F, h, xkin, flag
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-            D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
+            D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
             G_k = Gres @ D_k
             beta = np.maximum(0, f_bar - h[xkin])
 
@@ -113,10 +112,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
                 print("Convergence satisfied: small stationary measure and small delta")
-                X = X[: nf + 1]
-                F = F[: nf + 1]
-                h = h[: nf + 1]
-                flag = chi_k
+                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
                 return X, F, h, xkin, flag
 
             # Line 12: Evaluate F
@@ -135,7 +131,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
                 break
             else:
                 # Line 18: Check temporary activities after adding TRSP solution to X
-                __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun)
+                __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
                 if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
@@ -162,9 +158,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
     if nf + 1 >= nfmax:
         flag = 0
     else:
-        X = X[: nf + 1]
-        F = F[: nf + 1]
-        h = h[: nf + 1]
-        flag = chi_k
+        X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
 
     return X, F, h, xkin, flag
