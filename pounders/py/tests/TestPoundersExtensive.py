@@ -19,7 +19,7 @@ class TestPounders(unittest.TestCase):
 
         dfo = np.loadtxt("dfo.dat")
 
-        spsolver = 2  # TRSP solver
+        spsolver = 2
         nf_max = 50
         g_tol = 1e-13
         factor = 10
