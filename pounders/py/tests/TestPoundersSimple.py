@@ -129,7 +129,6 @@ class TestPounders(unittest.TestCase):
         [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
-
         self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
     def test_pounders_maximizing_sum_squares(self):
