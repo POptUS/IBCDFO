@@ -157,6 +157,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if flag == -1:
         X = []
         F = []
+        hF = []
         return X, F, hF, flag, xkin
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
@@ -165,6 +166,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if Prior["nfs"] == 0:
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
+        hF = np.zeros(nf_max)
         nf = 0  # in Matlab this is 1
         F_0 = np.atleast_2d(Ffun(X[nf]))
         if F_0.shape[1] != m:
@@ -179,9 +181,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     else:
         X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
         F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
+        hF = np.zeros(nf_max + nfs)
         nf = nfs - 1
         nf_max = nf_max + nfs
-    hF = np.zeros(nf_max + nfs)
     for i in range(nf + 1):
         hF[i] = hfun(F[i])
     Res = np.zeros(np.shape(F))
