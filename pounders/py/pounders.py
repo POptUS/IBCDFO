@@ -28,7 +28,7 @@ def _default_prior():
     Prior["nfs"] = 0
     Prior["X_init"] = []
     Prior["F_init"] = []
-    Prior["xk_init"] = 0
+    Prior["xk_in"] = 0
 
     return Prior
 
@@ -75,7 +75,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     Prior   [dict] of past evaluations of values Ffun with keys:
      X_init  [dbl] [nfs-by-n] Set of initial points
      F_init  [dbl] [nfs-by-m] Set of values for points in X_init
-     xk_init [int] Index in X_init for initial starting point
+     xk_in [int] Index in X_init for initial starting point
      nfs     [int] Number of function values in F_init known in advance
 
     Options [dict] of options to the method
@@ -120,7 +120,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     if Prior is None:
         Prior = _default_prior()
     else:
-        key_list = ["nfs", "X_init", "F_init", "xk_init"]
+        key_list = ["nfs", "X_init", "F_init", "xk_in"]
         assert set(Prior.keys()) == set(key_list), "Prior keys must be {key_list}"
         Prior["X_init"] = np.atleast_2d(Prior["X_init"])
         if Prior["X_init"].ndim == 2 and Prior["X_init"].shape[1] == 1:
@@ -152,7 +152,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
-    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_init"], L, U)
+    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], L, U)
     if flag == -1:
         X = []
         F = []

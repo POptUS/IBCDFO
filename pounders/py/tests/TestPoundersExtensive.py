@@ -68,7 +68,7 @@ class TestPounders(unittest.TestCase):
 
                 filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
-                Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_init": xind}
+                Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
                 [X, F, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts, Model={})
 

@@ -31,13 +31,13 @@ delta_0 = 0.1  # Initial trust-region radius
 F_0 = np.zeros((1, m))  # Initial evaluations (parameters with completed simulations)
 F_0[0] = call_beamline_simulation(X_0)
 nfs = 1  # Number of initial evaluations
-xk_init = 0  # Index in F_0 for starting the optimization (usually the point with minimal emittance)
+xk_in = 0  # Index in F_0 for starting the optimization (usually the point with minimal emittance)
 
 Options = {}
 Options["hfun"] = hfun
 Options["combinemodels"] = combinemodels
 
-Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_init": xk_init}
+Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
 [Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options, Model={})
