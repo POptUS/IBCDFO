@@ -70,12 +70,9 @@ class TestPounders(unittest.TestCase):
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                [X, F, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
-                h = np.zeros(evals)
-                for i in range(evals):
-                    h[i] = hfun(F[i, :])
 
                 self.assertNotEqual(flag, 1, "pounders failed")
                 self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), "No improvement found")
@@ -90,7 +87,7 @@ class TestPounders(unittest.TestCase):
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = h
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,

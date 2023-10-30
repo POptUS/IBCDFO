@@ -103,7 +103,7 @@ class TestPounders(unittest.TestCase):
             F_init[i, :] = Ffun(X_0[i, :])
 
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
+        [X, F, hF, flag, xkin] = pdrs.pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
@@ -126,8 +126,7 @@ class TestPounders(unittest.TestCase):
         hfun = lambda F: np.squeeze(F)
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
-        [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xkin] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
@@ -152,6 +151,6 @@ class TestPounders(unittest.TestCase):
 
         F_init = Ffun(X_0.T)
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": 1, "xk_in": 0}
-        [X, F, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xkin] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xkin] - Upp) <= 1e-8, "The optimum should be the upper bounds.")

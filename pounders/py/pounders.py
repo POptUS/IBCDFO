@@ -36,7 +36,7 @@ def _default_prior():
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
-      [X, F, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
+      [X, F, hF, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
 
     This code minimizes output from a structured blackbox function, solving
     min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
@@ -69,31 +69,32 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
     delta_0 [dbl] Positive initial trust region radius (.1)
     m       [int] Number of residual components
-    Low       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
-    Upp       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
+    Low     [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
+    Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
 
     Prior   [dict] of past evaluations of values Ffun with keys:
-     X_init  [dbl] [nfs-by-n] Set of initial points
-     F_init  [dbl] [nfs-by-m] Set of values for points in X_init
-     xk_in [int] Index in X_init for initial starting point
-     nfs     [int] Number of function values in F_init known in advance
+        X_init  [dbl] [nfs-by-n] Set of initial points
+        F_init  [dbl] [nfs-by-m] Set of values for points in X_init
+        xk_in   [int] Index in X_init for initial starting point
+        nfs     [int] Number of function values in F_init known in advance
 
     Options [dict] of options to the method
-     printf   [log] 0 No printing to screen (default)
-                    1 Debugging level of output to screen
-                    2 More verbose screen output
-     spsolver [int] Trust-region subproblem solver flag (2)
-     hfun           [f h] Function handle for mapping output from F
-     combinemodels  [f h] Function handle for combine residual models
+        printf   [int] 0 No printing to screen (default)
+                       1 Debugging level of output to screen
+                       2 More verbose screen output
+        spsolver       [int] Trust-region subproblem solver flag (2)
+        hfun           [f h] Function handle for mapping output from F
+        combinemodels  [f h] Function handle for combine residual models
 
     Model   [dict] of options for model building
-     np_max   [int] Maximum number of interpolation points (>n+1) (2*n+1)
-     Par     [1-by-4] list for formquad
+        np_max  [int] Maximum number of interpolation points (>n+1) (2*n+1)
+        Par     [1-by-4] list for formquad
 
 
     --OUTPUTS----------------------------------------------------------------
     X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
-    F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points
+    F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points in X
+    hF      [dbl] [nf_max+nfs-by-1] Composed values h(Ffun) for evaluated points in X
     flag    [dbl] Termination criteria flag:
                   = 0 normal termination because of grad,
                   > 0 exceeded nf_max evals,   flag = norm of grad at final X
@@ -156,7 +157,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if flag == -1:
         X = []
         F = []
-        return X, F, flag, xkin
+        return X, F, hF, flag, xkin
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
@@ -167,12 +168,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         nf = 0  # in Matlab this is 1
         F_0 = np.atleast_2d(Ffun(X[nf]))
         if F_0.shape[1] != m:
-            X, F, flag = prepare_outputs_before_return(X, F, nf, -1)
-            return X, F, flag, xkin
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -1)
+            return X, F, hF, flag, xkin
         F[nf] = F_0
         if np.any(np.isnan(F[nf])):
-            X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
-            return X, F, flag, xkin
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+            return X, F, hF, flag, xkin
         if printf:
             print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
     else:
@@ -199,8 +200,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xkin] + Mdir[i, :]))
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
-                    return X, F, flag, xkin
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                    return X, F, hF, flag, xkin
                 hF[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
@@ -210,8 +211,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], False)
             if mp < n:
-                X, F, flag = prepare_outputs_before_return(X, F, nf, -5)
-                return
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
+                return X, F, hF, flag, xkin
 
         #  1b. Update the quadratic model
         Cres = F[xkin]
@@ -265,7 +266,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
             if ng < g_tol:
                 X, F, flag = prepare_outputs_before_return(X, F, nf, 0)
-                return X, F, flag, xkin
+                return X, F, hF, flag, xkin
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
         Lows = np.maximum(Low - X[xkin], -delta * np.ones((np.shape(Low))))
@@ -275,8 +276,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         elif spsolver == 2:  # Arnold Neumaier's minq5
             [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
             if minq_err < 0:
-                X, F, flag = prepare_outputs_before_return(X, F, nf, -4)
-                return X, F, flag, xkin
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
+                return X, F, hF, flag, xkin
         # elif spsolver == 3:  # Arnold Neumaier's minq8
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"
@@ -297,23 +298,23 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     print("eps project!")
 
             if mdec == 0 and valid and np.array_equiv(Xsp, X[xkin]):
-                X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
-                return X, F, flag, xkin
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                return X, F, hF, flag, xkin
 
             nf += 1
             X[nf] = Xsp
             F[nf] = Ffun(X[nf])
             if np.any(np.isnan(F[nf])):
-                X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
-                return X, F, flag, xkin
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                return X, F, hF, flag, xkin
             hF[nf] = hfun(F[nf])
 
             if mdec != 0:
                 rho = (hF[nf] - hF[xkin]) / mdec
             else:
                 if hF[nf] == hF[xkin]:
-                    X, F, flag = prepare_outputs_before_return(X, F, nf, -2)
-                    return X, F, flag, xkin
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                    return X, F, hF, flag, xkin
                 else:
                     rho = np.inf * np.sign(hF[nf] - hF[xkin])
 
@@ -366,8 +367,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
-                    return X, F, flag, xkin
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                    return X, F, hF, flag, xkin
                 hF[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
@@ -384,4 +385,4 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if printf:
         print("Number of function evals exceeded")
     flag = ng
-    return X, F, flag, xkin
+    return X, F, hF, flag, xkin

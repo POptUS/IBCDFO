@@ -40,14 +40,8 @@ Options["combinemodels"] = combinemodels
 Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
-[Xout, Fout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xkinout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 
-h = np.zeros(Fout.shape[0])
-
-# Compute the emittance values for inspection after optimization
-for i in range(len(h)):
-    h[i] = hfun(Fout[i, :])
-
-assert h[xkinout] == np.min(h), "The minimum emittance is not at xkinout"
+assert hFout[xkinout] == np.min(hFout), "The minimum emittance is not at xkinout"
