@@ -9,7 +9,7 @@ from .phi2eval import phi2eval
 
 def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     """
-    formquad(X,F,delta,xk_in,np_max,Pars,vf) -> [Mdir,np,valid,G,H,Mind]
+    formquad(X, F, delta, xk_in, np_max, Pars, vf) -> [Mdir, np, valid, G, H, Mind]
     Computes the parameters for m quadratics
         ### FIX COMMENT Line 15 ###
         Q_i(x) = C(i) + G(:,i)'*x + 0.5*x'*H(:,:,i)*x,  i=1:m

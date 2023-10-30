@@ -221,9 +221,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         Hres = Hres + Hresdel
         c = hF[xk_in]
         G, H = combinemodels(Cres, Gres, Hres)
-        ind_Lnotbinding = (X[xk_in] > Low) * (G.T > 0)
-        ind_Unotbinding = (X[xk_in] < Upp) * (G.T < 0)
-        ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
+        ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
+        ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
+        ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
         if printf:
             IERR = np.zeros(len(Mind))
             for i in range(len(Mind)):
@@ -253,7 +253,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                     F[nf] = Ffun(X[nf])
                     if np.any(np.isnan(F[nf])):
-                        X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
+                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                         return X, F, flag, xk_in
                     hF[nf] = hfun(F[nf])
                     if printf:
@@ -263,11 +263,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 # Recalculate gradient based on a MFN model
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
                 G, H = combinemodels(Cres, Gres, Hres)
-                ind_Lnotbinding = (X[xk_in] > Low) * (G.T > 0)
-                ind_Unotbinding = (X[xk_in] < Upp) * (G.T < 0)
-                ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
+                ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
+                ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
+                ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
             if ng < g_tol:
-                X, F, flag = prepare_outputs_before_return(X, F, nf, 0)
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, 0)
                 return X, F, hF, flag, xk_in
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
