@@ -39,7 +39,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
       [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
 
     This code minimizes output from a structured blackbox function, solving
-    min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
+    min { f(X)=sum_(i=1:m) F_i(x)^2, such that Low_j <= X_j <= Upp_j, j=1,...,n }
     where the user-provided blackbox F is specified in the handle Ffun. Evaluation
     of this F must result in the return of a 1-by-m row vector. Bounds must be
     specified in Upp and Low but can be set to Low=-Inf(1,n) and Upp=Inf(1,n) if the
@@ -52,7 +52,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     Optionally, a user can specify an outer function (hfun) that maps the
     elements of F to a scalar value (to be minimized). Doing this also requires
     a function handle (combinemodels) that tells pounders how to map the linear
-    and quadratic terms from the residual models into a single quadratic TRSP
+    and quadratic terms from the models of the F_i into a single quadratic TRSP
     model.
 
     This software comes with no warranty, is not bug-free, and is not for
@@ -68,7 +68,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     nf_max  [int] Maximum number of function evaluations (>n+1) (100)
     g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
     delta_0 [dbl] Positive initial trust region radius (.1)
-    m       [int] Number of residual components
+    m       [int] Number of components returned from Ffun
     Low     [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
     Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
 
@@ -84,7 +84,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                        2 More verbose screen output
         spsolver       [int] Trust-region subproblem solver flag (2)
         hfun           [f h] Function handle for mapping output from F
-        combinemodels  [f h] Function handle for combine residual models
+        combinemodels  [f h] Function handle for combining models of F
 
     Model   [dict] of options for model building
         np_max  [int] Maximum number of interpolation points (>n+1) (2*n+1)
