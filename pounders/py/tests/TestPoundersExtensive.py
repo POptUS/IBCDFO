@@ -40,8 +40,8 @@ class TestPounders(unittest.TestCase):
                 return np.squeeze(out)
 
             X_0 = dfoxs(n, nprob, int(factor**factor_power))
-            L = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
-            U = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
+            Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
+            Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
             nfs = 1
             F_init = np.zeros((1, m))
             F_init[0] = Ffun(X_0)
@@ -70,7 +70,7 @@ class TestPounders(unittest.TestCase):
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                [X, F, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, L, U, Prior=Prior, Options=Opts, Model={})
+                [X, F, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
                 h = np.zeros(evals)

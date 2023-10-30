@@ -33,16 +33,16 @@ def _default_prior():
     return Prior
 
 
-def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=None, Model=None):
+def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
-      [X, F, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U)
+      [X, F, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
 
     This code minimizes output from a structured blackbox function, solving
     min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
     where the user-provided blackbox F is specified in the handle Ffun. Evaluation
     of this F must result in the return of a 1-by-m row vector. Bounds must be
-    specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
+    specified in Upp and Low but can be set to Low=-Inf(1,n) and Upp=Inf(1,n) if the
     unconstrained solution is desired. The algorithm will not evaluate F
     outside of these bounds, but it is possible to take advantage of function
     values at infeasible X if these are passed initially through (X_init, F_init).
@@ -69,8 +69,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
     delta_0 [dbl] Positive initial trust region radius (.1)
     m       [int] Number of residual components
-    L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
-    U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
+    Low       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
+    Upp       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
 
     Prior   [dict] of past evaluations of values Ffun with keys:
      X_init  [dbl] [nfs-by-n] Set of initial points
@@ -129,7 +129,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
     nfs = Prior["nfs"]
     delta = delta_0
     spsolver = Options.get("spsolver", 2)
-    delta_max = Options.get("delta_max", min(0.5 * np.min(U - L), (10**3) * delta))
+    delta_max = Options.get("delta_max", min(0.5 * np.min(Upp - Low), (10**3) * delta))
     delta_min = Options.get("delta_min", min(delta * (10**-13), g_tol / 10))
     gamma_dec = Options.get("gamma_dec", 0.5)
     gamma_inc = Options.get("gamma_inc", 2)
@@ -152,7 +152,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
-    [flag, X_0, _, F_init, L, U, xkin] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], L, U)
+    [flag, X_0, _, F_init, Low, Upp, xkin] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
         X = []
         F = []
@@ -193,10 +193,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], 0)
         if mp < n:
-            [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Model["Par"][2])
+            [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             for i in range(int(min(n - mp, nf_max - (nf + 1)))):
                 nf += 1
-                X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
+                X[nf] = np.minimum(Upp, np.maximum(Low, X[xkin] + Mdir[i, :]))
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
                     X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
@@ -218,8 +218,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
         Hres = Hres + Hresdel
         c = hF[xkin]
         G, H = combinemodels(Cres, Gres, Hres)
-        ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
-        ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
+        ind_Lnotbinding = (X[xkin] > Low) * (G.T > 0)
+        ind_Unotbinding = (X[xkin] < Upp) * (G.T < 0)
         ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
         if printf:
             IERR = np.zeros(len(Mind))
@@ -244,10 +244,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
             delta = max(g_tol, np.max(np.abs(X[xkin])) * eps)
             [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], 1)
             if not valid:
-                [Mdir, mp] = bmpts(X[xkin], Mdir, L, U, delta, Model["Par"][2])
+                [Mdir, mp] = bmpts(X[xkin], Mdir, Low, Upp, delta, Model["Par"][2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
                     nf += 1
-                    X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
+                    X[nf] = np.minimum(Upp, np.maximum(Low, X[xkin] + Mdir[i, :]))
                     F[nf] = Ffun(X[nf])
                     if np.any(np.isnan(F[nf])):
                         X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
@@ -260,16 +260,16 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
                 # Recalculate gradient based on a MFN model
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, Model["np_max"], Model["Par"], 0)
                 G, H = combinemodels(Cres, Gres, Hres)
-                ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
-                ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
+                ind_Lnotbinding = (X[xkin] > Low) * (G.T > 0)
+                ind_Unotbinding = (X[xkin] < Upp) * (G.T < 0)
                 ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
             if ng < g_tol:
                 X, F, flag = prepare_outputs_before_return(X, F, nf, 0)
                 return X, F, flag, xkin
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
-        Lows = np.maximum(L - X[xkin], -delta * np.ones((np.shape(L))))
-        Upps = np.minimum(U - X[xkin], delta * np.ones((np.shape(U))))
+        Lows = np.maximum(Low - X[xkin], -delta * np.ones((np.shape(Low))))
+        Upps = np.minimum(Upp - X[xkin], delta * np.ones((np.shape(Upp))))
         if spsolver == 1:  # Stefan's crappy 10line solver
             [Xsp, mdec] = bqmin(H, G, Lows, Upps)
         elif spsolver == 2:  # Arnold Neumaier's minq5
@@ -285,15 +285,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
 
         # 4. Evaluate the function at the new point
         if (step_norm >= 0.01 * delta or valid) and not (mdec == 0 and not valid):
-            Xsp = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
+            Xsp = np.minimum(Upp, np.maximum(Low, X[xkin] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
 
             # Project if we're within machine precision
             for i in range(n):  # This will need to be cleaned up eventually
-                if (U[i] - Xsp[i] < eps * abs(U[i])) and (U[i] > Xsp[i] and G[i] >= 0):
-                    Xsp[i] = U[i]
+                if (Upp[i] - Xsp[i] < eps * abs(Upp[i])) and (Upp[i] > Xsp[i] and G[i] >= 0):
+                    Xsp[i] = Upp[i]
                     print("eps project!")
-                elif (Xsp[i] - L[i] < eps * abs(L[i])) and (L[i] < Xsp[i] and G[i] >= 0):
-                    Xsp[i] = L[i]
+                elif (Xsp[i] - Low[i] < eps * abs(Low[i])) and (Low[i] < Xsp[i] and G[i] >= 0):
+                    Xsp[i] = Low[i]
                     print("eps project!")
 
             if mdec == 0 and valid and np.array_equiv(Xsp, X[xkin]):
@@ -346,7 +346,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
                 # Evaluate model-improving points to pick best one
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions
-                [Mdir1, mp1] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Model["Par"][2])
+                [Mdir1, mp1] = bmpts(X[xkin], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
                 for i in range(n - mp1):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
@@ -354,7 +354,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
                 a1 = np.min(Res[: n - mp1, 0:1])
                 Xsp = Mdir1[b, :]
                 # Minus directions
-                [Mdir1, mp2] = bmpts(X[xkin], -Mdir[0 : n - mp, :], L, U, delta, Model["Par"][2])
+                [Mdir1, mp2] = bmpts(X[xkin], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
                 for i in range(n - mp2):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
@@ -363,7 +363,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, L, U, Prior=None, Options=
                 if a2 < a1:
                     Xsp = Mdir1[b, :]
                 nf += 1
-                X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard
+                X[nf] = np.minimum(Upp, np.maximum(Low, X[xkin] + Xsp))  # Temp safeguard
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
                     X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
