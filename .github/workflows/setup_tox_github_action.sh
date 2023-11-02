@@ -17,7 +17,7 @@ pip list
 
 # The following two packages are used for testing. One way to get them inside
 # tox is to use the PYTHONPATH environment variable.
-git clone -b py_calfun https://github.com/POptUS/BenDFO.git
+git clone https://github.com/POptUS/BenDFO.git
 git clone https://github.com/POptUS/MINQ.git
 pushd BenDFO/py/
 export PYTHONPATH="$PYTHONPATH:$(pwd)"
