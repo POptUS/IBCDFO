@@ -122,7 +122,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         Prior = _default_prior()
     else:
         key_list = ["nfs", "X_init", "F_init", "xk_in"]
-        assert set(Prior.keys()) == set(key_list), "Prior keys must be {key_list}"
+        assert set(Prior.keys()) == set(key_list), f"Prior keys must be {key_list}"
         Prior["X_init"] = np.atleast_2d(Prior["X_init"])
         if Prior["X_init"].ndim == 2 and Prior["X_init"].shape[1] == 1:
             Prior["X_init"] = Prior["X_init"].T
