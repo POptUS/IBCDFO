@@ -42,22 +42,27 @@
 #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
 import numpy as np
-from build_p_models import build_p_models
-from call_user_scripts import call_user_scripts
-from check_inputs_and_initialize import check_inputs_and_initialize
+from build_p_models import build_p_models, build_p_models2
+from call_user_scripts import call_user_scripts, call_user_scripts2
+from check_inputs_and_initialize import check_inputs_and_initialize, check_inputs_and_initialize2
 from choose_generator_set import choose_generator_set
 from ibcdfo.pounders import checkinputss
 from minimize_affine_envelope import minimize_affine_envelope
 
 
-def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
+def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch, Gfun=None):
     # Deduce p from evaluating Ffun at x0
     try:
         F0 = Ffun(x0)
+        if Gfun is not None:
+            G0 = Gfun(x0)
     finally:
         pass
 
-    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
+    if Gfun is None:
+        n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
+    else:
+        n, delta, printf, fq_pars, tol, X, F, G, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize2(x0, F0, G0, nfmax)
     flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars["npmax"], nfmax, tol["gtol"], delta, 1, len(F0), F0, xkin, L, U)
     if flag == -1:
         X = x0
@@ -77,11 +82,15 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
         # Line 3: manifold sampling while loop
         while nf + 1 < nfmax:
             # Line 4: build models
-            Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
+            if G is None:
+                Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
+            else:
+                Gres, Hres, X, F, G, h, nf, Hash = build_p_models2(nf, nfmax, xkin, delta, F, G, X, h, Hres, fq_pars, tol, hfun, Ffun, Gfun, Hash, L, U)
             if len(Gres) == 0:
-                print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
+                #print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
                 X = X[: nf + 1]
                 F = F[: nf + 1]
+                G = G[: nf + 1]
                 h = h[: nf + 1]
                 flag = -1
                 return X, F, h, xkin, flag
@@ -112,15 +121,19 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
-                print("Convergence satisfied: small stationary measure and small delta")
+                #print("Convergence satisfied: small stationary measure and small delta")
                 X = X[: nf + 1]
                 F = F[: nf + 1]
+                G = G[: nf + 1]
                 h = h[: nf + 1]
                 flag = chi_k
                 return X, F, h, xkin, flag
 
             # Line 12: Evaluate F
-            nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
+            if Gfun is None:
+                nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
+            else:
+                nf, X, F, h, Hash, hashes_at_nf = call_user_scripts2(nf, X, F, G, h, Hash, Ffun, Gfun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
             # Line 13: Compute rho_k
             ared = h[xkin] - h[nf]
             pred = -tau_k
@@ -157,13 +170,14 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 21: iteration is unsuccessful; shrink Delta
             delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
-        print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
+        #print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
 
     if nf + 1 >= nfmax:
         flag = 0
     else:
         X = X[: nf + 1]
         F = F[: nf + 1]
+        G = G[: nf + 1]
         h = h[: nf + 1]
         flag = chi_k
 

@@ -1,6 +1,7 @@
 import numpy as np
 
 
+@profile
 def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     Act_Z_k = Hash[xkin]
 
