@@ -1,6 +1,7 @@
 import numpy as np
-from call_user_scripts import call_user_scripts
 from ibcdfo.pounders import bmpts, formquad
+
+from .call_user_scripts import call_user_scripts
 
 
 def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nfmax, L, U, Gfun=None, G=None):
@@ -28,11 +29,8 @@ def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, M
 
     valid = formquad(X[: nf + 1], F[: nf + 1], delta, xkin, fq_pars["npmax"], fq_pars["Par"], 1)[2]
     if not valid and nf + 1 < nfmax:
-        print(nf)
-        print(gentype)
-        print("Proceeding with nonvalid model! Report this to Stefan in Alg1")
+        print("Proceeding with nonvalid model! Report this to Stefan in Alg1", nf)
         # uuid = char(java.util.UUID.randomUUID);
-        # global mw_prob_num hfun
         # save(['first_failure_for_row_in_dfo_dat=' int2str(mw_prob_num) '_hfun=' func2str(hfun{1}) ], 'A');
         # error('a')
 

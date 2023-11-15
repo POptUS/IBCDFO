@@ -67,7 +67,7 @@ class TestPounders(unittest.TestCase):
             return x + (x**2)
 
         # Sample calling syntax for pounders
-        # func is a function imported from calFun.py as calFun
+        # func is the "simulation" vector-output function
         func = vecFun
         # n [int] Dimension (number of continuous variables)
         n = 2
@@ -126,7 +126,7 @@ class TestPounders(unittest.TestCase):
         printf = False
         spsolver = 1
 
-        hfun = lambda F: F
+        hfun = lambda F: np.squeeze(F)
 
         [X, F, flag, xkin] = pdrs.pounders(func, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, Low, Upp, printf, spsolver, hfun, combinemodels)
 

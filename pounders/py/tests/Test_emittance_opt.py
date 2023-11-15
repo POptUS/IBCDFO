@@ -1,7 +1,5 @@
 import numpy as np
-
-from ibcdfo.pounders import pounders
-from ibcdfo.pounders import general_h_funs
+from ibcdfo.pounders import general_h_funs, pounders
 
 
 def call_beamline_simulation(x):
