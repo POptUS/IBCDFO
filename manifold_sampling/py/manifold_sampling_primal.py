@@ -42,20 +42,24 @@
 #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
 import numpy as np
-from .build_p_models import build_p_models, build_p_models2
-from .call_user_scripts import call_user_scripts, call_user_scripts2
-from .check_inputs_and_initialize import check_inputs_and_initialize
-from .choose_generator_set import choose_generator_set
-from .minimize_affine_envelope import minimize_affine_envelope
-from .prepare_outputs_before_return import prepare_outputs_before_return
+from ibcdfo.pounders import checkinputss
+
+from build_p_models import build_p_models, build_p_models2
+from call_user_scripts import call_user_scripts, call_user_scripts2
+from check_inputs_and_initialize import check_inputs_and_initialize, check_inputs_and_initialize2
+from choose_generator_set import choose_generator_set
+from minimize_affine_envelope import minimize_affine_envelope
+from prepare_outputs_before_return import prepare_outputs_before_return
 
 
+@profile
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch, Gfun=None):
     # Deduce p from evaluating Ffun at x0
     try:
         F0 = Ffun(x0)
         if Gfun is not None:
             G0 = Gfun(x0)
+            G0 = G0.reshape((1, G0.shape[0], G0.shape[1]))
     finally:
         pass
 
@@ -63,6 +67,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch, Gfun=N
         n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
     else:
         n, delta, printf, fq_pars, tol, X, F, G, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize2(x0, F0, G0, nfmax)
+        xkold = 0
     flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars["npmax"], nfmax, tol["gtol"], delta, 1, len(F0), F0, xkin, L, U)
     if flag == -1:
         X = x0
@@ -82,10 +87,10 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch, Gfun=N
         # Line 3: manifold sampling while loop
         while nf + 1 < nfmax:
             # Line 4: build models
-            if G is None:
+            if Gfun is None:
                 Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             else:
-                Gres, Hres, X, F, G, h, nf, Hash = build_p_models2(nf, nfmax, xkin, delta, F, G, X, h, Hres, fq_pars, tol, hfun, Ffun, Gfun, Hash, L, U)
+                xkold, Gres, Hres, X, F, G, h, nf, Hash = build_p_models2(nf, nfmax, xkin, xkold, delta, F, G, X, h, Hres, fq_pars, tol, hfun, Ffun, Gfun, Hash, L, U)
             if len(Gres) == 0:
                 #print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
                 X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, -1)
@@ -125,7 +130,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch, Gfun=N
             if Gfun is None:
                 nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
             else:
-                nf, X, F, h, Hash, hashes_at_nf = call_user_scripts2(nf, X, F, G, h, Hash, Ffun, Gfun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
+                nf, X, F, G, h, Hash, hashes_at_nf = call_user_scripts2(nf, X, F, G, h, Hash, Ffun, Gfun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
             # Line 13: Compute rho_k
             ared = h[xkin] - h[nf]
             pred = -tau_k

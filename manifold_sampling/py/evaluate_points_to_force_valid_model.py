@@ -1,7 +1,7 @@
 import numpy as np
 from ibcdfo.pounders import bmpts, formquad
 
-from .call_user_scripts import call_user_scripts
+from call_user_scripts import call_user_scripts
 
 
 def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nfmax, L, U, Gfun=None, G=None):

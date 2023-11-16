@@ -1,7 +1,7 @@
 from ibcdfo.pounders import formquad
 
-from .evaluate_points_to_force_valid_model import evaluate_points_to_force_valid_model
-from .update_models import update_models
+from evaluate_points_to_force_valid_model import evaluate_points_to_force_valid_model
+from update_models import update_models
 
 
 def build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U):
@@ -20,7 +20,7 @@ def build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ff
     return Gres, Hres, X, F, h, nf, Hash
 
 
-def build_p_models2(nf, nfmax, xkin, delta, F, G, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U):
+def build_p_models2(nf, nfmax, xkin, xkold, delta, F, G, X, h, Hres, fq_pars, tol, hfun, Ffun, Gfun, Hash, L, U):
     """
     --INPUTS-----------------------------------------------------------------
     nf      [int] # of function evals so far (>n+1) (.5*(n+1)*(n+2))
@@ -50,16 +50,22 @@ def build_p_models2(nf, nfmax, xkin, delta, F, G, X, h, Hres, fq_pars, tol, hfun
     Hash    [int] [nf-by-m] Updated array of manifold activities at points in X
     """
 
+    import numpy as np
+
     n = X.shape[1]
     p = F.shape[1]
 
-    valid, Gres, Hres, X, F, h, nf, Hash = update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, 1, Hash, tol, L, U)
-    # Evaluate model-improving points if necessary
-    if not valid and not len(Gres) == 0:
-        Mdir, np, valid, *_ = formquad(X[: nf + 1], F[: nf + 1], delta, xkin, fq_pars["npmax"], fq_pars["Par"], 1)
-        if valid:
-            raise Exception("what to do here")
-        X, F, h, nf, Hash = evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, tol["gentype"], Mdir, np, hfun, Ffun, Hash, fq_pars, tol, nfmax, L, U)
-        __, Gres, Hres, X, F, h, nf, Hash = update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, 1, Hash, tol, L, U)
+    Gres = np.zeros((n, p))
+    Gres[:, :] = G[xkin, :, :]
 
-    return Gres, Hres, X, F, G, h, nf, Hash
+    if xkin > xkold:
+        sk = X[xkin, :] - X[xkold, :]
+        for i in range(p):
+            vk = G[xkin, :, i] - G[xkold, :, i]
+            Hsk = np.dot(Hres[:, :, i], sk)
+            Hres[:, :, i] += np.outer(vk, vk) / np.dot(vk, sk)
+            Hres[:, :, i] -= np.outer(Hsk, Hsk) / np.dot(sk, Hsk)
+        xkold = xkin
+        print(xkin)
+
+    return xkold, Gres, Hres, X, F, G, h, nf, Hash

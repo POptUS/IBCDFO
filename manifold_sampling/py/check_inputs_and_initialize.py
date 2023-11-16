@@ -59,8 +59,8 @@ def check_inputs_and_initialize2(x0, F0, G0, nfmax):
     # Internal parameters/tolerances for manifold sampling
     tol = {
         "maxdelta": 1,
-        "mindelta": 1e-13,
-        "gtol": 1e-13,
+        "mindelta": 1e-8,
+        "gtol": 1e-8,
         "norm_g_change": 0.001,
         "kappa_d": 0.0001,
         "eta1": 0.01,
@@ -69,7 +69,7 @@ def check_inputs_and_initialize2(x0, F0, G0, nfmax):
         "gamma_dec": 0.5,
         "gamma_inc": 2,
         "hfun_test_mode": 1,
-        "gentype": 2,
+        "gentype": 3,
     }
 
     # kappa_mh = 0;    # [dbl] > 0 that bounds the component model Hessians
@@ -86,5 +86,8 @@ def check_inputs_and_initialize2(x0, F0, G0, nfmax):
     trust_rho = 1
     xkin = 0
     Hres = np.zeros((n, n, p))
+    eye = np.eye(n)
+    for i in range(p):
+        Hres[:, :, i] = eye
 
     return n, delta, printf, fq_pars, tol, X, F, G, h, Hash, nf, trust_rho, xkin, Hres
