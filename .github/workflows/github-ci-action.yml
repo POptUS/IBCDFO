@@ -9,7 +9,7 @@ jobs:
       # and tox.ini configuration.
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     ##-- General Setup Steps
     - uses: actions/checkout@v3
@@ -36,7 +36,7 @@ jobs:
       # We only need to measure coverage with a single python version.  Ideally
       # this will be the latest version of python used in the action.
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
     steps:
     ##-- General Setup Steps
     - uses: actions/checkout@v3
