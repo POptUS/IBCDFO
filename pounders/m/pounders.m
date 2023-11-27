@@ -2,7 +2,7 @@
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
 function [X, F, flag, xkin] = ...
-    pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels)
+    pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, Low, Upp, printf, spsolver, hfun, combinemodels)
 
 if ~exist('hfun', 'var')
     % Use least-squares hfun by default
@@ -17,8 +17,8 @@ if ~exist('printf', 'var')
     printf = 0; % Don't print by default
 end
 % 0. Check inputs
-[flag, X0, npmax, F0, L, U] = ...
-    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U);
+[flag, X0, npmax, F0, Low, Upp] = ...
+    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, Low, Upp);
 if flag == -1 % Problem with the input
     X = [];
     F = [];
@@ -26,7 +26,7 @@ if flag == -1 % Problem with the input
 end
 
 % --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
-maxdelta = min(.5 * min(U - L), 1e3 * delta); % [dbl] Maximum tr radius
+maxdelta = min(.5 * min(Upp - Low), 1e3 * delta); % [dbl] Maximum tr radius
 mindelta = min(delta * 1e-13, gtol / 10); % [dbl] Min tr radius (technically 0)
 gam0 = .5;      % [dbl] Parameter in (0,1) for shrinking delta  (.5)
 gam1 = 2;       % [dbl] Parameter >1 for enlarging delta   (2)
@@ -107,10 +107,10 @@ while nf < nfmax
     [Mdir, np, valid, Gres, Hresdel, Mind] = ...
         formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
     if np < n  % Must obtain and evaluate bounded geometry points
-        [Mdir, np] = bmpts(X(xkin, :), Mdir(1:n - np, :), L, U, delta, Par(3));
+        [Mdir, np] = bmpts(X(xkin, :), Mdir(1:n - np, :), Low, Upp, delta, Par(3));
         for i = 1:min(n - np, nfmax - nf)
             nf = nf + 1;
-            X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeguard
+            X(nf, :) = min(Upp, max(Low, X(xkin, :) + Mdir(i, :))); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
@@ -139,8 +139,8 @@ while nf < nfmax
     Hres = Hres + Hresdel;
     c = Fs(xkin);
     [G, H] = combinemodels(Cres, Gres, Hres);
-    ind_Lnotbinding = and(X(xkin, :) > L, G' > 0);
-    ind_Unotbinding = and(X(xkin, :) < U, G' < 0);
+    ind_Lnotbinding = and(X(xkin, :) > Low, G' > 0);
+    ind_Unotbinding = and(X(xkin, :) < Upp, G' < 0);
     ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
 
     if printf  % Output stuff: ---------(can be removed later)------------
@@ -169,10 +169,10 @@ while nf < nfmax
         [Mdir, ~, valid] = ...
             formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 1);
         if ~valid % Make model valid in this small region
-            [Mdir, np] = bmpts(X(xkin, :), Mdir, L, U, delta, Par(3));
+            [Mdir, np] = bmpts(X(xkin, :), Mdir, Low, Upp, delta, Par(3));
             for i = 1:min(n - np, nfmax - nf)
                 nf = nf + 1;
-                X(nf, :) = min(U, max(L, X(xkin, :) + Mdir(i, :))); % Temp safeg.
+                X(nf, :) = min(Upp, max(Low, X(xkin, :) + Mdir(i, :))); % Temp safeg.
                 F(nf, :) = fun(X(nf, :));
                 if any(isnan(F(nf, :)))
                     [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
@@ -190,8 +190,8 @@ while nf < nfmax
             [~, ~, valid, Gres, Hres, Mind] = ...
                 formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 0);
             [G, H] = combinemodels(Cres, Gres, Hres);
-            ind_Lnotbinding = and(X(xkin, :) > L, G' > 0);
-            ind_Unotbinding = and(X(xkin, :) < U, G' < 0);
+            ind_Lnotbinding = and(X(xkin, :) > Low, G' > 0);
+            ind_Unotbinding = and(X(xkin, :) < Upp, G' < 0);
             ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
         end
         if ng < gtol % We trust the small gradient norm and return
@@ -201,8 +201,8 @@ while nf < nfmax
     end
 
     % 3. Solve the subproblem min{G'*s+.5*s'*H*s : Lows <= s <= Upps }
-    Lows = max(L - X(xkin, :), -delta);
-    Upps = min(U - X(xkin, :), delta);
+    Lows = max(Low - X(xkin, :), -delta);
+    Upps = min(Upp - X(xkin, :), delta);
     if spsolver == 1 % Stefan's crappy 10line solver
         [Xsp, mdec] = bqmin(H, G, Lows, Upps);
     elseif spsolver == 2 % Arnold Neumaier's minq5
@@ -229,15 +229,15 @@ while nf < nfmax
     % 4. Evaluate the function at the new point (provided mdec isn't zero with an invalid model)
     if (step_norm >= 0.01 * delta || valid) && ~(mdec == 0 && ~valid)
 
-        Xsp = min(U, max(L, X(xkin, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
+        Xsp = min(Upp, max(Low, X(xkin, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
 
         % Project if we're within machine precision
         for i = 1:n % ! This will need to be cleaned up eventually
-            if U(i) - Xsp(i) < eps * abs(U(i)) && U(i) > Xsp(i) && G(i) >= 0
-                Xsp(i) = U(i);
+            if Upp(i) - Xsp(i) < eps * abs(Upp(i)) && Upp(i) > Xsp(i) && G(i) >= 0
+                Xsp(i) = Upp(i);
                 disp('eps project!');
-            elseif Xsp(i) - L(i) < eps * abs(L(i)) && L(i) < Xsp(i) && G(i) >= 0
-                Xsp(i) = L(i);
+            elseif Xsp(i) - Low(i) < eps * abs(Low(i)) && Low(i) < Xsp(i) && G(i) >= 0
+                Xsp(i) = Low(i);
                 disp('eps project!');
             end
         end
@@ -307,7 +307,7 @@ while nf < nfmax
             % Evaluate model-improving points to pick best one
             % ! May eventually want to normalize Mdir first for infty norm
             % Plus directions
-            [Mdir1, np1] = bmpts(X(xkin, :), Mdir(1:n - np, :), L, U, delta, Par(3));
+            [Mdir1, np1] = bmpts(X(xkin, :), Mdir(1:n - np, :), Low, Upp, delta, Par(3));
             for i = 1:n - np1
                 D = Mdir1(i, :);
                 Res(i, 1) = D * (G + .5 * H * D');
@@ -315,7 +315,7 @@ while nf < nfmax
             [a1, b] = min(Res(1:n - np1, 1));
             Xsp = Mdir1(b, :);
             % Minus directions
-            [Mdir1, np2] = bmpts(X(xkin, :), -Mdir(1:n - np, :), L, U, delta, Par(3));
+            [Mdir1, np2] = bmpts(X(xkin, :), -Mdir(1:n - np, :), Low, Upp, delta, Par(3));
             for i = 1:n - np2
                 D = Mdir1(i, :);
                 Res(i, 1) = D * (G + .5 * H * D');
@@ -326,7 +326,7 @@ while nf < nfmax
             end
 
             nf = nf + 1;
-            X(nf, :) = min(U, max(L, X(xkin, :) + Xsp)); % Temp safeguard
+            X(nf, :) = min(Upp, max(Low, X(xkin, :) + Xsp)); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
