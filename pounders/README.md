@@ -28,9 +28,10 @@ with optional `Prior`, `Options`, and `Model` inputs.
 
 ### Inputs
 The inputs to POUNDerS are as follows, with default/recommended values
-indicated in parentheses:
-````
+indicated in parentheses.
 
+Required inputs are:
+````
 Ffun    [f h] Function handle so that Ffun(x) evaluates F (@calfun)
 X_0     [dbl] [1-by-n] Initial point (zeros(1,n))
 n       [int] Dimension (number of continuous variables)
@@ -40,14 +41,16 @@ delta_0 [dbl] Positive initial trust region radius (.1)
 m       [int] Number of components returned from Ffun
 Low     [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
 Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-
-Prior   [dict] of past evaluations of values Ffun with keys:
+````
+Optional inputs are:
+````
+Prior   [dict/struct] of past evaluations of Ffun with keys:
     X_init  [dbl] [nfs-by-n] Set of initial points
     F_init  [dbl] [nfs-by-m] Set of values for points in X_init
     xk_in   [int] Index in X_init for initial starting point
     nfs     [int] Number of function values in F_init known in advance
 
-Options [dict] of options to the method
+Options [dict/struct] of options to the method with keys:
     printf   [int] 0 No printing to screen (default)
                    1 Debugging level of output to screen
                    2 More verbose screen output
@@ -55,7 +58,7 @@ Options [dict] of options to the method
     hfun           [f h] Function handle for mapping output from F
     combinemodels  [f h] Function handle for combining models of F
 
-Model   [dict] of options for model building
+Model   [dict/struct] of options for model building with keys:
     np_max  [int] Maximum number of interpolation points (>n+1) (2*n+1)
     Par     [1-by-4] list for formquad
 ````
