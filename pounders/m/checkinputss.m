@@ -1,8 +1,8 @@
 % checkinputss.m, Version 0.1, Modified 3/3/10
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 %
-% [flag,X0,npmax,F0,L,U] = ...
-%          checkinputss(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U)
+% [flag,X0,npmax,F0,Low,Upp] = ...
+%          checkinputss(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,Low,Upp)
 %
 % Checks the inputs provided to pounders.
 % A warning message is produced if a nonfatal input is given (and the
@@ -13,11 +13,11 @@
 % see inputs for pounders
 % --OUTPUTS----------------------------------------------------------------
 % flag  [int] = 1 if inputs pass the test
-%             = 0 if a warning was produced (X0,npmax,F0,L,U are changed)
+%             = 0 if a warning was produced (X0,npmax,F0,Low,Upp are changed)
 %             = -1 if a fatal error was produced (pounders terminates)
 %
-function [flag, X0, npmax, F0, L, U] = ...
-    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U)
+function [flag, X0, npmax, F0, Low, Upp] = ...
+    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, Low, Upp)
 
 flag = 1; % By default, everything is OK
 
@@ -99,15 +99,15 @@ if xkin > max(nfs, 1) || xkin < 1 || mod(xkin, 1) ~= 0
 end
 
 % Check the bounds
-[nfs2, n2] = size(L);
-[nfs3, n3] = size(U);
+[nfs2, n2] = size(Low);
+[nfs3, n3] = size(Upp);
 if n3 ~= n2 || nfs2 ~= nfs3
     disp('  Error: bound dimensions inconsistent');
     flag = -1;
     return
 elseif n2 ~= n && (n2 == 1 && nfs2 == n) % Attempt to transpose
-    L = L';
-    U = U';
+    Low = Low';
+    Upp = Upp';
     disp('  Warning: bounds are n-by-1, using transposed row vectors');
     flag = 0;
 elseif n2 ~= n || nfs2 ~= 1
@@ -116,13 +116,13 @@ elseif n2 ~= n || nfs2 ~= 1
     return
 end
 
-if min(U - L) <= 0
-    disp('  Error: must have U>L');
+if min(Upp - Low) <= 0
+    disp('  Error: must have Upp>Low');
     flag = -1;
     return
 end
-if min(min(X0(xkin, :) - L), min(U - X0(xkin, :))) < 0
-    disp('  Error: starting point outside of bounds (L,U)');
+if min(min(X0(xkin, :) - Low), min(Upp - X0(xkin, :))) < 0
+    disp('  Error: starting point outside of bounds (Low, Upp)');
     flag = -1;
     return
 end
