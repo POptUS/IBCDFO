@@ -1,6 +1,8 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 
 
+@profile
 def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     Act_Z_k = Hash[xkin]
 
@@ -13,13 +15,20 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     #             Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
     if gentype == 3:
         hxkin, _ = hfun(F[xkin, :], Act_Z_k)
+        Xkdist = cdist(X, X[xkin:xkin+1], metric="chebyshev")
+        delta1 = delta * (1 + 1e-8)
+        delta2 = delta ** 2 * (1 + 1e-8)
         for i in [ind for ind in range(nf) if ind != xkin]:
-            Act_tmp = Hash[i]
-            h_i, _ = hfun(F[xkin], Act_tmp)
-            if np.linalg.norm(X[xkin] - X[i], ord=np.inf) <= delta * (1 + 1e-8) and h_i[0] <= hxkin[0]:
-                Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
-            elif np.linalg.norm(X[xkin] - X[i], ord=np.inf) <= delta**2 * (1 + 1e-8) and h_i[0] > hxkin[0]:
-                Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
+            if Xkdist[i] <= delta1:
+                Act_tmp = Hash[i]
+                h_i, _ = hfun(F[xkin], Act_tmp)
+                if h_i[0] <= hxkin[0]:
+                    Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
+            elif Xkdist[i] <= delta2:
+                Act_tmp = Hash[i]
+                h_i, _ = hfun(F[xkin], Act_tmp)
+                if h_i[0] > hxkin[0]:
+                    Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
 
     Act_Z_k = np.unique(Act_Z_k, axis=0)
     f_k, D_k = hfun(F[xkin], Act_Z_k)
