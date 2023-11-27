@@ -66,6 +66,5 @@ def build_p_models2(nf, nfmax, xkin, xkold, delta, F, G, X, h, Hres, fq_pars, to
             Hres[:, :, i] += np.outer(vk, vk) / np.dot(vk, sk)
             Hres[:, :, i] -= np.outer(Hsk, Hsk) / np.dot(sk, Hsk)
         xkold = xkin
-        print(xkin)
 
     return xkold, Gres, Hres, X, F, G, h, nf, Hash
