@@ -2,7 +2,6 @@ import numpy as np
 from scipy.optimize import linprog
 
 
-@profile
 def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subprob_switch):
 
     n, p = G_k.shape
@@ -21,11 +20,13 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             duals_u = -1.0 * res.upper.marginals[1:]
             duals_l = res.lower.marginals[1:]
         except Exception as e:
+            print(e)
             normA = np.linalg.norm(A[:, 1:])
             rescaledA = np.zeros_like(A)
             rescaledA[:, 0] = -np.ones(p)
             rescaledA[:, 1:] = A[:, 1:] / normA
             res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, method="highs-ipm")
+            assert res["success"], "We didn't solve this!"
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
             duals_u = -1.0 * res.upper.marginals[1:] * normA

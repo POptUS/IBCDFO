@@ -2,7 +2,6 @@ import numpy as np
 from scipy.spatial.distance import cdist
 
 
-@profile
 def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     Act_Z_k = Hash[xkin]
 
