@@ -159,7 +159,7 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
             Alpha = np.reshape(Alpha, (np.shape(Alpha)[0], 1))
         G[:, k] = Alpha[1 : n + 1, 0]
 
-        H[:, :, k][inds_to_use_in_H] = Beta.squeeze() # Set diagonal and above to Beta
+        H[:, :, k][inds_to_use_in_H] = Beta.squeeze()  # Set diagonal and above to Beta
         H[:, :, k].T[inds_to_use_in_H] = Beta.squeeze()  # Set diagonal and below to Beta
         H[:, :, k] *= scale_mat  # Scale Beta
 
