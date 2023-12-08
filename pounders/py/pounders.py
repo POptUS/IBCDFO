@@ -36,7 +36,7 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
     X0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
     n       [int] Dimension (number of continuous variables)
-    npmax   [int] Maximum number of interpolation points (>n+1) (2*n+1)
+    npmax   [int] Maximum number of interpolation points (>=n+1) (2*n+1)
     nfmax   [int] Maximum number of function evaluations (>n+1) (100)
     gtol    [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
     delta   [dbl] Positive trust region radius (.1)
