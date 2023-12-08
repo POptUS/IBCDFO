@@ -28,8 +28,8 @@
 % Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
 % np      [int] Number of interpolation points (=length(Mind))
 % valid   [log] Flag saying if model is valid within Pars(2)*delta
-% G       [dbl] [n-by-m]  Matrix of model gradients at xkin
-% H       [dbl] [n-by-n-by-m]  Array of model Hessians at xkin
+% G       [dbl] [n-by-m]  Matrix of model gradients at centered at X[xkin]
+% H       [dbl] [n-by-n-by-m]  Array of model Hessians centered at X[xkin]
 % Mind    [int] [npmax-by-1] Integer vector of model interpolation indices
 %
 function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xkin, npmax, Pars, vf)
