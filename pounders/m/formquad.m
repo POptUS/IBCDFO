@@ -17,7 +17,7 @@
 % F       [dbl] [nf-by-m] Function values of evaluated points
 % delta   [dbl] Positive trust region radius
 % xkin    [int] Index in (X and F) of the current center
-% npmax   [int] Max # interpolation points (>n+1) (.5*(n+1)*(n+2))
+% npmax   [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
 % Pars(1) [dbl] delta multiplier for checking validity
 % Pars(2) [dbl] delta multiplier for all interpolation points
 % Pars(3) [dbl] Pivot threshold for validity
@@ -28,8 +28,8 @@
 % Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
 % np      [int] Number of interpolation points (=length(Mind))
 % valid   [log] Flag saying if model is valid within Pars(2)*delta
-% G       [dbl] [n-by-m]  Matrix of model gradients at Xk
-% H       [dbl] [n-by-n-by-m]  Array of model Hessians at Xk
+% G       [dbl] [n-by-m]  Matrix of model gradients at xkin
+% H       [dbl] [n-by-n-by-m]  Array of model Hessians at xkin
 % Mind    [int] [npmax-by-1] Integer vector of model interpolation indices
 %
 function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xkin, npmax, Pars, vf)
