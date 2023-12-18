@@ -27,7 +27,7 @@ quadratic terms from the models of `F` into a single quadratic model.
 The POUNDerS API is
 
 ````
-  [X, F, hF, flag, xkin] = pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
+  [X, F, hF, flag, xk_in] = pounders(fun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
 ````
 with optional `Prior`, `Options`, and `Model` inputs.
 
