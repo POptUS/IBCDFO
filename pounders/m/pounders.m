@@ -1,7 +1,7 @@
 % POUNDerS Version 0.1,    Modified 04/9/2010. Copyright 2010
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
-function [X, F, hF, flag, xk_in] = ...
+function [X, F, flag, xk_in] = ...
     pounders(fun, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp, printf, spsolver, hfun, combinemodels)
 
 if ~exist('hfun', 'var')
@@ -22,7 +22,6 @@ end
 if flag == -1 % Problem with the input
     X = [];
     F = [];
-    hF = [];
     return
 end
 
@@ -64,7 +63,6 @@ end
 if nfs == 0 % Need to do the first evaluation
     X = [X0; zeros(nf_max - 1, n)]; % Stores the point locations
     F = zeros(nf_max, m); % Stores the function values
-    hF = zeros(nf_max, 1); % Stores the sum of squares of evaluated points
     nf = 1;
     F0 = fun(X(nf, :));
     if length(F0) ~= m
@@ -74,7 +72,7 @@ if nfs == 0 % Need to do the first evaluation
     end
     F(nf, :) = F0;
     if any(isnan(F(nf, :)))
-        [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+        [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
         return
     end
     if printf
@@ -83,19 +81,19 @@ if nfs == 0 % Need to do the first evaluation
 else % Have other function values around
     X = [X0(1:nfs, :); zeros(nf_max, n)]; % Stores the point locations
     F = [F0(1:nfs, :); zeros(nf_max, m)]; % Stores the function values
-    hF = zeros(nf_max + nfs, 1); % Stores the sum of squares of evaluated points
     nf = nfs;
     nf_max = nf_max + nfs;
 end
+Fs = zeros(nf_max + nfs, 1); % Stores the sum of squares of evaluated points
 for i = 1:nf
-    hF(i) = hfun(F(i, :));
+    Fs(i) = hfun(F(i, :));
 end
 
 Res = zeros(size(F)); % Stores the residuals for model updates
 Cres = F(xk_in, :);
 Hres = zeros(n, n, m);
 ng = NaN; % Needed for early termination, e.g., if a model is never built
-% H = zeros(n); G = zeros(n,1); c = hF(xk_in);
+% H = zeros(n); G = zeros(n,1); c = Fs(xk_in);
 
 % ! NOTE: Currently do not move to a geometry point (including in
 % the first iteration!) if it has a lower f value
@@ -115,12 +113,12 @@ while nf < nf_max
             X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+                [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                 return
             end
-                hF(nf) = hfun(F(nf, :));
+                Fs(nf) = hfun(F(nf, :));
             if printf
-                fprintf('%4i   Geometry point  %11.5e\n', nf, hF(nf));
+                fprintf('%4i   Geometry point  %11.5e\n', nf, Fs(nf));
             end
             D = Mdir(i, :);
             Res(nf, :) = F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
@@ -131,7 +129,7 @@ while nf < nf_max
         [~, np, valid, Gres, Hresdel, Mind] = ...
             formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Par, 0);
         if np < n
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -5);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -5);
             return
         end
     end
@@ -139,7 +137,7 @@ while nf < nf_max
     % 1b. Update the quadratic model
     Cres = F(xk_in, :);
     Hres = Hres + Hresdel;
-    c = hF(xk_in);
+    c = Fs(xk_in);
     [G, H] = combinemodels(Cres, Gres, Hres);
     ind_Lnotbinding = and(X(xk_in, :) > Low, G' > 0);
     ind_Unotbinding = and(X(xk_in, :) < Upp, G' < 0);
@@ -149,10 +147,10 @@ while nf < nf_max
         IERR = zeros(1, size(Mind, 1));
         for i = 1:size(Mind, 1)
             D = (X(Mind(i), :) - X(xk_in, :));
-            IERR(i) = (c - hF(Mind(i))) + D * (G + .5 * H * D');
+            IERR(i) = (c - Fs(Mind(i))) + D * (G + .5 * H * D');
         end
-        ierror = norm(IERR ./ max(abs(hF(Mind, :)'), 0), inf); % Interp. error
-        fprintf(progstr, nf, delta, valid, np, hF(xk_in), ng, ierror);
+        ierror = norm(IERR ./ max(abs(Fs(Mind, :)'), 0), inf); % Interp. error
+        fprintf(progstr, nf, delta, valid, np, Fs(xk_in), ng, ierror);
         if printf >= 2
             for i = 1:size(Mind, 1)
                 D = (X(Mind(i), :) - X(xk_in, :));
@@ -177,12 +175,12 @@ while nf < nf_max
                 X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeg.
                 F(nf, :) = fun(X(nf, :));
                 if any(isnan(F(nf, :)))
-                    [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+                    [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                     return
                 end
-                hF(nf) = hfun(F(nf, :));
+                Fs(nf) = hfun(F(nf, :));
                 if printf
-                    fprintf('%4i   Critical point  %11.5e\n', nf, hF(nf));
+                    fprintf('%4i   Critical point  %11.5e\n', nf, Fs(nf));
                 end
             end
             if nf >= nf_max
@@ -197,7 +195,7 @@ while nf < nf_max
             ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
         end
         if ng < g_tol % We trust the small gradient norm and return
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, 0);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, 0);
             return
         end
     end
@@ -210,7 +208,7 @@ while nf < nf_max
     elseif spsolver == 2 % Arnold Neumaier's minq5
         [Xsp, mdec, minq_err] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
         if minq_err < 0
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -4);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -4);
             return
         end
 
@@ -245,7 +243,7 @@ while nf < nf_max
         end
 
         if mdec == 0 && valid && all(Xsp == X(xk_in, :))
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -2);
             return
         end
 
@@ -253,19 +251,19 @@ while nf < nf_max
         X(nf, :) = Xsp;
         F(nf, :) = fun(X(nf, :));
         if any(isnan(F(nf, :)))
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+            [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
             return
         end
-        hF(nf) = hfun(F(nf, :));
+        Fs(nf) = hfun(F(nf, :));
 
         if mdec ~= 0
-            rho = (hF(nf) - hF(xk_in)) / mdec;
+            rho = (Fs(nf) - Fs(xk_in)) / mdec;
         else % Note: this conditional only occurs when model is valid
-            if hF(nf) == hF(xk_in)
-                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
+            if Fs(nf) == Fs(xk_in)
+                [X, F, flag] = prepare_outputs_before_return(X, F, nf, -2);
                 return
             else
-                rho = inf * sign(hF(nf) - hF(xk_in));
+                rho = inf * sign(Fs(nf) - Fs(xk_in));
             end
         end
 
@@ -331,14 +329,14 @@ while nf < nf_max
             X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Xsp)); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
-                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+                [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                 return
             end
-            hF(nf) = hfun(F(nf, :));
+            Fs(nf) = hfun(F(nf, :));
             if printf
-                fprintf('%4i   Model point     %11.5e\n', nf, hF(nf));
+                fprintf('%4i   Model point     %11.5e\n', nf, Fs(nf));
             end
-            if hF(nf, :) < hF(xk_in, :)  % ! Eventually check suff decrease here!
+            if Fs(nf, :) < Fs(xk_in, :)  % ! Eventually check suff decrease here!
                 if printf
                     disp('**improvement from model point****');
                 end
