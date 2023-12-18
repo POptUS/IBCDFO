@@ -85,11 +85,11 @@ To seek support or report issues, e-mail:
 
 ## Cite IBCDFO
 
-.. code-block:: bibtex
-
+```
   @misc{ibcdfo,
     author = {Jeffrey Larson and Matt Menickelly and Jared P. O'Neal and Stefan M. Wild},
     title  = {Interpolation-Based Composite Derivative-Free Optimization},
     url    = {https://github.com/POptUS/IBCDFO},
     year   = {2024},
   }
+```
