@@ -18,6 +18,11 @@ In each iteration, the algorithm forms a set of quadratic models interpolating t
 functions in `F` and minimizes an associated scalar-valued model within an
 infinity-norm trust region.
 
+Optionally, a user can specify an outer-function that maps the elements
+of `F` to a scalar value to be minimized. Doing this also requires a function
+handle (combinemodels) that tells pounders how to map the linear and
+quadratic terms from the models of `F` into a single quadratic model.
+
 ## API
 The POUNDerS API is
 
@@ -44,13 +49,13 @@ Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
 ````
 Optional inputs are:
 ````
-Prior   [dict/struct] of past evaluations of Ffun with keys:
+Prior   [dict/struct] of past evaluations of Ffun with keys/fields:
     X_init  [dbl] [nfs-by-n] Set of initial points
     F_init  [dbl] [nfs-by-m] Set of values for points in X_init
     xk_in   [int] Index in X_init for initial starting point
     nfs     [int] Number of function values in F_init known in advance
 
-Options [dict/struct] of options to the method with keys:
+Options [dict/struct] of options to the method with keys/fields:
     printf   [int] 0 No printing to screen (default)
                    1 Debugging level of output to screen
                    2 More verbose screen output
@@ -58,15 +63,10 @@ Options [dict/struct] of options to the method with keys:
     hfun           [f h] Function handle for mapping output from F
     combinemodels  [f h] Function handle for combining models of F
 
-Model   [dict/struct] of options for model building with keys:
+Model   [dict/struct] of options for model building with keys/fields:
     np_max  [int] Maximum number of interpolation points (>n+1) (2*n+1)
     Par     [1-by-4] list for formquad
 ````
-
-Optionally, a user can specify an outer-function that maps the elements
-of `F` to a scalar value (to be minimized). Doing this also requires a function
-handle (combinemodels) that tells pounders how to map the linear and
-quadratic terms from the models of `F` into a single quadratic TRSP model.
 
 
 ### Outputs
@@ -81,7 +81,7 @@ flag    [dbl] Termination criteria flag:
               = -1 if input was fatally incorrect (error message shown)
               = -2 if a valid model produced X[nf] == X[xk_in] or (mdec == 0, hF[nf] == hF[xk_in])
               = -3 error if a NaN was encountered
-              = -4 error in TRSP Solver
+              = -4 error in TRSP solver
               = -5 unable to get model improvement with current parameters
 xk_in    [int] Index of point in X representing approximate minimizer
 ````
