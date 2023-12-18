@@ -1,8 +1,8 @@
 % checkinputss.m, Version 0.1, Modified 3/3/10
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 %
-% [flag,X0,npmax,F0,Low,Upp] = ...
-%          checkinputss(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,Low,Upp)
+% [flag,X0,np_max,F0,Low,Upp] = ...
+%          checkinputss(fun,X0,n,np_max,nf_max,g_tol,delta,nfs,m,F0,xk_in,Low,Upp)
 %
 % Checks the inputs provided to pounders.
 % A warning message is produced if a nonfatal input is given (and the
@@ -13,11 +13,11 @@
 % see inputs for pounders
 % --OUTPUTS----------------------------------------------------------------
 % flag  [int] = 1 if inputs pass the test
-%             = 0 if a warning was produced (X0,npmax,F0,Low,Upp are changed)
+%             = 0 if a warning was produced (X0,np_max,F0,Low,Upp are changed)
 %             = -1 if a fatal error was produced (pounders terminates)
 %
-function [flag, X0, npmax, F0, Low, Upp] = ...
-    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, Low, Upp)
+function [flag, X0, np_max, F0, Low, Upp] = ...
+    checkinputss(fun, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp)
 
 flag = 1; % By default, everything is OK
 
@@ -44,19 +44,19 @@ if n ~= n2
 end
 
 % Check max number of interpolation points
-if npmax < n + 1 || npmax > .5 * (n + 1) * (n + 2)
-    npmax = max(n + 1, min(npmax, .5 * (n + 1) * (n + 2)));
-    disp(['  Warning: npmax not in [n+1,.5(n+1)(n+2)] using ', num2str(npmax)]);
+if np_max < n + 1 || np_max > .5 * (n + 1) * (n + 2)
+    np_max = max(n + 1, min(np_max, .5 * (n + 1) * (n + 2)));
+    disp(['  Warning: np_max not in [n+1,.5(n+1)(n+2)] using ', num2str(np_max)]);
     flag = 0;
 end
 
 % Check standard positive quantities
-if nfmax < 1
+if nf_max < 1
     disp('  Error: max number of evaluations is less than 1');
     flag = -1;
     return
-elseif gtol <= 0
-    disp('  Error: gtol must be positive');
+elseif g_tol <= 0
+    disp('  Error: g_tol must be positive');
     flag = -1;
     return
 elseif delta <= 0
@@ -92,7 +92,7 @@ if any(any(isnan(F0)))
 end
 
 % Check starting point
-if xkin > max(nfs, 1) || xkin < 1 || mod(xkin, 1) ~= 0
+if xk_in > max(nfs, 1) || xk_in < 1 || mod(xk_in, 1) ~= 0
     disp('  Error: starting point index not an integer between 1 and nfs');
     flag = -1;
     return
@@ -121,7 +121,7 @@ if min(Upp - Low) <= 0
     flag = -1;
     return
 end
-if min(min(X0(xkin, :) - Low), min(Upp - X0(xkin, :))) < 0
+if min(min(X0(xk_in, :) - Low), min(Upp - X0(xk_in, :))) < 0
     disp('  Error: starting point outside of bounds (Low, Upp)');
     flag = -1;
     return
