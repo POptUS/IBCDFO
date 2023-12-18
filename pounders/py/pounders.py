@@ -65,7 +65,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     Ffun    [f h] Function handle so that Ffun(x) evaluates F (@calfun)
     X_0     [dbl] [1-by-n] Initial point (zeros(1,n))
     n       [int] Dimension (number of continuous variables)
-    nf_max  [int] Maximum number of function evaluations (>n+1) (100)
+    nf_max  [int] Maximum number of function evaluations (>=n+1) (100)
     g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
     delta_0 [dbl] Positive initial trust region radius (.1)
     m       [int] Number of components returned from Ffun
@@ -87,9 +87,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         combinemodels  [f h] Function handle for combining models of F
 
     Model   [dict] of options for model building
-        np_max  [int] Maximum number of interpolation points (>n+1) (2*n+1)
+        np_max  [int] Maximum number of interpolation points (>=n+1) (2*n+1)
         Par     [1-by-4] list for formquad
-
 
     --OUTPUTS----------------------------------------------------------------
     X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
