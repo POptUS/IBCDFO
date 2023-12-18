@@ -76,7 +76,7 @@ end
 minq_location = '../../../../minq/m/minq5/';
 addpath(minq_location);
 
-[X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U);
+[X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U);
 assert(flag == 0, "Test didn't complete");
 end
 
