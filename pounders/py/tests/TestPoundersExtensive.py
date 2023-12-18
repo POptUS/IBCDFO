@@ -20,16 +20,16 @@ class TestPounders(unittest.TestCase):
         dfo = np.loadtxt("dfo.dat")
 
         spsolver = 2
-        nfmax = 50
-        gtol = 1e-13
+        nf_max = 50
+        g_tol = 1e-13
         factor = 10
 
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
             n = int(n)
             m = int(m)
 
-            def objective(y):
-                # It is possible to have python use the same objective values via
+            def Ffun(y):
+                # It is possible to have python use the same Ffun values via
                 # octave. This can be slow on some systems. To (for example)
                 # test difference between matlab and python, used the following
                 # line and add "from oct2py import octave" on a system with octave
@@ -39,13 +39,12 @@ class TestPounders(unittest.TestCase):
                 assert len(out) == m, "Incorrect output dimension"
                 return np.squeeze(out)
 
-            X0 = dfoxs(n, nprob, int(factor**factor_power))
-            npmax = 2 * n + 1  # Maximum number of interpolation points [2*n+1]
-            L = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
-            U = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
+            X_0 = dfoxs(n, nprob, int(factor**factor_power))
+            Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
+            Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
             nfs = 1
-            F0 = np.zeros((1, m))
-            F0[0] = objective(X0)
+            F_init = np.zeros((1, m))
+            F_init[0] = Ffun(X_0)
             xind = 0
             delta = 0.1
             if row in [8, 9]:
@@ -67,29 +66,28 @@ class TestPounders(unittest.TestCase):
                     hfun = pdrs.emittance_h
                     combinemodels = pdrs.emittance_combine
 
-                filename = "./benchmark_results/pounders4py_nfmax=" + str(nfmax) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
+                filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
+                Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
+                Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                [X, F, flag, xk_best] = pdrs.pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xind, L, U, printf, spsolver, hfun, combinemodels)
+                [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
-                h = np.zeros(evals)
-                for i in range(evals):
-                    h[i] = hfun(F[i, :])
 
                 self.assertNotEqual(flag, 1, "pounders failed")
                 self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), "No improvement found")
-                self.assertTrue(X.shape[0] <= nfmax + nfs, "POUNDERs grew the size of X")
+                self.assertTrue(X.shape[0] <= nf_max + nfs, "POUNDERs grew the size of X")
 
                 if flag == 0:
-                    self.assertTrue(evals <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations")
+                    self.assertTrue(evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations")
                 elif flag != -4:
-                    self.assertTrue(evals == nfmax + nfs, "POUNDERs didn't use nfmax evaluations")
+                    self.assertTrue(evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations")
 
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = h
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,

@@ -1,15 +1,15 @@
 % This tests bmpts.m when it notes that:
 % "Geometry points need to be coordinate directions!"
 
-nfmax = 100;
-gtol = 1e-13;
+nf_max = 100;
+g_tol = 1e-13;
 
 n = 2;
 m = n;
 
 xs = [1e-8 -1e-8];
 
-npmax = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
+np_max = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
 L = [0 -1]; % Lower bounds
 U = [1 0]; % Upper bounds
 
@@ -25,7 +25,7 @@ for i = 1:3
 end
 
 nfs = 3; % Points that have been evaluated
-xkin = 1; % Best point's index in X0
+xk_in = 1; % Best point's index in X0
 delta = 1e3; % Starting TR radius
 
-[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, 0, 1);
+[X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, 0, 1);

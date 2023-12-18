@@ -6,8 +6,8 @@
 
 function [] = test_bounds_and_sp1()
 
-nfmax = 100;
-gtol = 1e-13;
+nf_max = 100;
+g_tol = 1e-13;
 factor = 10;
 
 load dfo.dat;
@@ -30,7 +30,7 @@ for row = [7, 8]
     % POUNDERs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    npmax = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
+    np_max = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
     if row == 7
         L = -2 * ones(1, n);
         U = 2 * ones(1, n);
@@ -41,7 +41,7 @@ for row = [7, 8]
 
     nfs = 1;
     X0 = xs';
-    xkin = 1;
+    xk_in = 1;
     delta = 0.1;
     printf = 1;
     spsolver = 1;
@@ -63,7 +63,7 @@ for row = [7, 8]
                 combinemodels = @neg_leastsquares;
             end
 
-            [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+            [X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
 
             if flag == 0
                 check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
@@ -76,7 +76,7 @@ end
 minq_location = '../../../../minq/m/minq5/';
 addpath(minq_location);
 
-[X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U);
+[X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U);
 assert(flag == 0, "Test didn't complete");
 end
 

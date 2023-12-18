@@ -7,9 +7,9 @@ from .phi2eval import phi2eval
 # from .flipSignQ import flipSignQ
 
 
-def formquad(X, F, delta, xkin, npmax, Pars, vf):
+def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     """
-    formquad(X,F,delta,xkin,npmax,Pars,vf) -> [Mdir,np,valid,G,H,Mind]
+    formquad(X, F, delta, xk_in, np_max, Pars, vf) -> [Mdir, np, valid, G, H, Mind]
     Computes the parameters for m quadratics
         ### FIX COMMENT Line 15 ###
         Q_i(x) = C(i) + G(:,i)'*x + 0.5*x'*H(:,:,i)*x,  i=1:m
@@ -22,8 +22,8 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
     X       [dbl] [nf-by-n] Locations of evaluated points
     F       [dbl] [nf-by-m] Function values of evaluated points
     delta   [dbl] Positive trust region radius
-    xkin    [int] Index in (X and F) of the current center
-    npmax   [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
+    xk_in    [int] Index in (X and F) of the current center
+    np_max   [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
     Pars[0] [dbl] delta multiplier for checking validity
     Pars[1] [dbl] delta multiplier for all interpolation points
     Pars[2] [dbl] Pivot threshold for validity
@@ -45,16 +45,16 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
     m = np.shape(F)[1]
     G = np.zeros((n, m))
     H = np.zeros((n, n, m))
-    # Precompute the scaled displacements (could be expensive for larger nfmax)
+    # Precompute the scaled displacements (could be expensive for larger nf_max)
     D = np.zeros((nf, n))  # Scaled displacements
     scale_mat = np.ones((n, n)) / np.sqrt(2)
     scale_mat[np.diag_indices(n)] = 1
     inds_to_use_in_H = np.triu_indices(n)
 
-    assert isinstance(npmax, int), "Must be an integer"
-    assert isinstance(xkin, int), "Must be an integer"
+    assert isinstance(np_max, int), "Must be an integer"
+    assert isinstance(xk_in, int), "Must be an integer"
 
-    D = (X[:nf] - X[xkin]) / delta
+    D = (X[:nf] - X[xk_in]) / delta
     Nd = np.linalg.norm(D, 2, axis=1)
 
     # Get n+1 sufficiently affinely independent points:
@@ -62,7 +62,7 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
     Q = np.eye(n)
     R = np.empty(shape=(0, 0))
     # Indices of model interpolation points
-    Mind = [xkin]
+    Mind = [xk_in]
     valid = False
     # Counter for number of interpolation points
     mp = 0
@@ -106,9 +106,9 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
     M = np.vstack((np.ones(n + 1), D[Mind].T))
     [Q, R] = np.linalg.qr(M.T, mode="complete")
     # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
-    # Now we add points until we have npmax starting with the most recent ones
+    # Now we add points until we have np_max starting with the most recent ones
     i = nf - 1
-    while mp < npmax or npmax == n + 1:
+    while mp < np_max or np_max == n + 1:
         if Nd[i] <= Pars[1] and i not in Mind:
             Ny = np.hstack((N, phi2eval(D[[i], :]).T))
             # Update QR

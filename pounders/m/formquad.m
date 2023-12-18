@@ -1,7 +1,7 @@
 % formquad.m, Version 0.1, Modified 3/2/10
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 %
-%  [Mdir,np,valid,G,H,Mind] = formquad(X,F,delta,xkin,npmax,Pars,vf)
+%  [Mdir,np,valid,G,H,Mind] = formquad(X,F,delta,xk_in,np_max,Pars,vf)
 %
 % Computes the parameters for m quadratics
 %       Q_i(x) = C(i) + G(:,i)'*x + 0.5*x'*H(:,:,i)*x,  i=1:m
@@ -16,8 +16,8 @@
 % X       [dbl] [nf-by-n] Locations of evaluated points
 % F       [dbl] [nf-by-m] Function values of evaluated points
 % delta   [dbl] Positive trust region radius
-% xkin    [int] Index in (X and F) of the current center
-% npmax   [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
+% xk_in   [int] Index in (X and F) of the current center
+% np_max  [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
 % Pars(1) [dbl] delta multiplier for checking validity
 % Pars(2) [dbl] delta multiplier for all interpolation points
 % Pars(3) [dbl] Pivot threshold for validity
@@ -28,11 +28,11 @@
 % Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
 % np      [int] Number of interpolation points (=length(Mind))
 % valid   [log] Flag saying if model is valid within Pars(2)*delta
-% G       [dbl] [n-by-m]  Matrix of model gradients at centered at X(xkin, :)
-% H       [dbl] [n-by-n-by-m]  Array of model Hessians centered at X(xkin, :)
+% G       [dbl] [n-by-m]  Matrix of model gradients at centered at X(xk_in, :)
+% H       [dbl] [n-by-n-by-m]  Array of model Hessians centered at X(xk_in, :)
 % Mind    [int] [npmax-by-1] Integer vector of model interpolation indices
 %
-function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xkin, npmax, Pars, vf)
+function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xk_in, np_max, Pars, vf)
 
 % --DEPENDS ON-------------------------------------------------------------
 % phi2eval : Evaluates the quadratic basis for vector inputs
@@ -49,14 +49,14 @@ H = zeros(n, n, m);
 D = zeros(nf, n); % Scaled displacements
 Nd = zeros(nf, 1); % Norm of scaled displacements
 for i = 1:nf
-    D(i, :) = (X(i, :) - X(xkin, :)) / delta;
+    D(i, :) = (X(i, :) - X(xk_in, :)) / delta;
     Nd(i) = norm(D(i, :));
 end
 
 % Get n+1 sufficiently affinely independent points:
 Q = eye(n);
 R = []; % Initialize the QR factorization of interest
-Mind = xkin; % Indices of model interpolation points
+Mind = xk_in; % Indices of model interpolation points
 valid = false;
 np = 0;  % Counter for number of interpolation points
 for aff = 1:2
@@ -107,9 +107,9 @@ end
 M = [ones(n + 1, 1) D(Mind, :)]';
 [Q, R] = qr(M');
 
-% Now we add points until we have npmax starting with the most recent ones
+% Now we add points until we have np_max starting with the most recent ones
 i = nf;
-while np < npmax || npmax == n + 1
+while np < np_max || np_max == n + 1
     if Nd(i) <= Pars(2) && ~ismember(i, Mind)
         Ny = [N phi2eval(D(i, :))'];
         [Qy, Ry] = qrinsert(Q, R, np + 1, [1 D(i, :)], 'row'); % Update QR
