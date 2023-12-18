@@ -12,8 +12,8 @@ else
 end
 
 spsolver = 2; % TRSP Solver
-nfmax = 100;
-gtol = 1e-13;
+nf_max = 100;
+g_tol = 1e-13;
 factor = 10;
 
 for row = 1:length(dfo)
@@ -29,12 +29,12 @@ for row = 1:length(dfo)
     objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 
     X0 = dfoxs(n, nprob, factor^factor_power)';
-    npmax = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
+    np_max = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
     L = -Inf(1, n);
     U = Inf(1, n);
     nfs = 0;
     F0 = [];
-    xkin = 1;
+    xk_in = 1;
     delta = 0.1;
     if row == 9
         printf = 1;
@@ -61,9 +61,9 @@ for row = 1:length(dfo)
         end
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
+        filename = ['./benchmark_results/poundersM_nfmax=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
-        [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+        [X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
 
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
@@ -78,12 +78,12 @@ for row = 1:length(dfo)
 
         assert(flag ~= -1, "pounders failed");
         assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't find decrease over the starting point");
-        assert(size(X, 1) <= nfmax + nfs, "POUNDERs grew the size of X");
+        assert(size(X, 1) <= nf_max + nfs, "POUNDERs grew the size of X");
 
         if flag == 0
-            assert(size(X, 1) <= nfmax + nfs, "POUNDERs evaluated more than nfmax evaluations");
+            assert(size(X, 1) <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations");
         elseif flag ~= -4
-            assert(size(X, 1) == nfmax + nfs, "POUNDERs didn't use nfmax evaluations");
+            assert(size(X, 1) == nf_max + nfs, "POUNDERs didn't use nf_max evaluations");
         end
 
         evals = size(F, 1);
