@@ -84,16 +84,16 @@ else % Have other function values around
     nf = nfs;
     nf_max = nf_max + nfs;
 end
-Fs = zeros(nf_max + nfs, 1); % Stores the sum of squares of evaluated points
+hF = zeros(nf_max + nfs, 1); % Stores the sum of squares of evaluated points
 for i = 1:nf
-    Fs(i) = hfun(F(i, :));
+    hF(i) = hfun(F(i, :));
 end
 
 Res = zeros(size(F)); % Stores the residuals for model updates
 Cres = F(xk_in, :);
 Hres = zeros(n, n, m);
 ng = NaN; % Needed for early termination, e.g., if a model is never built
-% H = zeros(n); G = zeros(n,1); c = Fs(xk_in);
+% H = zeros(n); G = zeros(n,1); c = hF(xk_in);
 
 % ! NOTE: Currently do not move to a geometry point (including in
 % the first iteration!) if it has a lower f value
@@ -116,9 +116,9 @@ while nf < nf_max
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                 return
             end
-                Fs(nf) = hfun(F(nf, :));
+                hF(nf) = hfun(F(nf, :));
             if printf
-                fprintf('%4i   Geometry point  %11.5e\n', nf, Fs(nf));
+                fprintf('%4i   Geometry point  %11.5e\n', nf, hF(nf));
             end
             D = Mdir(i, :);
             Res(nf, :) = F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
@@ -137,7 +137,7 @@ while nf < nf_max
     % 1b. Update the quadratic model
     Cres = F(xk_in, :);
     Hres = Hres + Hresdel;
-    c = Fs(xk_in);
+    c = hF(xk_in);
     [G, H] = combinemodels(Cres, Gres, Hres);
     ind_Lnotbinding = and(X(xk_in, :) > Low, G' > 0);
     ind_Unotbinding = and(X(xk_in, :) < Upp, G' < 0);
@@ -147,10 +147,10 @@ while nf < nf_max
         IERR = zeros(1, size(Mind, 1));
         for i = 1:size(Mind, 1)
             D = (X(Mind(i), :) - X(xk_in, :));
-            IERR(i) = (c - Fs(Mind(i))) + D * (G + .5 * H * D');
+            IERR(i) = (c - hF(Mind(i))) + D * (G + .5 * H * D');
         end
-        ierror = norm(IERR ./ max(abs(Fs(Mind, :)'), 0), inf); % Interp. error
-        fprintf(progstr, nf, delta, valid, np, Fs(xk_in), ng, ierror);
+        ierror = norm(IERR ./ max(abs(hF(Mind, :)'), 0), inf); % Interp. error
+        fprintf(progstr, nf, delta, valid, np, hF(xk_in), ng, ierror);
         if printf >= 2
             for i = 1:size(Mind, 1)
                 D = (X(Mind(i), :) - X(xk_in, :));
@@ -178,9 +178,9 @@ while nf < nf_max
                     [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                     return
                 end
-                Fs(nf) = hfun(F(nf, :));
+                hF(nf) = hfun(F(nf, :));
                 if printf
-                    fprintf('%4i   Critical point  %11.5e\n', nf, Fs(nf));
+                    fprintf('%4i   Critical point  %11.5e\n', nf, hF(nf));
                 end
             end
             if nf >= nf_max
@@ -254,16 +254,16 @@ while nf < nf_max
             [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
             return
         end
-        Fs(nf) = hfun(F(nf, :));
+        hF(nf) = hfun(F(nf, :));
 
         if mdec ~= 0
-            rho = (Fs(nf) - Fs(xk_in)) / mdec;
+            rho = (hF(nf) - hF(xk_in)) / mdec;
         else % Note: this conditional only occurs when model is valid
-            if Fs(nf) == Fs(xk_in)
+            if hF(nf) == hF(xk_in)
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -2);
                 return
             else
-                rho = inf * sign(Fs(nf) - Fs(xk_in));
+                rho = inf * sign(hF(nf) - hF(xk_in));
             end
         end
 
@@ -332,11 +332,11 @@ while nf < nf_max
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
                 return
             end
-            Fs(nf) = hfun(F(nf, :));
+            hF(nf) = hfun(F(nf, :));
             if printf
-                fprintf('%4i   Model point     %11.5e\n', nf, Fs(nf));
+                fprintf('%4i   Model point     %11.5e\n', nf, hF(nf));
             end
-            if Fs(nf, :) < Fs(xk_in, :)  % ! Eventually check suff decrease here!
+            if hF(nf, :) < hF(xk_in, :)  % ! Eventually check suff decrease here!
                 if printf
                     disp('**improvement from model point****');
                 end

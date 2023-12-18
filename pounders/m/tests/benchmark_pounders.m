@@ -63,7 +63,7 @@ for row = 1:length(dfo)
 
         filename = ['./benchmark_results/poundersM_nfmax=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
-        [X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
+        [X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
 
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
@@ -86,16 +86,10 @@ for row = 1:length(dfo)
             assert(size(X, 1) == nf_max + nfs, "POUNDERs didn't use nf_max evaluations");
         end
 
-        evals = size(F, 1);
-        h = zeros(evals, 1);
-        for i = 1:evals
-            h(i) = hfun(F(i, :));
-        end
-
         Results{hfun_cases, row}.alg = 'POUNDERs';
         Results{hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
         Results{hfun_cases, row}.Fvec = F;
-        Results{hfun_cases, row}.H = h;
+        Results{hfun_cases, row}.H = hF;
         Results{hfun_cases, row}.X = X;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %     save('-mat7-binary', filename, 'Results') % Octave save

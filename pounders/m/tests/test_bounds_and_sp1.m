@@ -63,7 +63,7 @@ for row = [7, 8]
                 combinemodels = @neg_leastsquares;
             end
 
-            [X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
+            [X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
 
             if flag == 0
                 check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
