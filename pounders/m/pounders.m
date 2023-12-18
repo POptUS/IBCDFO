@@ -1,8 +1,8 @@
 % POUNDerS Version 0.1,    Modified 04/9/2010. Copyright 2010
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
-function [X, F, flag, xkin] = ...
-    pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, Low, Upp, printf, spsolver, hfun, combinemodels)
+function [X, F, flag, xk_in] = ...
+    pounders(fun, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp, printf, spsolver, hfun, combinemodels)
 
 if ~exist('hfun', 'var')
     % Use least-squares hfun by default
@@ -17,8 +17,8 @@ if ~exist('printf', 'var')
     printf = 0; % Don't print by default
 end
 % 0. Check inputs
-[flag, X0, npmax, F0, Low, Upp] = ...
-    checkinputss(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, Low, Upp);
+[flag, X0, np_max, F0, Low, Upp] = ...
+    checkinputss(fun, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = [];
     F = [];
@@ -26,11 +26,11 @@ if flag == -1 % Problem with the input
 end
 
 % --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
-maxdelta = min(.5 * min(Upp - Low), 1e3 * delta); % [dbl] Maximum tr radius
-mindelta = min(delta * 1e-13, gtol / 10); % [dbl] Min tr radius (technically 0)
-gam0 = .5;      % [dbl] Parameter in (0,1) for shrinking delta  (.5)
-gam1 = 2;       % [dbl] Parameter >1 for enlarging delta   (2)
-eta1 = .05;     % [dbl] Parameter 2 for accepting point, 0<eta1<1 (.2)
+delta_max = min(.5 * min(Upp - Low), 1e3 * delta); % [dbl] Maximum tr radius
+delta_min = min(delta * 1e-13, g_tol / 10); % [dbl] Min tr radius (technically 0)
+gamma_dec = .5; % [dbl] Parameter in (0,1) for shrinking delta  (.5)
+gamma_inc = 2;  % [dbl] Parameter (>=1) for enlarging delta   (2)
+eta_1 = .05;     % [dbl] Parameter for accepting point, 0<eta_1<1 (.2)
 Par(1) = sqrt(n); % [dbl] delta multiplier for checking validity
 Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
 Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
@@ -43,16 +43,16 @@ end
 
 % --INTERMEDIATE VARIABLES-------------------------------------------------
 % D       [dbl] [1-by-n] Generic displacement vector
-% G       [dbl] [n-by-1] Model gradient at X(xkin,:)
-% H       [dbl] [n-by-n] Model Hessian at X(xkin,:)
-% Hdel    [dbl] [n-by-n] Change to model Hessian at X(xkin,:)
+% G       [dbl] [n-by-1] Model gradient at X(xk_in,:)
+% H       [dbl] [n-by-n] Model Hessian at X(xk_in,:)
+% Hdel    [dbl] [n-by-n] Change to model Hessian at X(xk_in,:)
 % Lows    [dbl] [1-by-n] Vector of subproblem lower bounds
 % Upps    [dbl] [1-by-n] Vector of subproblem upper bounds
 % Mdir    [dbl] [n-by-n] Unit row directions to improve model/geometry
-% Mind    [int] [npmax-by-1] Integer vector of model interpolation indices
+% Mind    [int] [np_max-by-1] Integer vector of model interpolation indices
 % Xsp     [dbl] [1-by-n] Subproblem solution
-% c       [dbl] Model value at X(xkin,:)
-% mdec    [dbl] Change predicted by the model, m(nf)-m(xkin)
+% c       [dbl] Model value at X(xk_in,:)
+% mdec    [dbl] Change predicted by the model, m(nf)-m(xk_in)
 % nf      [int] Counter for the number of function evaluations
 % ng      [dbl] Norm of (projection of) G
 % np      [int] Number of model interpolation points
@@ -61,8 +61,8 @@ end
 % -------------------------------------------------------------------------
 
 if nfs == 0 % Need to do the first evaluation
-    X = [X0; zeros(nfmax - 1, n)]; % Stores the point locations
-    F = zeros(nfmax, m); % Stores the function values
+    X = [X0; zeros(nf_max - 1, n)]; % Stores the point locations
+    F = zeros(nf_max, m); % Stores the function values
     nf = 1;
     F0 = fun(X(nf, :));
     if length(F0) ~= m
@@ -79,38 +79,38 @@ if nfs == 0 % Need to do the first evaluation
         fprintf('%4i    Initial point  %11.5e\n', nf, sum(F(nf, :).^2));
     end
 else % Have other function values around
-    X = [X0(1:nfs, :); zeros(nfmax, n)]; % Stores the point locations
-    F = [F0(1:nfs, :); zeros(nfmax, m)]; % Stores the function values
+    X = [X0(1:nfs, :); zeros(nf_max, n)]; % Stores the point locations
+    F = [F0(1:nfs, :); zeros(nf_max, m)]; % Stores the function values
     nf = nfs;
-    nfmax = nfmax + nfs;
+    nf_max = nf_max + nfs;
 end
-Fs = zeros(nfmax + nfs, 1); % Stores the sum of squares of evaluated points
+Fs = zeros(nf_max + nfs, 1); % Stores the sum of squares of evaluated points
 for i = 1:nf
     Fs(i) = hfun(F(i, :));
 end
 
 Res = zeros(size(F)); % Stores the residuals for model updates
-Cres = F(xkin, :);
+Cres = F(xk_in, :);
 Hres = zeros(n, n, m);
 ng = NaN; % Needed for early termination, e.g., if a model is never built
-% H = zeros(n); G = zeros(n,1); c = Fs(xkin);
+% H = zeros(n); G = zeros(n,1); c = Fs(xk_in);
 
 % ! NOTE: Currently do not move to a geometry point (including in
 % the first iteration!) if it has a lower f value
 
-while nf < nfmax
+while nf < nf_max
     % 1a. Compute the interpolation set.
     for i = 1:nf
-        D = X(i, :) - X(xkin, :);
+        D = X(i, :) - X(xk_in, :);
         Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
     end
     [Mdir, np, valid, Gres, Hresdel, Mind] = ...
-        formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+        formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Par, 0);
     if np < n  % Must obtain and evaluate bounded geometry points
-        [Mdir, np] = bmpts(X(xkin, :), Mdir(1:n - np, :), Low, Upp, delta, Par(3));
-        for i = 1:min(n - np, nfmax - nf)
+        [Mdir, np] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, Par(3));
+        for i = 1:min(n - np, nf_max - nf)
             nf = nf + 1;
-            X(nf, :) = min(Upp, max(Low, X(xkin, :) + Mdir(i, :))); % Temp safeguard
+            X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
@@ -123,11 +123,11 @@ while nf < nfmax
             D = Mdir(i, :);
             Res(nf, :) = F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
         end
-        if nf >= nfmax
+        if nf >= nf_max
             break
         end
         [~, np, valid, Gres, Hresdel, Mind] = ...
-            formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+            formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Par, 0);
         if np < n
             [X, F, flag] = prepare_outputs_before_return(X, F, nf, -5);
             return
@@ -135,25 +135,25 @@ while nf < nfmax
     end
 
     % 1b. Update the quadratic model
-    Cres = F(xkin, :);
+    Cres = F(xk_in, :);
     Hres = Hres + Hresdel;
-    c = Fs(xkin);
+    c = Fs(xk_in);
     [G, H] = combinemodels(Cres, Gres, Hres);
-    ind_Lnotbinding = and(X(xkin, :) > Low, G' > 0);
-    ind_Unotbinding = and(X(xkin, :) < Upp, G' < 0);
+    ind_Lnotbinding = and(X(xk_in, :) > Low, G' > 0);
+    ind_Unotbinding = and(X(xk_in, :) < Upp, G' < 0);
     ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
 
     if printf  % Output stuff: ---------(can be removed later)------------
         IERR = zeros(1, size(Mind, 1));
         for i = 1:size(Mind, 1)
-            D = (X(Mind(i), :) - X(xkin, :));
+            D = (X(Mind(i), :) - X(xk_in, :));
             IERR(i) = (c - Fs(Mind(i))) + D * (G + .5 * H * D');
         end
         ierror = norm(IERR ./ max(abs(Fs(Mind, :)'), 0), inf); % Interp. error
-        fprintf(progstr, nf, delta, valid, np, Fs(xkin), ng, ierror);
+        fprintf(progstr, nf, delta, valid, np, Fs(xk_in), ng, ierror);
         if printf >= 2
             for i = 1:size(Mind, 1)
-                D = (X(Mind(i), :) - X(xkin, :));
+                D = (X(Mind(i), :) - X(xk_in, :));
                 for j = 1:m
                     jerr(i, j) = (Cres(j) - F(Mind(i), j)) + D * (Gres(:, j) + .5 * Hres(:, :, j) * D');
                 end
@@ -163,16 +163,16 @@ while nf < nfmax
     end
 
     % 2. Criticality test invoked if the projected model gradient is small
-    if ng < gtol
-        % Check to see if the model is valid within a region of size gtol
-        delta = max(gtol, max(abs(X(xkin, :))) * eps); % Safety for tiny gtols
+    if ng < g_tol
+        % Check to see if the model is valid within a region of size g_tol
+        delta = max(g_tol, max(abs(X(xk_in, :))) * eps); % Safety for tiny g_tol values
         [Mdir, ~, valid] = ...
-            formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 1);
+            formquad(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Par, 1);
         if ~valid % Make model valid in this small region
-            [Mdir, np] = bmpts(X(xkin, :), Mdir, Low, Upp, delta, Par(3));
-            for i = 1:min(n - np, nfmax - nf)
+            [Mdir, np] = bmpts(X(xk_in, :), Mdir, Low, Upp, delta, Par(3));
+            for i = 1:min(n - np, nf_max - nf)
                 nf = nf + 1;
-                X(nf, :) = min(Upp, max(Low, X(xkin, :) + Mdir(i, :))); % Temp safeg.
+                X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeg.
                 F(nf, :) = fun(X(nf, :));
                 if any(isnan(F(nf, :)))
                     [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
@@ -183,26 +183,26 @@ while nf < nfmax
                     fprintf('%4i   Critical point  %11.5e\n', nf, Fs(nf));
                 end
             end
-            if nf >= nfmax
+            if nf >= nf_max
                 break
             end
             % Recalculate gradient based on a MFN model
             [~, ~, valid, Gres, Hres, Mind] = ...
-                formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 0);
+                formquad(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Par, 0);
             [G, H] = combinemodels(Cres, Gres, Hres);
-            ind_Lnotbinding = and(X(xkin, :) > Low, G' > 0);
-            ind_Unotbinding = and(X(xkin, :) < Upp, G' < 0);
+            ind_Lnotbinding = and(X(xk_in, :) > Low, G' > 0);
+            ind_Unotbinding = and(X(xk_in, :) < Upp, G' < 0);
             ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
         end
-        if ng < gtol % We trust the small gradient norm and return
+        if ng < g_tol % We trust the small gradient norm and return
             [X, F, flag] = prepare_outputs_before_return(X, F, nf, 0);
             return
         end
     end
 
     % 3. Solve the subproblem min{G'*s+.5*s'*H*s : Lows <= s <= Upps }
-    Lows = max(Low - X(xkin, :), -delta);
-    Upps = min(Upp - X(xkin, :), delta);
+    Lows = max(Low - X(xk_in, :), -delta);
+    Upps = min(Upp - X(xk_in, :), delta);
     if spsolver == 1 % Stefan's crappy 10line solver
         [Xsp, mdec] = bqmin(H, G, Lows, Upps);
     elseif spsolver == 2 % Arnold Neumaier's minq5
@@ -229,7 +229,7 @@ while nf < nfmax
     % 4. Evaluate the function at the new point (provided mdec isn't zero with an invalid model)
     if (step_norm >= 0.01 * delta || valid) && ~(mdec == 0 && ~valid)
 
-        Xsp = min(Upp, max(Low, X(xkin, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
+        Xsp = min(Upp, max(Low, X(xk_in, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
 
         % Project if we're within machine precision
         for i = 1:n % ! This will need to be cleaned up eventually
@@ -242,7 +242,7 @@ while nf < nfmax
             end
         end
 
-        if mdec == 0 && valid && all(Xsp == X(xkin, :))
+        if mdec == 0 && valid && all(Xsp == X(xk_in, :))
             [X, F, flag] = prepare_outputs_before_return(X, F, nf, -2);
             return
         end
@@ -257,28 +257,28 @@ while nf < nfmax
         Fs(nf) = hfun(F(nf, :));
 
         if mdec ~= 0
-            rho = (Fs(nf) - Fs(xkin)) / mdec;
+            rho = (Fs(nf) - Fs(xk_in)) / mdec;
         else % Note: this conditional only occurs when model is valid
-            if Fs(nf) == Fs(xkin)
+            if Fs(nf) == Fs(xk_in)
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -2);
                 return
             else
-                rho = inf * sign(Fs(nf) - Fs(xkin));
+                rho = inf * sign(Fs(nf) - Fs(xk_in));
             end
         end
 
         % 4a. Update the center
-        if (rho >= eta1)  || ((rho > 0) && (valid))
+        if (rho >= eta_1)  || ((rho > 0) && (valid))
             %  Update model to reflect new center
-            Cres = F(xkin, :);
-            xkin = nf; % Change current center
+            Cres = F(xk_in, :);
+            xk_in = nf; % Change current center
         end
 
         % 4b. Update the trust-region radius:
-        if (rho >= eta1)  &&  (step_norm > .75 * delta)
-            delta = min(delta * gam1, maxdelta);
+        if (rho >= eta_1)  &&  (step_norm > .75 * delta)
+            delta = min(delta * gamma_inc, delta_max);
         elseif valid
-            delta = max(delta * gam0, mindelta);
+            delta = max(delta * gamma_dec, delta_min);
         end
     else % Don't evaluate f at Xsp
         rho = -1; % Force yourself to do a model-improving point
@@ -288,26 +288,26 @@ while nf < nfmax
     end
 
     % 5. Evaluate a model-improving point if necessary
-    if ~(valid) && (nf < nfmax) && (rho < eta1) % Implies xkin,delta unchanged
+    if ~(valid) && (nf < nf_max) && (rho < eta_1) % Implies xk_in & delta unchanged
         % Need to check because model may be valid after Xsp evaluation
         [Mdir, np, valid] = ...
-            formquad(X(1:nf, :), F(1:nf, :), delta, xkin, npmax, Par, 1);
+            formquad(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Par, 1);
         if ~(valid)  % ! One strategy for choosing model-improving point:
-            % Update model (exists because delta & xkin unchanged)
+            % Update model (exists because delta & xk_in unchanged)
             for i = 1:nf
-                D = (X(i, :) - X(xkin, :));
+                D = (X(i, :) - X(xk_in, :));
                 Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
-                formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+                formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Par, 0);
             Hres = Hres + Hresdel;
-            % Update for modelimp; Cres unchanged b/c xkin unchanged
+            % Update for modelimp; Cres unchanged b/c xk_in unchanged
             [G, H] = combinemodels(Cres, Gres, Hres);
 
             % Evaluate model-improving points to pick best one
             % ! May eventually want to normalize Mdir first for infty norm
             % Plus directions
-            [Mdir1, np1] = bmpts(X(xkin, :), Mdir(1:n - np, :), Low, Upp, delta, Par(3));
+            [Mdir1, np1] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, Par(3));
             for i = 1:n - np1
                 D = Mdir1(i, :);
                 Res(i, 1) = D * (G + .5 * H * D');
@@ -315,7 +315,7 @@ while nf < nfmax
             [a1, b] = min(Res(1:n - np1, 1));
             Xsp = Mdir1(b, :);
             % Minus directions
-            [Mdir1, np2] = bmpts(X(xkin, :), -Mdir(1:n - np, :), Low, Upp, delta, Par(3));
+            [Mdir1, np2] = bmpts(X(xk_in, :), -Mdir(1:n - np, :), Low, Upp, delta, Par(3));
             for i = 1:n - np2
                 D = Mdir1(i, :);
                 Res(i, 1) = D * (G + .5 * H * D');
@@ -326,7 +326,7 @@ while nf < nfmax
             end
 
             nf = nf + 1;
-            X(nf, :) = min(Upp, max(Low, X(xkin, :) + Xsp)); % Temp safeguard
+            X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Xsp)); % Temp safeguard
             F(nf, :) = fun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, flag] = prepare_outputs_before_return(X, F, nf, -3);
@@ -336,14 +336,14 @@ while nf < nfmax
             if printf
                 fprintf('%4i   Model point     %11.5e\n', nf, Fs(nf));
             end
-            if Fs(nf, :) < Fs(xkin, :)  % ! Eventually check suff decrease here!
+            if Fs(nf, :) < Fs(xk_in, :)  % ! Eventually check suff decrease here!
                 if printf
                     disp('**improvement from model point****');
                 end
                 %  Update model to reflect new base point
-                D = (X(nf, :) - X(xkin, :));
-                xkin = nf; % Change current center
-                Cres = F(xkin, :);
+                D = (X(nf, :) - X(xk_in, :));
+                xk_in = nf; % Change current center
+                Cres = F(xk_in, :);
                 % Don't actually use:
                 for j = 1:m
                     Gres(:, j) = Gres(:, j) + Hres(:, :, j) * D';
