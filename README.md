@@ -83,6 +83,17 @@ To seek support or report issues, e-mail:
 
  * ``poptus@mcs.anl.gov``
 
+## Cite IBCDFO
+
+```
+  @misc{ibcdfo,
+    author = {Jeffrey Larson and Matt Menickelly and Jared P. O'Neal and Stefan M. Wild},
+    title  = {Interpolation-Based Composite Derivative-Free Optimization},
+    url    = {https://github.com/POptUS/IBCDFO},
+    year   = {2024},
+  }
+```
+
 ## About IBCDFO
 
 Part of [POptUS: Practical Optimization Using Structure](https://github.com/POptUS).
