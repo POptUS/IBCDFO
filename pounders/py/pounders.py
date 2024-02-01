@@ -5,9 +5,14 @@ import numpy as np
 from .bmpts import bmpts
 from .bqmin import bqmin
 from .checkinputss import checkinputss
-from .formquad import formquad
+from .formquad import formquad, build_formquad_models, formquad_model_improvement
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+class NanValueError(Exception):
+    pass
+
+class ModelBuildingError(Exception):
+    pass
 
 def _default_model_par_values(n):
     par = np.zeros(4)
@@ -185,39 +190,22 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         nf_max = nf_max + nfs
     for i in range(nf + 1):
         hF[i] = hfun(F[i])
-    Res = np.zeros(np.shape(F))
     Cres = F[xk_in]
     Hres = np.zeros((n, n, m))
     ng = np.nan  # Needed for early termination, e.g., if a model is never built
     while nf + 1 < nf_max:
-        #  1a. Compute the interpolation set.
-        D = X[: nf + 1] - X[xk_in]
-        Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
-        if mp < n:
-            [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-            for i in range(int(min(n - mp, nf_max - (nf + 1)))):
-                nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
-                F[nf] = Ffun(X[nf])
-                if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                    return X, F, hF, flag, xk_in
-                hF[nf] = hfun(F[nf])
-                if printf:
-                    print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
-                D = Mdir[i, :]
-                Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
-            if nf + 1 >= nf_max:
-                break
-            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-            if mp < n:
+        try:
+            [Cres, Gres, Hres, nf, X, F, hF, Mind, valid] = build_formquad_models(Cres, Hres, Model, delta, n, Low, Upp, X, F, hF, nf, xk_in, nf_max, Ffun, hfun, printf)
+        except NanValueError:
+
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+            return X, F, hF, flag, xk_in
+
+        except ModelBuildingError:
+
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
                 return X, F, hF, flag, xk_in
 
-        #  1b. Update the quadratic model
-        Cres = F[xk_in]
-        Hres = Hres + Hresdel
         c = hF[xk_in]
         G, H = combinemodels(Cres, Gres, Hres)
         ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
@@ -260,7 +248,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
-                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
+                [_, _, valid, Gres, Hres, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
@@ -335,54 +323,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 print("Warning: skipping sp soln!-----------")
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
-            # Need to check because model may be valid after Xsp evaluation
-            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
-            if not valid:  # ! One strategy for choosing model-improving point:
-                # Update model (exists because delta & xk_in unchanged)
-                D = X[: nf + 1] - X[xk_in]
-                Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-                Hres = Hres + Hresdel
-                # Update for modelimp; Cres unchanged b/c xk_in unchanged
-                G, H = combinemodels(Cres, Gres, Hres)
-                # Evaluate model-improving points to pick best one
-                # May eventually want to normalize Mdir first for infty norm
-                # Plus directions
-                [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-                for i in range(n - mp1):
-                    D = Mdir1[i, :]
-                    Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-                b = np.argmin(Res[: n - mp1, 0:1])
-                a1 = np.min(Res[: n - mp1, 0:1])
-                Xsp = Mdir1[b, :]
-                # Minus directions
-                [Mdir1, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-                for i in range(n - mp2):
-                    D = Mdir1[i, :]
-                    Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-                b = np.argmin(Res[: n - mp2, 0:1])
-                a2 = np.min(Res[: n - mp2, 0:1])
-                if a2 < a1:
-                    Xsp = Mdir1[b, :]
-                nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
-                F[nf] = Ffun(X[nf])
-                if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                    return X, F, hF, flag, xk_in
-                hF[nf] = hfun(F[nf])
-                if printf:
-                    print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
-                if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
-                    if printf:
-                        print("**improvement from model point****")
-                    # Update model to reflect new base point
-                    D = X[nf] - X[xk_in]
-                    xk_in = nf  # Change current center
-                    Cres = F[xk_in]
-                    # Don't actually use
-                    for j in range(m):
-                        Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
+            [Cres, Gres, Hres, nf, X, F, hF, valid, xk_in] = formquad_model_improvement(nf, nf_max, valid, rho, eta_1, X, F, hF, delta, xk_in, Model, Cres, Gres, Hres, combinemodels, n, Low, Upp, Ffun, hfun, printf)
+
     if printf:
         print("Number of function evals exceeded")
     flag = ng
