@@ -5,7 +5,7 @@ import numpy as np
 from .bmpts import bmpts
 from .bqmin import bqmin
 from .checkinputss import checkinputss
-from .formquad import formquad, build_formquad_models, formquad_model_improvement, NanValueError, ModelBuildingError
+from .formquad import formquad, build_formquad_models, formquad_model_improvement, NanValueError, ModelBuildingError, MaxEvalError
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
