@@ -13,6 +13,10 @@ class NanValueError(Exception):
     pass
 
 
+class MaxEvalError(Exception):
+    pass
+
+
 class ModelBuildingError(Exception):
     pass
 
@@ -248,8 +252,7 @@ def formquad_model_improvement(nf, nf_max, valid, rho, eta_1, X, F, hF, delta, x
         X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
         F[nf] = Ffun(X[nf])
         if np.any(np.isnan(F[nf])):
-            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-            return X, F, hF, flag, xk_in
+            raise NanValueError("NaN encountered")
         hF[nf] = hfun(F[nf])
         if printf:
             print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))

@@ -197,6 +197,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         except ModelBuildingError:
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
             return X, F, hF, flag, xk_in
+        except MaxEvalError:
+            break
 
         c = hF[xk_in]
         G, H = combinemodels(Cres, Gres, Hres)
@@ -315,9 +317,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 print("Warning: skipping sp soln!-----------")
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
-            [Cres, Gres, Hres, nf, X, F, hF, valid, xk_in, mp] = formquad_model_improvement(
-                nf, nf_max, valid, rho, eta_1, X, F, hF, delta, xk_in, Model, Cres, Gres, Hres, combinemodels, n, Low, Upp, Ffun, hfun, printf
-            )
+            try:
+                [Cres, Gres, Hres, nf, X, F, hF, valid, xk_in, mp] = formquad_model_improvement(
+                    nf, nf_max, valid, rho, eta_1, X, F, hF, delta, xk_in, Model, Cres, Gres, Hres, combinemodels, n, Low, Upp, Ffun, hfun, printf
+                )
+            except NanValueError:
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                return X, F, hF, flag, xk_in
 
     if printf:
         print("Number of function evals exceeded")
