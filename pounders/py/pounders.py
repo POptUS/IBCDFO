@@ -5,14 +5,8 @@ import numpy as np
 from .bmpts import bmpts
 from .bqmin import bqmin
 from .checkinputss import checkinputss
-from .formquad import formquad, build_formquad_models, formquad_model_improvement
+from .formquad import formquad, build_formquad_models, formquad_model_improvement, NanValueError, ModelBuildingError
 from .prepare_outputs_before_return import prepare_outputs_before_return
-
-class NanValueError(Exception):
-    pass
-
-class ModelBuildingError(Exception):
-    pass
 
 def _default_model_par_values(n):
     par = np.zeros(4)
@@ -197,14 +191,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         try:
             [Cres, Gres, Hres, nf, X, F, hF, Mind, valid, mp] = build_formquad_models(Cres, Hres, Model, delta, n, Low, Upp, X, F, hF, nf, xk_in, nf_max, Ffun, hfun, printf)
         except NanValueError:
-
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
             return X, F, hF, flag, xk_in
-
         except ModelBuildingError:
-
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
-                return X, F, hF, flag, xk_in
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
+            return X, F, hF, flag, xk_in
 
         c = hF[xk_in]
         G, H = combinemodels(Cres, Gres, Hres)
