@@ -8,11 +8,14 @@ from .bmpts import bmpts
 # from .flipFirstRow import flipFirstRow
 # from .flipSignQ import flipSignQ
 
+
 class NanValueError(Exception):
     pass
 
+
 class ModelBuildingError(Exception):
     pass
+
 
 def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     """
@@ -175,6 +178,7 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
 
     return [Mdir, mp, valid, G, H, Mind]
 
+
 def build_formquad_models(Cres, Hres, Model, delta, n, Low, Upp, X, F, hF, nf, xk_in, nf_max, Ffun, hfun, printf):
     Res = np.zeros(np.shape(F))
 
@@ -260,4 +264,4 @@ def formquad_model_improvement(nf, nf_max, valid, rho, eta_1, X, F, hF, delta, x
             # for j in range(m):
             #     Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
 
-    return Cres, Gres, Hres, nf, X, F, hF, valid, xk_in, mp 
+    return Cres, Gres, Hres, nf, X, F, hF, valid, xk_in, mp

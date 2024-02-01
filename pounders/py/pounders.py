@@ -8,6 +8,7 @@ from .checkinputss import checkinputss
 from .formquad import formquad, build_formquad_models, formquad_model_improvement, NanValueError, ModelBuildingError
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+
 def _default_model_par_values(n):
     par = np.zeros(4)
     par[0] = np.sqrt(n)
@@ -314,7 +315,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 print("Warning: skipping sp soln!-----------")
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
-            [Cres, Gres, Hres, nf, X, F, hF, valid, xk_in, mp] = formquad_model_improvement(nf, nf_max, valid, rho, eta_1, X, F, hF, delta, xk_in, Model, Cres, Gres, Hres, combinemodels, n, Low, Upp, Ffun, hfun, printf)
+            [Cres, Gres, Hres, nf, X, F, hF, valid, xk_in, mp] = formquad_model_improvement(
+                nf, nf_max, valid, rho, eta_1, X, F, hF, delta, xk_in, Model, Cres, Gres, Hres, combinemodels, n, Low, Upp, Ffun, hfun, printf
+            )
 
     if printf:
         print("Number of function evals exceeded")
