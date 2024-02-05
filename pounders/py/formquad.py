@@ -8,7 +8,6 @@ from .phi2eval import phi2eval
 # from .flipSignQ import flipSignQ
 
 
-
 def formquad(X, F, delta, xk_in, np_max, Pars, vf, H_flag=False, Old_H=[]):
     """
     formquad(X, F, delta, xk_in, np_max, Pars, vf) -> [Mdir, np, valid, G, H, Mind]
@@ -190,7 +189,7 @@ def formquad_model_improvement(x_k, Cres, Gres, Hres, Mdir, mp, Low, Upp, delta,
     Res = np.zeros((n - mp1, 1))
     for i in range(n - mp1):
         D = Mdir1[i, :]
-        Res[i,0] = D @ (G + 0.5 * H @ D.T)
+        Res[i, 0] = D @ (G + 0.5 * H @ D.T)
     b = np.argmin(Res[: n - mp1, 0:1])
     a1 = np.min(Res[: n - mp1, 0:1])
     Xsp = Mdir1[b, :]
@@ -199,7 +198,7 @@ def formquad_model_improvement(x_k, Cres, Gres, Hres, Mdir, mp, Low, Upp, delta,
     Res = np.zeros((n - mp2, 1))
     for i in range(n - mp2):
         D = Mdir1[i, :]
-        Res[i,0] = D @ (G + 0.5 * H @ D.T)
+        Res[i, 0] = D @ (G + 0.5 * H @ D.T)
     b = np.argmin(Res[: n - mp2, 0:1])
     a2 = np.min(Res[: n - mp2, 0:1])
     if a2 < a1:

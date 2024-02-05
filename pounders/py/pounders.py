@@ -113,7 +113,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         Model["Par"] = _default_model_par_values(n)
         Model["np_max"] = _default_model_np_max(n)
     else:
-        if "H_flag" not in Model: 
+        if "H_flag" not in Model:
             Model["H_flag"] = True
         if "Par" not in Model:
             Model["Par"] = _default_model_par_values(n)
