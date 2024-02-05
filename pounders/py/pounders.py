@@ -218,6 +218,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 break
 
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False, Model["H_flag"], Hres)
+            if mp < n:
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
+                return X, F, hF, flag, xk_in
 
         c = hF[xk_in]
         G, H = combinemodels(Cres, Gres, Hres)
@@ -254,7 +257,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     F[nf] = Ffun(X[nf])
                     if np.any(np.isnan(F[nf])):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                        return X, F, flag, xk_in
+                        return X, F, hF, flag, xk_in
                     hF[nf] = hfun(F[nf])
                     if printf:
                         print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
@@ -353,7 +356,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
                     X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                    return X, F, flag, xk_in
+                    return X, F, hF, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
