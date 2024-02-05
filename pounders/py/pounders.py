@@ -368,8 +368,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     xk_in = nf  # Change current center
                     Cres = F[xk_in]
                     # Don't actually use
-                    # for j in range(m):
-                    #     Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
+                    for j in range(m):
+                        Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
 
     if printf:
         print("Number of function evals exceeded")
