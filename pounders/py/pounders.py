@@ -352,7 +352,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    raise NanValueError("NaN encountered")
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                    return X, F, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
