@@ -8,19 +8,8 @@ from .phi2eval import phi2eval
 # from .flipSignQ import flipSignQ
 
 
-class NanValueError(Exception):
-    pass
 
-
-class MaxEvalError(Exception):
-    pass
-
-
-class ModelBuildingError(Exception):
-    pass
-
-
-def formquad(X, F, delta, xk_in, np_max, Pars, vf):
+def formquad(X, F, delta, xk_in, np_max, Pars, vf, H_flag=False, Old_H=[]):
     """
     formquad(X, F, delta, xk_in, np_max, Pars, vf) -> [Mdir, np, valid, G, H, Mind]
     Computes the parameters for m quadratics
@@ -35,13 +24,17 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     X       [dbl] [nf-by-n] Locations of evaluated points
     F       [dbl] [nf-by-m] Function values of evaluated points
     delta   [dbl] Positive trust region radius
-    xk_in    [int] Index in (X and F) of the current center
-    np_max   [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
+    xk_in   [int] Index in (X and F) of the current center
+    np_max  [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
     Pars[0] [dbl] delta multiplier for checking validity
     Pars[1] [dbl] delta multiplier for all interpolation points
     Pars[2] [dbl] Pivot threshold for validity
     Pars[3] [dbl] Pivot threshold for additional points (.001)
     vf      [log] Flag indicating you just want to check model validity
+    H_flag  [int] Flag indicating type of Hessians to return
+                  0: Minimum change in Frobenius norm Hessians
+                  1: Minimum-norm Hessians
+
     --OUTPUTS----------------------------------------------------------------
     Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
     np      [int] Number of interpolation points (=length(Mind))
@@ -179,91 +172,37 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     H = H / (delta**2)
     G = G / delta
 
+    if H_flag:
+        H = Old_H + H
+
     return [Mdir, mp, valid, G, H, Mind]
 
 
-def build_formquad_models(Cres, Hres, Model, delta, n, Low, Upp, X, F, hF, nf, xk_in, nf_max, Ffun, hfun, printf):
-    Res = np.zeros(np.shape(F))
+def formquad_model_improvement(x_k, Cres, Gres, Hres, Mdir, mp, Low, Upp, delta, Model, combinemodels):
+    n = len(x_k)
 
-    #  1a. Compute the interpolation set.
-    D = X[: nf + 1] - X[xk_in]
-    Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-    [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
-    if mp < n:
-        [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-        for i in range(int(min(n - mp, nf_max - (nf + 1)))):
-            nf += 1
-            X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
-            F[nf] = Ffun(X[nf])
-            if np.any(np.isnan(F[nf])):
-                raise NanValueError("NaN encountered")
-            hF[nf] = hfun(F[nf])
-            if printf:
-                print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
-            D = Mdir[i, :]
-            Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
-        if nf + 1 >= nf_max:
-            raise MaxEvalError("All done")
-        [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-        if mp < n:
-            raise ModelBuildingError("yeah")
-
-    #  1b. Update the quadratic model
-    Cres = F[xk_in]
-    Hres = Hres + Hresdel
-
-    return Cres, Gres, Hres, nf, X, F, hF, Mind, valid, mp
-
-
-def formquad_model_improvement(nf, nf_max, valid, rho, eta_1, X, F, hF, delta, xk_in, Model, Cres, Gres, Hres, combinemodels, n, Low, Upp, Ffun, hfun, printf):
-    Res = np.zeros(np.shape(F))
-
-    # Need to check because model may be valid after Xsp evaluation
-    [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
-    if not valid:  # ! One strategy for choosing model-improving point:
-        # Update model (exists because delta & xk_in unchanged)
-        D = X[: nf + 1] - X[xk_in]
-        Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-        Hres = Hres + Hresdel
-        # Update for modelimp; Cres unchanged b/c xk_in unchanged
-        G, H = combinemodels(Cres, Gres, Hres)
-        # Evaluate model-improving points to pick best one
-        # May eventually want to normalize Mdir first for infty norm
-        # Plus directions
-        [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-        for i in range(n - mp1):
-            D = Mdir1[i, :]
-            Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-        b = np.argmin(Res[: n - mp1, 0:1])
-        a1 = np.min(Res[: n - mp1, 0:1])
+    # Update for modelimp; Cres unchanged b/c xk_in unchanged
+    G, H = combinemodels(Cres, Gres, Hres)
+    # Evaluate model-improving points to pick best one
+    # May eventually want to normalize Mdir first for infty norm
+    # Plus directions
+    [Mdir1, mp1] = bmpts(x_k, Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+    Res = np.zeros((n - mp1, 1))
+    for i in range(n - mp1):
+        D = Mdir1[i, :]
+        Res[i,0] = D @ (G + 0.5 * H @ D.T)
+    b = np.argmin(Res[: n - mp1, 0:1])
+    a1 = np.min(Res[: n - mp1, 0:1])
+    Xsp = Mdir1[b, :]
+    # Minus directions
+    [Mdir1, mp2] = bmpts(x_k, -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+    Res = np.zeros((n - mp2, 1))
+    for i in range(n - mp2):
+        D = Mdir1[i, :]
+        Res[i,0] = D @ (G + 0.5 * H @ D.T)
+    b = np.argmin(Res[: n - mp2, 0:1])
+    a2 = np.min(Res[: n - mp2, 0:1])
+    if a2 < a1:
         Xsp = Mdir1[b, :]
-        # Minus directions
-        [Mdir1, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-        for i in range(n - mp2):
-            D = Mdir1[i, :]
-            Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-        b = np.argmin(Res[: n - mp2, 0:1])
-        a2 = np.min(Res[: n - mp2, 0:1])
-        if a2 < a1:
-            Xsp = Mdir1[b, :]
-        nf += 1
-        X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
-        F[nf] = Ffun(X[nf])
-        if np.any(np.isnan(F[nf])):
-            raise NanValueError("NaN encountered")
-        hF[nf] = hfun(F[nf])
-        if printf:
-            print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
-        if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
-            if printf:
-                print("**improvement from model point****")
-            # Update model to reflect new base point
-            D = X[nf] - X[xk_in]
-            xk_in = nf  # Change current center
-            Cres = F[xk_in]
-            # Don't actually use
-            # for j in range(m):
-            #     Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
 
-    return Cres, Gres, Hres, nf, X, F, hF, valid, xk_in, mp
+    return Xsp
