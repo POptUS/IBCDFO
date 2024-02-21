@@ -78,7 +78,7 @@ if nfs == 0 % Need to do the first evaluation
         return
     end
     if printf
-        fprintf('%4i    Initial point  %11.5e\n', nf, sum(F(nf, :).^2));
+        fprintf('%4i    Initial point  %11.5e\n', nf, hfun(F(nf, :)));
     end
 else % Have other function values around
     X = [X0(1:nfs, :); zeros(nf_max, n)]; % Stores the point locations
