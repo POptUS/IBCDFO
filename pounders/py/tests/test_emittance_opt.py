@@ -40,7 +40,7 @@ Options["combinemodels"] = combinemodels
 Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xk_inout] = pounders(call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 
