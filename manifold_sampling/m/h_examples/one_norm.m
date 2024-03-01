@@ -30,10 +30,10 @@ function [h, grads, Hash] = one_norm(z, H0)
             end
         end
 
-        grads =allcomb(grad_lists{:})';  % Can get this here: https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin-
+        grads = allcomb(grad_lists{:})';  % Can get this here: https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin-
         HashCombTmp = allcomb(Hash_lists{:});
         Hash = cell(1, size(HashCombTmp, 1));
-        
+
         for i = 1:size(HashCombTmp, 1)
             Hash{i} = strjoin(HashCombTmp(i, :), '');
         end

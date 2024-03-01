@@ -7,11 +7,9 @@ LB = -2 * ones(1, n);
 UB = 2 * ones(1, n);
 x0 = [-1.2, 1.0];
 
-
-hfun = @one_norm; 
+hfun = @one_norm;
 
 [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, @Ffun, x0, LB, UB, nfmax, subprob_switch);
-
 
 function F = Ffun(x)
     % Rosenbrock function
