@@ -1,7 +1,8 @@
+from itertools import product
+
 import numpy as np
 import numpy.linalg as LA
 from scipy import spatial
-from itertools import product
 
 
 def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):

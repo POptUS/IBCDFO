@@ -1,4 +1,5 @@
 import itertools
+
 import numpy as np
 from ibcdfo.manifold_sampling.h_examples import one_norm as hfun
 from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
