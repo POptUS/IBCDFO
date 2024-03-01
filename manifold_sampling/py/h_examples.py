@@ -17,7 +17,7 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
 
 
 def one_norm(z, H0=None):
-    # Evaluates 
+    # Evaluates
     #   sum(abs(z_j))
 
     # Inputs:
@@ -44,14 +44,14 @@ def one_norm(z, H0=None):
             elif element > tol:
                 grad_lists[i] = [1]
                 Hash_lists[i] = ["+"]
-            else: 
-                grad_lists[i] = [-1,1]
-                Hash_lists[i] = ["-","+"]
+            else:
+                grad_lists[i] = [-1, 1]
+                Hash_lists[i] = ["-", "+"]
 
         all_grad_perms = product(*grad_lists)
 
         grads = np.array(list(all_grad_perms)).T
-        Hash = [''.join(t) for t in product(*Hash_lists)]
+        Hash = ["".join(t) for t in product(*Hash_lists)]
 
         return h, grads, Hash
 
@@ -62,12 +62,13 @@ def one_norm(z, H0=None):
 
         for j in range(len(z)):
             for k in range(J):
-                if H0[k][j] == '-':
+                if H0[k][j] == "-":
                     grads[j, k] = -1
 
-                h[k] = np.dot(grads[:,k], z)
+                h[k] = np.dot(grads[:, k], z)
 
         return h, grads
+
 
 def pw_maximum(z, H0=None):
     # Evaluates the pointwise maximum function
