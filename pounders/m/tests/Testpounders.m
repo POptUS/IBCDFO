@@ -5,6 +5,7 @@ classdef Testpounders < matlab.unittest.TestCase
             test_failing_objective;
             test_bounds_and_sp1;
             test_bmpts;
+            test_one_m_pounders;
         end
 
         function longTest(testCase)

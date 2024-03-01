@@ -20,6 +20,7 @@ X0(2, :) = 10 * xs; % Farther from origin
 X0(3, :) = 100 * xs; % Colinear
 
 objective = @(x) x; % Identity mapping
+F0 = zeros(3, n);
 for i = 1:3
     F0(i, :) = objective(X0(i, :));
 end

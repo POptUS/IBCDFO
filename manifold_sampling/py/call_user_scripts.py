@@ -39,6 +39,10 @@ def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_reca
         h_dummy2, grad_dummy2 = hfun(F[nf, :], hash_dummy)
         # if not np.any(np.abs(h_dummy1 - h_dummy2) <= 1e-16):
         #     print("DEBUG: ", np.abs(h_dummy1 - h_dummy2), flush=True)
+        if not np.any(np.abs(h_dummy1 - h_dummy2) <= 1e-8):
+            print(1)
+            import ipdb; ipdb.set_trace(context=21)
+
         assert np.any(np.abs(h_dummy1 - h_dummy2) <= 1e-8), "hfun values don't agree when " + hfun.__name__ + " is re-called with the same inputs"
         assert np.all(grad_dummy1 == grad_dummy2), "hfun gradients don't agree when " + hfun.__name__ + " is being re-called with the same inputs"
 

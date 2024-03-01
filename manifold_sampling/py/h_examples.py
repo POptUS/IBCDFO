@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.linalg as LA
 from scipy import spatial
+from itertools import product
 
 
 def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
@@ -14,6 +15,59 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
 
     return inds, grads, Hashes
 
+
+def one_norm(z, H0=None):
+    # Evaluates 
+    #   sum(abs(z_j))
+
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l manifolds active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+
+    if H0 is None:
+        h = np.sum(np.abs(z))
+
+        tol = 1e-8
+
+        grad_lists = [None] * len(z)
+        Hash_lists = [None] * len(z)
+
+        for i, element in enumerate(z):
+            if element < -tol:
+                grad_lists[i] = [-1]
+                Hash_lists[i] = ["-"]
+            elif element > tol:
+                grad_lists[i] = [1]
+                Hash_lists[i] = ["+"]
+            else: 
+                grad_lists[i] = [-1,1]
+                Hash_lists[i] = ["-","+"]
+
+        all_grad_perms = product(*grad_lists)
+
+        grads = np.array(list(all_grad_perms)).T
+        Hash = [''.join(t) for t in product(*Hash_lists)]
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.ones((len(z), J))
+
+        for j in range(len(z)):
+            for k in range(J):
+                if H0[k][j] == '-':
+                    grads[j, k] = -1
+
+                h[k] = np.dot(grads[:,k], z)
+
+        return h, grads
 
 def pw_maximum(z, H0=None):
     # Evaluates the pointwise maximum function
