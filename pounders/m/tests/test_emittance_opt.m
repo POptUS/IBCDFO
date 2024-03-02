@@ -16,7 +16,7 @@ F_0 = zeros(1, m); % Initial evaluations (parameters with completed simulations)
 F_0(1, :) = call_beamline_simulation(X_0);
 nfs = 1; % Number of initial evaluations
 xk_in = 1; % Index in F_0 for starting the optimization (usually the point with minimal emittance)
-npmax = 2*n + 1;
+npmax = 2 * n + 1;
 spsolver = 2;
 
 [Xout, Fout, hFout, flag, xk_inout] = ...
@@ -37,4 +37,3 @@ function out = call_beamline_simulation(x)
 
     assert(length(out) == 3, 'Incorrect output dimension');
 end
-
