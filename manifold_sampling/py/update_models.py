@@ -8,7 +8,7 @@ def update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pa
     Cres = F[xkin, :]
     Res = np.zeros(F.shape)  # Stores the residuals for model updates
 
-    for i in range(nf):
+    for i in range(nf + 1):
         D = X[i] - X[xkin]
         for j in range(len(Cres)):
             Res[i, j] = (F[i, j] - Cres[j]) - 0.5 * np.dot(D, np.dot(Hres[:, :, j], D.T))

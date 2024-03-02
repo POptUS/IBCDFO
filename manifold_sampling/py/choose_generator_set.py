@@ -13,7 +13,7 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     #             Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
     if gentype == 3:
         hxkin, _ = hfun(F[xkin, :], Act_Z_k)
-        for i in [ind for ind in range(nf) if ind != xkin]:
+        for i in [ind for ind in range(nf + 1) if ind != xkin]:
             Act_tmp = Hash[i]
             h_i, _ = hfun(F[xkin], Act_tmp)
             if np.linalg.norm(X[xkin] - X[i], ord=np.inf) <= delta * (1 + 1e-8) and h_i[0] <= hxkin[0]:
