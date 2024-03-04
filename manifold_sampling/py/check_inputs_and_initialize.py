@@ -15,8 +15,8 @@ def check_inputs_and_initialize(x0, F0, nfmax):
     # Internal parameters/tolerances for manifold sampling
     tol = {
         "maxdelta": 1,
-        "mindelta": 1e-15,
-        "gtol": 1e-15,
+        "mindelta": 1e-8,
+        "gtol": 1e-8,
         "norm_g_change": 0.001,
         "kappa_d": 0.0001,
         "eta1": 0.01,
