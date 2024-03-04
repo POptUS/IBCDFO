@@ -34,6 +34,7 @@ nfs = 1  # Number of initial evaluations
 xk_in = 0  # Index in F_0 for starting the optimization (usually the point with minimal emittance)
 
 Options = {}
+Options["printf"] = printf
 Options["hfun"] = hfun
 Options["combinemodels"] = combinemodels
 
