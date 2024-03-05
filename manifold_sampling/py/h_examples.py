@@ -51,7 +51,7 @@ def one_norm(z, H0=None):
                 # because we get 2^dim(z) grads.... but they don't matter
                 # really for the convex hull calculation
                 grad_lists[i] = [0]
-                Hash_lists[i] = ['0'];
+                Hash_lists[i] = ["0"]
 
         all_grad_perms = product(*grad_lists)
 
@@ -66,13 +66,13 @@ def one_norm(z, H0=None):
         grads = np.ones((len(z), J))
 
         for k in range(J):
-            ztemp = np.copy(z);
+            ztemp = np.copy(z)
             for j in range(len(z)):
                 if H0[k][j] == "-":
                     grads[j, k] = -1
                     ztemp[j] *= -1
                 elif H0[k][j] == "0":
-                    grads[j, k] = 0;
+                    grads[j, k] = 0
                     if ztemp[j] < 0:
                         ztemp[j] *= -1
 
