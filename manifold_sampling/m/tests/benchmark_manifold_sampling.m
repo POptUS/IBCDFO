@@ -50,7 +50,7 @@ for row = [2, 1, 7, 8, 43, 44, 45]
 
     jj = 1;
     % for hfuns = {@censored_L1_loss_quad_MSG}
-    for hfuns = {@censored_L1_loss, @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1, @pw_maximum,  @pw_maximum_squared, @pw_minimum, @pw_minimum_squared, @quantile}
+    for hfuns = {@one_norm, @censored_L1_loss, @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1, @pw_maximum,  @pw_maximum_squared, @pw_minimum, @pw_minimum_squared, @quantile}
         hfun = hfuns{1};
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
