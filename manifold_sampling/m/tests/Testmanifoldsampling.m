@@ -3,6 +3,7 @@ classdef Testmanifoldsampling < matlab.unittest.TestCase
 
         function shortTests(testCase)
             test_failing_objective;
+            test_one_norm;
         end
 
         function longTest(testCase)

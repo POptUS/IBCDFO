@@ -25,8 +25,12 @@ function [h, grads, Hash] = one_norm(z, H0)
                 grad_lists{i} = 1;
                 Hash_lists{i} = {'+'};
             else
-                grad_lists{i} = [-1, 1];
-                Hash_lists{i} = {'-', '+'};
+                % Technically, we should return [1,-1] for the grad entry and
+                % {'-','+'} for the Hash, but that causes issues for large dim(z)
+                % because we get 2^dim(z) grads.... but they don't matter
+                % really for the convex hull calculation
+                grad_lists{i} = 0;
+                Hash_lists{i} = {'0'};
             end
         end
 
@@ -43,13 +47,20 @@ function [h, grads, Hash] = one_norm(z, H0)
         p = length(z);
         grads = ones(p, J);
 
-        for j = 1:p
-            for k = 1:J
+        for k = 1:J
+            ztemp = z;
+            for j = 1:p
                 if strcmp(H0{k}(j), '-')
                     grads(j, k) = -1;
+                    ztemp(j) = -1 * ztemp(j);
+                elseif strcmp(H0{k}(j), '0')
+                    grads(j, k) = 0;
+                    if ztemp(j) < 0
+                        ztemp(j) = -1 * ztemp(j);
+                    end
                 end
-                h(k) = dot(grads(:, k), z.');
             end
+            h(k) = sum(ztemp);
         end
     end
 end
