@@ -63,7 +63,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
     flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nfmax, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
     if flag == -1:
         if printf:
-            print(f"MSP: Error with inputs. Exiting.")
+            print("MSP: Error with inputs. Exiting.")
         X = x0
         F = F0
         h = []
@@ -163,7 +163,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, h[xkin], chi_k, delta))
 
     if nf + 1 >= nfmax:
-        if printf: 
+        if printf:
             print("MSP: Evaluation budget exceeded. Exiting")
         flag = 0
     else:
