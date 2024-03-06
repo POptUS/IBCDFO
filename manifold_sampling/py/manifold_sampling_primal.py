@@ -62,6 +62,8 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
     flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nfmax, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
     if flag == -1:
+        if printf:
+            print(f"MSP: Error with inputs. Exiting.")
         X = x0
         F = F0
         h = []
@@ -81,10 +83,13 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 4: build models
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
-                print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
+                if printf:
+                    print(f"MSP: Model building failed. Empty Gres. Delta = {delta}")
                 X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, -1)
                 return X, F, h, xkin, flag
             if nf + 1 >= nfmax:
+                if printf:
+                    print("MSP: Evaluation budget exceeded. Exiting")
                 flag = 0
                 return X, F, h, xkin, flag
 
@@ -111,7 +116,8 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
-                print("Convergence satisfied: small stationary measure and small delta")
+                if printf:
+                    print("MSP: Convergence satisfied: small stationary measure and small delta")
                 X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
                 return X, F, h, xkin, flag
 
@@ -153,11 +159,16 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 21: iteration is unsuccessful; shrink Delta
             delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
-        print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
+        if printf:
+            print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, h[xkin], chi_k, delta))
 
     if nf + 1 >= nfmax:
+        if printf: 
+            print("MSP: Evaluation budget exceeded. Exiting")
         flag = 0
     else:
+        if printf:
+            print(f"MSP: Small trust-region radius, delta = {delta}. Exiting")
         X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
 
     return X, F, h, xkin, flag
