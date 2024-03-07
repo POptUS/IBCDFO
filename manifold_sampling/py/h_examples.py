@@ -132,7 +132,8 @@ def pw_maximum_squared(z, H0=None):
 
     if H0 is None:
         z2 = z**2
-        h = np.max(z2)
+        i1 = np.argmax(z2)
+        h = z[i1] ** 2
 
         inds, grads, Hash = _activities_and_inds(h, z2)
 
