@@ -17,7 +17,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     assert subprob_switch == "linprog", "Unrecognized subprob_switch"
 
     if subprob_switch == "linprog":
-        options = {"disp": False, "ipm_optimality_tolerance": 1e-12}
+        options = {"disp": False, "maxiter": (n * p) ** 3, "ipm_optimality_tolerance": 1e-12}
         try:
             res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0, method="highs-ipm")
             assert res["success"], "We didn't solve this!"
