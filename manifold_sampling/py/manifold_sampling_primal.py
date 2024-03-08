@@ -83,15 +83,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 4: build models
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
-                if printf:
-                    print(f"MSP: Model building failed. Empty Gres. Delta = {delta}")
-                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, -1)
-                return X, F, h, xkin, flag
+                return prepare_outputs_before_return(X, F, h, nf, xkin, -1)
             if nf + 1 >= nfmax:
-                if printf:
-                    print("MSP: Evaluation budget exceeded. Exiting")
-                flag = 0
-                return X, F, h, xkin, flag
+                return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
@@ -116,10 +110,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
-                if printf:
-                    print("MSP: Convergence satisfied: small stationary measure and small delta")
-                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
-                return X, F, h, xkin, flag
+                return prepare_outputs_before_return(X, F, h, nf, xkin, chi_k)
 
             # Line 12: Evaluate F
             nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
@@ -163,12 +154,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, h[xkin], chi_k, delta))
 
     if nf + 1 >= nfmax:
-        if printf:
-            print("MSP: Evaluation budget exceeded. Exiting")
-        flag = 0
+        return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
     else:
-        if printf:
-            print(f"MSP: Small trust-region radius, delta = {delta}. Exiting")
-        X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
-
-    return X, F, h, xkin, flag
+        return prepare_outputs_before_return(X, F, h, nf, xkin, chi_k)
