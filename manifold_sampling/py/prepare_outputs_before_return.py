@@ -9,10 +9,10 @@ def prepare_outputs_before_return(X, F, h, nf, xkin, exit_flag):
     h = h[: nf + 1]
 
     if exit_flag == -1:
-        print(f"MSP: Model building failed. Empty Gres.")
+        print("MSP: Model building failed. Empty Gres.")
     elif exit_flag == 0:
         print("MSP: Evaluation budget exceeded. Exiting")
     elif exit_flag > 0:
-        print(f"MSP: Trust-region radius less than mindelta. Exiting with chi_k as exit_flag.")
+        print("MSP: Trust-region radius less than mindelta. Exiting with chi_k as exit_flag.")
 
     return X, F, h, xkin, exit_flag
