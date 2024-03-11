@@ -54,7 +54,7 @@ testing individual code units in the repository.  In particular, it can be used
 to combine these into a single file for generating global coverage reports.  As
 such, this is a `tox` tool layer that requires advanced manual effort.  Its
 primary use is with CI for
-[automated report generation](https://github.com/POptUS/IBDFO/blob/main/.github/workflows/github-ci-action.yml).
+[automated report generation](https://github.com/POptUS/IBCDFO/blob/main/.github/workflows/github-ci-action.yml).
 
 To use this layer, learn about and setup `tox` as described above.
 
