@@ -98,7 +98,7 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf, H_flag=False, Old_H=[]):
         elif aff == 1 and mp < n:  # Need to evaluate more points, then recall
             Mdir = Q[:, mp:n].T  # Output Geometry directions
             G = np.empty(shape=(0, 0))
-            H = np.empty(shape=(0, 0))
+            # H = np.empty(shape=(0, 0))
             return [Mdir, mp, valid, G, H, Mind]
         elif aff == 0:  # Output model-improving directions
             Mdir = Q[:, mp:n].T  # Will be empty if mp=n
