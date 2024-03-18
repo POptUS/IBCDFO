@@ -30,7 +30,6 @@ Results = {}
 probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
 subprob_switch = "linprog"
-nfmax = 50
 
 hfuns = [one_norm, pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
@@ -56,6 +55,11 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     cs = Qzb["b_mat"][probs_to_solve[row], 0]
 
     for i, hfun in enumerate(hfuns):
+        if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
+            nfmax = 10000
+        else:
+            nfmax = 50
+
         if hfun.__name__ == "piecewise_quadratic":
 
             def hfun_to_pass(z, H0=None):
@@ -63,11 +67,6 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
         else:
-            if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
-                nfmax = 10000
-            else:
-                nfmax = 50
-
             X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
