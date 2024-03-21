@@ -101,12 +101,16 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 7: Find a candidate s_k by solving QP
             Low = np.maximum(L - X[xkin], -delta)
             Upp = np.minimum(U - X[xkin], delta)
-            s_k, tau_k, __, lambda_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch)
+            s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch)
+            if lp_fail_flag:
+                return prepare_outputs_before_return(X, F, h, nf, xkin, -2)
 
             # Line 8: Compute stationary measure chi_k
             Low = np.maximum(L - X[xkin], -1.0)
             Upp = np.minimum(U - X[xkin], 1.0)
-            __, __, chi_k, __ = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch)
+            __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch)
+            if lp_fail_flag:
+                return prepare_outputs_before_return(X, F, h, nf, xkin, -2)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
