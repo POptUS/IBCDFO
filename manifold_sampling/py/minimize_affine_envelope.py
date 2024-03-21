@@ -20,7 +20,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
         options = {"disp": False, "maxiter": (n * p) ** 3, "ipm_optimality_tolerance": 1e-12}
         try:
             res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0, method="highs-ipm")
-            assert res["success"], "We didn't solve this!"
+            assert res["success"], "Error in minimize_affine_envelope. Trying rescaling now."
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
             duals_u = -1.0 * res.upper.marginals[1:]
@@ -32,7 +32,8 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             rescaledA[:, 0] = -np.ones(p)
             rescaledA[:, 1:] = A[:, 1:] / normA
             res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0, method="highs-ipm")
-            assert res["success"], "We didn't solve this!"
+            return 0, 0, 0, 0, True
+
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
             duals_u = -1.0 * res.upper.marginals[1:] * normA
@@ -52,4 +53,4 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
 
     chi = np.linalg.norm(np.dot(G_k, lambda_star) - duals_l + duals_u) + np.dot(bk, lambda_star) - np.dot(Low, duals_l) + np.dot(Upp, duals_u)
 
-    return s, tau, chi, lambda_star
+    return s, tau, chi, lambda_star, False

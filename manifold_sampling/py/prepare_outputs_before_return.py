@@ -8,6 +8,8 @@ def prepare_outputs_before_return(X, F, h, nf, xkin, exit_flag):
     F = F[: nf + 1]
     h = h[: nf + 1]
 
+    if exit_flag == -2:
+        print("MSP: Minimize affine envelope subproblem failed. Problem likely unbounded or poorly scaled.")
     if exit_flag == -1:
         print("MSP: Model building failed. Empty Gres.")
     elif exit_flag == 0:
