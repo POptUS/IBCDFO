@@ -34,7 +34,7 @@ end
 countpy = 0;
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename = ['py/tests/benchmark_results/' method '4py_nf_max=' int2str(nfmax) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename)
             P1 = load(filename);
             countpy = countpy + 1';
@@ -78,9 +78,9 @@ for k = 1:np
     %     assert(all(all(M{k}.H(1:n+1) == P{k}.H(1:n+1)')), "The first n+1 H values differ between the Matlab and Python versions");
 end
 
-for tau = logspace(-7, -1, 7)
+for tau = logspace(-7, -1, 4)
     f = figure;
-    [h, T] = data_profile(H, prob_dim + 1, tau);
+    h = data_profile(H, prob_dim + 1, tau);
 
     set(findall(f, 'type', 'line'), 'LineWidth', LW);
     set(gca, 'FontSize', FS);
