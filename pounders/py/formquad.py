@@ -1,13 +1,14 @@
 import numpy as np
 import scipy.linalg
 
+from .bmpts import bmpts
 from .phi2eval import phi2eval
 
 # from .flipFirstRow import flipFirstRow
 # from .flipSignQ import flipSignQ
 
 
-def formquad(X, F, delta, xk_in, np_max, Pars, vf):
+def formquad(X, F, delta, xk_in, np_max, Pars, vf, H_flag=False, Old_H=[]):
     """
     formquad(X, F, delta, xk_in, np_max, Pars, vf) -> [Mdir, np, valid, G, H, Mind]
     Computes the parameters for m quadratics
@@ -22,13 +23,17 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     X       [dbl] [nf-by-n] Locations of evaluated points
     F       [dbl] [nf-by-m] Function values of evaluated points
     delta   [dbl] Positive trust region radius
-    xk_in    [int] Index in (X and F) of the current center
-    np_max   [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
+    xk_in   [int] Index in (X and F) of the current center
+    np_max  [int] Max # interpolation points (>=n+1) (.5*(n+1)*(n+2))
     Pars[0] [dbl] delta multiplier for checking validity
     Pars[1] [dbl] delta multiplier for all interpolation points
     Pars[2] [dbl] Pivot threshold for validity
     Pars[3] [dbl] Pivot threshold for additional points (.001)
     vf      [log] Flag indicating you just want to check model validity
+    H_flag  [int] Flag indicating type of Hessians to return
+                  0: Minimum change in Frobenius norm Hessians
+                  1: Minimum-norm Hessians
+
     --OUTPUTS----------------------------------------------------------------
     Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
     np      [int] Number of interpolation points (=length(Mind))
@@ -93,7 +98,7 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
         elif aff == 1 and mp < n:  # Need to evaluate more points, then recall
             Mdir = Q[:, mp:n].T  # Output Geometry directions
             G = np.empty(shape=(0, 0))
-            H = np.empty(shape=(0, 0))
+            # H = np.empty(shape=(0, 0))
             return [Mdir, mp, valid, G, H, Mind]
         elif aff == 0:  # Output model-improving directions
             Mdir = Q[:, mp:n].T  # Will be empty if mp=n
@@ -166,4 +171,37 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     H = H / (delta**2)
     G = G / delta
 
+    if H_flag:
+        H = Old_H + H
+
     return [Mdir, mp, valid, G, H, Mind]
+
+
+def formquad_model_improvement(x_k, Cres, Gres, Hres, Mdir, mp, Low, Upp, delta, Model, combinemodels):
+    n = len(x_k)
+
+    # Update for modelimp; Cres unchanged b/c xk_in unchanged
+    G, H = combinemodels(Cres, Gres, Hres)
+    # Evaluate model-improving points to pick best one
+    # May eventually want to normalize Mdir first for infty norm
+    # Plus directions
+    [Mdir1, mp1] = bmpts(x_k, Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+    Res = np.zeros((n - mp1, 1))
+    for i in range(n - mp1):
+        D = Mdir1[i, :]
+        Res[i, 0] = D @ (G + 0.5 * H @ D.T)
+    b = np.argmin(Res[: n - mp1, 0:1])
+    a1 = np.min(Res[: n - mp1, 0:1])
+    Xsp = Mdir1[b, :]
+    # Minus directions
+    [Mdir1, mp2] = bmpts(x_k, -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+    Res = np.zeros((n - mp2, 1))
+    for i in range(n - mp2):
+        D = Mdir1[i, :]
+        Res[i, 0] = D @ (G + 0.5 * H @ D.T)
+    b = np.argmin(Res[: n - mp2, 0:1])
+    a2 = np.min(Res[: n - mp2, 0:1])
+    if a2 < a1:
+        Xsp = Mdir1[b, :]
+
+    return Xsp
