@@ -10,8 +10,8 @@ from dfoxs import dfoxs
 from ibcdfo.manifold_sampling.h_examples import one_norm, piecewise_quadratic, pw_maximum, pw_maximum_squared, pw_minimum, pw_minimum_squared, quantile
 from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
 
-if not os.path.exists("msp_benchmark_results"):
-    os.makedirs("msp_benchmark_results")
+if not os.path.exists("benchmark_results"):
+    os.makedirs("benchmark_results")
 
 if not os.path.exists("mpc_test_files_smaller_Q"):
     os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
@@ -27,11 +27,11 @@ Qzb = sio.loadmat("mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_nor
 dfo = np.loadtxt("dfo.dat")
 
 Results = {}
-probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
+probs_to_solve = [0]
 
 subprob_switch = "linprog"
 
-hfuns = [one_norm, pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
+hfuns = [one_norm]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
@@ -56,9 +56,9 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
     for i, hfun in enumerate(hfuns):
         if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
-            nfmax = 10000
+            nfmax = 1000
         else:
-            nfmax = 50
+            nfmax = 1000
 
         if hfun.__name__ == "piecewise_quadratic":
 
@@ -71,9 +71,9 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + str(hfun)]
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + hfun.__name__]
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["Fvec"] = F
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
 
-    sp.io.savemat("./msp_benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat", Results)
+    sp.io.savemat("./benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat", Results)
