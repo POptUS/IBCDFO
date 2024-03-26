@@ -15,7 +15,7 @@ probtype = 'smooth';
 countm = 0;
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename = ['m/tests/benchmark_results/' method 'M_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename)
             if strcmp(hfun, 'leastsquares')
                 col = 1;
