@@ -14,7 +14,7 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     #             Act_Z_k = np.concatenate((Act_Z_k, Act_tmp))
     if gentype == 3:
         hxkin, _ = hfun(F[xkin, :], Act_Z_k)
-        XkDist = cdist(X[:nf], X[xkin : xkin + 1], metric="chebyshev")
+        XkDist = cdist(X[:nf + 1], X[xkin : xkin + 1], metric="chebyshev")
         delta1 = delta * (1 + 1e-8)
         delta2 = min(1, delta) ** 2 * (1 + 1e-8)
 
