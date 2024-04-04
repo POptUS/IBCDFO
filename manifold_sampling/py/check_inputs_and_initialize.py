@@ -10,13 +10,14 @@ def check_inputs_and_initialize(x0, F0, nfmax):
 
     # Internal parameters/tolerances for formquad
 
-    fq_pars = {"Par": [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001], "npmax": (n + 1) * (n + 2) // 2}
+    fq_pars = {"Par": [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001], "npmax": 2 * n + 1}
+    # fq_pars = {"Par": [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001], "npmax": (n + 1) * (n + 2) // 2}
 
     # Internal parameters/tolerances for manifold sampling
     tol = {
         "maxdelta": 1,
-        "mindelta": 1e-8,
-        "gtol": 1e-8,
+        "mindelta": 1e-13,
+        "gtol": 1e-13,
         "norm_g_change": 0.001,
         "kappa_d": 0.0001,
         "eta1": 0.01,

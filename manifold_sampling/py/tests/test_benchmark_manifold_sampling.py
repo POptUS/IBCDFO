@@ -27,11 +27,11 @@ Qzb = sio.loadmat("mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_nor
 dfo = np.loadtxt("dfo.dat")
 
 Results = {}
-probs_to_solve = [0]
+probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
 subprob_switch = "linprog"
 
-hfuns = [one_norm]
+hfuns = [one_norm, piecewise_quadratic, pw_maximum, pw_maximum_squared, pw_minimum, pw_minimum_squared, quantile]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
