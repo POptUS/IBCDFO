@@ -50,6 +50,9 @@ from .check_inputs_and_initialize import check_inputs_and_initialize
 from .choose_generator_set import choose_generator_set
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_outputs_before_return import prepare_outputs_before_return
+
+# # You'll need to uncomment the following two, and not have `eng = []` if you
+# # want to use matlab's linprog in minimize_affine_envelope
 # import matlab.engine
 # eng = matlab.engine.start_matlab()
 eng = []

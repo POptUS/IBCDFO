@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import linprog
-import matlab
+# import matlab # You'll need to uncomment this if you are going to use matlab's linprog below.
 
 
 def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subprob_switch, eng):
