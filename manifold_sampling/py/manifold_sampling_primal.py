@@ -57,6 +57,7 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 # eng = matlab.engine.start_matlab()
 eng = []
 
+
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
     # Deduce p from evaluating Ffun at x0
     try:

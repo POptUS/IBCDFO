@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import linprog
+
 # import matlab # You'll need to uncomment this if you are going to use matlab's linprog below.
 
 
@@ -27,7 +28,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             duals_u = -1.0 * res.upper.marginals[1:]
             duals_l = res.lower.marginals[1:]
 
-            # # Prepare your data for MATLAB. MATLAB expects column-major order, 
+            # # Prepare your data for MATLAB. MATLAB expects column-major order,
             # # and the MATLAB Engine API for Python requires MATLAB types for some data
             # c_matlab = matlab.double(ff.flatten().tolist())
             # A_matlab = matlab.double(A.tolist())
