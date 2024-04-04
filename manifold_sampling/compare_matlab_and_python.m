@@ -8,7 +8,7 @@ Label_FS = 12;
 
 nfmax = 1000;
 
-filename = ['m/tests/benchmark_results/' method 'M_nfmax=' int2str(nfmax) '.mat'];
+filename = ['m/tests/benchmark_results/' method 'M_nfmax=' int2str(nfmax) '_gentype=3.mat'];
 M1 = load(filename);
 
 rows = [1, 2, 7, 8, 43, 44, 45];

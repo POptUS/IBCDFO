@@ -63,10 +63,17 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
 
                 result = eng.linprog(c_matlab, matlab.double(rescaledA.tolist()), b_matlab, matlab.double([]), matlab.double([]), lb_matlab, ub_matlab, x0, options_matlab, nargout=5)
 
-                x = res.x
-                duals_g = -1.0 * res.ineqlin.marginals
-                duals_u = -1.0 * res.upper.marginals[1:] * normA
-                duals_l = res.lower.marginals[1:] * normA
+                if result[2] == 1: # successful termination
+                    x = np.array([item for sublist in result[0] for item in sublist])
+                    duals_g = np.array([result[4]["ineqlin"]]).squeeze()
+                    duals_u = np.array([item for sublist in result[4]["upper"] for item in sublist])[1:]
+                    duals_l = np.array([item for sublist in result[4]["lower"] for item in sublist])[1:]
+                else:
+                    duals_g = np.zeros(p)
+                    duals_g[0] = 1.0
+                    duals_l = np.zeros(n)
+                    duals_u = np.zeros(n)
+                    x = x0.squeeze()
             except Exception as second_exception:
                 print(second_exception)
                 return 0, 0, 0, 0, True
