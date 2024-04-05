@@ -117,10 +117,14 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, logg
     if spsolver == 2:
         env_var = "POPTUS_MINQ_PATH"
         if not env_var in os.environ:
-            raise RuntimeError(f"Set env var {env_var} to root of MINQ clone")
+            msg = f"Set env var {env_var} to root of MINQ clone"
+            logger.error(LOG_TAG, msg)
+            raise RuntimeError(msg)
         minq_path = Path(os.environ[env_var]).resolve()
         if not minq_path.is_dir():
-            raise RuntimeError(f"Set env var {env_var} to root of MINQ clone")
+            msg = f"Set env var {env_var} to root of MINQ clone"
+            logger.error(LOG_TAG, msg)
+            raise RuntimeError(msg)
         minq_path = minq_path.joinpath("py", "minq5").resolve()
         assert minq_path.is_dir()
         sys.path.append(str(minq_path))
