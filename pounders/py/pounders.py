@@ -116,17 +116,18 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, logg
     # choose your spsolver
     if spsolver == 2:
         env_var = "POPTUS_MINQ_PATH"
-        if not env_var in os.environ:
+        if env_var not in os.environ:
             msg = f"Set env var {env_var} to root of MINQ clone"
             logger.error(LOG_TAG, msg)
             raise RuntimeError(msg)
-        minq_path = Path(os.environ[env_var]).resolve()
+        minq_path = Path(os.environ[env_var]).joinpath("py", "minq5").resolve()
         if not minq_path.is_dir():
-            msg = f"Set env var {env_var} to root of MINQ clone"
+            msg = "Cannot add {} to path - does not exist or is not a directory"
+            msg = msg.format(minq_path)
+            msg2 = f"Check that {env_var} set to root of MINQ clone"
             logger.error(LOG_TAG, msg)
+            logger.error(LOG_TAG, msg2)
             raise RuntimeError(msg)
-        minq_path = minq_path.joinpath("py", "minq5").resolve()
-        assert minq_path.is_dir()
         sys.path.append(str(minq_path))
         from minqsw import minqsw
 
