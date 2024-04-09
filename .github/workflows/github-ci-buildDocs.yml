@@ -1,0 +1,40 @@
+name: Build documentation
+on: ["pull_request"]
+jobs:
+  build_pypkg_sphinx:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # python-versions must be maintained consistent with associated setup.py
+      # and tox.ini configuration.
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.12"]
+    steps:
+    ##-- General Setup Steps
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Setup python with tox
+      run: ./.github/workflows/setup_tox_github_action.sh
+
+    - name: Install LaTeX
+      run: sudo apt-get install texlive-fonts-recommended texlive-latex-recommended texlive-latex-extra latexmk
+
+    - name: Build sphinx docs
+      run: |
+        pushd ibcdfo_pypkg
+        tox -r -e pdf,html
+        popd
+
+    ##-- Make sphinx docs available as artifact
+    - name: Archive IBCDFO docs
+      uses: actions/upload-artifact@v3
+      with:
+        name: ibcdfo-sphinx-docs
+        path: |
+          ibcdfo_pypkg/docs/build_html
+          ibcdfo_pypkg/docs/build_pdf

@@ -8,6 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 ibcdfo_pypkg/.eggs/
+ibcdfo_pypkg/build/
 ibcdfo_pypkg/dist/
 ibcdfo_pypkg/ibcdfo.egg-info/
 
@@ -53,7 +54,8 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+docs/build_pdf/
+docs/build_html/
 
 # PyBuilder
 target/

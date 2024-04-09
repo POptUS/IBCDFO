@@ -1,0 +1,10 @@
+{
+    "ie":       "*i.e.,*",
+    "eg":       "*e.g.,*",
+    "via":      "*via*",
+    "pip":      "``pip``",
+    "tox":      "``tox``",
+    "poptus":   "POptUS",
+    "ibcdfo":   "IBCDFO",
+    "pounders": "POUNDerS"
+}

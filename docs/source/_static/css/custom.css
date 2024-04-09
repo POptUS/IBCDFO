@@ -1,0 +1,13 @@
+/*
+Put equation numbers on right in sphinx-rtd-theme.
+
+This workaround was suggested by rdzman in
+https://github.com/readthedocs/sphinx_rtd_theme/issues/301
+
+Creation & use of this document from
+https://docs.readthedocs.io/en/stable/guides/adding-custom-css.html#
+*/
+
+.eqno {
+    float: right;
+}

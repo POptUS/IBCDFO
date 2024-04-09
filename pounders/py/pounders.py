@@ -10,67 +10,48 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
 def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf=0, spsolver=2, hfun=None, combinemodels=None):
-    """
-    POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
-      [X,F,flag,xkin] = ...
-           pounders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
+    r"""
+    .. _minq5: https://github.com/POptUS/MINQ
 
-    This code minimizes output from a structured blackbox function, solving
-    min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
-    where the user-provided blackbox F is specified in the handle fun. Evaluation
-    of this F must result in the return of a 1-by-m row vector. Bounds must be
-    specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
-    unconstrained solution is desired. The algorithm will not evaluate F
-    outside of these bounds, but it is possible to take advantage of function
-    values at infeasible X if these are passed initially through (X0,F0).
-    In each iteration, the algorithm forms an interpolating quadratic model
-    of the function and minimizes it in an infinity-norm trust region.
+    :param fun:    Function that returns :math:`F(\psp)` as :math:`m`
+        element numpy array for given :math:`\psp`
+    :param X0:     [dbl] :math:`\max(\mathrm{nfs},1)\times n` numpy array
+        containing set of initial points at which function values are already
+        known
+    :param n:      [int] Dimension (number of continuous variables)
+    :param npmax:  [int] Maximum number of interpolation points (:math:`\ge n+1`)
+    :param nfmax:  [int] Maximum number of function evaluations (:math:`>n+1`)
+    :param gtol:   [dbl] Tolerance for the 2-norm of the model gradient
+    :param delta:  [dbl] Positive trust region radius
+    :param nfs:    [int] Number of function values (at ``X0``) known in advance
+    :param m:      [int] Number of residual components
+    :param F0:     [dbl] :math:`\mathrm{nfs}\times m` numpy array of known
+        function values obtained at ``X0`` and provided with matching ordering
+    :param xkin:   [int] Index of point in ``X0`` at which to start from
+    :param L:      [dbl] :math:`n` element numpy array of lower bounds
+    :param U:      [dbl] :math:`n` element numpy array of upper bounds
+    :param printf: [int] Log level
 
-    This software comes with no warranty, is not bug-free, and is not for
-    industrial use or public distribution.
-    Direct requests and bugs to wild@mcs.anl.gov.
-    A technical report/manual is forthcoming, a brief description is in
-    Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
+        * 0 - No printing to screen
+        * 1 - Debugging level of output to screen
+        * 2 - More verbose screen output
 
-    --INPUTS-----------------------------------------------------------------
-    fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
-    X0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
-    n       [int] Dimension (number of continuous variables)
-    npmax   [int] Maximum number of interpolation points (>=n+1) (2*n+1)
-    nfmax   [int] Maximum number of function evaluations (>n+1) (100)
-    gtol    [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-    delta   [dbl] Positive trust region radius (.1)
-    nfs     [int] Number of function values (at X0) known in advance (0)
-    m       [int] Number of residual components
-    F0      [dbl] [nfs-by-m] Set of known function values  ([])
-    xkin    [int] Index of point in X0 at which to start from (1)
-    L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
-    U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-    printf  [log] 0 No printing to screen (default)
-                  1 Debugging level of output to screen
-                  2 More verbose screen output
-    spsolver [int] Trust-region subproblem solver flag (2)
+    :param spsolver:      [int] Trust-region subproblem solver flag
 
-    Optionally, a user can specify and outer-function that maps the the elements
-    of F to a scalar value (to be minimized). Doing this also requires a function
-    handle (combinemodels) that tells pounders how to map the linear and
-    quadratic terms from the residual models into a single quadratic TRSP model.
+        * 1 - Stefan's crappy 10-line solver
+        * 2 - Arnold Neumaier's minq5_ solver
 
-    hfun           [f h] Function handle for mapping output from F
-    combinemodels  [f h] Function handle for combine residual models
+    :param hfun:          Function that maps given :math:`F` to scalar for minimization
+    :param combinemodels: Function that combines residual models into a single quadratic trust-region subproblem model
 
-    --OUTPUTS----------------------------------------------------------------
-    X       [dbl] [nfmax+nfs-by-n] Locations of evaluated points
-    F       [dbl] [nfmax+nfs-by-m] Function values of evaluated points
-    flag    [dbl] Termination criteria flag:
-                  = 0 normal termination because of grad,
-                  > 0 exceeded nfmax evals,   flag = norm of grad at final X
-                  = -1 if input was fatally incorrect (error message shown)
-                  = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, Fs[nf] == Fs[xkin])
-                  = -3 error if a NaN was encountered
-                  = -4 error in TRSP Solver
-                  = -5 unable to get model improvement with current parameters
-    xkin    [int] Index of point in X representing approximate minimizer
+   :return:
+        * **X**    [dbl] :math:`\mathrm{nfmax+nfs}\times n` numpy array containing
+          locations of evaluated points in the order in which they were
+          evaluated
+        * **F**    [dbl] :math:`\mathrm{nfmax+nfs}\times m` numpy array containing
+          the function values at ``X`` with matching ordering
+        * **flag** [dbl] Termination criteria flag (See general |pounders| documentation)
+        * **xkin** [int] Index of point in ``X`` representing approximate minimizer
     """
     if hfun is None:
 
