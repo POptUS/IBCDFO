@@ -68,4 +68,5 @@ Python programmatic interface
 =============================
 MATLAB programmatic interface
 =============================
-**TODO**: See if sphinx for MATLAB is a good idea and will work for us.
+.. mat:currentmodule:: pounders.m
+.. mat:autofunction:: pounders

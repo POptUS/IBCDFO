@@ -3,6 +3,49 @@
 
 function [X, F, flag, xkin] = ...
     pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels)
+    % .. _minq5: https://github.com/POptUS/MINQ
+    % .. _minq8: https://github.com/POptUS/MINQ
+    %
+    % :param fun:    Handle to function that returns :math:`F(\psp)` as
+    %     :math:`1 \times m` vector for given :math:`\psp`
+    % :param X0:     [dbl] :math:`\max(\mathrm{nfs},1)\times n` matrix
+    %     containing set of initial points at which function values are already
+    %     known
+    % :param n:      [int] Dimension (number of continuous variables)
+    % :param npmax:  [int] Maximum number of interpolation points (:math:`\ge n+1`)
+    % :param nfmax:  [int] Maximum number of function evaluations (:math:`>n+1`)
+    % :param gtol:   [dbl] Tolerance for the 2-norm of the model gradient
+    % :param delta:  [dbl] Positive trust region radius
+    % :param nfs:    [int] Number of function values (at ``X0``) known in advance
+    % :param m:      [int] Number of residual components
+    % :param F0:     [dbl] :math:`\mathrm{nfs}\times m` matrix of known function
+    %     values obtained at ``X0`` and provided with matching ordering
+    % :param xkin:   [int] One-based index of point in ``X0`` at which to start from
+    % :param L:      [dbl] :math:`1 \times n` vector of lower bounds
+    % :param U:      [dbl] :math:`1 \times n` vector of upper bounds
+    % :param printf: [int] Log level
+    %
+    %     * 0 - No printing to screen
+    %     * 1 - Debugging level of output to screen
+    %     * 2 - More verbose screen output
+    %
+    % :param spsolver: [int] Trust-region subproblem solver flag
+    %
+    %     * 1 - Stefan's crappy 10-line solver
+    %     * 2 - Arnold Neumaier's minq5_ solver
+    %     * 3 - Arnold Neumaier's minq8_ solver
+    %
+    % :param hfun:          Function that maps given :math:`F` to scalar for minimization
+    % :param combinemodels: Function that combines residual models into a single quadratic trust-region subproblem model
+    %
+    % :return:
+    %      * **X**    [dbl] :math:`\mathrm{nfmax+nfs}\times n` matrix containing
+    %        locations of evaluated points in the order in which they were
+    %        evaluated
+    %      * **F**    [dbl] :math:`\mathrm{nfmax+nfs}\times m` matrix containing
+    %        the function values at ``X`` with matching ordering
+    %      * **flag** [dbl] Termination criteria flag (See general |pounders| documentation)
+    %      * **xkin** [int] One-based index of point in ``X`` representing approximate minimizer
 
 if ~exist('hfun', 'var')
     % Use least-squares hfun by default

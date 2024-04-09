@@ -27,7 +27,7 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     :param m:      [int] Number of residual components
     :param F0:     [dbl] :math:`\mathrm{nfs}\times m` numpy array of known
         function values obtained at ``X0`` and provided with matching ordering
-    :param xkin:   [int] Index of point in ``X0`` at which to start from
+    :param xkin:   [int] Zero-based index of point in ``X0`` at which to start from
     :param L:      [dbl] :math:`n` element numpy array of lower bounds
     :param U:      [dbl] :math:`n` element numpy array of upper bounds
     :param printf: [int] Log level
@@ -44,14 +44,14 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     :param hfun:          Function that maps given :math:`F` to scalar for minimization
     :param combinemodels: Function that combines residual models into a single quadratic trust-region subproblem model
 
-   :return:
+    :return:
         * **X**    [dbl] :math:`\mathrm{nfmax+nfs}\times n` numpy array containing
           locations of evaluated points in the order in which they were
           evaluated
         * **F**    [dbl] :math:`\mathrm{nfmax+nfs}\times m` numpy array containing
           the function values at ``X`` with matching ordering
         * **flag** [dbl] Termination criteria flag (See general |pounders| documentation)
-        * **xkin** [int] Index of point in ``X`` representing approximate minimizer
+        * **xkin** [int] Zero-based index of point in ``X`` representing approximate minimizer
     """
     if hfun is None:
 

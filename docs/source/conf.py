@@ -8,6 +8,10 @@
 
 import json
 
+from pathlib import Path
+
+_ROOT_PATH = Path(__file__).parents[2].resolve()
+
 # IBCDFO contents can potentially have several different versions, including
 # different versions for each language implementation of a single method.
 #
@@ -39,6 +43,7 @@ latex_macro_files = ['base', 'notation']
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosectionlabel',
               'sphinx.ext.todo',
+              'sphinxcontrib.matlab',
               'sphinx.ext.mathjax',
               'sphinxcontrib.bibtex']
 numfig = True
@@ -57,6 +62,9 @@ autodoc_member_order = "bysource"
 autosectionlabel_prefix_document = True
 
 todo_include_todos = True
+
+matlab_src_dir = _ROOT_PATH
+matlab_short_links = True
 
 mathjax3_config = {
     'loader': {},
