@@ -199,6 +199,14 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
   * This task will never call any tools that automatically **alter** files
   * Run several checks on the code to report possible issues
 
+* ``tox -r -e html``
+
+  * Generate and render |ibcdfo|'s documentation locally in HTML
+
+* ``tox -r -e pdf``
+
+  * Generate and render |ibcdfo|'s documentation locally as a PDF file
+
 Additionally, you can run any combination of the above such as
 ``tox -r -e report,coverage``.
 
