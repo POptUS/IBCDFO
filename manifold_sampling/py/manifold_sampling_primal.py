@@ -51,6 +51,12 @@ from .choose_generator_set import choose_generator_set
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+# # You'll need to uncomment the following two, and not have `eng = []` if you
+# # want to use matlab's linprog in minimize_affine_envelope
+# import matlab.engine
+# eng = matlab.engine.start_matlab()
+eng = []
+
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
     # Deduce p from evaluating Ffun at x0
@@ -101,14 +107,14 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
             # Line 7: Find a candidate s_k by solving QP
             Low = np.maximum(L - X[xkin], -delta)
             Upp = np.minimum(U - X[xkin], delta)
-            s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch)
+            s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch, eng)
             if lp_fail_flag:
                 return prepare_outputs_before_return(X, F, h, nf, xkin, -2)
 
             # Line 8: Compute stationary measure chi_k
             Low = np.maximum(L - X[xkin], -1.0)
             Upp = np.minimum(U - X[xkin], 1.0)
-            __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch)
+            __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
             if lp_fail_flag:
                 return prepare_outputs_before_return(X, F, h, nf, xkin, -2)
 
