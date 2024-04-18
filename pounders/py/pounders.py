@@ -196,8 +196,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #  1a. Compute displacements
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-
-        # Request directions for points to be evaluated
         [Mdir, mp, valid, Gres, Hres, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False, Model["H_flag"], Hres)
 
         if mp < n:
@@ -216,7 +214,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
                 break
-
             [_, mp, valid, Gres, Hres, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False, Model["H_flag"], Hres)
             if mp < n:
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
@@ -346,7 +343,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 # Update model (exists because delta & xk_in unchanged)
                 D = X[: nf + 1] - X[xk_in]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False, Model["H_flag"], Hres)
 
                 Xsp = formquad_model_improvement(X[xk_in], Cres, Gres, Hres, Mdir, mp, Low, Upp, delta, Model, combinemodels)
@@ -370,7 +366,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     # Don't actually use
                     for j in range(m):
                         Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
-
     if printf:
         print("Number of function evals exceeded")
     flag = ng
