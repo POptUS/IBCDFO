@@ -31,8 +31,8 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf, H_flag=False, Old_H=[]):
     Pars[3] [dbl] Pivot threshold for additional points (.001)
     vf      [log] Flag indicating you just want to check model validity
     H_flag  [int] Flag indicating type of Hessians to return
-                  0: Minimum change in Frobenius norm Hessians
-                  1: Minimum-norm Hessians
+                  0: Minimum-norm Hessians
+                  1: Minimum change in Frobenius norm Hessians
 
     --OUTPUTS----------------------------------------------------------------
     Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
