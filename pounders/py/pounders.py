@@ -245,7 +245,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 2. Criticality test invoked if the projected model gradient is small
         if ng < g_tol:
             delta = max(g_tol, np.max(np.abs(X[xk_in])) * eps)
-            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True) # Not passing in H_flag, so we are starting from scratch to make sure our geometry is good (i.e., not concerned with past modesl) so we don't pass in old_H, even if that Model["H_flag"] is True.
+            # Not passing in H_flag, because we are starting from scratch and
+            # we want to make sure our geometry is good (i.e., not concerned
+            # with past models) so we don't pass in old_H, even if
+            # Model["H_flag"] is True.
+            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True) 
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
