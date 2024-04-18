@@ -14,7 +14,7 @@ g_tol = 1e-8;
 delta_0 = 0.1;
 nfs = 1;
 m = 1;
-F_0 = Ffun(X_0);
+F_init = Ffun(X_0);
 xk_in = 1;
 Low = -Inf(1, n);
 Upp = Inf(1, n);
@@ -25,7 +25,7 @@ combinemodels = @identity_combine;
 
 Prior.xk_in = xk_in;
 Prior.X_0 = X_0;
-Prior.F_0 = F_0;
+Prior.F_init = F_init;
 Prior.nfs = nfs;
 
 Options.hfun = hfun;

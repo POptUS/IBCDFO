@@ -2,31 +2,30 @@
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
 function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model)
-if nargin < 10
-    Prior = struct;
-    if nargin < 11
-        Options = struct;
-        if nargin < 12
-            Model = struct;
-        end
-    end
+
+% Check for missing arguments and initialize if necessary
+if nargin < 12 || isempty(Model)
+    Model = struct();
 end
+if nargin < 11 || isempty(Options)
+    Options = struct();
+end
+if nargin < 10 || isempty(Prior)
+    Prior = struct();
+    Prior.nfs = 0;
+    Prior.X_init = [];
+    Prior.F_init = [];
+    Prior.xk_in = 1;
+end
+
 if ~isstruct(Options)
     error("Options must be a struct");
 end
 if ~isstruct(Prior)
     error("Prior must be a struct");
 end
-
 if ~isstruct(Model)
     error("Model must be a struct");
-end
-
-if ~exist('Prior', 'var')
-    Prior.nfs = 0;
-    Prior.X_init = [];
-    Prior.F_init = [];
-    Prior.xk_in = 1;
 end
 
 if ~isfield(Options, 'delta_max')
