@@ -2,14 +2,31 @@
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
 function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model)
+if nargin < 10
+    Prior = struct;
+    if nargin < 11
+        Options = struct;
+        if nargin < 12
+            Model = struct;
+        end
+    end
+end
+if ~isstruct(Options)
+    error("Options must be a struct");
+end
+if ~isstruct(Prior)
+    error("Prior must be a struct");
+end
+
+if ~isstruct(Model)
+    error("Model must be a struct");
+end
 
 if ~exist('Prior', 'var')
-
     Prior.nfs = 0;
     Prior.X_init = [];
     Prior.F_init = [];
-    Prior.xk_in = 0;
-
+    Prior.xk_in = 1;
 end
 
 if ~isfield(Options, 'delta_max')
@@ -30,6 +47,9 @@ end
 if ~isfield(Options, 'delta_inact')
     Options.delta_inact = 0.75;
 end
+if ~isfield(Options, 'spsolver')
+    Options.spsolver = 2;
+end
 
 if isfield(Options, 'hfun')
     hfun = Options.hfun;
@@ -41,10 +61,10 @@ else
     combinemodels = @leastsquares;
 end
 if ~isfield(Options, 'spsolver')
-    spsolver = 2; % Use minq5 by default
+    Options.spsolver = 2; % Use minq5 by default
 end
 if ~isfield(Options, 'printf')
-    printf = 0; % Don't print by default
+    Options.printf = 0; % Don't print by default
 end
 
 if ~isfield(Model, 'np_max')
@@ -72,7 +92,7 @@ printf = Options.printf;
 delta_inact = Options.delta_inact;
 % 0. Check inputs
 [flag, X_0, np_max, F0, Low, Upp, xk_in] = ...
-    checkinputss(Ffun, X_0, n, Model.np_max, nf_max, g_tol, delta, nfs, m, Prior.F_0, Prior.xk_in, Low, Upp);
+    checkinputss(Ffun, X_0, n, Model.np_max, nf_max, g_tol, delta, nfs, m, Prior.F_init, Prior.xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = [];
     F = [];
