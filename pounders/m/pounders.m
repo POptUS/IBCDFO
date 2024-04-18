@@ -48,10 +48,10 @@ if ~isfield(Options, 'printf')
 end
 
 if ~isfield(Model, 'np_max')
-    Model.np_max = 2*n+1;
+    Model.np_max = 2 * n + 1;
 end
 if ~isfield(Model, 'Par')
-    Model.Par = zeros(1,4);
+    Model.Par = zeros(1, 4);
 
     Model.Par(1) = sqrt(n); % [dbl] delta multiplier for checking validity
     Model.Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
