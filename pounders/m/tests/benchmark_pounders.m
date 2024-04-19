@@ -15,6 +15,7 @@ spsolver = 2; % TRSP Solver
 nf_max = 100;
 g_tol = 1e-13;
 factor = 10;
+nfs = 0;
 
 for row = 1:length(dfo)
     nprob = dfo(row, 1);
@@ -26,16 +27,12 @@ for row = 1:length(dfo)
     BenDFO.m = m;
     BenDFO.n = n;
 
-    objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
+    Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 
-    X0 = dfoxs(n, nprob, factor^factor_power)';
-    np_max = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
-    L = -Inf(1, n);
-    U = Inf(1, n);
-    nfs = 0;
-    F0 = [];
-    xk_in = 1;
-    delta = 0.1;
+    X_0 = dfoxs(n, nprob, factor^factor_power)';
+    Low = -Inf(1, n);
+    Upp = Inf(1, n);
+    delta_0 = 0.1;
     if row == 9
         printf = 1;
     else
@@ -63,7 +60,12 @@ for row = 1:length(dfo)
 
         filename = ['./benchmark_results/poundersM_nfmax=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
-        [X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
+        Options.hfun = hfun;
+        Options.combinemodels = combinemodels;
+        Options.printf = printf;
+
+        [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], Options);
+
 
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
