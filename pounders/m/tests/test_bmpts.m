@@ -34,6 +34,3 @@ Prior.F_init = F_init;
 Prior.nfs = nfs;
 
 [X, F, hf, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior);
-
-
-

@@ -66,7 +66,6 @@ for row = 1:length(dfo)
 
         [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], Options);
 
-
         if ensure_still_solve_problems
             if solved(row, hfun_cases) == 1
                 assert(flag == 0, "This problem was previously solved but it's anymore.");
