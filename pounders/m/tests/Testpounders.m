@@ -6,6 +6,7 @@ classdef Testpounders < matlab.unittest.TestCase
             test_bounds_and_sp1;
             test_bmpts;
             test_one_m_pounders;
+            test_emittance_opt;
         end
 
         function longTest(testCase)
