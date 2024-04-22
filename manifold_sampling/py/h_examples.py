@@ -1,3 +1,5 @@
+from itertools import product
+
 import numpy as np
 import numpy.linalg as LA
 from scipy import spatial
@@ -13,6 +15,70 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     Hashes = [str(ind) for ind in inds]
 
     return inds, grads, Hashes
+
+
+def one_norm(z, H0=None):
+    # Evaluates
+    #   sum(abs(z_j))
+
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l manifolds active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+
+    if H0 is None:
+        h = np.sum(np.abs(z))
+
+        tol = 1e-8
+
+        grad_lists = [None] * len(z)
+        Hash_lists = [None] * len(z)
+
+        for i, element in enumerate(z):
+            if element < -tol:
+                grad_lists[i] = [-1]
+                Hash_lists[i] = ["-"]
+            elif element > tol:
+                grad_lists[i] = [1]
+                Hash_lists[i] = ["+"]
+            else:
+                # Technically, we should return [1,-1] for the grad entry and
+                # ['-','+'] for the Hash, but that causes issues for large dim(z)
+                # because we get 2^dim(z) grads.... but they don't matter
+                # really for the convex hull calculation
+                grad_lists[i] = [0]
+                Hash_lists[i] = ["0"]
+
+        all_grad_perms = product(*grad_lists)
+
+        grads = np.array(list(all_grad_perms)).T
+        Hash = ["".join(t) for t in product(*Hash_lists)]
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.ones((len(z), J))
+
+        for k in range(J):
+            ztemp = np.copy(z)
+            for j in range(len(z)):
+                if H0[k][j] == "-":
+                    grads[j, k] = -1
+                    ztemp[j] *= -1
+                elif H0[k][j] == "0":
+                    grads[j, k] = 0
+                    if ztemp[j] < 0:
+                        ztemp[j] *= -1
+
+            h[k] = np.sum(ztemp)
+
+        return h, grads
 
 
 def pw_maximum(z, H0=None):
@@ -66,7 +132,8 @@ def pw_maximum_squared(z, H0=None):
 
     if H0 is None:
         z2 = z**2
-        h = np.max(z2)
+        i1 = np.argmax(z2)
+        h = z[i1] ** 2
 
         inds, grads, Hash = _activities_and_inds(h, z2)
 
