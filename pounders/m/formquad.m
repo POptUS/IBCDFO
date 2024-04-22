@@ -30,7 +30,7 @@
 % valid   [log] Flag saying if model is valid within Pars(2)*delta
 % G       [dbl] [n-by-m]  Matrix of model gradients at centered at X(xk_in, :)
 % H       [dbl] [n-by-n-by-m]  Array of model Hessians centered at X(xk_in, :)
-% Mind    [int] [npmax-by-1] Integer vector of model interpolation indices
+% Mind    [int] [np_max-by-1] Integer vector of model interpolation indices
 %
 function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xk_in, np_max, Pars, vf)
 
@@ -45,7 +45,7 @@ m = size(F, 2);
 G = zeros(n, m);
 H = zeros(n, n, m);
 
-% Precompute the scaled displacements (could be expensive for larger nfmax)
+% Precompute the scaled displacements (could be expensive for larger nf_max)
 D = zeros(nf, n); % Scaled displacements
 Nd = zeros(nf, 1); % Norm of scaled displacements
 for i = 1:nf

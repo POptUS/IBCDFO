@@ -16,15 +16,23 @@ F_0 = zeros(1, m); % Initial evaluations (parameters with completed simulations)
 F_0(1, :) = call_beamline_simulation(X_0);
 nfs = 1; % Number of initial evaluations
 xk_in = 1; % Index in F_0 for starting the optimization (usually the point with minimal emittance)
-npmax = 2 * n + 1;
 spsolver = 2;
 
-[Xout, Fout, hFout, flag, xk_inout] = ...
-    pounders(@call_beamline_simulation, X_0, n, npmax, nf_max, g_tol, delta_0, nfs, m, F_0, xk_in, Low, Upp, printf, spsolver, hfun, combinemodels);
+Prior.xk_in = xk_in;
+Prior.X_0 = X_0;
+Prior.F_init = F_0;
+Prior.nfs = nfs;
+
+Options.hfun = hfun;
+Options.combinemodels = combinemodels;
+Options.spsolver = spsolver;
+Options.printf = printf;
+
+[Xout, Fouf, hFout, flag, xk_best] = pounders(@call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
 
 assert(flag >= 0, 'pounders crashed');
 
-assert(hFout(xk_inout) == min(hFout), 'The minimum emittance is not at xk_inout');
+assert(hFout(xk_best) == min(hFout), 'The minimum emittance is not at xk_best');
 
 % Define the call_beamline_simulation function
 function out = call_beamline_simulation(x)
