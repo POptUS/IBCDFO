@@ -66,6 +66,10 @@ if ~isfield(Options, 'printf')
     Options.printf = 0; % Don't print by default
 end
 
+if ~isfield(Model, 'model_builder')
+    Model.model_builder = @formquad;
+end
+
 if ~isfield(Model, 'np_max')
     Model.np_max = 2 * n + 1;
 end
@@ -171,7 +175,7 @@ while nf < nf_max
         Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
     end
     [Mdir, np, valid, Gres, Hresdel, Mind] = ...
-        formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+        Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
     if np < n  % Must obtain and evaluate bounded geometry points
         [Mdir, np] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, Model.Par(3));
         for i = 1:min(n - np, nf_max - nf)
@@ -193,7 +197,7 @@ while nf < nf_max
             break
         end
         [~, np, valid, Gres, Hresdel, Mind] = ...
-            formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+            Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
         if np < n
             [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -5);
             return
@@ -233,7 +237,7 @@ while nf < nf_max
         % Check to see if the model is valid within a region of size g_tol
         delta = max(g_tol, max(abs(X(xk_in, :))) * eps); % Safety for tiny g_tol values
         [Mdir, ~, valid] = ...
-            formquad(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
+            Model.model_builder(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
         if ~valid % Make model valid in this small region
             [Mdir, np] = bmpts(X(xk_in, :), Mdir, Low, Upp, delta, Model.Par(3));
             for i = 1:min(n - np, nf_max - nf)
@@ -254,7 +258,7 @@ while nf < nf_max
             end
             % Recalculate gradient based on a MFN model
             [~, ~, valid, Gres, Hres, Mind] = ...
-                formquad(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+                Model.model_builder(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
             [G, H] = combinemodels(Cres, Gres, Hres);
             ind_Lnotbinding = and(X(xk_in, :) > Low, G' > 0);
             ind_Unotbinding = and(X(xk_in, :) < Upp, G' < 0);
@@ -357,7 +361,7 @@ while nf < nf_max
     if ~(valid) && (nf < nf_max) && (rho < eta_1) % Implies xk_in & delta unchanged
         % Need to check because model may be valid after Xsp evaluation
         [Mdir, np, valid] = ...
-            formquad(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
+            Model.model_builder(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
         if ~(valid)  % ! One strategy for choosing model-improving point:
             % Update model (exists because delta & xk_in unchanged)
             for i = 1:nf
@@ -365,7 +369,7 @@ while nf < nf_max
                 Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
-                formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+                Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
             Hres = Hres + Hresdel;
             % Update for modelimp; Cres unchanged b/c xk_in unchanged
             [G, H] = combinemodels(Cres, Gres, Hres);
