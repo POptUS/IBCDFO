@@ -15,6 +15,7 @@ if nargin < 10 || isempty(Prior)
     Prior.nfs = 0;
     Prior.X_init = [];
     Prior.F_init = [];
+    Prior.aux_init = {}; 
     Prior.xk_in = 1;
 end
 
@@ -70,6 +71,10 @@ if ~isfield(Model, 'model_builder')
     Model.model_builder = @formquad;
 end
 
+if ~isfield(Model, 'Ffun_nargout')
+    Model.Ffun_nargout = 1;
+end
+
 if ~isfield(Model, 'np_max')
     Model.np_max = 2 * n + 1;
 end
@@ -98,7 +103,7 @@ delta_inact = Options.delta_inact;
     checkinputss(Ffun, X_0, n, Model.np_max, nf_max, g_tol, delta, nfs, m, Prior.F_init, Prior.xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = [];
-    F = [];
+    eval_data = {};
     hF = [];
     return
 end
@@ -131,36 +136,47 @@ end
 
 if nfs == 0 % Need to do the first evaluation
     X = [X_0; zeros(nf_max - 1, n)]; % Stores the point locations
-    F = zeros(nf_max, m); % Stores the function values
+    eval_data.F = zeros(nf_max, m); % Stores the function values
     hF = zeros(nf_max, 1); % Stores the sum of squares of evaluated points
     nf = 1;
-    F0 = Ffun(X(nf, :));
+    switch Model.Ffun_nargout
+        case 1
+            F0 = Ffun(X(nf, :));
+        case 2
+            [F0, aux0] = Ffun(X(nf, :));
+    end
     if length(F0) ~= m
         disp('  Error: F0 does not contain the right number of residuals');
         flag = -1;
         return
     end
-    F(nf, :) = F0;
-    if any(isnan(F(nf, :)))
-        [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+    eval_data.F(nf, :) = F0;
+    if Model.Ffun_nargout == 2
+        eval_data.aux{nf} = aux0;
+    end
+    if any(isnan(eval_data.F(nf, :)))
+        [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -3);
         return
     end
     if printf
-        fprintf('%4i    Initial point  %11.5e\n', nf, hfun(F(nf, :)));
+        fprintf('%4i    Initial point  %11.5e\n', nf, hfun(eval_data.F(nf, :)));
     end
 else % Have other function values around
-    X = [X_0(1:nfs, :); zeros(nf_max, n)]; % Stores the point locations
-    F = [F0(1:nfs, :); zeros(nf_max, m)]; % Stores the function values
+    X = [Prior.X_init(1:nfs, :); zeros(nf_max, n)]; % Stores the point locations
+    eval_data.F = [Prior.F_init(1:nfs, :); zeros(nf_max, m)]; % Stores the function values
+    if Model.Ffun_nargout == 2
+        eval_data.aux{1:nfs} = Prior.aux_init{1:nfs};
+    end
     hF = zeros(nf_max + nfs, 1); % Stores the sum of squares of evaluated points
     nf = nfs;
     nf_max = nf_max + nfs;
 end
 for i = 1:nf
-    hF(i) = hfun(F(i, :));
+    hF(i) = hfun(eval_data.F(i, :));
 end
 
-Res = zeros(size(F)); % Stores the residuals for model updates
-Cres = F(xk_in, :);
+Res = zeros(size(eval_data.F)); % Stores the residuals for model updates
+Cres = eval_data.F(xk_in, :);
 Hres = zeros(n, n, m);
 ng = NaN; % Needed for early termination, e.g., if a model is never built
 % H = zeros(n); G = zeros(n,1); c = hF(xk_in);
@@ -172,7 +188,7 @@ while nf < nf_max
     % 1a. Compute the interpolation set.
     for i = 1:nf
         D = X(i, :) - X(xk_in, :);
-        Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+        Res(i, :) = eval_data.F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
     end
     [Mdir, np, valid, Gres, Hresdel, Mind] = ...
         Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
@@ -181,17 +197,24 @@ while nf < nf_max
         for i = 1:min(n - np, nf_max - nf)
             nf = nf + 1;
             X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeguard
-            F(nf, :) = Ffun(X(nf, :));
-            if any(isnan(F(nf, :)))
-                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+            switch Model.Ffun_nargout
+                case 1
+                    eval_data.F(nf, :) = Ffun(X(nf, :));
+                case 2
+                    [F_nf, aux_nf] = Ffun(X(nf, :));
+                    eval_data.F(nf, :) = F_nf;
+                    eval_data.aux{nf} = aux_nf;
+            end
+            if any(isnan(eval_data.F(nf, :)))
+                [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -3);
                 return
             end
-                hF(nf) = hfun(F(nf, :));
+                hF(nf) = hfun(eval_data.F(nf, :));
             if printf
                 fprintf('%4i   Geometry point  %11.5e\n', nf, hF(nf));
             end
             D = Mdir(i, :);
-            Res(nf, :) = F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+            Res(nf, :) = eval_data.F(nf, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
         end
         if nf >= nf_max
             break
@@ -199,13 +222,13 @@ while nf < nf_max
         [~, np, valid, Gres, Hresdel, Mind] = ...
             Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
         if np < n
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -5);
+            [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -5);
             return
         end
     end
 
     % 1b. Update the quadratic model
-    Cres = F(xk_in, :);
+    Cres = eval_data.F(xk_in, :);
     Hres = Hres + Hresdel;
     c = hF(xk_in);
     [G, H] = combinemodels(Cres, Gres, Hres);
@@ -225,7 +248,7 @@ while nf < nf_max
             for i = 1:size(Mind, 1)
                 D = (X(Mind(i), :) - X(xk_in, :));
                 for j = 1:m
-                    jerr(i, j) = (Cres(j) - F(Mind(i), j)) + D * (Gres(:, j) + .5 * Hres(:, :, j) * D');
+                    jerr(i, j) = (Cres(j) - eval_data.F(Mind(i), j)) + D * (Gres(:, j) + .5 * Hres(:, :, j) * D');
                 end
             end
             disp(jerr);
@@ -237,18 +260,25 @@ while nf < nf_max
         % Check to see if the model is valid within a region of size g_tol
         delta = max(g_tol, max(abs(X(xk_in, :))) * eps); % Safety for tiny g_tol values
         [Mdir, ~, valid] = ...
-            Model.model_builder(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
+            Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
         if ~valid % Make model valid in this small region
             [Mdir, np] = bmpts(X(xk_in, :), Mdir, Low, Upp, delta, Model.Par(3));
             for i = 1:min(n - np, nf_max - nf)
                 nf = nf + 1;
                 X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeg.
-                F(nf, :) = Ffun(X(nf, :));
-                if any(isnan(F(nf, :)))
-                    [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+                switch Model.Ffun_nargout
+                    case 1
+                        eval_data.F(nf, :) = Ffun(X(nf, :));
+                    case 2
+                        [F_nf, aux_nf] = Ffun(X(nf, :));
+                        eval_data.F(nf, :) = F_nf;
+                        eval_data.aux{nf} = aux_nf;
+                end
+                if any(isnan(eval_data.F(nf, :)))
+                    [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -3);
                     return
                 end
-                hF(nf) = hfun(F(nf, :));
+                hF(nf) = hfun(eval_data.F(nf, :));
                 if printf
                     fprintf('%4i   Critical point  %11.5e\n', nf, hF(nf));
                 end
@@ -258,14 +288,14 @@ while nf < nf_max
             end
             % Recalculate gradient based on a MFN model
             [~, ~, valid, Gres, Hres, Mind] = ...
-                Model.model_builder(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+                Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
             [G, H] = combinemodels(Cres, Gres, Hres);
             ind_Lnotbinding = and(X(xk_in, :) > Low, G' > 0);
             ind_Unotbinding = and(X(xk_in, :) < Upp, G' < 0);
             ng = norm(G .* (ind_Lnotbinding + ind_Unotbinding)');
         end
         if ng < g_tol % We trust the small gradient norm and return
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, 0);
+            [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, 0);
             return
         end
     end
@@ -278,7 +308,7 @@ while nf < nf_max
     elseif spsolver == 2 % Arnold Neumaier's minq5
         [Xsp, mdec, minq_err] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
         if minq_err < 0
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -4);
+            [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -4);
             return
         end
 
@@ -313,24 +343,31 @@ while nf < nf_max
         end
 
         if mdec == 0 && valid && all(Xsp == X(xk_in, :))
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
+            [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -2);
             return
         end
 
         nf = nf + 1;
         X(nf, :) = Xsp;
-        F(nf, :) = Ffun(X(nf, :));
-        if any(isnan(F(nf, :)))
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+        switch Model.Ffun_nargout
+            case 1
+                 eval_data.F(nf, :) = Ffun(X(nf, :));
+            case 2
+                 [F_nf, aux_nf] = Ffun(X(nf, :));
+                 eval_data.F(nf, :) = F_nf;
+                 eval_data.aux{nf} = aux_nf;
+        end
+        if any(isnan(eval_data.F(nf, :)))
+            [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -3);
             return
         end
-        hF(nf) = hfun(F(nf, :));
+        hF(nf) = hfun(eval_data.F(nf, :));
 
         if mdec ~= 0
             rho = (hF(nf) - hF(xk_in)) / mdec;
         else % Note: this conditional only occurs when model is valid
             if hF(nf) == hF(xk_in)
-                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
+                [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -2);
                 return
             else
                 rho = inf * sign(hF(nf) - hF(xk_in));
@@ -340,7 +377,7 @@ while nf < nf_max
         % 4a. Update the center
         if (rho >= eta_1)  || ((rho > 0) && (valid))
             %  Update model to reflect new center
-            Cres = F(xk_in, :);
+            Cres = eval_data.F(xk_in, :);
             xk_in = nf; % Change current center
         end
 
@@ -361,12 +398,12 @@ while nf < nf_max
     if ~(valid) && (nf < nf_max) && (rho < eta_1) % Implies xk_in & delta unchanged
         % Need to check because model may be valid after Xsp evaluation
         [Mdir, np, valid] = ...
-            Model.model_builder(X(1:nf, :), F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
+            Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
         if ~(valid)  % ! One strategy for choosing model-improving point:
             % Update model (exists because delta & xk_in unchanged)
             for i = 1:nf
                 D = (X(i, :) - X(xk_in, :));
-                Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+                Res(i, :) = eval_data.F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
                 Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
@@ -397,12 +434,19 @@ while nf < nf_max
 
             nf = nf + 1;
             X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Xsp)); % Temp safeguard
-            F(nf, :) = Ffun(X(nf, :));
-            if any(isnan(F(nf, :)))
-                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
+            switch Model.Ffun_nargout
+                case 1
+                    eval_data.F(nf, :) = Ffun(X(nf, :));
+                case 2
+                    [F_nf, aux_nf] = Ffun(X(nf, :));
+                    eval_data.F(nf, :) = F_nf;
+                    eval_data.aux{nf} = aux_nf;
+            end
+            if any(isnan(eval_data.F(nf, :)))
+                [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -3);
                 return
             end
-            hF(nf) = hfun(F(nf, :));
+            hF(nf) = hfun(eval_data.F(nf, :));
             if printf
                 fprintf('%4i   Model point     %11.5e\n', nf, hF(nf));
             end
@@ -413,7 +457,7 @@ while nf < nf_max
                 %  Update model to reflect new base point
                 D = (X(nf, :) - X(xk_in, :));
                 xk_in = nf; % Change current center
-                Cres = F(xk_in, :);
+                Cres = eval_data.F(xk_in, :);
                 % Don't actually use:
                 for j = 1:m
                     Gres(:, j) = Gres(:, j) + Hres(:, :, j) * D';
@@ -426,3 +470,4 @@ if printf
     disp('Number of function evals exceeded');
 end
 flag = ng;
+F = eval_data.F;
