@@ -1,0 +1,35 @@
+name: POUNDERS/MATLAB CI Testing Action
+on: ["pull_request"]
+jobs:
+  test_pounders:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        matlab-release: ["2021a", "2021b"]
+    steps:
+    ##-- General Setup Steps
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v4
+      with:
+        path: IBCDFO
+    - name: Checkout BenDFO repository
+      uses: actions/checkout@v4
+      with:
+        repository: POptUS/BenDFO
+        path: BenDFO
+    - name: Set up MATLAB ${{ matrix.matlab-release }}
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: ${{ matrix.matlab-release }}
+
+    ##-- Test Execution Step
+    - name: Test POUNDERS/MATLAB
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+            addpath("BenDFO/data"), \
+              addpath("BenDFO/m"), \
+              cd IBCDFO/pounders/m, \
+              results = runtests("IncludeSubfolders", true), \
+              assertSuccess(results); 
