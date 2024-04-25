@@ -27,5 +27,7 @@ jobs:
     - name: Test POUNDERS/MATLAB
       uses: matlab-actions/run-command@v2
       with:
-        command: |
-            addpath("BenDFO/data"), addpath("BenDFO/m"), path
+        command: >
+            addpath("BenDFO/data"),
+            addpath("BenDFO/m"),
+            path
