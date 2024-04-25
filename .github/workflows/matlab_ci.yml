@@ -30,4 +30,6 @@ jobs:
         command: >
             addpath("BenDFO/data"),
             addpath("BenDFO/m"),
-            path
+            cd IBCDFO/pounders/m,
+            results = runtests("IncludeSubfolders", true),
+            assertSuccess(results);
