@@ -1,6 +1,9 @@
 % This tests bmpts.m when it notes that:
 % "Geometry points need to be coordinate directions!"
 
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+
 nf_max = 100;
 g_tol = 1e-13;
 
@@ -34,3 +37,5 @@ Prior.F_init = F_init;
 Prior.nfs = nfs;
 
 [X, F, hf, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior);
+
+path(oldpath);

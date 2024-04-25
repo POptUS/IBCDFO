@@ -4,6 +4,9 @@
 
 function [] = test_failing_objective()
 
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+
 spsolver = 1;
 
 nf_max = 1000;
@@ -29,3 +32,5 @@ Model.spsolver = spsolver;
 % Intentionally not passing a function for an objective
 [X, F, hF, flag, xk_best] = pounders(X_0, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
 assert(flag == -1, "Should have failed");
+
+path(oldpath);
