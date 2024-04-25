@@ -6,7 +6,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        matlab-release: ["2021a", "2021b"]
+        matlab-release: ["R2021a", "R2021b"]
     steps:
     ##-- General Setup Steps
     - name: Checkout IBCDFO repository
