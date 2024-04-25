@@ -28,4 +28,4 @@ jobs:
       uses: matlab-actions/run-command@v2
       with:
         command: |
-            pwd, 2 + 2.2
+            pwd, 2 + 2.2, addpath("../BenDFO/data")
