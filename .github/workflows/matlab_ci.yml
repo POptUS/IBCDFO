@@ -50,6 +50,7 @@ jobs:
       with:
         path: IBCDFO
         submodules: recursive
+        set-safe-directory: ${{ github.workspace }}/IBCDFO
     - name: Checkout BenDFO repository
       uses: actions/checkout@v4
       with:
