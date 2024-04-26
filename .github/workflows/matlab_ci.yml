@@ -85,6 +85,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: cobertura.xml
         fail_ci_if_error: true
+        verbose: true
 
     ##-- Publish full coverage report as artifact
     - name: Archive code coverage results
