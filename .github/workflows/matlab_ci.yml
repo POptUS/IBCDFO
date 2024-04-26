@@ -48,10 +48,7 @@ jobs:
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v4
       with:
-        path: IBCDFO
         submodules: recursive
-        set-safe-directory: true
-    - run : git config --global --add safe.directory ${{ github.workspace }}
     - name: Checkout BenDFO repository
       uses: actions/checkout@v4
       with:
@@ -74,10 +71,10 @@ jobs:
         command: >
             addpath("BenDFO/data"),
             addpath("BenDFO/m"),
-            cd IBCDFO/pounders/m,
+            cd pounders/m,
             [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
             assertSuccess(results),
-            cd ../../..,
+            cd ${{ github.workspace }},
             fp = generateHTMLReport(cov, "htmlcov"),
             generateCoberturaReport(cov, "cobertura.xml");
 
@@ -95,5 +92,5 @@ jobs:
       with:
         name: code-coverage-results
         path: |
-            htmlcov
-            cobertura.xml
+            ${{ github.workspace }}/htmlcov
+            ${{ github.workspace }}/cobertura.xml
