@@ -34,3 +34,55 @@ jobs:
             cd IBCDFO/pounders/m,
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);
+
+  #####----- MEASURE COVERAGE ACROSS ALL PACKAGES
+  coverage_ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      # We only need to measure coverage with a single MATLAB release.  Ideally
+      # this will be the latest MATLAB release used in the action.
+      matrix:
+        matlab-release: ["R2024a"]
+    steps:
+    ##-- General Setup Steps
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v4
+      with:
+        path: IBCDFO
+        submodules: recursive
+    - name: Checkout BenDFO repository
+      uses: actions/checkout@v4
+      with:
+        repository: POptUS/BenDFO
+        path: BenDFO
+    - name: Set up MATLAB ${{ matrix.matlab-release }}
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: ${{ matrix.matlab-release }}
+
+    ##-- Test Execution Step
+    # This requires R2023b or higher
+    # TODO: Eventually this should be run from the root of the repo so that we
+    # run all MATLAB test suites and combine all coverage results in a single
+    # report.  Can the cobertura XML-format reports be linked with a coverage
+    # server?
+    - name: Generate code coverage report for MATLAB code
+      uses: matlab-actions/run-command@v2
+      with:
+        command: >
+            addpath("BenDFO/data"),
+            addpath("BenDFO/m"),
+            cd IBCDFO/pounders/m,
+            [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
+            assertSuccess(results);
+            fp = generateHTMLReport(cov, "htmlcov"),
+            generateCoberturaReport(cov, "cobertura.xml")
+
+    ##-- Publish full coverage report as artifact
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-results
+        path: |
+            htmlcov
+            cobertura.xml
