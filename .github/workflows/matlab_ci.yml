@@ -75,6 +75,7 @@ jobs:
             cd IBCDFO/pounders/m,
             [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
             assertSuccess(results);
+            cd ../../..
             fp = generateHTMLReport(cov, "htmlcov"),
             generateCoberturaReport(cov, "cobertura.xml")
 
@@ -84,7 +85,5 @@ jobs:
       with:
         name: code-coverage-results
         path: |
-            pushd IBCDFO/pounders/m
             htmlcov
             cobertura.xml
-            popd
