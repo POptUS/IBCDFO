@@ -84,5 +84,7 @@ jobs:
       with:
         name: code-coverage-results
         path: |
+            pushd IBCDFO/pounders/m
             htmlcov
             cobertura.xml
+            popd
