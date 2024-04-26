@@ -50,7 +50,8 @@ jobs:
       with:
         path: IBCDFO
         submodules: recursive
-        set-safe-directory: ${{ github.workspace }}/IBCDFO
+        set-safe-directory: true
+        run : git config --global --add safe.directory ${{ github.workspace }}
     - name: Checkout BenDFO repository
       uses: actions/checkout@v4
       with:
