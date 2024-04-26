@@ -45,6 +45,8 @@ jobs:
         matlab-release: ["R2024a"]
     steps:
     ##-- General Setup Steps
+    # Nest BenDFO in IBCDFO.  I tried to have them side-by-side with IBCDFO
+    # installed in a nonstandard path, but that caused failures with CodeCov.
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v4
       with:
@@ -84,7 +86,6 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: cobertura.xml
         fail_ci_if_error: true
-        verbose: true
 
     ##-- Publish full coverage report as artifact
     - name: Archive code coverage results
