@@ -74,10 +74,10 @@ jobs:
             addpath("BenDFO/m"),
             cd IBCDFO/pounders/m,
             [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
-            assertSuccess(results);
-            cd ../../..
+            assertSuccess(results),
+            cd ../../..,
             fp = generateHTMLReport(cov, "htmlcov"),
-            generateCoberturaReport(cov, "cobertura.xml")
+            generateCoberturaReport(cov, "cobertura.xml");
 
     ##-- Publish full coverage report as artifact
     - name: Archive code coverage results
