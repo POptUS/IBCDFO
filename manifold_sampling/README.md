@@ -57,3 +57,51 @@ Some other values and intermediate Variables:
  G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
  D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 ````
+
+## Installation
+
+### MATLAB
+Users must download and install the
+[allcomb](https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin)
+function from MathWork's File Exchange and add its location to the MATLAB path.
+
+## Testing
+
+### MATLAB
+To run tests of MATLAB-based manifold sampling, in addition to general
+installation steps users must have an up-to-date
+[BenDFO](https://github.com/POptUS/BenDFO) clone installed and add
+
+    /path/to/BenDFO/data
+    /path/to/BenDFO/m
+
+to their MATLAB path.
+
+Note that some code in manifold sampling and its tests automatically alter the
+MATLAB path.  While the manifold sampling tests will reset the path to its
+original state if all tests pass, the path might remain altered if a test
+fails.
+
+The MATLAB implementation of manifold sampling contains a single test case
+`Testmanifoldsampling.m`, which calls individual tests such as
+`test_one_norm.m`.
+
+To fully test the MATLAB implementation of manifold sampling with
+`Testmanifoldsampling` but without coverage:
+
+   1. change to the `manifold_sampling/m/tests` directory
+   2. open MATLAB, and
+   3. execute `runtests` from the prompt.
+
+To fully test the MATLAB implementation of manifold sampling with
+`Testmanifoldsampling` and with coverage:
+
+   1. change to the `manifold_sampling/m` directory
+   2. open MATLAB, and
+   3. execute `runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)`
+
+The test output indicates where the HTML-format code coverage report can be found.
+
+Users can also run each test function individually as usual if so desired.
+Please refer to the inline documentation of each test or test case for more
+information on how to run the test.
