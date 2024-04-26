@@ -79,6 +79,11 @@ jobs:
             fp = generateHTMLReport(cov, "htmlcov"),
             generateCoberturaReport(cov, "cobertura.xml");
 
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
     ##-- Publish full coverage report as artifact
     - name: Archive code coverage results
       uses: actions/upload-artifact@v4
