@@ -15,7 +15,7 @@ if nargin < 10 || isempty(Prior)
     Prior.nfs = 0;
     Prior.X_init = [];
     Prior.F_init = [];
-    Prior.aux_init = {}; 
+    Prior.aux_init = {};
     Prior.xk_in = 1;
 end
 
@@ -73,6 +73,8 @@ end
 
 if ~isfield(Model, 'Ffun_nargout')
     Model.Ffun_nargout = 1;
+else
+    assert(Model.Ffun_nargout == 1 || Model.Ffun_nargout == 2, "Ffun_nargout must be 1 or 2");
 end
 
 if ~isfield(Model, 'np_max')
