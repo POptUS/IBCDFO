@@ -193,9 +193,18 @@ ng = NaN; % Needed for early termination, e.g., if a model is never built
 
 while nf < nf_max
     % 1a. Compute the interpolation set.
-    for i = 1:nf
-        D = X(i, :) - X(xk_in, :);
-        Res(i, :) = eval_data.F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+    % TEMPORARY HACK: We need a programmatic solution around this, in
+    % particular, something that indicates if we're doing minimum norm
+    % change models or just minimum norm models. This is a problem for me
+    % only because Gauss-Newton models are never going to be "minimum
+    % change" models. 
+    if Model.Ffun_nargout == 2
+        Res(xk_in, :) = eval_data.F(xk_in, :);
+    else
+        for i = 1:nf
+            D = X(i, :) - X(xk_in, :);
+            Res(i, :) = eval_data.F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+        end
     end
         [Mdir, np, valid, Gres, Hresdel, Mind] = ...
             Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0, eval_data.aux);
