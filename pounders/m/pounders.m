@@ -71,6 +71,10 @@ if ~isfield(Model, 'model_builder')
     Model.model_builder = @formquad;
 end
 
+if ~isfield(Model, 'model_improver')
+    Model.model_improver = @formquad_model_improvement;
+end
+
 if ~isfield(Model, 'Ffun_nargout')
     Model.Ffun_nargout = 1;
 else
@@ -410,30 +414,9 @@ while nf < nf_max
             [~, ~, valid, Gres, Hresdel, Mind] = ...
                 Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
             Hres = Hres + Hresdel;
-            % Update for modelimp; Cres unchanged b/c xk_in unchanged
-            [G, H] = combinemodels(Cres, Gres, Hres);
 
-            % Evaluate model-improving points to pick best one
-            % ! May eventually want to normalize Mdir first for infty norm
-            % Plus directions
-            [Mdir1, np1] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, Model.Par(3));
-            for i = 1:n - np1
-                D = Mdir1(i, :);
-                Res(i, 1) = D * (G + .5 * H * D');
-            end
-            [a1, b] = min(Res(1:n - np1, 1));
-            Xsp = Mdir1(b, :);
-            % Minus directions
-            [Mdir1, np2] = bmpts(X(xk_in, :), -Mdir(1:n - np, :), Low, Upp, delta, Model.Par(3));
-            for i = 1:n - np2
-                D = Mdir1(i, :);
-                Res(i, 1) = D * (G + .5 * H * D');
-            end
-            [a2, b] = min(Res(1:n - np2, 1));
-            if a2 < a1
-                Xsp = Mdir1(b, :);
-            end
-
+            Xsp = Model.model_improver(X(xk_in, :), Cres, Gres, Hres, Mdir, np, Low, Upp, delta, Model, combinemodels);
+            
             nf = nf + 1;
             X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Xsp)); % Temp safeguard
             switch Model.Ffun_nargout
