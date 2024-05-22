@@ -32,7 +32,7 @@
 % H       [dbl] [n-by-n-by-m]  Array of model Hessians centered at X(xk_in, :)
 % Mind    [int] [np_max-by-1] Integer vector of model interpolation indices
 %
-function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xk_in, np_max, Pars, vf)
+function [Mdir, np, valid, G, H, Mind] = formquad(X, F, delta, xk_in, np_max, Pars, vf, ignored_arg)
 
 % --DEPENDS ON-------------------------------------------------------------
 % phi2eval : Evaluates the quadratic basis for vector inputs

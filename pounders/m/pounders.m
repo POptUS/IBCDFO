@@ -143,6 +143,7 @@ end
 if nfs == 0 % Need to do the first evaluation
     X = [X_0; zeros(nf_max - 1, n)]; % Stores the point locations
     eval_data.F = zeros(nf_max, m); % Stores the function values
+    eval_data.aux = [];
     hF = zeros(nf_max, 1); % Stores the sum of squares of evaluated points
     nf = 1;
     switch Model.Ffun_nargout
@@ -196,8 +197,8 @@ while nf < nf_max
         D = X(i, :) - X(xk_in, :);
         Res(i, :) = eval_data.F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
     end
-    [Mdir, np, valid, Gres, Hresdel, Mind] = ...
-        Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+        [Mdir, np, valid, Gres, Hresdel, Mind] = ...
+            Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0, eval_data.aux);
     if np < n  % Must obtain and evaluate bounded geometry points
         [Mdir, np] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, Model.Par(3));
         for i = 1:min(n - np, nf_max - nf)
@@ -226,7 +227,7 @@ while nf < nf_max
             break
         end
         [~, np, valid, Gres, Hresdel, Mind] = ...
-            Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+            Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0, eval_data.aux);
         if np < n
             [X, F, hF, flag] = prepare_outputs_before_return(X, eval_data.F, hF, nf, -5);
             return
@@ -266,7 +267,7 @@ while nf < nf_max
         % Check to see if the model is valid within a region of size g_tol
         delta = max(g_tol, max(abs(X(xk_in, :))) * eps); % Safety for tiny g_tol values
         [Mdir, ~, valid] = ...
-            Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
+            Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 1, eval_data.aux);
         if ~valid % Make model valid in this small region
             [Mdir, np] = bmpts(X(xk_in, :), Mdir, Low, Upp, delta, Model.Par(3));
             for i = 1:min(n - np, nf_max - nf)
@@ -294,7 +295,7 @@ while nf < nf_max
             end
             % Recalculate gradient based on a MFN model
             [~, ~, valid, Gres, Hres, Mind] = ...
-                Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+                Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 0, eval_data.aux);
             [G, H] = combinemodels(Cres, Gres, Hres);
             ind_Lnotbinding = and(X(xk_in, :) > Low, G' > 0);
             ind_Unotbinding = and(X(xk_in, :) < Upp, G' < 0);
@@ -404,7 +405,7 @@ while nf < nf_max
     if ~(valid) && (nf < nf_max) && (rho < eta_1) % Implies xk_in & delta unchanged
         % Need to check because model may be valid after Xsp evaluation
         [Mdir, np, valid] = ...
-            Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 1);
+            Model.model_builder(X(1:nf, :), eval_data.F(1:nf, :), delta, xk_in, np_max, Model.Par, 1, eval_data.aux);
         if ~(valid)  % ! One strategy for choosing model-improving point:
             % Update model (exists because delta & xk_in unchanged)
             for i = 1:nf
@@ -412,7 +413,7 @@ while nf < nf_max
                 Res(i, :) = eval_data.F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
-                Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+                Model.model_builder(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0, eval_data.aux);
             Hres = Hres + Hresdel;
 
             Xsp = Model.model_improver(X(xk_in, :), Cres, Gres, Hres, Mdir, np, Low, Upp, delta, Model, combinemodels);
