@@ -13,7 +13,7 @@ from dfoxs import dfoxs
 if not os.path.exists("benchmark_results"):
     os.makedirs("benchmark_results")
 
-dfo = np.loadtxt("dfo.dat")
+dfo = np.loadtxt("/home/mmenickelly/BenDFO/data/dfo.dat")
 
 spsolver = 2
 nf_max = 500
@@ -22,7 +22,7 @@ factor = 10
 printf = False
 combinemodels = pdrs.identity_combine
 hfun = lambda F: np.squeeze(F)
-Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+Opts = {"printf": 1, "spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
     n = int(n)
