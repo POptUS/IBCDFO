@@ -55,7 +55,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
 
     evals = F.shape[0]
 
-    assert flag != 1 "pounders failed"
+    assert flag != 1, "pounders failed"
     assert hfun(F[0]) > hfun(F[xk_best]), "No improvement found"
     assert X.shape[0] <= nf_max + nfs, "POUNDERs grew the size of X"
 
