@@ -3,11 +3,9 @@ Unit test of compute function
 """
 
 import os
-import unittest
 
 import ibcdfo.pounders as pdrs
 import numpy as np
-import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
 
@@ -63,16 +61,3 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
         assert evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations"
     elif flag != -4:
         assert evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations"
-
-    Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
-    Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
-    Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
-    Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
-    Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
-    Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
-    # oct2py.kill_octave() # This is necessary to restart the octave instance,
-    #                      # and thereby remove some caching of inside of oct2py,
-    #                      # namely changing problem dimension does not
-    #                      # correctly redefine calfun_wrapper
-
-    sp.io.savemat(filename, Results)
