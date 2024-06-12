@@ -55,14 +55,14 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
 
     evals = F.shape[0]
 
-    self.assertNotEqual(flag, 1, "pounders failed")
-    self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), "No improvement found")
-    self.assertTrue(X.shape[0] <= nf_max + nfs, "POUNDERs grew the size of X")
+    assert flag != 1 "pounders failed"
+    assert hfun(F[0]) > hfun(F[xk_best]), "No improvement found"
+    assert X.shape[0] <= nf_max + nfs, "POUNDERs grew the size of X"
 
     if flag == 0:
-        self.assertTrue(evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations")
+        assert evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations"
     elif flag != -4:
-        self.assertTrue(evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations")
+        assert evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations"
 
     Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
     Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
