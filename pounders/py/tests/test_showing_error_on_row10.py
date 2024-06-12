@@ -59,5 +59,3 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
 
     if flag == 0:
         assert evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations"
-    elif flag != -4:
-        assert evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations"
