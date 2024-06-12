@@ -25,7 +25,6 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
         return np.squeeze(out)
 
     X0 = dfoxs(n, nprob, int(factor**factor_power))
-    print(X0)
     Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
     Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
 
