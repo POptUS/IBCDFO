@@ -342,6 +342,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 D = X[: nf + 1] - X[xk_in]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+                if Hresdel.shape != Hres.shape:
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
+                    return X, F, hF, flag, xk_in
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
