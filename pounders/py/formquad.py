@@ -9,7 +9,7 @@ from .phi2eval import phi2eval
 
 def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     """
-    formquad(X, F, delta, xk_in, np_max, Pars, vf) -> [Mdir, np, valid, G, H, Mind]
+    formquad(X, F, delta, xk_in, np_max, Pars, vf) -> [Mdir, mp, valid, G, H, Mind]
     Computes the parameters for m quadratics
         ### FIX COMMENT Line 15 ###
         Q_i(x) = C(i) + G(:,i)'*x + 0.5*x'*H(:,:,i)*x,  i=1:m
@@ -31,7 +31,7 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     vf      [log] Flag indicating you just want to check model validity
     --OUTPUTS----------------------------------------------------------------
     Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
-    np      [int] Number of interpolation points (=length(Mind))
+    mp      [int] Number of interpolation points (=length(Mind))
     valid   [log] Flag saying if model is valid within Pars[2]*delta
     G       [dbl] [n-by-m]  Matrix of model gradients centered at X[xkin]
     H       [dbl] [n-by-n-by-m]  Array of model Hessians centered at X[xkin]
