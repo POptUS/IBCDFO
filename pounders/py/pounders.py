@@ -338,13 +338,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             # Need to check because model may be valid after Xsp evaluation
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
             if not valid:  # ! One strategy for choosing model-improving point:
-                # Update model (exists because delta & xk_in unchanged)
-                D = X[: nf + 1] - X[xk_in]
-                Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-                Hres = Hres + Hresdel
-                # Update for modelimp; Cres unchanged b/c xk_in unchanged
-                G, H = combinemodels(Cres, Gres, Hres)
                 # Evaluate model-improving points to pick best one
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions
@@ -383,6 +376,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     # Don't actually use
                     for j in range(m):
                         Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
+                # Update model (exists because delta & xk_in unchanged)
+                D = X[: nf + 1] - X[xk_in]
+                Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
+                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+                Hres = Hres + Hresdel
+                # Update for modelimp; Cres unchanged b/c xk_in unchanged
+                G, H = combinemodels(Cres, Gres, Hres)
     if printf:
         print("Number of function evals exceeded")
     flag = ng
