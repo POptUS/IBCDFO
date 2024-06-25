@@ -88,10 +88,15 @@ jobs:
 
   # ----- PUBLISH FULL CODE COVERAGE REPORT
   publish:
-    - name: Upload coverage report to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      needs: [coverage_py, coverage_m]
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: $CLONE_PATH/PY_COV_XML_FILE,$CLONE_PATH/$M_COV_XML_FILE
-        fail_ci_if_error: true
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        needs: [coverage_py, coverage_m]
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: $CLONE_PATH/PY_COV_XML_FILE,$CLONE_PATH/$M_COV_XML_FILE
+          fail_ci_if_error: true
