@@ -41,7 +41,7 @@ jobs:
       - name: Generate Python coverage reports
         run: |
           pushd $CLONE_PATH/ibcdfo_pypkg
-          COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage
+          COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage,report
           mv $PY_COV_FILE $CLONE_PATH
           mv $PY_COV_XML_FILE $CLONE_PATH
           mv $PY_COV_HTML_FILE $CLONE_PATH
@@ -97,6 +97,9 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
+      - name: Generate Python coverage reports
+        run: ls -lart $CLONE_PATH
+
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
