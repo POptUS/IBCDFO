@@ -55,7 +55,7 @@ jobs:
           path: |
              ${{ env.PY_COV_FILE }}
              ${{ env.PY_COV_XML_FILE }}
-             ${{ env.PY_COV_HTML }}
+             ${{ env.PY_COV_HTML_FILE }}
 
   # ----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
   coverage_m:
@@ -135,5 +135,5 @@ jobs:
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: $CLONE_PATH/$M_COV_XML_FILE
+          files: ${{ env.CLONE_PATH }}/{{ env.M_COV_XML_FILE }}
           fail_ci_if_error: true
