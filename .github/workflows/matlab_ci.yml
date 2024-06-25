@@ -1,7 +1,15 @@
-name: POUNDERS/MATLAB CI Testing Action
-on: ["pull_request"]
+# TODO: Eventually tests should be run from the root of the repo so that we run
+# all MATLAB test suites and combine all coverage results in a single report.
+name: Test IBCDFO MATLAB Code
+on: 
+  push:
+    - main
+  pull_request:
+    - main
+    - develop
+
 jobs:
-  test_pounders:
+  test_ibcdfo:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -34,64 +42,3 @@ jobs:
             cd IBCDFO/pounders/m,
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);
-
-  #####----- MEASURE COVERAGE ACROSS ALL PACKAGES
-  coverage_ubuntu:
-    runs-on: ubuntu-latest
-    strategy:
-      # We only need to measure coverage with a single MATLAB release.  Ideally
-      # this will be the latest MATLAB release used in the action.
-      matrix:
-        matlab-release: ["R2024a"]
-    steps:
-    ##-- General Setup Steps
-    # Nest BenDFO in IBCDFO.  I tried to have them side-by-side with IBCDFO
-    # installed in a nonstandard path, but that caused failures with CodeCov.
-    - name: Checkout IBCDFO repository
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Checkout BenDFO repository
-      uses: actions/checkout@v4
-      with:
-        repository: POptUS/BenDFO
-        path: BenDFO
-    - name: Set up MATLAB ${{ matrix.matlab-release }}
-      uses: matlab-actions/setup-matlab@v2
-      with:
-        release: ${{ matrix.matlab-release }}
-
-    ##-- Test Execution Step
-    # This requires R2023b or higher
-    # TODO: Eventually this should be run from the root of the repo so that we
-    # run all MATLAB test suites and combine all coverage results in a single
-    # report.  Can the cobertura XML-format reports be linked with a coverage
-    # server?
-    - name: Generate code coverage report for MATLAB code
-      uses: matlab-actions/run-command@v2
-      with:
-        command: >
-            addpath("BenDFO/data"),
-            addpath("BenDFO/m"),
-            cd pounders/m,
-            [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
-            assertSuccess(results),
-            cd ${{ github.workspace }},
-            fp = generateHTMLReport(cov, "htmlcov"),
-            generateCoberturaReport(cov, "cobertura.xml");
-
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: cobertura.xml
-        fail_ci_if_error: true
-
-    ##-- Publish full coverage report as artifact
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v4
-      with:
-        name: code-coverage-results
-        path: |
-            ${{ github.workspace }}/htmlcov
-            ${{ github.workspace }}/cobertura.xml
