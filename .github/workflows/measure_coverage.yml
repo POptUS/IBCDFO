@@ -27,10 +27,10 @@ jobs:
         python-version: ["3.12"]
     steps:
       # -- General Setup Steps
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -46,6 +46,16 @@ jobs:
           mv $PY_COV_XML_FILE $CLONE_PATH
           mv $PY_COV_HTML_FILE $CLONE_PATH
           popd
+
+      # -- Publish as artifact for users and subsequent jobs
+      - name: Archive Python coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-coverage-results
+          path: |
+             ${{ env.PY_COV_FILE }}
+             ${{ env.PY_COV_XML_FILE }}
+             ${{ env.PY_COV_HTML }}
 
   # ----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
   coverage_m:
@@ -89,6 +99,15 @@ jobs:
               fp = generateHTMLReport(cov, "${{ env.M_COV_HTML_FILE }}"),
               generateCoberturaReport(cov, "${{ env.M_COV_XML_FILE }}");
 
+      # -- Publish as artifact for users and subsequent jobs
+      - name: Archive MATLAB coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: matlab-coverage-results
+          path: |
+             ${{ env.M_COV_XML_FILE }}
+             ${{ env.M_COV_HTML_FILE }}
+
   # ----- PUBLISH FULL CODE COVERAGE REPORT
   publish:
     needs: [coverage_py, coverage_m]
@@ -97,6 +116,18 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
+      - name: Access Python coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: python-coverage-results
+          path: ${{ env.CLONE_PATH }}
+
+      - name: Access MATLAB coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: matlab-coverage-results
+          path: ${{ env.CLONE_PATH }}
+  
       - name: Generate Python coverage reports
         run: ls -lart $CLONE_PATH
 
