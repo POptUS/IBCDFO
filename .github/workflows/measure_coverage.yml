@@ -116,6 +116,8 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
+      - uses: actions/checkout@v4
+
       - name: Access Python coverage reports
         uses: actions/download-artifact@v4
         with:
@@ -135,5 +137,5 @@ jobs:
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ${{ env.CLONE_PATH }}/{{ env.M_COV_XML_FILE }}
+          file: cobertura_ibcdfo_m.xml
           fail_ci_if_error: true
