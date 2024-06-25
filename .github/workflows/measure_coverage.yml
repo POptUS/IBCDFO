@@ -18,11 +18,6 @@ on:
 jobs:
   # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
   coverage_py:
-    env:
-      # Map to env vars used by tox
-      COVERAGE_FILE:        ${{ env.PY_COV_FILE }}
-      COVERAGE_XML_FILE:    ${{ env.PY_COV_XML_FILE }}
-      COVERERAGE_HTML_FILE: ${{ env.PY_COV_HTML_FILE }}
     runs-on: ${{ matrix.os }}
     strategy:
       # We only need to measure coverage with a single python version.  Ideally
@@ -46,10 +41,10 @@ jobs:
       - name: Generate Python coverage reports
         run: |
           pushd $CLONE_PATH/ibcdfo_pypkg
-          tox -r -e coverage
-          mv $COVERAGE_FILE $CLONE_PATH
-          mv $COVERAGE_XML_FILE $CLONE_PATH
-          mv $COVERAGE_HTML_FILE $CLONE_PATH
+          COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage
+          mv $PY_COV_FILE $CLONE_PATH
+          mv $PY_COV_XML_FILE $CLONE_PATH
+          mv $PY_COV_HTML_FILE $CLONE_PATH
           popd
 
   # ----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
