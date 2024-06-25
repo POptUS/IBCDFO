@@ -134,5 +134,7 @@ jobs:
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ${{ env.CLONE_PATH }}/${{ env.M_COV_XML_FILE }},${{ env.CLONE_PATH }}/${{ env.PY_COV_XML_FILE }}
+          files: |
+            ${{ env.CLONE_PATH }}/${{ env.M_COV_XML_FILE }},
+            ${{ env.CLONE_PATH }}/${{ env.PY_COV_XML_FILE }}
           fail_ci_if_error: true
