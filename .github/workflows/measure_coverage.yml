@@ -137,5 +137,5 @@ jobs:
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: cobertura_ibcdfo_m.xml
+          files: cobertura_ibcdfo_m.xml,cobertura_ibcdfo_py.xml
           fail_ci_if_error: true
