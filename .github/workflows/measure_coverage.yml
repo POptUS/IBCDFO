@@ -8,10 +8,12 @@ env:
   M_COV_HTML_FILE:  htmlcov_ibcdfo_m
 on: 
   push:
-    - main
+    branches:
+      - main
   pull_request:
-    - main
-    - develop
+    branches:
+     - main
+     - develop
 
 jobs:
   #####----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES

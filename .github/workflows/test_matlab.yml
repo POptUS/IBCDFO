@@ -3,10 +3,12 @@
 name: Test IBCDFO MATLAB Code
 on: 
   push:
-    - main
+    branches:
+      - main
   pull_request:
-    - main
-    - develop
+    branches:
+      - main
+      - develop
 
 jobs:
   test_ibcdfo:

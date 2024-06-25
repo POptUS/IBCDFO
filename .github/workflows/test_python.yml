@@ -3,10 +3,12 @@ env:
   CLONE_PATH: ${{ github.workspace }}
 on: 
   push:
-    - main
+    branches:
+      - main
   pull_request:
-    - main
-    - develop
+    branches:
+      - main
+      - develop
 
 jobs:
   #####----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
