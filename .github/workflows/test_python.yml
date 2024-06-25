@@ -18,7 +18,7 @@ jobs:
       # python-versions must be maintained consistent with associated setup.py
       # and tox.ini configuration.
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-13, macos-14, macos-14-large]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     ##-- General Setup Steps
