@@ -1,22 +1,22 @@
 name: Measure Python & MATLAB Code Coverage
 env:
-  CLONE_PATH:       ${{ github.workspace }}
-  PY_COV_FILE:      coverage_ibcdfo
-  PY_COV_XML_FILE:  cobertura_ibcdfo_py.xml
+  CLONE_PATH: ${{ github.workspace }}
+  PY_COV_FILE: coverage_ibcdfo
+  PY_COV_XML_FILE: cobertura_ibcdfo_py.xml
   PY_COV_HTML_FILE: htmlcov_ibcdfo_py
-  M_COV_XML_FILE:   cobertura_ibcdfo_m.xml
-  M_COV_HTML_FILE:  htmlcov_ibcdfo_m
-on: 
+  M_COV_XML_FILE: cobertura_ibcdfo_m.xml
+  M_COV_HTML_FILE: htmlcov_ibcdfo_m
+on:
   push:
     branches:
       - main
   pull_request:
     branches:
-     - main
-     - develop
+      - main
+      - develop
 
 jobs:
-  #####----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
+  # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
   coverage_py:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -26,25 +26,25 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.12"]
     steps:
-    ##-- General Setup Steps
-    - uses: actions/checkout@v3
+      # -- General Setup Steps
+      - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Setup Python with tox
-      run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh
+      - name: Setup Python with tox
+        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh
 
-    ##-- Run Coverage for All Python Packages
-    - name: Generate Python coverage reports
-      run: |
-        pushd $CLONE_PATH/ibcdfo_pypkg
-        tox -r -e coverage
-        popd
+      # -- Run Coverage for All Python Packages
+      - name: Generate Python coverage reports
+        run: |
+          pushd $CLONE_PATH/ibcdfo_pypkg
+          tox -r -e coverage
+          popd
 
-  #####----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
+  # ----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
   coverage_m:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -54,43 +54,44 @@ jobs:
         os: [ubuntu-latest]
         matlab-release: ["R2024a"]
     steps:
-    ##-- General Setup Steps
-    # Nest BenDFO in IBCDFO.  I tried to have them side-by-side with IBCDFO
-    # installed in a nonstandard path, but that caused failures with CodeCov.
-    - name: Checkout IBCDFO repository
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Checkout BenDFO repository
-      uses: actions/checkout@v4
-      with:
-        repository: POptUS/BenDFO
-        path: BenDFO
-    - name: Set up MATLAB ${{ matrix.matlab-release }}
-      uses: matlab-actions/setup-matlab@v2
-      with:
-        release: ${{ matrix.matlab-release }}
+      # -- General Setup Steps
+      # Nest BenDFO in IBCDFO.  I tried to have them side-by-side with IBCDFO
+      # installed in a nonstandard path, but that caused failures with CodeCov.
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout BenDFO repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/BenDFO
+          path: BenDFO
+      - name: Set up MATLAB ${{ matrix.matlab-release }}
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: ${{ matrix.matlab-release }}
 
-    ##-- Test Execution Step
-    # This requires R2023b or higher
-    - name: Generate code coverage report for MATLAB code
-      uses: matlab-actions/run-command@v2
-      with:
-        command: >
-            addpath("BenDFO/data"),
-            addpath("BenDFO/m"),
-            cd pounders/m,
-            [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
-            assertSuccess(results),
-            cd ${{ env.CLONE_PATH }},
-            fp = generateHTMLReport(cov, "${{ env.M_COV_HTML_FILE }}"),
-            generateCoberturaReport(cov, "${{ env.M_COV_XML_FILE }}");
+      # -- Test Execution Step
+      # This requires R2023b or higher
+      - name: Generate code coverage report for MATLAB code
+        uses: matlab-actions/run-command@v2
+        with:
+          command: >
+              addpath("BenDFO/data"),
+              addpath("BenDFO/m"),
+              cd pounders/m,
+              [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
+              assertSuccess(results),
+              cd ${{ env.CLONE_PATH }},
+              fp = generateHTMLReport(cov, "${{ env.M_COV_HTML_FILE }}"),
+              generateCoberturaReport(cov, "${{ env.M_COV_XML_FILE }}");
 
-  #####----- PUBLISH FULL CODE COVERAGE REPORT
-  - name: Upload coverage report to Codecov
-    uses: codecov/codecov-action@v4.0.1
-    needs: [coverage_py, coverage_m]
-    with:
-      token: ${{ secrets.CODECOV_TOKEN }}
-      files: $CLONE_PATH/PY_COV_XML_FILE,$CLONE_PATH/$M_COV_XML_FILE
-      fail_ci_if_error: true
+  # ----- PUBLISH FULL CODE COVERAGE REPORT
+  publish:
+    - name: Upload coverage report to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      needs: [coverage_py, coverage_m]
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: $CLONE_PATH/PY_COV_XML_FILE,$CLONE_PATH/$M_COV_XML_FILE
+        fail_ci_if_error: true
