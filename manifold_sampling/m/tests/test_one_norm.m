@@ -10,7 +10,7 @@ addpath(fullfile(here_path, '..', 'h_examples'));
 n = 2;
 m = 2;
 
-nfmax = -1;
+nfmax = 1000;
 subprob_switch = 'linprog';
 LB = -2 * ones(1, n);
 UB = 2 * ones(1, n);
