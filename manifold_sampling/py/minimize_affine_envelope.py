@@ -52,17 +52,6 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             #     x = x0.squeeze()
 
         except Exception as first_exception:
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
-            print("REVERT THIS CHANGE!")
             print(first_exception)
             try:
                 normA = np.linalg.norm(A[:, 1:])
