@@ -31,6 +31,17 @@ end
 % Verify X_0 is the appropriate size
 [nfs2, n2] = size(X_0);
 if n ~= n2
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
+    disp("INVERT THIS CHANGE!")
     % Attempt to transpose:
     if n2 == 1 && nfs2 == n
         X_0 = X_0';

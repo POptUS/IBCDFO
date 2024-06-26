@@ -35,6 +35,15 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
             print("Warning: X_0 is n-by-1 column vector, using row vector X_0")
             flag = 0
         else:
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
+            print("REVERT THIS CHANGE!")
             print("Error: np.shape(X_0)[1] != n")
             flag = -1
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
