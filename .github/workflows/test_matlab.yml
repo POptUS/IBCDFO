@@ -1,5 +1,9 @@
+# ----- IBCDFO FULL TESTING OF LOCAL CLONE WITHOUT COVERAGE
+# Presently manifold sampling cannot be tested by actions since it has a
+# FileExchange dependence.  Therefore, we only test POUNDERS.
+#
 # TODO: Eventually tests should be run from the root of the repo so that we run
-# all MATLAB test suites and combine all coverage results in a single report.
+# all MATLAB tests.
 name: Test IBCDFO MATLAB Code
 on: 
   push:
@@ -9,7 +13,6 @@ on:
     branches:
       - main
       - develop
-
 jobs:
   test_ibcdfo:
     runs-on: ${{ matrix.os }}
@@ -18,7 +21,7 @@ jobs:
         os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-13, macos-14]
         matlab-release: ["R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
     steps:
-    ##-- General Setup Steps
+    # -- General Setup Steps
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v4
       with:
@@ -34,8 +37,8 @@ jobs:
       with:
         release: ${{ matrix.matlab-release }}
 
-    ##-- Test Execution Step
-    - name: Test POUNDERS/MATLAB
+    # -- Test Execution Step
+    - name: Test POUNDERS
       uses: matlab-actions/run-command@v2
       with:
         command: >

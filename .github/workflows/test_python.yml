@@ -1,3 +1,4 @@
+# ----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
 name: Test IBCDFO Python Package
 env:
   CLONE_PATH: ${{ github.workspace }}
@@ -9,9 +10,7 @@ on:
     branches:
       - main
       - develop
-
 jobs:
-  #####----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
   test_ibcdfo:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -21,7 +20,7 @@ jobs:
         os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-13, macos-14]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
-    ##-- General Setup Steps
+    # -- General Setup Steps
     - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
@@ -29,10 +28,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Setup python with tox
+    - name: Setup Python with tox
       run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh
 
-    ##-- Test Execution Step
+    # -- Test Execution Step
     - name: Test IBCDFO Python package
       run: |
         pushd $CLONE_PATH/ibcdfo_pypkg

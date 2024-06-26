@@ -1,11 +1,11 @@
 name: Measure Python & MATLAB Code Coverage
 env:
-  CLONE_PATH: ${{ github.workspace }}
-  PY_COV_FILE: coverage_ibcdfo
-  PY_COV_XML_FILE: cobertura_ibcdfo_py.xml
+  CLONE_PATH:       ${{ github.workspace }}
+  PY_COV_FILE:      coverage_ibcdfo
+  PY_COV_XML_FILE:  cobertura_ibcdfo_py.xml
   PY_COV_HTML_FILE: htmlcov_ibcdfo_py
-  M_COV_XML_FILE: cobertura_ibcdfo_m.xml
-  M_COV_HTML_FILE: htmlcov_ibcdfo_m
+  M_COV_XML_FILE:   cobertura_ibcdfo_m.xml
+  M_COV_HTML_FILE:  htmlcov_ibcdfo_m
 on:
   push:
     branches:
@@ -20,7 +20,7 @@ jobs:
   coverage_py:
     runs-on: ${{ matrix.os }}
     strategy:
-      # We only need to measure coverage with a single python version.  Ideally
+      # We only need to measure coverage with a single test setup.  Ideally
       # this will be the latest version of python supported.
       matrix:
         os: [ubuntu-latest]
@@ -61,15 +61,13 @@ jobs:
   coverage_m:
     runs-on: ${{ matrix.os }}
     strategy:
-      # We only need to measure coverage with a single MATLAB release.  Ideally
+      # We only need to measure coverage with a single test setup.  Ideally
       # this will be the latest MATLAB release supported.
       matrix:
         os: [ubuntu-latest]
         matlab-release: ["R2024a"]
     steps:
       # -- General Setup Steps
-      # Nest BenDFO in IBCDFO.  I tried to have them side-by-side with IBCDFO
-      # installed in a nonstandard path, but that caused failures with CodeCov.
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v4
         with:
@@ -131,7 +129,7 @@ jobs:
           path: ${{ env.CLONE_PATH }}
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
