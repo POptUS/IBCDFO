@@ -36,7 +36,7 @@ Options.printf = printf;
 
 path(oldpath);
 
-assert(flag >= 0, 'pounders crashed');
+assert(flag < 0, 'pounders crashed');
 
 assert(hFout(xk_best) == min(hFout), 'The minimum emittance is not at xk_best');
 
