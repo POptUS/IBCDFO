@@ -2,7 +2,7 @@
 name: Test IBCDFO Python Package
 env:
   CLONE_PATH: ${{ github.workspace }}
-on: 
+on:
   push:
     branches:
       - main

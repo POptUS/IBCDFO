@@ -5,7 +5,7 @@
 # TODO: Eventually tests should be run from the root of the repo so that we run
 # all MATLAB tests.
 name: Test IBCDFO MATLAB Code
-on: 
+on:
   push:
     branches:
       - main

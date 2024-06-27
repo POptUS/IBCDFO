@@ -68,7 +68,6 @@ Model   [dict/struct] of options for model building with keys/fields:
     Par     [1-by-4] list for formquad
 ````
 
-
 ### Outputs
 The outputs from POUNDERs are:
 ````
