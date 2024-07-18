@@ -1,10 +1,14 @@
 import numpy as np
 from scipy.optimize import linprog
+from cvxopt import matrix, solvers
+import ipdb
 
 # import matlab # You'll need to uncomment this if you are going to use matlab's linprog below.
 
 
 def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subprob_switch, eng):
+    solvers.options['show_progress'] = False
+
     G_k_smaller, cols = np.unique(G_k, axis=1, return_index=True)
 
     n, p = G_k_smaller.shape
@@ -16,7 +20,63 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     ff = np.concatenate((np.array([[1]]), np.zeros((n, 1))))
     x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
 
-    assert subprob_switch == "linprog", "Unrecognized subprob_switch"
+    assert subprob_switch == "linprog" or subprob_switch == "quadprog", "Unrecognized subprob_switch"
+
+    if subprob_switch == "quadprog":
+        # CVXOPT doesn't separate bounds, have to create bounds:
+        lower_bound_constraints = np.hstack((np.zeros((n, 1)), -np.eye(n)))
+        upper_bound_constraints = np.hstack((np.zeros((n, 1)), np.eye(n)))
+        bound_constraints = np.vstack((lower_bound_constraints, upper_bound_constraints))
+        A2 = np.vstack((A, bound_constraints))
+        A2 = matrix(A2)
+        bk_smaller2 = np.concatenate((bk_smaller, -Low))
+        bk_smaller2 = np.concatenate((bk_smaller2, Upp))
+        bk_smaller2 = matrix(np.expand_dims(bk_smaller2, 1))
+
+        ff = matrix(ff)
+
+        # pad H
+        Hmm = np.vstack((np.zeros((1, n)), H))
+        Hmm = np.hstack((np.zeros((n + 1, 1)), Hmm))
+        Hmm = matrix(Hmm)
+        try:
+            sol = solvers.qp(Hmm, ff, A2, bk_smaller2)
+            assert sol['status'] == 'optimal', "Error in minimize_affine_envelope. Trying rescaling now."
+            x = np.array(sol['x'])
+            x = x[:(n + 1)]
+            duals = np.array(sol['z'])
+            duals_g = duals[:p]
+            duals_l = duals[p: (p + n)]
+            duals_u = duals[(p + n):]
+            duals_g = duals_g.squeeze()
+            duals_l = duals_l.squeeze()
+            duals_u = duals_u.squeeze()
+
+        except Exception as first_exception:
+            try:
+                normG_k = np.linalg.norm(G_k_smaller)
+                A = np.hstack((-np.ones((p, 1)), G_k_smaller.T / normG_k))
+                A2 = np.vstack((A, bound_constraints))
+                A2 = matrix(A2)
+                bk_smaller2 = np.concatenate((bk_smaller, -1.0 * normG_k * Low))
+                bk_smaller2 = np.concatenate((bk_smaller2, normG_k * Upp))
+                bk_smaller2 = matrix(np.expand_dims(bk_smaller2, 1))
+                sol = solvers.qp(Hmm / (normG_k**2), ff, A2, bk_smaller2)
+                try:
+                    x = np.array(sol['x'])
+                    x = x[:(n + 1)]
+                    x[1:] = x[1:] / normG_k
+                    duals = np.array(sol['z'])
+                    duals_g = duals[:p]
+                    duals_l = duals[p: (p + n)]
+                    duals_u = duals[(p + n):]
+                    duals_g = duals_g.squeeze()
+                    duals_l = duals_l.squeeze()
+                    duals_u = duals_u.squeeze()
+                except:
+                    return 0, 0, 0, 0, True
+            except Exception as second_exception:
+                    return 0, 0, 0, 0, True
 
     if subprob_switch == "linprog":
         options = {"disp": False, "maxiter": (n * p) ** 3, "ipm_optimality_tolerance": 1e-12}
@@ -88,7 +148,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     lambda_star[cols] = duals_g
 
     s = x[1:]
-    tau = max(-bk + np.dot(G_k.T, s)) + 0.5 * np.dot(s, np.dot(H, s))
+    tau = max(-np.expand_dims(bk, 1) + np.dot(G_k.T, s)) + 0.5 * np.dot(s.T, np.dot(H, s))
     if tau > 0:
         tau = 0
         s = np.zeros(n)
