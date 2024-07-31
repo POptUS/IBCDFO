@@ -1,4 +1,4 @@
-load('formquad_inputs.mat')
+load('formquad_inputs.mat');
 n = 4;
 m = 1;
 nf = 490;
