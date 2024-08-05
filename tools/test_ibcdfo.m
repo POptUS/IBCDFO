@@ -37,7 +37,7 @@ old_cwd = cd(CLONE_ROOT);
 % TODO: We should be able to just run from the root.  However manifold sampling
 % testing is not fully functional yet, which means we run tests for each
 % subpackage individually for now.  See Issue 150.
-%runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)
+% runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)
 
 cd(fullfile(CLONE_ROOT, 'minq', 'm'));
 runtests("IncludeSubfolders", true);
