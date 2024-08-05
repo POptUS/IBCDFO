@@ -32,16 +32,10 @@ def main():
     VALID_VERBOSITY = [0, 1, 2]
 
     # ----- SPECIFY COMMAND LINE USAGE
-    DESCRIPTION = "Return status of ibcdfo Python package full testing " + \
-                  "as exit code for use with CI\n"
+    DESCRIPTION = "Return status of ibcdfo Python package full testing as exit code for use with CI\n"
     VERBOSE_HELP = "Verbosity level of Python unittest logging"
-    parser = argparse.ArgumentParser(
-        description=DESCRIPTION,
-        formatter_class=argparse.RawTextHelpFormatter
-    )
-    parser.add_argument("--verbose", "-v", type=int,
-                        choices=VALID_VERBOSITY, default=DEFAULT_VERBOSITY,
-                        help=VERBOSE_HELP)
+    parser = argparse.ArgumentParser(description=DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("--verbose", "-v", type=int, choices=VALID_VERBOSITY, default=DEFAULT_VERBOSITY, help=VERBOSE_HELP)
 
     # ----- GET COMMAND LINE ARGUMENTS
     args = parser.parse_args()
