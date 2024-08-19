@@ -19,23 +19,23 @@ function [h, grads, Hash] = one_norm(z, H0)
 
         for i = 1:p
             if z(i) < -tol
-                grad_lists{i} = -1;
+                grad_lists{i} = {-1};
                 Hash_lists{i} = {'-'};
             elseif z(i) > tol
-                grad_lists{i} = 1;
+                grad_lists{i} = {1};
                 Hash_lists{i} = {'+'};
             else
                 % Technically, we should return [1,-1] for the grad entry and
                 % {'-','+'} for the Hash, but that causes issues for large dim(z)
                 % because we get 2^dim(z) grads.... but they don't matter
                 % really for the convex hull calculation
-                grad_lists{i} = 0;
+                grad_lists{i} = {0};
                 Hash_lists{i} = {'0'};
             end
         end
 
-        grads = allcomb(grad_lists{:})';  % Can get this here: https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin-
-        HashCombTmp = allcomb(Hash_lists{:});
+        grads = cell2mat(product_of_cells(grad_lists{:})');
+        HashCombTmp = product_of_cells(Hash_lists{:});
         Hash = cell(1, size(HashCombTmp, 1));
 
         for i = 1:size(HashCombTmp, 1)
