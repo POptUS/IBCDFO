@@ -73,11 +73,6 @@ command.  The installation can be partially tested by executing
 where the output `<version>` should be identical to the value used during
 installation.
 
-### MATLAB
-Users must download and install the
-[allcomb](https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin)
-function from MathWork's File Exchange and add its location to the MATLAB path.
-
 ## Testing
 
 ### MATLAB

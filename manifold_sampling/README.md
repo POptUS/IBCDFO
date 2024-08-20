@@ -58,13 +58,6 @@ Some other values and intermediate Variables:
  D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 ````
 
-## Installation
-
-### MATLAB
-Users must download and install the
-[allcomb](https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin)
-function from MathWork's File Exchange and add its location to the MATLAB path.
-
 ## Testing
 
 ### MATLAB
