@@ -1,9 +1,4 @@
 # ----- IBCDFO FULL TESTING OF LOCAL CLONE WITHOUT COVERAGE
-# Presently manifold sampling cannot be tested by actions since it has a
-# FileExchange dependence.  Therefore, we only test POUNDERS.
-#
-# TODO: Eventually tests should be run from the root of the repo so that we run
-# all MATLAB tests.
 name: Test IBCDFO MATLAB Code
 on:
   push:
@@ -44,6 +39,5 @@ jobs:
         command: >
             addpath("BenDFO/data"),
             addpath("BenDFO/m"),
-            cd IBCDFO/pounders/m,
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);
