@@ -1,5 +1,9 @@
 # ----- IBCDFO FULL TESTING OF LOCAL CLONE WITHOUT COVERAGE
 name: Test IBCDFO MATLAB Code
+env:
+  BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
+  BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
+  IBCDFO_PATH:      ${{ github.workspace }}/IBCDFO
 on:
   push:
     branches:
@@ -37,7 +41,8 @@ jobs:
       uses: matlab-actions/run-command@v2
       with:
         command: >
-            addpath("BenDFO/data"),
-            addpath("BenDFO/m"),
+            addpath("${{ env.BENDFO_M_PATH }}"),
+            addpath("${{ env.BENDFO_DATA_PATH }"),
+            cd ${{ env.IBCDFO_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);

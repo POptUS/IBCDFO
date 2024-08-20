@@ -1,6 +1,9 @@
 name: Measure Python & MATLAB Code Coverage
 env:
   CLONE_PATH:       ${{ github.workspace }}
+  BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
+  BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
+  IBCDFO_PATH:      ${{ github.workspace }}
   PY_COV_FILE:      coverage_ibcdfo
   PY_COV_XML_FILE:  cobertura_ibcdfo_py.xml
   PY_COV_HTML_FILE: htmlcov_ibcdfo_py
@@ -88,9 +91,9 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: >
-              addpath("BenDFO/data"),
-              addpath("BenDFO/m"),
-              cd pounders/m,
+              addpath("${{ env.BENDFO_M_PATH }}"),
+              addpath("${{ env.BENDFO_DATA_PATH }"),
+              cd ${{ env.IBCDFO_PATH }},
               [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
               assertSuccess(results),
               cd ${{ env.CLONE_PATH }},
