@@ -42,7 +42,7 @@ jobs:
       with:
         command: >
             addpath("${{ env.BENDFO_M_PATH }}"),
-            addpath("${{ env.BENDFO_DATA_PATH }"),
+            addpath("${{ env.BENDFO_DATA_PATH }}"),
             cd ${{ env.IBCDFO_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);
