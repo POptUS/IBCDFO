@@ -6,10 +6,6 @@
 %    /path/to/BenDFO/m
 % to the MATLAB path.
 %
-% Download allcomb from the MathWorks FileExchange and add its location to the
-% MATLAB path as well.
-% https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin
-%
 
 function [] = benchmark_manifold_sampling()
 

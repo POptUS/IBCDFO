@@ -10,19 +10,8 @@ function [h, grads, Hash] = one_norm(z, H0)
     %   grads: [p x l] gradients of each of the l manifolds active at z
     %   Hash:  [1 x l cell of strings] set of hashes for each of the l manifolds active at z
     %
-    % This function requires that the allcomb function be downloaded from
-    % FileExchange and its location added to the MATLAB path.
-    % https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin
-    %
 
     if nargin < 2
-        % TODO: Too expensive to run this check on every invocation?
-        if exist('allcomb') ~= 2
-            fprintf("Install allcomb from FileExchange and add to path.\n");
-            fprintf("Refer to manifold sampling README for more information.\n");
-            error("Cannot find allcomb function");
-        end
-
         h = sum(abs(z));
         tol = 1e-8;
         p = length(z);

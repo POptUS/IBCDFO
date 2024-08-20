@@ -1,8 +1,3 @@
-% To run this test, please download allcomb from the MathWorks FileExchange and
-% add its location to the MATLAB path as well.
-% https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin
-%
-
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 oldpath = addpath(fullfile(here_path, '..'));
 addpath(fullfile(here_path, '..', 'h_examples'));
