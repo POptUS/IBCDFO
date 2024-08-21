@@ -65,6 +65,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
             def hfun_to_pass(z, H0=None):
                 return piecewise_quadratic(z, H0, Qs=Qs, zs=zs, cs=cs)
 
+            X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
         elif hfun.__name__ == "censored_L1_loss":
 
             def hfun_to_pass(z, H0=None):
