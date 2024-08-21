@@ -8,8 +8,8 @@ def update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pa
     Cres = F[xkin, :]
     Res = np.zeros(F.shape)  # Stores the residuals for model updates
 
-    D = np.zeros((nf, X.shape[1]))
-    D[:, :] = X[:nf, :] - X[xkin]
+    D = np.zeros((nf + 1, X.shape[1]))
+    D[:, :] = X[:nf + 1, :] - X[xkin]
     for i, Di in enumerate(D):
         Res[i, :] = (F[i, :] - Cres[:]) - 0.5 * np.einsum("i,ijk,j->k", Di, Hres, Di)
 

@@ -61,9 +61,7 @@ def censored_L1_loss(z, H0=None, **kwargs):
 
         grads = np.array(list(product(*g))).T
 
-        hashes_as_mat = np.array(list(product(*H)))
-
-        Hash = [hashes_as_mat[i, :] for i in range(hashes_as_mat.shape[0])]
+        Hash = ["".join(t) for t in product(*H)]
 
         return h, grads, Hash
     else:
