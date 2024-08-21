@@ -1,14 +1,17 @@
 name: Measure Python & MATLAB Code Coverage
 env:
-  CLONE_PATH:       ${{ github.workspace }}
-  BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
-  BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
-  IBCDFO_PATH:      ${{ github.workspace }}
-  PY_COV_FILE:      coverage_ibcdfo
-  PY_COV_XML_FILE:  cobertura_ibcdfo_py.xml
-  PY_COV_HTML_FILE: htmlcov_ibcdfo_py
-  M_COV_XML_FILE:   cobertura_ibcdfo_m.xml
-  M_COV_HTML_FILE:  htmlcov_ibcdfo_m
+  CLONE_PATH:               ${{ github.workspace }}
+  BENDFO_M_PATH:            ${{ github.workspace }}/BenDFO/m
+  BENDFO_DATA_PATH:         ${{ github.workspace }}/BenDFO/data
+  POUNDERS_PATH:            ${{ github.workspace }}/pounders/m
+  MSAMP_PATH:               ${{ github.workspace }}/manifold_sampling/m
+  PY_COV_FILE:              coverage_ibcdfo
+  PY_COV_XML_FILE:          cobertura_ibcdfo_py.xml
+  PY_COV_HTML_FILE:         htmlcov_ibcdfo_py
+  POUNDERS_M_COV_HTML_FILE: htmlcov_ibcdfo_pounders_m
+  POUNDERS_M_COV_XML_FILE:  cobertura_ibcdfo_pounders_m.xml
+  MSAMP_M_COV_HTML_FILE:    htmlcov_ibcdfo_msamp_m
+  MSAMP_M_COV_XML_FILE:     cobertura_ibcdfo_msamp_m.xml
 on:
   push:
     branches:
@@ -94,12 +97,17 @@ jobs:
           command: >
               addpath("${{ env.BENDFO_M_PATH }}"),
               addpath("${{ env.BENDFO_DATA_PATH }}"),
-              cd ${{ env.IBCDFO_PATH }},
-              [results, cov] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
+              cd ${{ env.POUNDERS_PATH }},
+              [results, cov_p] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
+              assertSuccess(results),
+              cd ${{ env.MSAMP_PATH }},
+              [results, cov_ms] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
               assertSuccess(results),
               cd ${{ env.CLONE_PATH }},
-              fp = generateHTMLReport(cov, "${{ env.M_COV_HTML_FILE }}"),
-              generateCoberturaReport(cov, "${{ env.M_COV_XML_FILE }}");
+              fp = generateHTMLReport(cov_p, "${{ env.POUNDERS_M_COV_HTML_FILE }}"),
+              generateCoberturaReport(cov_p, "${{ env.POUNDERS_M_COV_XML_FILE }}");
+              fp = generateHTMLReport(cov_ms, "${{ env.MSAMP_M_COV_HTML_FILE }}"),
+              generateCoberturaReport(cov_ms, "${{ env.MSAMP_M_COV_XML_FILE }}");
 
       # -- Publish as artifact for users and subsequent jobs
       - name: Archive MATLAB coverage results
@@ -107,8 +115,10 @@ jobs:
         with:
           name: matlab-coverage-results
           path: |
-             ${{ env.M_COV_XML_FILE }}
-             ${{ env.M_COV_HTML_FILE }}
+             ${{ env.POUNDERS_M_COV_HTML_FILE }}
+             ${{ env.POUNDERS_M_COV_XML_FILE }}
+             ${{ env.MSAMP_M_COV_HTML_FILE }}
+             ${{ env.MSAMP_M_COV_XML_FILE }}
 
   # ----- PUBLISH FULL CODE COVERAGE REPORT
   publish:
@@ -137,6 +147,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
-            ${{ env.CLONE_PATH }}/${{ env.M_COV_XML_FILE }},
+            ${{ env.CLONE_PATH }}/${{ env.POUNDERS_M_COV_XML_FILE }},
+            ${{ env.CLONE_PATH }}/${{ env.MSAMP_M_COV_XML_FILE }},
             ${{ env.CLONE_PATH }}/${{ env.PY_COV_XML_FILE }}
           fail_ci_if_error: true
