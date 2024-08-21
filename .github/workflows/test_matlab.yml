@@ -3,7 +3,8 @@ name: Test IBCDFO MATLAB Code
 env:
   BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
-  IBCDFO_PATH:      ${{ github.workspace }}/IBCDFO
+  POUNDERS_PATH:    ${{ github.workspace }}/IBCDFO/pounders/m
+  MSAMP_PATH:       ${{ github.workspace }}/IBCDFO/manifold_sampling/m
 on:
   push:
     branches:
@@ -44,6 +45,9 @@ jobs:
         command: >
             addpath("${{ env.BENDFO_M_PATH }}"),
             addpath("${{ env.BENDFO_DATA_PATH }}"),
-            cd ${{ env.IBCDFO_PATH }},
+            cd ${{ env.POUNDERS_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);
+            cd ${{ env.MSAMP_PATH }},
+            results = runtests("IncludeSubfolders", true),
+            assertSuccess(results),
