@@ -48,6 +48,13 @@ jobs:
             cd ${{ env.POUNDERS_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);
+
+    - name: Test Manifold Sampling
+      uses: matlab-actions/run-command@v2
+      with:
+        command: >
+            addpath("${{ env.BENDFO_M_PATH }}"),
+            addpath("${{ env.BENDFO_DATA_PATH }}"),
             cd ${{ env.MSAMP_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results),
