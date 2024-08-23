@@ -15,10 +15,10 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     A = np.hstack((-np.ones((p, 1)), G_k_smaller.T))
     ff = np.concatenate((np.array([[1]]), np.zeros((n, 1))))
 
-    ## x0 used to be passed into linprog. It's not used by highs-ipm anymore,
-    ## and a warning is issued. We've decided to no longer pass it to linprog,
-    ## but we keep the following commend in case it's used in the future. It is
-    ## used by matlab, though.
+    # # x0 used to be passed into linprog. It's not used by highs-ipm anymore,
+    # # and a warning is issued. We've decided to no longer pass it to linprog,
+    # # but we keep the following commend in case it's used in the future. It is
+    # # used by matlab, though.
     # x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
 
     assert subprob_switch == "linprog", "Unrecognized subprob_switch"
