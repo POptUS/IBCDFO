@@ -14,14 +14,19 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
 
     A = np.hstack((-np.ones((p, 1)), G_k_smaller.T))
     ff = np.concatenate((np.array([[1]]), np.zeros((n, 1))))
-    x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
+
+    # # x0 used to be passed into linprog. It's not used by highs-ipm anymore,
+    # # and a warning is issued. We've decided to no longer pass it to linprog,
+    # # but we keep the following commend in case it's used in the future. It is
+    # # used by matlab, though.
+    # x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
 
     assert subprob_switch == "linprog", "Unrecognized subprob_switch"
 
     if subprob_switch == "linprog":
         options = {"disp": False, "ipm_optimality_tolerance": 1e-12}
         try:
-            res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0, method="highs-ipm")
+            res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, method="highs-ipm")
             assert res["success"], "Error in minimize_affine_envelope. We will try rescaling now."
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
@@ -58,7 +63,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
                 rescaledA = np.zeros_like(A)
                 rescaledA[:, 0] = -np.ones(p)
                 rescaledA[:, 1:] = A[:, 1:] / normA
-                res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0, method="highs-ipm")
+                res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, method="highs-ipm")
                 assert res["success"], "Error in minimize_affine_envelope, even after rescaling."
 
                 x = res.x
