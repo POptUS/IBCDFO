@@ -19,10 +19,10 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     assert subprob_switch == "linprog", "Unrecognized subprob_switch"
 
     if subprob_switch == "linprog":
-        options = {"disp": False, "maxiter": (n * p) ** 3, "ipm_optimality_tolerance": 1e-12}
+        options = {"disp": False, "ipm_optimality_tolerance": 1e-12}
         try:
             res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0, method="highs-ipm")
-            assert res["success"], "Error in minimize_affine_envelope. Trying rescaling now."
+            assert res["success"], "Error in minimize_affine_envelope. We will try rescaling now."
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
             duals_u = -1.0 * res.upper.marginals[1:]
@@ -59,7 +59,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
                 rescaledA[:, 0] = -np.ones(p)
                 rescaledA[:, 1:] = A[:, 1:] / normA
                 res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, x0=x0, method="highs-ipm")
-                assert res["success"], "Error in minimize_affine_envelope. Trying rescaling now."
+                assert res["success"], "Error in minimize_affine_envelope, even after rescaling."
 
                 x = res.x
                 duals_g = -1.0 * res.ineqlin.marginals
