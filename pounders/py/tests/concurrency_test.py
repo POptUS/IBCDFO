@@ -1,11 +1,9 @@
 """
-A test of pounders with concurrent evaluations 
+A test of pounders with concurrent evaluations
 """
 
 import os
 import pickle
-import sys
-import unittest
 
 import ibcdfo.pounders as pdrs
 import numpy as np
