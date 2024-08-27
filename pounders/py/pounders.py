@@ -161,6 +161,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         X = []
         F = []
         hF = []
+        Xtype = []
+        Group = []
         return X, F, hF, flag, xk_in, Xtype, Group
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
