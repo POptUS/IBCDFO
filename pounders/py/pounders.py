@@ -32,6 +32,7 @@ def _default_prior():
 
     return Prior
 
+
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None, par=1):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
@@ -177,8 +178,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -1, Xtype, Group)
             return X, F, hF, flag, xk_in, Xtype, Group
         F[nf] = F_0
-        Xtype[nf] = 0 # Initial point
-        Group[nf] = gnf; 
+        Xtype[nf] = 0  # Initial point
+        Group[nf] = gnf
         if np.any(np.isnan(F[nf])):
             X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
             return X, F, hF, flag, xk_in, Xtype, Group
@@ -195,7 +196,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     for i in range(nf + 1):
         hF[i] = hfun(F[i])
 
-    gnf += 1;
+    gnf += 1
     Res = np.zeros(np.shape(F))
     Cres = F[xk_in]
     Hres = np.zeros((n, n, m))
@@ -214,8 +215,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 nf += 1
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                 F[nf] = Ffun(X[nf])
-                Xtype[nf] = 1; # Iterpolation set point
-                Group[nf] = gnf;
+                Xtype[nf] = 1
+                # Iterpolation set point
+                Group[nf] = gnf
                 if np.any(np.isnan(F[nf])):
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
                     return X, F, hF, flag, xk_in, Xtype, Group
@@ -224,7 +226,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
                 D = Mdir[i, :]
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
-            gnf += 1;
+            gnf += 1
             if nf + 1 >= nf_max:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
@@ -268,15 +270,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     nf += 1
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                     F[nf] = Ffun(X[nf])
-                    Xtype[nf] = 2 # Criticality test point
-                    Group[nf] = gnf;
+                    Xtype[nf] = 2  # Criticality test point
+                    Group[nf] = gnf
                     if np.any(np.isnan(F[nf])):
                         X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
                         return X, F, flag, xk_in, Xtype, Group
                     hF[nf] = hfun(F[nf])
                     if printf:
                         print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
-                gnf += 1;
+                gnf += 1
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
@@ -292,12 +294,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # # do_extra_TRSP_evals:
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
-        steps = np.zeros((par,n))
+        steps = np.zeros((par, n))
         step_norms = np.zeros(par)
         mdecs = np.zeros(par)
         enter_step_four = np.zeros(par)
-        # deltas = [(2**i)*delta for i in np.arange(np.ceil(-par/2),np.ceil(par/2))] 
-        deltas = [(2.0**i)*delta for i in np.arange(-par+1,1)]
+        # deltas = [(2**i)*delta for i in np.arange(np.ceil(-par/2),np.ceil(par/2))]
+        deltas = [(2.0**i) * delta for i in np.arange(-par + 1, 1)]
         # deltas = [delta]*par
         for ii, delta_extra in enumerate(deltas):
             Lows = np.maximum(Low - X[xk_in], -delta_extra * np.ones((np.shape(Low))))
@@ -336,15 +338,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 nf += 1
                 X[nf] = Xsp
                 F[nf] = Ffun(X[nf])
-                Xtype[nf] = 3 # TRSP point
-                Group[nf] = gnf;
+                Xtype[nf] = 3  # TRSP point
+                Group[nf] = gnf
                 if np.any(np.isnan(F[nf])):
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
                     return X, F, hF, flag, xk_in, Xtype, Group
                 hF[nf] = hfun(F[nf])
-            gnf += 1;
-            best_ind = np.argmin(hF[nf+1-par:nf+1])
-            ind_in_h = nf+1-par+best_ind
+            gnf += 1
+            best_ind = np.argmin(hF[nf + 1 - par : nf + 1])
+            ind_in_h = nf + 1 - par + best_ind
 
             if mdecs[best_ind] != 0:
                 rho = (hF[ind_in_h] - hF[xk_in]) / mdecs[best_ind]
@@ -389,7 +391,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 # Plus directions
                 [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
                 [Mdir2, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-                assert mp1==mp2, "How aren't these equal?"
+                assert mp1 == mp2, "How aren't these equal?"
                 for i in range(n - mp1):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
@@ -399,30 +401,30 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
                 vals2 = Res[: n - mp2, 0:1].copy()
 
-                keepers = np.ones(n-mp1)
-                for i in range(n-mp1):
+                keepers = np.ones(n - mp1)
+                for i in range(n - mp1):
                     if vals2[i] < vals[i]:
                         vals[i] = vals2[i]
                         keepers[i] = 2
 
-                inds = np.argsort(vals,axis=0)
+                inds = np.argsort(vals, axis=0)
 
                 Xsps = Mdir1[inds, :]
-                for i in range(n-mp1):
+                for i in range(n - mp1):
                     if keepers[i] == 2:
-                        Xsps[i] = Mdir2[inds[i],:]
+                        Xsps[i] = Mdir2[inds[i], :]
                 # Xsps = [Mdir1[inds[0], :]]
                 # if vals2[inds[0]]<vals[inds[0]]:
                 #     Xsps[0] = Mdir2[inds[i],:]
 
-                for ii,Xsp in enumerate(Xsps):
+                for ii, Xsp in enumerate(Xsps):
                     if ii >= par:
                         break
                     nf += 1
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
                     F[nf] = Ffun(X[nf])
-                    Xtype[nf] = 4 # Model-building point
-                    Group[nf] = gnf; 
+                    Xtype[nf] = 4  # Model-building point
+                    Group[nf] = gnf
                     if np.any(np.isnan(F[nf])):
                         X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
                         return X, F, hF, flag, xk_in, Xtype, Group
@@ -439,8 +441,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                         # Don't actually use
                         for j in range(m):
                             Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
-                gnf += 1;
+                gnf += 1
     if printf:
         print("Number of function evals exceeded")
     flag = ng
-    return X[:nf+1], F[:nf+1], hF[:nf+1], flag, xk_in, Xtype[:nf+1], Group[:nf+1]
+    return X[: nf + 1], F[: nf + 1], hF[: nf + 1], flag, xk_in, Xtype[: nf + 1], Group[: nf + 1]

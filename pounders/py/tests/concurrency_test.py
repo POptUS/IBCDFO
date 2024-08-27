@@ -2,7 +2,7 @@
 A test of pounders with concurrent evaluations 
 """
 
-import os,sys
+import os, sys
 import pickle
 import unittest
 from mpi4py import MPI
@@ -21,7 +21,7 @@ if not os.path.exists("benchmark_results"):
     os.makedirs("benchmark_results")
 
 dfo = np.loadtxt("dfo.dat")
-dfo = dfo[[0, 1, 2, 7, 18, 22, 35, 44, 49, 50],:] # A somewhat random subset of functions
+dfo = dfo[[0, 1, 2, 7, 18, 22, 35, 44, 49, 50], :]  # A somewhat random subset of functions
 
 spsolver = 2
 g_tol = 1e-13
@@ -34,7 +34,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
     par = 1
     n = int(n)
     m_for_Ffun_only = int(m)
-    nf_max = 20*(n+1)*par
+    nf_max = 20 * (n + 1) * par
 
     filename = f"./benchmark_results/pounders4py_nf_max={nf_max}_prob={row}_spsolver={spsolver}_hfun=default_par={par}.mat"
     if row % size == rank and not os.path.isfile(filename):
@@ -84,7 +84,6 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
         sp.io.savemat(filename, Results)
 
         # Remove the .mat extension and save to Python data file using pickle
-        filename_pkl = filename.replace('.mat', '.pkl')
-        with open(filename_pkl, 'wb') as file:
-                pickle.dump(Results, file)
-
+        filename_pkl = filename.replace(".mat", ".pkl")
+        with open(filename_pkl, "wb") as file:
+            pickle.dump(Results, file)

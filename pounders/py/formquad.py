@@ -51,8 +51,8 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     scale_mat[np.diag_indices(n)] = 1
     inds_to_use_in_H = np.triu_indices(n)
 
-    assert isinstance(np_max, (int,np.integer)), "Must be an integer"
-    assert isinstance(xk_in, (int,np.integer)), "Must be an integer"
+    assert isinstance(np_max, (int, np.integer)), "Must be an integer"
+    assert isinstance(xk_in, (int, np.integer)), "Must be an integer"
 
     D = (X[:nf] - X[xk_in]) / delta
     Nd = np.linalg.norm(D, 2, axis=1)
