@@ -2,16 +2,17 @@
 A test of pounders with concurrent evaluations 
 """
 
-import os, sys
+import os
 import pickle
+import sys
 import unittest
-from mpi4py import MPI
 
 import ibcdfo.pounders as pdrs
 import numpy as np
 import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
+from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
