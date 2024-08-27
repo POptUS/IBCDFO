@@ -33,7 +33,7 @@ def _default_prior():
     return Prior
 
 
-def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None, par=1):
+def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None, conc=1):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
       [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
@@ -90,7 +90,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         np_max  [int] Maximum number of interpolation points (>=n+1) (2*n+1)
         Par     [1-by-4] list for formquad
 
-    par    [int] Number of concurrent evaluations of F to be performed
+    conc    [int] Number of concurrent evaluations of F to be performed
 
     --OUTPUTS----------------------------------------------------------------
     X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
@@ -294,13 +294,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # # do_extra_TRSP_evals:
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
-        steps = np.zeros((par, n))
-        step_norms = np.zeros(par)
-        mdecs = np.zeros(par)
-        enter_step_four = np.zeros(par)
-        # deltas = [(2**i)*delta for i in np.arange(np.ceil(-par/2),np.ceil(par/2))]
-        deltas = [(2.0**i) * delta for i in np.arange(-par + 1, 1)]
-        # deltas = [delta]*par
+        steps = np.zeros((conc, n))
+        step_norms = np.zeros(conc)
+        mdecs = np.zeros(conc)
+        enter_step_four = np.zeros(conc)
+        # deltas = [(2**i)*delta for i in np.arange(np.ceil(-conc/2),np.ceil(conc/2))]
+        deltas = [(2.0**i) * delta for i in np.arange(-conc + 1, 1)]
         for ii, delta_extra in enumerate(deltas):
             Lows = np.maximum(Low - X[xk_in], -delta_extra * np.ones((np.shape(Low))))
             Upps = np.minimum(Upp - X[xk_in], delta_extra * np.ones((np.shape(Upp))))
@@ -345,8 +344,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     return X, F, hF, flag, xk_in, Xtype, Group
                 hF[nf] = hfun(F[nf])
             gnf += 1
-            best_ind = np.argmin(hF[nf + 1 - par : nf + 1])
-            ind_in_h = nf + 1 - par + best_ind
+            best_ind = np.argmin(hF[nf + 1 - conc : nf + 1])
+            ind_in_h = nf + 1 - conc + best_ind
 
             if mdecs[best_ind] != 0:
                 rho = (hF[ind_in_h] - hF[xk_in]) / mdecs[best_ind]
@@ -418,7 +417,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 #     Xsps[0] = Mdir2[inds[i],:]
 
                 for ii, Xsp in enumerate(Xsps):
-                    if ii >= par:
+                    if ii >= conc:
                         break
                     nf += 1
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
