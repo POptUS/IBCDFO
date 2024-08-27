@@ -30,12 +30,12 @@ hfun = lambda F: np.squeeze(F)
 Opts = {"spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels, "printf": False}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo):
-    par = 1
+    conc = 1
     n = int(n)
     m_for_Ffun_only = int(m)
-    nf_max = 20 * (n + 1) * par
+    nf_max = 20 * (n + 1) * conc
 
-    filename = f"./benchmark_results/pounders4py_nf_max={nf_max}_prob={row}_spsolver={spsolver}_hfun=default_par={par}.mat"
+    filename = f"./benchmark_results/pounders4py_nf_max={nf_max}_prob={row}_spsolver={spsolver}_hfun=default_conc={conc}.mat"
     if row % size == rank and not os.path.isfile(filename):
         print(filename, flush=True)
 
@@ -58,7 +58,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
 
         Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-        [X, F, hF, flag, xk_best, Xtype, Group] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={}, par=par)
+        [X, F, hF, flag, xk_best, dict_out] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={}, conc=conc)
 
         evals = F.shape[0]
 
@@ -77,8 +77,8 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
         Results["pounders4py_" + str(row)]["Fvec"] = F
         Results["pounders4py_" + str(row)]["H"] = hF
         Results["pounders4py_" + str(row)]["X"] = X
-        Results["pounders4py_" + str(row)]["Xtype"] = Xtype
-        Results["pounders4py_" + str(row)]["Group"] = Group
+        Results["pounders4py_" + str(row)]["Xtype"] = dict_out["Xtype"]
+        Results["pounders4py_" + str(row)]["Group"] = dict_out["Group"]
 
         sp.io.savemat(filename, Results)
 

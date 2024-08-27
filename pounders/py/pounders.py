@@ -163,7 +163,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         hF = []
         Xtype = []
         Group = []
-        return X, F, hF, flag, xk_in, Xtype, Group
+        return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
@@ -178,13 +178,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         F_0 = np.atleast_2d(Ffun(X[nf]))
         if F_0.shape[1] != m:
             X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -1, Xtype, Group)
-            return X, F, hF, flag, xk_in, Xtype, Group
+            return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
         F[nf] = F_0
         Xtype[nf] = 0  # Initial point
         Group[nf] = gnf
         if np.any(np.isnan(F[nf])):
             X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
-            return X, F, hF, flag, xk_in, Xtype, Group
+            return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
         if printf:
             print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
     else:
@@ -222,7 +222,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Group[nf] = gnf
                 if np.any(np.isnan(F[nf])):
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
-                    return X, F, hF, flag, xk_in, Xtype, Group
+                    return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
                 hF[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
@@ -234,7 +234,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
             if mp < n:
                 X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -5, Xtype, Group)
-                return X, F, hF, flag, xk_in, Xtype, Group
+                return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
 
         #  1b. Update the quadratic model
         Cres = F[xk_in]
@@ -276,7 +276,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     Group[nf] = gnf
                     if np.any(np.isnan(F[nf])):
                         X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
-                        return X, F, flag, xk_in, Xtype, Group
+                        return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
                     hF[nf] = hfun(F[nf])
                     if printf:
                         print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
@@ -291,7 +291,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
             if ng < g_tol:
                 X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, 0, Xtype, Group)
-                return X, F, hF, flag, xk_in, Xtype, Group
+                return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
 
         # # do_extra_TRSP_evals:
 
@@ -311,7 +311,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
                 if minq_err < 0:
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -4, Xtype, Group)
-                    return X, F, hF, flag, xk_in, Xtype, Group
+                    return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
             mdecs[ii] = mdec
             steps[ii] = Xsp.squeeze()
             step_norms[ii] = np.linalg.norm(Xsp, np.inf)
@@ -334,7 +334,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
                 if mdecs[ii] == 0 and valid and np.array_equiv(Xsp, X[xk_in]):
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -2, Xtype, Group)
-                    return X, F, hF, flag, xk_in, Xtype, Group
+                    return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
 
                 nf += 1
                 X[nf] = Xsp
@@ -343,7 +343,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Group[nf] = gnf
                 if np.any(np.isnan(F[nf])):
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
-                    return X, F, hF, flag, xk_in, Xtype, Group
+                    return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
                 hF[nf] = hfun(F[nf])
             gnf += 1
             best_ind = np.argmin(hF[nf + 1 - conc : nf + 1])
@@ -354,7 +354,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             else:
                 if hF[ind_in_h] == hF[xk_in]:
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -2, Xtype, Group)
-                    return X, F, hF, flag, xk_in, Xtype, Group
+                    return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
                 else:
                     rho = np.inf * np.sign(hF[ind_in_h] - hF[xk_in])
 
@@ -383,7 +383,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
                 if Hresdel.shape != Hres.shape:
                     X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -5, Xtype, Group)
-                    return X, F, hF, flag, xk_in, Xtype, Group
+                    return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
@@ -428,7 +428,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     Group[nf] = gnf
                     if np.any(np.isnan(F[nf])):
                         X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
-                        return X, F, hF, flag, xk_in, Xtype, Group
+                        return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
                     hF[nf] = hfun(F[nf])
                     if printf:
                         print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
@@ -446,4 +446,4 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if printf:
         print("Number of function evals exceeded")
     flag = ng
-    return X[: nf + 1], F[: nf + 1], hF[: nf + 1], flag, xk_in, Xtype[: nf + 1], Group[: nf + 1]
+    return X, F, hF, flag, xk_in, {"Xtype": Xtype, "Group": Group}
