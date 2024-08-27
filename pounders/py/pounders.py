@@ -32,8 +32,7 @@ def _default_prior():
 
     return Prior
 
-
-def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
+def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None, par=1):
     """
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
       [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
@@ -90,6 +89,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         np_max  [int] Maximum number of interpolation points (>=n+1) (2*n+1)
         Par     [1-by-4] list for formquad
 
+    par    [int] Number of concurrent evaluations of F to be performed
+
     --OUTPUTS----------------------------------------------------------------
     X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
     F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points in X
@@ -104,6 +105,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                   = -5 unable to get model improvement with current parameters
     xk_in    [int] Index of point in X representing approximate minimizer
     """
+
     if Options is None:
         Options = {}
 
@@ -152,12 +154,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
+    gnf = 0  # Group number
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
         X = []
         F = []
         hF = []
-        return X, F, hF, flag, xk_in
+        return X, F, hF, flag, xk_in, Xtype, Group
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
@@ -166,30 +169,41 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
         hF = np.zeros(nf_max)
+        Xtype = np.zeros(nf_max)
+        Group = np.zeros(nf_max)
         nf = 0  # in Matlab this is 1
         F_0 = np.atleast_2d(Ffun(X[nf]))
         if F_0.shape[1] != m:
-            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -1)
-            return X, F, hF, flag, xk_in
+            X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -1, Xtype, Group)
+            return X, F, hF, flag, xk_in, Xtype, Group
         F[nf] = F_0
+        Xtype[nf] = 0 # Initial point
+        Group[nf] = gnf; 
         if np.any(np.isnan(F[nf])):
-            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-            return X, F, hF, flag, xk_in
+            X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
+            return X, F, hF, flag, xk_in, Xtype, Group
         if printf:
             print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
     else:
         X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
         F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
         hF = np.zeros(nf_max + nfs)
+        Xtype = np.zeros(nf_max + nfs)
+        Group = np.zeros(nf_max + nfs)
         nf = nfs - 1
         nf_max = nf_max + nfs
     for i in range(nf + 1):
         hF[i] = hfun(F[i])
+
+    gnf += 1;
     Res = np.zeros(np.shape(F))
     Cres = F[xk_in]
     Hres = np.zeros((n, n, m))
     ng = np.nan  # Needed for early termination, e.g., if a model is never built
     while nf + 1 < nf_max:
+        # if nf >= 150:
+        #     import ipdb; ipdb.set_trace(context=21)
+
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
@@ -200,20 +214,23 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 nf += 1
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                 F[nf] = Ffun(X[nf])
+                Xtype[nf] = 1; # Iterpolation set point
+                Group[nf] = gnf;
                 if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                    return X, F, hF, flag, xk_in
+                    X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
+                    return X, F, hF, flag, xk_in, Xtype, Group
                 hF[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
                 D = Mdir[i, :]
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
+            gnf += 1;
             if nf + 1 >= nf_max:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
             if mp < n:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
-                return X, F, hF, flag, xk_in
+                X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -5, Xtype, Group)
+                return X, F, hF, flag, xk_in, Xtype, Group
 
         #  1b. Update the quadratic model
         Cres = F[xk_in]
@@ -251,12 +268,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     nf += 1
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                     F[nf] = Ffun(X[nf])
+                    Xtype[nf] = 2 # Criticality test point
+                    Group[nf] = gnf;
                     if np.any(np.isnan(F[nf])):
-                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                        return X, F, flag, xk_in
+                        X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
+                        return X, F, flag, xk_in, Xtype, Group
                     hF[nf] = hfun(F[nf])
                     if printf:
                         print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
+                gnf += 1;
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
@@ -266,66 +286,82 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
                 ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
             if ng < g_tol:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, 0)
-                return X, F, hF, flag, xk_in
+                X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, 0, Xtype, Group)
+                return X, F, hF, flag, xk_in, Xtype, Group
+
+        # # do_extra_TRSP_evals:
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
-        Lows = np.maximum(Low - X[xk_in], -delta * np.ones((np.shape(Low))))
-        Upps = np.minimum(Upp - X[xk_in], delta * np.ones((np.shape(Upp))))
-        if spsolver == 1:  # Stefan's crappy 10line solver
-            [Xsp, mdec] = bqmin(H, G, Lows, Upps)
-        elif spsolver == 2:  # Arnold Neumaier's minq5
-            [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-            if minq_err < 0:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
-                return X, F, hF, flag, xk_in
-        # elif spsolver == 3:  # Arnold Neumaier's minq8
-        #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-        #     assert minq_err >= 0, "Input error in minq"
-        Xsp = Xsp.squeeze()
-        step_norm = np.linalg.norm(Xsp, np.inf)
+        steps = np.zeros((par,n))
+        step_norms = np.zeros(par)
+        mdecs = np.zeros(par)
+        enter_step_four = np.zeros(par)
+        # deltas = [(2**i)*delta for i in np.arange(np.ceil(-par/2),np.ceil(par/2))] 
+        deltas = [(2.0**i)*delta for i in np.arange(-par+1,1)]
+        # deltas = [delta]*par
+        for ii, delta_extra in enumerate(deltas):
+            Lows = np.maximum(Low - X[xk_in], -delta_extra * np.ones((np.shape(Low))))
+            Upps = np.minimum(Upp - X[xk_in], delta_extra * np.ones((np.shape(Upp))))
+            if spsolver == 1:  # Stefan's crappy 10line solver
+                [Xsp, mdec] = bqmin(H, G, Lows, Upps)
+            elif spsolver == 2:  # Arnold Neumaier's minq5
+                [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
+                if minq_err < 0:
+                    X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -4, Xtype, Group)
+                    return X, F, hF, flag, xk_in, Xtype, Group
+            mdecs[ii] = mdec
+            steps[ii] = Xsp.squeeze()
+            step_norms[ii] = np.linalg.norm(Xsp, np.inf)
+
+            enter_step_four[ii] = (step_norms[ii] >= 0.01 * delta_extra or valid) and not (mdecs[ii] == 0 and not valid)
 
         # 4. Evaluate the function at the new point
-        if (step_norm >= 0.01 * delta or valid) and not (mdec == 0 and not valid):
-            Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
+        if any(enter_step_four):
+            for ii, step in enumerate(steps):
+                Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + step))  # Temp safeguard; note Xsp is not a step anymore
 
-            # Project if we're within machine precision
-            for i in range(n):  # This will need to be cleaned up eventually
-                if (Upp[i] - Xsp[i] < eps * abs(Upp[i])) and (Upp[i] > Xsp[i] and G[i] >= 0):
-                    Xsp[i] = Upp[i]
-                    print("eps project!")
-                elif (Xsp[i] - Low[i] < eps * abs(Low[i])) and (Low[i] < Xsp[i] and G[i] >= 0):
-                    Xsp[i] = Low[i]
-                    print("eps project!")
+                # Project if we're within machine precision
+                for i in range(n):  # This will need to be cleaned up eventually
+                    if (Upp[i] - Xsp[i] < eps * abs(Upp[i])) and (Upp[i] > Xsp[i] and G[i] >= 0):
+                        Xsp[i] = Upp[i]
+                        print("eps project!")
+                    elif (Xsp[i] - Low[i] < eps * abs(Low[i])) and (Low[i] < Xsp[i] and G[i] >= 0):
+                        Xsp[i] = Low[i]
+                        print("eps project!")
 
-            if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]):
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
-                return X, F, hF, flag, xk_in
+                if mdecs[ii] == 0 and valid and np.array_equiv(Xsp, X[xk_in]):
+                    X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -2, Xtype, Group)
+                    return X, F, hF, flag, xk_in, Xtype, Group
 
-            nf += 1
-            X[nf] = Xsp
-            F[nf] = Ffun(X[nf])
-            if np.any(np.isnan(F[nf])):
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                return X, F, hF, flag, xk_in
-            hF[nf] = hfun(F[nf])
+                nf += 1
+                X[nf] = Xsp
+                F[nf] = Ffun(X[nf])
+                Xtype[nf] = 3 # TRSP point
+                Group[nf] = gnf;
+                if np.any(np.isnan(F[nf])):
+                    X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
+                    return X, F, hF, flag, xk_in, Xtype, Group
+                hF[nf] = hfun(F[nf])
+            gnf += 1;
+            best_ind = np.argmin(hF[nf+1-par:nf+1])
+            ind_in_h = nf+1-par+best_ind
 
-            if mdec != 0:
-                rho = (hF[nf] - hF[xk_in]) / mdec
+            if mdecs[best_ind] != 0:
+                rho = (hF[ind_in_h] - hF[xk_in]) / mdecs[best_ind]
             else:
-                if hF[nf] == hF[xk_in]:
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
-                    return X, F, hF, flag, xk_in
+                if hF[ind_in_h] == hF[xk_in]:
+                    X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -2, Xtype, Group)
+                    return X, F, hF, flag, xk_in, Xtype, Group
                 else:
-                    rho = np.inf * np.sign(hF[nf] - hF[xk_in])
+                    rho = np.inf * np.sign(hF[ind_in_h] - hF[xk_in])
 
             # 4a. Update the center
             if (rho >= eta_1) or (rho > 0 and valid):
                 # Update model to reflect new center
                 Cres = F[xk_in]
-                xk_in = nf  # Change current center
+                xk_in = ind_in_h  # Change current center
             # 4b. Update the trust-region radius:
-            if (rho >= eta_1) and (step_norm > delta_inact * delta):
+            if (rho >= eta_1) and (step_norms[best_ind] > delta_inact * deltas[best_ind]):
                 delta = min(delta * gamma_inc, delta_max)
             elif valid:
                 delta = max(delta * gamma_dec, delta_min)
@@ -342,6 +378,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 D = X[: nf + 1] - X[xk_in]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+                if Hresdel.shape != Hres.shape:
+                    X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -5, Xtype, Group)
+                    return X, F, hF, flag, xk_in, Xtype, Group
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
@@ -349,41 +388,59 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions
                 [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+                [Mdir2, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+                assert mp1==mp2, "How aren't these equal?"
                 for i in range(n - mp1):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-                b = np.argmin(Res[: n - mp1, 0:1])
-                a1 = np.min(Res[: n - mp1, 0:1])
-                Xsp = Mdir1[b, :]
-                # Minus directions
-                [Mdir1, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+                vals = Res[: n - mp1, 0:1].copy()
                 for i in range(n - mp2):
-                    D = Mdir1[i, :]
+                    D = Mdir2[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-                b = np.argmin(Res[: n - mp2, 0:1])
-                a2 = np.min(Res[: n - mp2, 0:1])
-                if a2 < a1:
-                    Xsp = Mdir1[b, :]
-                nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
-                F[nf] = Ffun(X[nf])
-                if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                    return X, F, hF, flag, xk_in
-                hF[nf] = hfun(F[nf])
-                if printf:
-                    print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
-                if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
+                vals2 = Res[: n - mp2, 0:1].copy()
+
+                keepers = np.ones(n-mp1)
+                for i in range(n-mp1):
+                    if vals2[i] < vals[i]:
+                        vals[i] = vals2[i]
+                        keepers[i] = 2
+
+                inds = np.argsort(vals,axis=0)
+
+                Xsps = Mdir1[inds, :]
+                for i in range(n-mp1):
+                    if keepers[i] == 2:
+                        Xsps[i] = Mdir2[inds[i],:]
+                # Xsps = [Mdir1[inds[0], :]]
+                # if vals2[inds[0]]<vals[inds[0]]:
+                #     Xsps[0] = Mdir2[inds[i],:]
+
+                for ii,Xsp in enumerate(Xsps):
+                    if ii >= par:
+                        break
+                    nf += 1
+                    X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
+                    F[nf] = Ffun(X[nf])
+                    Xtype[nf] = 4 # Model-building point
+                    Group[nf] = gnf; 
+                    if np.any(np.isnan(F[nf])):
+                        X, F, hF, flag, Xtype, Group = prepare_outputs_before_return(X, F, hF, nf, -3, Xtype, Group)
+                        return X, F, hF, flag, xk_in, Xtype, Group
+                    hF[nf] = hfun(F[nf])
                     if printf:
-                        print("**improvement from model point****")
-                    # Update model to reflect new base point
-                    D = X[nf] - X[xk_in]
-                    xk_in = nf  # Change current center
-                    Cres = F[xk_in]
-                    # Don't actually use
-                    for j in range(m):
-                        Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
+                        print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
+                    if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
+                        if printf:
+                            print("**improvement from model point****")
+                        # Update model to reflect new base point
+                        D = X[nf] - X[xk_in]
+                        xk_in = nf  # Change current center
+                        Cres = F[xk_in]
+                        # Don't actually use
+                        for j in range(m):
+                            Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
+                gnf += 1;
     if printf:
         print("Number of function evals exceeded")
     flag = ng
-    return X, F, hF, flag, xk_in
+    return X[:nf+1], F[:nf+1], hF[:nf+1], flag, xk_in, Xtype[:nf+1], Group[:nf+1]

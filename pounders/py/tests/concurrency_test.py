@@ -21,14 +21,14 @@ if not os.path.exists("benchmark_results"):
     os.makedirs("benchmark_results")
 
 dfo = np.loadtxt("dfo.dat")
+dfo = dfo[[0, 1, 2, 7, 18, 22, 35, 44, 49, 50],:] # A somewhat random subset of functions
 
 spsolver = 2
 g_tol = 1e-13
 factor = 10
-printf = False
 combinemodels = pdrs.identity_combine
 hfun = lambda F: np.squeeze(F)
-Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+Opts = {"spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels, "printf": False}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo):
     par = 1
@@ -41,14 +41,14 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
         print(filename, flush=True)
 
         def Ffun(y):
-            out = calfun(y, m_for_Ffun_only, int(nprob), "smooth", 0, num_outs=2)[1]
+            out = calfun(y, m_for_Ffun_only, int(nprob), "smooth", 0, num_outs=1)
             return np.squeeze(out)
 
-        X_0 = dfoxs(n, nprob, int(factor**factor_power))
+        X_0 = dfoxs(n, int(nprob), int(factor**factor_power))
         Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
         Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
         nfs = 1
-        F_init = np.zeros((1, m_for_Ffun_only))
+        F_init = np.zeros((1, 1))
         F_init[0] = Ffun(X_0)
         xind = 0
         delta = 0.1
@@ -59,7 +59,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
 
         Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-        [X, F, hF, flag, xk_best, Xtype, Group, extra_evals] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m_for_Ffun_only, Low, Upp, Prior=Prior, Options=Opts, Model={}, par=par)
+        [X, F, hF, flag, xk_best, Xtype, Group] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={}, par=par)
 
         evals = F.shape[0]
 
@@ -80,7 +80,6 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo):
         Results["pounders4py_" + str(row)]["X"] = X
         Results["pounders4py_" + str(row)]["Xtype"] = Xtype
         Results["pounders4py_" + str(row)]["Group"] = Group
-        Results["pounders4py_" + str(row)]["extra_evals"] = extra_evals
 
         sp.io.savemat(filename, Results)
 
