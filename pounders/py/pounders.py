@@ -104,7 +104,16 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                   = -3 error if a NaN was encountered
                   = -4 error in TRSP Solver
                   = -5 unable to get model improvement with current parameters
-    xk_in    [int] Index of point in X representing approximate minimizer
+    xk_in   [int] Index of point in X representing approximate minimizer
+    Xtype   [int] [nf_max+nfs-by-1] Where a point came from in pounders
+                  = 0 in X_init
+                  = 1 interpolation set
+                  = 2 crriticaltiy step
+                  = 3 TRSP 
+                  = 4 model improvement 
+    Group   [int] [nf_max+nfs-by-1] When Xtype changes during an optimization, the Group is incremented.
+
+    The last two outputs (Xtype and Group) are included in a dictionary for now.
     """
 
     if Options is None:

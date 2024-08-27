@@ -43,19 +43,19 @@ class TestPounders(unittest.TestCase):
         np.random.seed(1)
 
         Opts = {"spsolver": spsolver, "printf": printf}
-        [X, F, hF, flag, xk_best] = pdrs.pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best, _] = pdrs.pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -3, "No NaN was encountered in this test, but should have been.")
 
         Ffun_to_fail = lambda x: failing_objective(x, 1.0)
-        [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best, _] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -3, "NaN should have been encountered on first eval.")
 
         Ffun_to_fail = lambda x: np.hstack((x, x))
-        [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best, _] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -1, "Dimension error on should have occurred on first eval.")
 
         # Intentionally crashing pounders
-        [X, F, hF, flag, xk_best] = pdrs.pounders({}, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
+        [X, F, hF, flag, xk_best, _] = pdrs.pounders({}, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
         self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
     def test_basic_pounders_usage(self):
@@ -103,7 +103,7 @@ class TestPounders(unittest.TestCase):
             F_init[i, :] = Ffun(X_0[i, :])
 
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
+        [X, F, hF, flag, xk_in, _] = pdrs.pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
@@ -126,7 +126,7 @@ class TestPounders(unittest.TestCase):
         hfun = lambda F: np.squeeze(F)
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in, _] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
@@ -151,6 +151,6 @@ class TestPounders(unittest.TestCase):
 
         F_init = Ffun(X_0.T)
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": 1, "xk_in": 0}
-        [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in, _] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, "The optimum should be the upper bounds.")
