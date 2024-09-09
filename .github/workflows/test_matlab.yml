@@ -20,6 +20,10 @@ jobs:
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-13, macos-14]
         matlab-release: ["R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
+        exclude:
+          # Failing with a possible issue outside IBCDFO (Issue #157)
+          - os: macos-14
+            matlab-release: "R2023b"
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
