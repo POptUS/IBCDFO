@@ -4,11 +4,10 @@
 Run the script with -h to obtain more information regarding the script.
 """
 
-import sys
-import inspect
 import argparse
 import importlib
-
+import inspect
+import sys
 from pathlib import Path
 
 # ----- HARDCODED VALUES
