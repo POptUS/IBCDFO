@@ -1,3 +1,7 @@
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+addpath(fullfile(here_path, '..', 'general_h_funs'));
+
 % Adjust these:
 n = 4; % Number of parameters to be optimized
 X_0 = rand(1, n); % starting parameters for the optimizer
@@ -29,6 +33,8 @@ Options.spsolver = spsolver;
 Options.printf = printf;
 
 [Xout, Fouf, hFout, flag, xk_best] = pounders(@call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
+
+path(oldpath);
 
 assert(flag >= 0, 'pounders crashed');
 

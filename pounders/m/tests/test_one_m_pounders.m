@@ -4,6 +4,10 @@
 % So this is not how pounders is intended to be used, but can be a comparison
 % method.
 
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+addpath(fullfile(here_path, '..', 'general_h_funs'));
+
 Ffun = @(x) ((1 - x(1)).^2) + (100 * ((x(2) - (x(1)^2)).^2)); % Rosenbrock
 X_0 = [-1.2, 1];
 
@@ -35,6 +39,8 @@ Options.printf = printf;
 
 Model.np_max = np_max;
 [X, F, hf, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model);
+
+path(oldpath);
 
 assert(flag == 0, "We should solve this within 200 evaluations");
 assert(norm(X(xkin, :) - ones(1, 2)) <= g_tol * 10, "We should be within 10*gtol of the known optimum [1,1]");

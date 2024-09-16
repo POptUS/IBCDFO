@@ -68,7 +68,6 @@ Model   [dict/struct] of options for model building with keys/fields:
     Par     [1-by-4] list for formquad
 ````
 
-
 ### Outputs
 The outputs from POUNDERs are:
 ````
@@ -88,12 +87,42 @@ xk_in    [int] Index of point in X representing approximate minimizer
 
 ## Testing
 
-To fully test the MATLAB implementation of POUNDERs:
+### MATLAB
+To run tests of MATLAB-based POUNDERs, users must have an up-to-date
+[BenDFO](https://github.com/POptUS/BenDFO) clone installed and add
+
+    /path/to/BenDFO/data
+    /path/to/BenDFO/m
+
+to their MATLAB path.  They should also ensure that the `minq` submodule in
+their IBCDFO clone is at the latest version.
+
+Note that some code in POUNDERs and its tests automatically alter the MATLAB
+path.  While the POUNDERs tests will reset the path to its original state if
+all tests pass, the path might remain altered if a test fails.
+
+The MATLAB implementation of POUNDERs contains a single test case `Testpounders.m`,
+which calls individual tests such as `test_bmpts.m`.
+
+To fully test the MATLAB implementation of POUNDERs with `Testpounders` but without coverage:
 
    1. change to the `pounders/m/tests` directory
    2. open MATLAB, and
    3. execute `runtests` from the prompt.
 
+To fully test the MATLAB implementation of POUNDERs with `Testpounders` and with coverage:
+
+   1. change to the `pounders/m` directory
+   2. open MATLAB, and
+   3. execute `runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)`
+
+The test output indicates where the HTML-format code coverage report can be found.
+
+Users can also run each test function individually as usual if so desired.
+Please refer to the inline documentation of each test or test case for more
+information on how to run the test.
+
+### Python
 To fully test the Python implementation of POUNDERs:
 
    1. navigate to the `ibcdfo_pypkg` directory

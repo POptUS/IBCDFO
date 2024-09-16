@@ -1,3 +1,7 @@
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+addpath(fullfile(here_path, '..', 'h_examples'));
+
 n = 2;
 m = 2;
 
@@ -10,6 +14,8 @@ x0 = [-1.2, 1.0];
 hfun = @one_norm;
 
 [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, @Ffun, x0, LB, UB, nfmax, subprob_switch);
+
+path(oldpath);
 
 function F = Ffun(x)
     % Rosenbrock function

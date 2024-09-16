@@ -55,7 +55,8 @@ if isfield(Options, 'hfun')
     combinemodels = Options.combinemodels;
 else
     % Use least-squares hfun by default
-    addpath('../general_h_funs/');
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    addpath(fullfile(here_path, 'general_h_funs'));
     hfun = @(F)sum(F.^2);
     combinemodels = @leastsquares;
 end
@@ -89,6 +90,17 @@ gamma_inc = Options.gamma_inc;
 eta_1 = Options.eta_1;
 printf = Options.printf;
 delta_inact = Options.delta_inact;
+
+if     spsolver == 2 % Arnold Neumaier's minq5
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    minq_path = fullfile(here_path, '..', '..', 'minq');
+    addpath(fullfile(minq_path, 'm', 'minq5'));
+elseif spsolver == 3 % Arnold Neumaier's minq8
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    minq_path = fullfile(here_path, '..', '..', 'minq');
+    addpath(fullfile(minq_path, 'm', 'minq8'));
+end
+
 % 0. Check inputs
 [flag, X_0, np_max, F0, Low, Upp, xk_in] = ...
     checkinputss(Ffun, X_0, n, Model.np_max, nf_max, g_tol, delta, nfs, m, Prior.F_init, Prior.xk_in, Low, Upp);

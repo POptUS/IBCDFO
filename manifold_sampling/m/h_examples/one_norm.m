@@ -9,6 +9,7 @@ function [h, grads, Hash] = one_norm(z, H0)
     %   h:    [dbl] function value
     %   grads: [p x l] gradients of each of the l manifolds active at z
     %   Hash:  [1 x l cell of strings] set of hashes for each of the l manifolds active at z
+    %
 
     if nargin < 2
         h = sum(abs(z));

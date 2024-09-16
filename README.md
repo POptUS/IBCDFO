@@ -52,6 +52,8 @@ submodules simultaneously, run
 
 ``git pull --recurse-submodules``.
 
+### Python
+
 The `ibcdfo` python package can be installed by setting up a terminal with the
 target python and pip pair and executing
 ```
@@ -70,6 +72,25 @@ command.  The installation can be partially tested by executing
 ```
 where the output `<version>` should be identical to the value used during
 installation.
+
+## Testing
+
+### MATLAB
+In addition to completing the general installation steps, users must have an
+up-to-date [BenDFO](https://github.com/POptUS/BenDFO) clone installed and add
+
+    /path/to/BenDFO/data
+    /path/to/BenDFO/m
+
+to their MATLAB path.  To run tests,
+
+   1. open MATLAB in the same folder as this file and
+   2. execute `runtests("IncludeSubfolders", true)` from the prompt to run just
+      the tests or
+   3. execute `runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)`
+      from the prompt to run the tests and generate a code coverage report.
+
+The test output indicates where the HTML-format code coverage report can be found.
 
 ## License
 
