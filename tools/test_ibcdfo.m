@@ -37,10 +37,10 @@ old_cwd = cd(CLONE_ROOT);
 % Unfortunately we cannot simply run from the root of the repository and have
 % runtests automatically discover all subpackage tests because it will
 % "discover" this script.  In such cases, this test script will run itself.
-SUBPACKAGES = [string(fullfile(CLONE_ROOT, 'minq', 'm')),
-               string(fullfile(CLONE_ROOT, 'pounders', 'm')),
+SUBPACKAGES = [string(fullfile(CLONE_ROOT, 'minq', 'm'))
+               string(fullfile(CLONE_ROOT, 'pounders', 'm'))
                string(fullfile(CLONE_ROOT, 'manifold_sampling', 'm'))];
-runtests(SUBPACKAGES, "IncludeSubfolders", true, "ReportCoverageFor", pwd)
+runtests(SUBPACKAGES, "IncludeSubfolders", true, "ReportCoverageFor", pwd);
 
 cd(old_cwd);
 
