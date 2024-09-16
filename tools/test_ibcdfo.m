@@ -31,19 +31,16 @@ end
 old_path = addpath(bendfo_m_path);
 addpath(bendfo_data_path);
 
-% ----- RUN TESTS FOR EACH MATLAB SUBPACKAGE IN IBCDFO
+% ----- RUN TESTS FOR ALL MATLAB SUBPACKAGES IN IBCDFO
 old_cwd = cd(CLONE_ROOT);
 
-% TODO: We should be able to just run from the root.  However manifold sampling
-% testing is not fully functional yet, which means we run tests for each
-% subpackage individually for now.  See Issue 150.
-% runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)
-
-cd(fullfile(CLONE_ROOT, 'minq', 'm'));
-runtests("IncludeSubfolders", true);
-
-cd(fullfile(CLONE_ROOT, 'pounders', 'm'));
-runtests("IncludeSubfolders", true);
+% Unfortunately we cannot simply run from the root of the repository and have
+% runtests automatically discover all subpackage tests because it will
+% "discover" this script.  In such cases, this test script will run itself.
+SUBPACKAGES = [string(fullfile(CLONE_ROOT, 'minq', 'm')),
+               string(fullfile(CLONE_ROOT, 'pounders', 'm')),
+               string(fullfile(CLONE_ROOT, 'manifold_sampling', 'm'))];
+runtests(SUBPACKAGES, "IncludeSubfolders", true, "ReportCoverageFor", pwd)
 
 cd(old_cwd);
 
