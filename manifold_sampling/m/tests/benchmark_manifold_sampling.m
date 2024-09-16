@@ -34,7 +34,7 @@ D_L1_loss = load('mpc_test_files_smaller_Q/D_for_benchmark_probs.csv');
 Qzb = load('mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized_subset.mat')';
 
 % for row = find(cellfun(@length,Results)==0)
-for row = [2, 1, 7, 8, 43, 44, 45]
+for row = [1, 2, 7, 8, 43, 44, 45]
     nprob = dfo(row, 1);
     n = dfo(row, 2);
     m = dfo(row, 3);

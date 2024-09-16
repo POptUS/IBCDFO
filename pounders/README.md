@@ -43,7 +43,7 @@ n       [int] Dimension (number of continuous variables)
 nf_max  [int] Maximum number of function evaluations (>n+1) (100)
 g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
 delta_0 [dbl] Positive initial trust region radius (.1)
-m       [int] Number of components returned from Ffun
+m       [int] Number of components of F
 Low     [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
 Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
 ````

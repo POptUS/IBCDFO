@@ -17,6 +17,79 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     return inds, grads, Hashes
 
 
+def censored_L1_loss(z, H0=None, **kwargs):
+    """
+    This is a generalized version of Womersley's censored L1 loss function.
+    """
+
+    C = kwargs["C"]
+    D = kwargs["D"]
+
+    eqtol = 1e-8
+
+    # Ensure column vector and collect dimensions
+    z = np.asarray(z).flatten()
+    C = np.asarray(C).flatten()
+    D = np.asarray(D).flatten()
+    p = len(C)
+
+    if H0 is None:
+        h = np.sum(np.abs(D - np.maximum(z, C)))
+        g = [[] for _ in range(p)]
+        H = [[] for _ in range(p)]
+
+        for i in range(p):
+            if z[i] <= C[i] or abs(z[i] - C[i]) < eqtol * max(abs(z[i]), abs(C[i])) or abs(z[i] - C[i]) < eqtol:
+                if C[i] >= D[i]:
+                    g[i].append(0)
+                    H[i].append("2")
+                if C[i] <= D[i]:
+                    g[i].append(0)
+                    H[i].append("4")
+            if z[i] >= C[i] or abs(z[i] - C[i]) < eqtol * max(abs(z[i]), abs(C[i])) or abs(z[i] - C[i]) < eqtol:
+                if (max(z[i], C[i]) == D[i]) or (abs(max(z[i], C[i]) - D[i]) < eqtol * max(abs(max(z[i], C[i])), abs(D[i]))) or (abs(max(z[i], C[i]) - D[i]) < eqtol):
+                    g[i].append(1)
+                    g[i].append(-1)
+                    H[i].append("1")
+                    H[i].append("3")
+                else:
+                    g[i].append(np.sign(z[i] - D[i]))
+                    if D[i] >= z[i]:
+                        H[i].append("3")
+                    else:
+                        H[i].append("1")
+
+        grads = np.array(list(product(*g))).T
+
+        Hash = ["".join(t) for t in product(*H)]
+
+        return h, grads, Hash
+    else:
+        K = len(H0)
+
+        h = np.zeros(K)
+        grads = np.zeros((p, K))
+        vals = np.zeros((p, K))
+
+        for k in range(K):
+            for j in range(p):
+                if H0[k][j] == "1":
+                    vals[j, k] = -(D[j] - z[j])
+                    grads[j, k] = 1
+                elif H0[k][j] == "2":
+                    vals[j, k] = -(D[j] - C[j])
+                    grads[j, k] = 0
+                elif H0[k][j] == "3":
+                    vals[j, k] = D[j] - z[j]
+                    grads[j, k] = -1
+                elif H0[k][j] == "4":
+                    vals[j, k] = D[j] - C[j]
+                    grads[j, k] = 0
+            h[k] = np.sum(vals[:, k])
+
+        return h, grads
+
+
 def one_norm(z, H0=None):
     # Evaluates
     #   sum(abs(z_j))
