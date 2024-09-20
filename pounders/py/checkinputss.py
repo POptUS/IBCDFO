@@ -103,7 +103,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     if np.any(np.isnan(Upp)) or np.any(np.isnan(Low)):
-        print("Error: Upp or Low bounds contains a NaN")
+        print("Error: Upp or Low bounds contain a NaN")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     if np.min(Upp - Low) <= 0:
