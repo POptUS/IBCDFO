@@ -115,6 +115,7 @@ class TestLotsOfFeatures(unittest.TestCase):
         Low_to_error = 0.9 * self.Upp
         out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
         self.__testCommonFinalConditions(out, "fail")
+
     def test_checkinputts16(self):
         Low_to_error = self.Low
         Low_to_error[0] = np.nan
