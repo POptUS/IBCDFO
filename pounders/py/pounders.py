@@ -1,7 +1,7 @@
 import sys
 
 import numpy as np
-import scipy.io
+# import scipy.io
 
 from .bmpts import bmpts
 from .bqmin import bqmin

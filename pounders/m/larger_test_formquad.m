@@ -1,6 +1,6 @@
 % load('formquad_inputs.mat');
 load('top_of_while_loop.mat');
-nf = nf+1; % Translating python indexing to matlab
+nf = nf + 1; % Translating python indexing to matlab
 
 bendfo_location = '../../../BenDFO';
 
