@@ -131,11 +131,11 @@ class TestPounders(unittest.TestCase):
         Ffun = lambda x: np.sum(x**2)
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
         [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
-        self.assertTrue(flag == -2, "This test is terminate because mdec==0.")
+        self.assertTrue(flag == -2, "This test should terminate because mdec == 0.")
 
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-2}
         [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
-        self.assertTrue(flag == -6, "This test is chosen to hit the mindelta termination.")
+        self.assertTrue(flag == -6, "This test should hit the mindelta termination.")
 
     def test_pounders_maximizing_sum_squares(self):
         combinemodels = pdrs.neg_leastsquares
