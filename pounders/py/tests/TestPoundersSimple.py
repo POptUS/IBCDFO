@@ -128,7 +128,14 @@ class TestPounders(unittest.TestCase):
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
-        self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, "The optimum should be the lower bounds.")
+        Ffun = lambda x: np.sum(x**2)
+        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        self.assertTrue(flag == -2, "This test should terminate because mdec == 0.")
+
+        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
+        [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        self.assertTrue(flag == -6, "This test should hit the mindelta termination.")
 
     def test_pounders_maximizing_sum_squares(self):
         combinemodels = pdrs.neg_leastsquares

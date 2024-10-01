@@ -253,7 +253,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     F[nf] = Ffun(X[nf])
                     if np.any(np.isnan(F[nf])):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                        return X, F, flag, xk_in
+                        return X, F, hF, flag, xk_in
                     hF[nf] = hfun(F[nf])
                     if printf:
                         print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
@@ -328,7 +328,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             if (rho >= eta_1) and (step_norm > delta_inact * delta):
                 delta = min(delta * gamma_inc, delta_max)
             elif valid:
-                delta = max(delta * gamma_dec, delta_min)
+                delta = delta * gamma_dec
+                if delta <= delta_min:
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -6)
+                    return X, F, hF, flag, xk_in
+
         else:  # Don't evaluate f at Xsp
             rho = -1  # Force yourself to do a model-improving point
             if printf:
