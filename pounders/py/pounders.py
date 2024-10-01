@@ -1,7 +1,7 @@
 import sys
 
 import numpy as np
-# import scipy.io
+import scipy.io
 
 from .bmpts import bmpts
 from .bqmin import bqmin
@@ -134,6 +134,7 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     Hres = np.zeros((n, n, m))
     ng = np.nan  # Needed for early termination, e.g., if a model is never built
     while nf + 1 < nfmax:
+        # scipy.io.savemat('top_of_while_loop.mat', locals())
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xkin]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
@@ -282,8 +283,7 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             # Need to check because model may be valid after Xsp evaluation
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xkin, npmax, Par, 1)
             if not valid:  # ! One strategy for choosing model-improving point:
-                # data_dict = {'X': X, 'F': F, 'delta': delta, 'xkin': xkin, 'npmax': npmax, 'Par': Par, 'Cres': Cres, 'nf': nf, 'Hres': Hres}
-                # scipy.io.savemat('formquad_inputs.mat', data_dict)
+                # scipy.io.savemat('before_formquad_call.mat', locals())
                 # Update model (exists because delta & xkin unchanged)
                 D = X[: nf + 1] - X[xkin]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
