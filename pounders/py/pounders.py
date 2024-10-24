@@ -12,7 +12,7 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 def _default_model_par_values(n):
     par = np.zeros(4)
     par[0] = np.sqrt(n)
-    par[1] = max(10, np.sqrt(n))
+    par[1] = np.maximum(10, np.sqrt(n))
     par[2] = 10**-3
     par[3] = 0.001
 
@@ -243,7 +243,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
-            delta = max(g_tol, np.max(np.abs(X[xk_in])) * eps)
+            delta = np.maximum(g_tol, np.max(np.abs(X[xk_in])) * eps)
             [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
