@@ -14,6 +14,7 @@ def call_beamline_simulation(x):
     return np.squeeze(out)
 
 
+X_0 = np.random.seed(8675309)
 # Adjust these:
 n = 4  # Number of parameters to be optimized
 X_0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer

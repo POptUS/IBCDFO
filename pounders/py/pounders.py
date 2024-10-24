@@ -12,7 +12,7 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 def _default_model_par_values(n):
     par = np.zeros(4)
     par[0] = np.sqrt(n)
-    par[1] = max(10, np.sqrt(n))
+    par[1] = np.maximum(10, np.sqrt(n))
     par[2] = 10**-3
     par[3] = 0.001
 
@@ -129,8 +129,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     nfs = Prior["nfs"]
     delta = delta_0
     spsolver = Options.get("spsolver", 2)
-    delta_max = Options.get("delta_max", min(0.5 * np.min(Upp - Low), (10**3) * delta))
-    delta_min = Options.get("delta_min", min(delta * (10**-13), g_tol / 10))
+    delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
+    delta_min = Options.get("delta_min", np.minimum(delta * (10**-13), g_tol / 10))
     gamma_dec = Options.get("gamma_dec", 0.5)
     gamma_inc = Options.get("gamma_inc", 2)
     eta_1 = Options.get("eta1", 0.05)
@@ -243,7 +243,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
-            delta = max(g_tol, np.max(np.abs(X[xk_in])) * eps)
+            delta = np.maximum(g_tol, np.max(np.abs(X[xk_in])) * eps)
             [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
@@ -326,7 +326,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 xk_in = nf  # Change current center
             # 4b. Update the trust-region radius:
             if (rho >= eta_1) and (step_norm > delta_inact * delta):
-                delta = min(delta * gamma_inc, delta_max)
+                delta = np.minimum(delta * gamma_inc, delta_max)
             elif valid:
                 delta = delta * gamma_dec
                 if delta <= delta_min:
