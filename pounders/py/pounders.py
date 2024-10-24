@@ -129,8 +129,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     nfs = Prior["nfs"]
     delta = delta_0
     spsolver = Options.get("spsolver", 2)
-    delta_max = Options.get("delta_max", min(0.5 * np.min(Upp - Low), (10**3) * delta))
-    delta_min = Options.get("delta_min", min(delta * (10**-13), g_tol / 10))
+    delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
+    delta_min = Options.get("delta_min", np.minimum(delta * (10**-13), g_tol / 10))
     gamma_dec = Options.get("gamma_dec", 0.5)
     gamma_inc = Options.get("gamma_inc", 2)
     eta_1 = Options.get("eta1", 0.05)
@@ -326,7 +326,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 xk_in = nf  # Change current center
             # 4b. Update the trust-region radius:
             if (rho >= eta_1) and (step_norm > delta_inact * delta):
-                delta = min(delta * gamma_inc, delta_max)
+                delta = np.minimum(delta * gamma_inc, delta_max)
             elif valid:
                 delta = delta * gamma_dec
                 if delta <= delta_min:
