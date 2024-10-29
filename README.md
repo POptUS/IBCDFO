@@ -114,3 +114,12 @@ To seek support or report issues, e-mail:
     year   = {2024},
   }
 ```
+
+## About IBCDFO
+
+Part of [POptUS: Practical Optimization Using Structure](https://github.com/POptUS).
+
+Copyright (c) 2023, The Regents of the University of California,
+through Lawrence Berkeley National Laboratory and UChicago Argonne
+LLC through Argonne National Laboratory (subject to receipt of any
+required approvals from the U.S. Dept. of Energy).  All rights reserved.
