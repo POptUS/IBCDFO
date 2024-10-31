@@ -5,16 +5,14 @@ vector output G_of_gamma, and the objective is
 imag(sum_{i=1}^m gamma_i*G_of_gamma**2), which is
 sum_{i=1}^m imag(gamma_i*G_of_gamma**2), which is
 sum_{i=1}^m gamma_i*imag(G_of_gamma**2), which is
-sum_{i=1}^m 2 * gamma_i*G_of_gamma_r*G_of_gamma_i 
+sum_{i=1}^m 2 * gamma_i*G_of_gamma_r*G_of_gamma_i
 
-So given gamma, we compute G_of_gamma and return its real and imaginary parts. 
-
+So given gamma, we compute G_of_gamma and return its real and imaginary parts.
 """
 
 import ibcdfo.pounders as pdrs
-import numpy
-
 import jax
+import numpy
 
 jax.config.update("jax_enable_x64", True)
 
