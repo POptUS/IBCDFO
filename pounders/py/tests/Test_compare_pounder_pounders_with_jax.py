@@ -43,12 +43,8 @@ m = 1  # not using structure
 
 
 def Ffun_scalar_out(gamma):
-    G_of_gamma = (
-        numpy.sin(gamma) - numpy.arange(1, len(gamma) + 1) * numpy.cos(gamma) * 1j
-    )
-    out = numpy.squeeze(
-        numpy.hstack((gamma, numpy.real(G_of_gamma), numpy.imag(G_of_gamma)))
-    )
+    G_of_gamma = numpy.sin(gamma) - numpy.arange(1, len(gamma) + 1) * numpy.cos(gamma) * 1j
+    out = numpy.squeeze(numpy.hstack((gamma, numpy.real(G_of_gamma), numpy.imag(G_of_gamma))))
     return hfun(out)
 
 
@@ -57,9 +53,7 @@ Opts = {
     "combinemodels": pdrs.identity_combine,  # not using structure
 }
 
-[X, F, hF_without_struct, flag, xk_best] = pdrs.pounders(
-    Ffun_scalar_out, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts
-)
+[X, F, hF_without_struct, flag, xk_best] = pdrs.pounders(Ffun_scalar_out, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
 assert flag == 0, "Didn't reach critical point"
 
 
@@ -68,12 +62,8 @@ m = 3 * n  # using structure
 
 
 def Ffun_vec_out(gamma):
-    G_of_gamma = (
-        numpy.sin(gamma) - numpy.arange(1, len(gamma) + 1) * numpy.cos(gamma) * 1j
-    )
-    out = numpy.squeeze(
-        numpy.hstack((gamma, numpy.real(G_of_gamma), numpy.imag(G_of_gamma)))
-    )
+    G_of_gamma = numpy.sin(gamma) - numpy.arange(1, len(gamma) + 1) * numpy.cos(gamma) * 1j
+    out = numpy.squeeze(numpy.hstack((gamma, numpy.real(G_of_gamma), numpy.imag(G_of_gamma))))
     return out
 
 
@@ -115,11 +105,7 @@ Opts = {
     "combinemodels": combinemodels_jax,  # using structure
 }
 
-[X, F, hF_with_struct, flag, xk_best] = pdrs.pounders(
-    Ffun_vec_out, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts
-)
+[X, F, hF_with_struct, flag, xk_best] = pdrs.pounders(Ffun_vec_out, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
 assert flag == 0, "Didn't reach critical point"
 
-print(
-    f"Using structure uses {len(hF_with_struct)} evals. Not using structure uses {len(hF_without_struct)}"
-)
+print(f"Using structure uses {len(hF_with_struct)} evals. Not using structure uses {len(hF_without_struct)}")
