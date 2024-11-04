@@ -22,6 +22,7 @@
 % Pars(2) [dbl] delta multiplier for all interpolation points
 % Pars(3) [dbl] Pivot threshold for validity
 % Pars(4) [dbl] Pivot threshold for additional points (.001)
+% Pars(5) [log] Flag to find affine points in forward order (0)
 % vf      [log] Flag indicating you just want to check model validity
 %
 % --OUTPUTS----------------------------------------------------------------
@@ -59,8 +60,14 @@ R = []; % Initialize the QR factorization of interest
 Mind = xkin; % Indices of model interpolation points
 valid = false;
 np = 0;  % Counter for number of interpolation points
+% Order to look for Affinely independent points
+if ~Pars(5)
+    indorder = nf:-1:1;
+else
+    indorder = 1:nf;
+end
 for aff = 1:2
-    for i = nf:-1:1
+    for i = indorder
         if Nd(i) <= Pars(aff)
             proj = norm(D(i, :) * Q(:, np + 1:n), 2); % Project D onto null
             if proj >= Pars(aff + 2)  % add this index to Mind
