@@ -230,14 +230,14 @@ while nf <= nfmax
                 Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
-                formquad_r(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+                formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
             if length(Mind) < n + 1
                 % This is almost never triggered but is a safeguard for
                 % pathological cases where one needs to recover from
                 % unusual conditioning of recent interpolation sets
                 Par(5) = 1;
                 [~, ~, valid, Gres, Hresdel, Mind] = ...
-                    formquad_r(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+                    formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
                 Par(5) = 0;
             end
             Hres = Hres + Hresdel;
