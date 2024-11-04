@@ -308,7 +308,7 @@ while nf < nfmax
                 Par(5) = 1;
                 [~, ~, valid, Gres, Hresdel, Mind] = ...
                     formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
-               q Par(5) = 0;
+               Par(5) = 0;
             end
             Hres = Hres + Hresdel;
             % Update for modelimp; Cres unchanged b/c xkin unchanged
