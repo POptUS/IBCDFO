@@ -284,7 +284,23 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                 # Update model (exists because delta & xkin unchanged)
                 D = X[: nf + 1] - X[xkin]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
+
+                o_valid = valid
+                o_Gres = Gres
+                o_Hresdel = Hresdel
+                o_Mind = Mind
+
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, npmax, Par, False)
+
+                if len(Mind) < n + 1:
+                    # This is almost never triggered but is a safeguard for
+                    # pathological cases where one needs to recover from
+                    # unusual conditioning of recent interpolation sets
+                    valid = o_valid
+                    Gres = o_Gres
+                    Hresdel = o_Hresdel
+                    Mind = o_Mind
+
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
