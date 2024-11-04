@@ -25,7 +25,11 @@ combinemodels = @identity_combine;
 
 fun = @(x)calfun_wrapper_y(x, BenDFO, 'smooth');
 
+Par(5) = 0;
 while nf <= nfmax
+    if nf > 488
+        disp('here');
+    end
     % 1a. Compute the interpolation set.
     for i = 1:nf
         D = X(i, :) - X(xkin, :);
@@ -226,7 +230,16 @@ while nf <= nfmax
                 Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
-                formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+                formquad_r(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+            if length(Mind) < n + 1
+                % This is almost never triggered but is a safeguard for
+                % pathological cases where one needs to recover from
+                % unusual conditioning of recent interpolation sets
+                Par(5) = 1;
+                [~, ~, valid, Gres, Hresdel, Mind] = ...
+                    formquad_r(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+                Par(5) = 0;
+            end
             Hres = Hres + Hresdel;
             % Update for modelimp; Cres unchanged b/c xkin unchanged
             [G, H] = combinemodels(Cres, Gres, Hres);
