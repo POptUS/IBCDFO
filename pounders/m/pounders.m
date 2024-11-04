@@ -298,8 +298,21 @@ while nf < nfmax
                 D = (X(i, :) - X(xkin, :));
                 Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
             end
+            o_valid = valid;
+            o_Gres = Gres;
+            o_Hresdel = Hresdel;
+            o_Mind = Mind;
             [~, ~, valid, Gres, Hresdel, Mind] = ...
                 formquad(X(1:nf, :), Res(1:nf, :), delta, xkin, npmax, Par, 0);
+            if length(Mind) < n + 1
+                % This is almost never triggered but is a safeguard for
+                % pathological cases where one needs to recover from
+                % unusual conditioning of recent interpolation sets
+                valid = o_valid;
+                 Gres = o_Gres;
+                 Hresdel = o_Hresdel;
+                 Mind = o_Mind;
+            end
             Hres = Hres + Hresdel;
             % Update for modelimp; Cres unchanged b/c xkin unchanged
             [G, H] = combinemodels(Cres, Gres, Hres);
