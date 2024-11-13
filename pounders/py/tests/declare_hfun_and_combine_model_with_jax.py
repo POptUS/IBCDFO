@@ -1,7 +1,7 @@
 # This declares the hfun for Test_compare_pounder_pounders_with_jax.py and
 # then used jax to combine the quadratic models of each component of the
 # inputs to the hfun.
-# 
+#
 # For other general use cases of pounders on smooth hfuns, only the hfun below
 # needs to be changed (and combinemodels_jax can be given to pounders)
 
@@ -10,6 +10,7 @@ import jax
 import numpy
 
 jax.config.update("jax_enable_x64", True)
+
 
 def hfun(z):
     dim = len(z) // 3
