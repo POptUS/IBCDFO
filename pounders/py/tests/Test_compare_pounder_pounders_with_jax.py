@@ -47,7 +47,7 @@ for call in range(2):
             "combinemodels": pdrs.identity_combine,  # not using structure
         }
     elif call == 1:
-        # This uss jax to get models of the hFun and we call pounders using structure
+        # This use jax to get models of the hFun and we call pounders using structure
         Ffun_to_use = lambda gamma: Ffun(gamma, False)
         m = 3 * n  # using structure
         Opts = {
