@@ -39,7 +39,7 @@ delta = 0.1
 hF = {}
 for call in range(2):
     if call == 0:
-        # This calls pounders with m=1 (not using structure)
+        # Call pounders with m=1 building models of hfun(Ffun(x)) directly (not using structure)
         Ffun_to_use = lambda gamma: Ffun(gamma, True)
         m = 1  # not using structure
         Opts = {
@@ -47,7 +47,7 @@ for call in range(2):
             "combinemodels": pdrs.identity_combine,  # not using structure
         }
     elif call == 1:
-        # This use jax to get models of the hFun and we call pounders using structure
+        # Calls pounders to combine models of Ffun components using the derivatives of hfun (obtained by jax)
         Ffun_to_use = lambda gamma: Ffun(gamma, False)
         m = 3 * n  # using structure
         Opts = {
@@ -60,4 +60,4 @@ for call in range(2):
 
 
 print(f"Using structure uses {len(hF[1])} evals. Not using structure uses {len(hF[0])}")
-assert len(hF[1]) < len(hF[0]), "While not for every problem, using structure on this problem should be beneficial"
+assert len(hF[1]) < len(hF[0]), "While not true for every problem, using structure on this problem should be beneficial"
