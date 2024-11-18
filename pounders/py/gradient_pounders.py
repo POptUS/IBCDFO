@@ -96,7 +96,6 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
     xkin = 0
 
     # first evaluation:
-    ipdb.set_trace()
     F0, J0 = fun(X[nf])
     F0 = np.atleast_2d(F0)
 
