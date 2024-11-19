@@ -1,10 +1,11 @@
 import sys
 import numpy as np
 import ipdb
-from prepare_outputs_before_return_gradient import prepare_outputs_before_return
+from .prepare_outputs_before_return_gradient import prepare_outputs_before_return
 
+import poptus
 
-def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=None, combinemodels=None):
+def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=None, combinemodels=None):
     """
     POUDERS: Practical Optimization Using Derivatives for sums of Squares
       [X,F,flag,xkin] = ...
@@ -37,9 +38,7 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
     m       [int] Number of residual components
     L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
     U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-    printf  [log] 0 No printing to screen (default)
-                  1 Debugging level of output to screen
-                  2 More verbose screen output
+    logger  [obj] POptUS logger object 
     spsolver [int] Trust-region subproblem solver flag (2)
 
     Optionally, a user can specify and outer-function that maps the the elements
@@ -63,12 +62,22 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
                   = -5 unable to get model improvement with current parameters
     xkin    [int] Index of point in X representing approximate minimizer
     """
+
+    archiver = poptus.Hdf5Archiver()
+    group = archiver.results_group
+
+    def log(msg):
+        logger.log("POUDERS", msg, poptus.LOG_LEVEL_BASIC)
+
+    def log_debug(msg, level):
+        logger.log("POUDERS", msg, poptus.LOG_LEVEL_DEBUG_BASIC + level)
+
     if hfun is None:
 
         def hfun(F):
             return np.sum(F**2)
 
-        from general_h_funs import leastsquares as combinemodels
+        from .general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
     if spsolver == 2:
@@ -85,9 +94,7 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
     eta1 = 0.05
 
     eps = np.finfo(float).eps  # Define machine epsilon
-    if printf:
-        print("  nf   delta       f0           g0       ")
-        progstr = "%4i %9.2e  %11.5e %12.4e \n"  # Line-by-line
+    log("Beginning gradient-based optimization.")
     X = np.vstack((X0, np.zeros((nfmax - 1, n))))
     F = np.zeros((nfmax, m))
     J = np.zeros((nfmax, n, m))
@@ -101,13 +108,11 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
 
     if F0.shape[1] != m:
         X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -1)
-        if printf:
-            print("Your residual is not m-dimensional.")
+        log("Your residual is not m-dimensional.")
         return X, F, J, flag, xkin
 
     if J0.shape[0] != n or J0.shape[1] != m:
-        if printf:
-            print("Your Jacobian is not n by m.")
+        log("Your Jacobian is not n by m.")
         X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -1)
         return X, F, J, flag, xkin
 
@@ -115,10 +120,12 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
     J[nf] = J0
 
     if np.any(np.isnan(F[nf])):
+        log("The initial evaluation of F contained a NaN.")
         X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -3)
         return X, F, J, flag, xkin
-    if printf:
-        print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf])))
+    
+    log("Initial point evaluated.")
+    log(f"nf: {nf}, f(x) = {hfun(F[nf])}")
 
     # if we had previous evaluations (an nfs ~=0), we would put them in X, F here
     for i in range(nf + 1):
@@ -140,8 +147,7 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
         ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
         ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
 
-        if printf:
-            print(progstr % (nf, delta, Fs[xkin], ng))
+        log(f"nf: {nf}, delta: {delta}, f(x): {Fs[xkin]}, ng: {ng}")
 
         # 2. Critically test invoked if the projected model gradient is small
         if ng < gtol:
@@ -172,10 +178,10 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
             for i in range(n):  # This will need to be cleaned up eventually
                 if (U[i] - Xsp[i] < eps * abs(U[i])) and (U[i] > Xsp[i] and G[i] >= 0):
                     Xsp[i] = U[i]
-                    print("eps project!")
+                    log_debug("eps project!", 0)
                 elif (Xsp[i] - L[i] < eps * abs(L[i])) and (L[i] < Xsp[i] and G[i] >= 0):
                     Xsp[i] = L[i]
-                    print("eps project!")
+                    log_debug("eps project!", 0)
 
             nf += 1
             X[nf] = Xsp
@@ -198,12 +204,10 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=0, spsolver=2, hfun=
             else:
                 delta = max(delta * gam0, mindelta)
         else:
-            if printf:
-                print("Model decrease cannot be found, terminating. ")
+            log("Model decrease cannot be found, terminating. ")
             X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -2)
             return X, F, J, flag, xkin
 
-    if printf:
-        print("Number of function evals exceeded")
+    log("Number of function evals exceeded")
     flag = ng
     return X, F, J, flag, xkin
