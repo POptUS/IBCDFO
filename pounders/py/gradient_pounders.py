@@ -67,10 +67,10 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=No
     group = archiver.results_group
 
     def log(msg):
-        logger.log("POUDERS", msg, poptus.LOG_LEVEL_BASIC)
+        logger.log("POUDERS", msg, poptus.LOG_LEVEL_DEFAULT)
 
     def log_debug(msg, level):
-        logger.log("POUDERS", msg, poptus.LOG_LEVEL_DEBUG_BASIC + level)
+        logger.log("POUDERS", msg, poptus.LOG_LEVEL_MIN_DEBUG + level)
 
     if hfun is None:
 
@@ -84,6 +84,7 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=No
         try:
             from minqsw import minqsw
         except ModuleNotFoundError as e:
+            # TODO: Should this use logger.error?
             print(e)
             sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
@@ -108,10 +109,16 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=No
 
     if F0.shape[1] != m:
         X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -1)
+        # TODO: Should this use logger.warn or logger.error?
+        # TODO: If you are archiving X, F, J automatically, can this function
+        # just raise an exception to indicate issues rather than return a flag?
+        # If so, could you implement a simpler log_and_abort() helper function
+        # and use that consistently throughout?
         log("Your residual is not m-dimensional.")
         return X, F, J, flag, xkin
 
     if J0.shape[0] != n or J0.shape[1] != m:
+        # TODO: Should this use logger.warn or logger.error?
         log("Your Jacobian is not n by m.")
         X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -1)
         return X, F, J, flag, xkin
@@ -120,6 +127,7 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=No
     J[nf] = J0
 
     if np.any(np.isnan(F[nf])):
+        # TODO: Should this use logger.warn or logger.error?
         log("The initial evaluation of F contained a NaN.")
         X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -3)
         return X, F, J, flag, xkin
@@ -204,10 +212,15 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=No
             else:
                 delta = max(delta * gam0, mindelta)
         else:
+            # TODO: Should this use logger.warn or logger.error?
             log("Model decrease cannot be found, terminating. ")
             X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -2)
             return X, F, J, flag, xkin
 
+    # TODO: Should this use logger.warn or logger.error?
+    # TODO: If you implement a log_and_abort(), should this particular instance
+    # use that or just log a warning and return all arguments as it does for
+    # success?
     log("Number of function evals exceeded")
     flag = ng
     return X, F, J, flag, xkin
