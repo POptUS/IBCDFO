@@ -22,7 +22,9 @@ jobs:
         matlab-release: ["R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b"]
         exclude:
           # Failing with a possible issue outside IBCDFO (Issue #157)
-          - os: [macos-14, macos-15]
+          - os: macos-14
+            matlab-release: "R2023b"
+          - os: macos-15
             matlab-release: "R2023b"
     steps:
     # -- General Setup Steps
