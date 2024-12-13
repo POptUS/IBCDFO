@@ -1,17 +1,17 @@
 # ----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
 name: Test IBCDFO Python Package
 env:
-CLONE_PATH: ${{ github.workspace }}
+  CLONE_PATH: ${{ github.workspace }}
 on:
-push:
-branches:
-- main
-pull_request:
-branches:
-- main
-- develop
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - develop
 jobs:
-test_ibcdfo:
+  test_ibcdfo:
     runs-on: ${{ matrix.os }}
     strategy:
       # python-versions must be maintained consistent with associated setup.py
