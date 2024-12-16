@@ -30,7 +30,7 @@ jobs:
       # this will be the latest version of python supported.
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
     steps:
       # -- General Setup Steps
       - uses: actions/checkout@v4
@@ -71,7 +71,7 @@ jobs:
       # this will be the latest MATLAB release supported.
       matrix:
         os: [ubuntu-latest]
-        matlab-release: ["R2024a"]
+        matlab-release: ["R2024b"]
     steps:
       # -- General Setup Steps
       - name: Checkout IBCDFO repository
