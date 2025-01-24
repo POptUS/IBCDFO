@@ -17,13 +17,13 @@ from declare_hfun_and_combine_model_with_jax_CFI import hfun, combinemodels_jax
 def Ffun(x, nostruct=True):
     # This is a synthetic Ffun. The real example calls an expensive-to-evaluate
     # quantum system to obtain d^{init} and d^{pert}
-    number_of_js = 2**len(x)
+    number_of_js = 2 ** len(x)
 
     # Define d_init as a sinusoidal function of x, scaled by the index
-    d_init = np.array([1+np.sin(i + 1 + np.sum(x)) for i in range(number_of_js)])
+    d_init = np.array([1 + np.sin(i + 1 + np.sum(x)) for i in range(number_of_js)])
 
     # Define d_pert as a polynomial function of x
-    d_pert = np.array([np.sum(x)**(2) + (i + 1)**0.5 for i in range(number_of_js)])
+    d_pert = np.array([np.sum(x) ** (2) + (i + 1) ** 0.5 for i in range(number_of_js)])
 
     out = np.squeeze(np.hstack((d_init, d_pert)))
     if nostruct:
@@ -53,7 +53,7 @@ for call in range(2):
     elif call == 1:
         # Calls pounders to combine models of Ffun components using the derivatives of hfun (obtained by jax)
         Ffun_to_use = lambda x: Ffun(x, False)
-        m = 2 ** (n+1)  # using structure
+        m = 2 ** (n + 1)  # using structure
         Opts = {
             "hfun": hfun,  # using structure
             "combinemodels": combinemodels_jax,  # using structure
