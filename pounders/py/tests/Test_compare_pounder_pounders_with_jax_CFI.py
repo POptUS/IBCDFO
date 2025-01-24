@@ -1,5 +1,5 @@
 """
-This tests pounder (no structure) against pounders with a novel hfun arising in a 
+This tests pounder (no structure) against pounders with a novel hfun arising in a
 quantum sensing application. The objective is a function of a two sets of
 inputs: d^{init} and d^{pert}
 
