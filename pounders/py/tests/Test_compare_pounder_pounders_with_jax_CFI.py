@@ -94,7 +94,7 @@ for call in [1]: #range(2):
         Opts = {
             "hfun": hfun,  # using structure
             "combinemodels": combinemodels_jax,  # using structure
-            "printf": 2  # for debugging.
+            "printf": 1  # for debugging.
         }
 
     [X, F, hF[call], flag, xkin] = pdrs.pounders(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)

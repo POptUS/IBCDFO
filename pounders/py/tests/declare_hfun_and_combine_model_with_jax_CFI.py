@@ -9,6 +9,7 @@
 import jax
 import jax.numpy as jnp
 import numpy
+import ipdb
 
 jax.config.update("jax_enable_x64", True)
 
@@ -51,7 +52,7 @@ def H_combine(Cres, Gres, Hres):
     for i in range(n):
         for j in range(n):
             _, H[i, j] = hfun_dd(Cres, Gres[i, :], Gres[j, :], Hres[i, j, :])
-    return H
+    return (H + H.T) / 2.0
 
 
 def combinemodels_jax(Cres, Gres, Hres):
