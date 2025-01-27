@@ -67,13 +67,12 @@ def formquad(X, F, delta, xkin, npmax, Pars, vf):
     valid = False
     # Counter for number of interpolation points
     mp = 0
-    # Order to look for Affinely independent points
-    if not Pars[4]:
-        indorder = reversed(range(nf))
-    else:
-        indorder = range(nf)
-
     for aff in range(2):
+        # Order to look for Affinely independent points (generators in Python can't be rewound)
+        if not Pars[4]:
+            indorder = reversed(range(nf))
+        else:
+            indorder = range(nf)
         for i in indorder:
             if Nd[i] <= Pars[aff]:
                 proj = np.linalg.norm(D[i] @ Q[:, mp:n], 2)  # Project D onto null
