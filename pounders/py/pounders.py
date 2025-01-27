@@ -102,7 +102,7 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
     Par[1] = max(10, np.sqrt(n))
     Par[2] = 10**-3
     Par[3] = 0.001
-    Par[4] = 0 # [log] Flag to find affine points in forward order (0)
+    Par[4] = 0  # [log] Flag to find affine points in forward order (0)
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
@@ -290,9 +290,9 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
                     # This is almost never triggered but is a safeguard for
                     # pathological cases where one needs to recover from
                     # unusual conditioning of recent interpolation sets
-                    Par[4] = 1;
+                    Par[4] = 1
                     [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xkin, npmax, Par, False)
-                    Par[4] = 0;
+                    Par[4] = 0
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xkin unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
