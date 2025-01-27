@@ -14,14 +14,14 @@ jax.config.update("jax_enable_x64", True)
 
 
 def hfun(z):
-    number_of_js = len(z) // 2  # Is also 2^(number_of_qubits)
+    number_of_js = len(z) // 2
 
     d_init = z[:number_of_js]
     d_pert = z[number_of_js:]
     v1 = jnp.sqrt(d_init)
     v2 = jnp.sqrt(d_pert)
     v3 = (v1 - v2) ** 2
-    res = jnp.sum(v3)
+    res = (-1.0 / (4e-5)**2) * jnp.sum(v3)
     return res
 
 
