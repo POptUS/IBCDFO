@@ -17,6 +17,9 @@ def boxline(D, X, Low, Upp):
     t      = [dbl] Value of smallest t>=0 for which X+t*D hits a constraint
                    Set to 1 if t=1 does not hit constraint for t<1.
     """
+    # Safety for the n=1 case
+    Upp = np.atleast_1d(Upp)
+    Low = np.atleast_1d(Low)
     # Number of rows in X
     n = np.shape(X)[0]
     t = 1
