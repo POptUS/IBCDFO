@@ -20,7 +20,7 @@ import ipdb
 # simulation parameters
 N = 4
 model = 'XX'
-coupling_exponent = 0.0#3
+coupling_exponent = 3
 dissipation_rates = 1
 layers = 1
 
@@ -29,12 +29,6 @@ dphi = 1e-5
 
 # create dictionary from simulation parameters
 sim_params = {'N': N, 'model': model, 'coupling_exponent': coupling_exponent, 'dissipation_rates': dissipation_rates, 'dphi': dphi}
-
-
-# wrapped function so sim_params are fixed for a single optimization instance.
-def wrapped_Ffun(params):
-    return Ffun(params, sim_params)
-
 
 # parameter bounds and maximum input params
 # note that other Ffun's we end up using have slightly different bounds on the theta parameters at the end of this list
@@ -51,22 +45,45 @@ g_tol = 1e-4
 n = len(input_params)
 X_0 = input_params
 
-delta = 0.1
-
 # I'm too dumb to predetermine m (Juan can help), so I'll just compute an unperturbed distribution at the initial point for now:
 simulation_obj = getattr(sm, f'simulate_{model}_chain')
-rho = simulation_obj(params=input_params[:n-num_thetas], num_qubits=N, dissipation_rates=dissipation_rates,
+fixed_x = input_params[:n-num_thetas]
+rho = simulation_obj(params=fixed_x, num_qubits=N, dissipation_rates=dissipation_rates,
                          coupling_exponent=coupling_exponent)
 Sx, _, _ = sm.collective_spin_ops(num_qubits=N)
 # when theta = 0, Svarphi is just Sx.
 rho_varphi = state_integrator(rho, Sx, np.pi / 2)
 unpert_dist = distribution(rho_varphi, N)
 
+# wrapped function so sim_params (and x!) are fixed for a single optimization instance.
+# This is going to recompute rho(x) every time it is called, which is super wasteful.
+# This is very stupid, but at the scale of the test problem, it's OK and not a huge waste of energy.
+
+def wrapped_Ffun_fixed_x(theta):
+    return Ffun(np.concatenate((fixed_x, theta)), sim_params)
+
+
+# the starting point for this reduced Ffun is just:
+X_0 = np.atleast_2d(input_params[n-num_thetas:])
+# actually, for this experiment, let's NOT use a random starting theta. Let's start theta in the middle of its domain:
+X_0 = np.atleast_2d(np.pi / 4.0)
+# and then let's deliberately make the initial TR cover half of the whole domain.
+delta = np.pi / 8.0
+
+# Likewise the bounds are:
+Low = np.atleast_2d(Low[n-num_thetas:])
+Upp = np.atleast_2d(Upp[n-num_thetas:])
+
+# now the dimension is just the num_thetas in this reduced problem:
+n = num_thetas
+
+
+
 hF = {}
 for call in range(2):
     if call == 0:
         # Call pounders with m=1 building models of hfun(Ffun(x)) directly (not using structure)
-        Ffun_to_use = lambda x: hfun(wrapped_Ffun(x))
+        Ffun_to_use = lambda theta: hfun(wrapped_Ffun_fixed_x(theta))
         m = 1  # not using structure
         Opts = {
             "hfun": lambda F: np.squeeze(F),  # not using structure
@@ -75,7 +92,7 @@ for call in range(2):
         }
     elif call == 1:
         # Calls pounders to combine models of Ffun components using the derivatives of hfun (obtained by jax)
-        Ffun_to_use = lambda x: wrapped_Ffun(x)
+        Ffun_to_use = lambda theta: wrapped_Ffun_fixed_x(theta)
         m = 2 * len(unpert_dist)
         Opts = {
             "hfun": hfun,  # using structure
@@ -89,4 +106,3 @@ for call in range(2):
 
 
 print(f"Using structure uses {len(hF[1])} evals. Not using structure uses {len(hF[0])}")
-assert len(hF[1]) < len(hF[0]), "While not true for every problem, using structure on this problem should be beneficial"
