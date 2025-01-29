@@ -12,10 +12,10 @@ This is the hfun. So given x, the Ffun must compute/return d^{init} and d^{pert}
 import ibcdfo.pounders as pdrs
 import numpy as np
 from declare_hfun_and_combine_model_with_jax_CFI import hfun, combinemodels_jax
-from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_uniform_qubit_rotations_Ffun as Ffun
+#  from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_uniform_qubit_rotations_Ffun as Ffun
+from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_single_qubit_rotations_Ffun as Ffun
 from qfi_opt.examples.classical_fisher import state_integrator, distribution
 import qfi_opt.spin_models as sm
-import ipdb
 
 # simulation parameters
 N = 4
@@ -32,8 +32,8 @@ sim_params = {'N': N, 'model': model, 'coupling_exponent': coupling_exponent, 'd
 
 # parameter bounds and maximum input params
 # note that other Ffun's we end up using have slightly different bounds on the theta parameters at the end of this list
-num_thetas = 1
-bounds = [(0, 1/2), (0, 1/2)] + [(0, 1/2) if _ % 2 == 0 else (0, 1) for _ in range(2 * layers)] + [(0, 1)] + num_thetas * [(0, np.pi / 2.0)]
+num_thetas = N
+bounds = [(0, 1/2), (0, 1/2)] + [(0, 1/2) if _ % 2 == 0 else (0, 1) for _ in range(2 * layers)] + [(0, 1)] + num_thetas * [(0, np.pi)]
 
 #input_params = np.array(2 * [1/4] + [1/4 if _ % 2 == 0 else 1/2 for _ in range(2 * layers)] + [1/2] + num_thetas * [0])
 Low = np.array([entry[0] for entry in bounds])
@@ -66,9 +66,9 @@ def wrapped_Ffun_fixed_x(theta):
 # the starting point for this reduced Ffun is just:
 X_0 = np.atleast_2d(input_params[n-num_thetas:])
 # actually, for this experiment, let's NOT use a random starting theta. Let's start theta in the middle of its domain:
-X_0 = np.atleast_2d(np.pi / 4.0)
-# and then let's deliberately make the initial TR cover half of the whole domain.
-delta = np.pi / 8.0
+X_0 = (np.pi / 2.0) * np.ones(num_thetas)
+# and then let's deliberately make the initial TR cover half of the domain.
+delta = np.pi / 4.0
 
 # Likewise the bounds are:
 Low = np.atleast_2d(Low[n-num_thetas:])

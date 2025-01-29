@@ -8,6 +8,7 @@ from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+import ipdb
 
 def _default_model_par_values(n):
     par = np.zeros(4)
@@ -221,8 +222,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         c = hF[xk_in]
         G, H = combinemodels(Cres, Gres, Hres)
         # safety in n=1 case
-        G = np.atleast_2d(G)
-        H = np.atleast_2d(H)
+        #G = np.atleast_2d(G)
+        #H = np.atleast_2d(H)
         ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
         ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
         ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
@@ -231,7 +232,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             for i in range(len(Mind)):
                 D = X[Mind[i]] - X[xk_in]
                 # safety in n=1 case
-                D = np.atleast_2d(D)
+                #D = np.atleast_2d(D)
                 IERR[i] = (c - hF[Mind[i]]) + (D @ (G + 0.5 * H @ D))
             if np.any(hF[Mind] == 0.0):
                 ierror = np.nan
@@ -288,7 +289,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"
         Xsp = Xsp.squeeze()
-        Xsp = np.atleast_2d(Xsp)
+        #Xsp = np.atleast_2d(Xsp)
         step_norm = np.linalg.norm(Xsp, np.inf)
 
         # 4. Evaluate the function at the new point
@@ -297,8 +298,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
             # Project if we're within machine precision
             # Safety for the n=1 case
-            Upp = np.atleast_1d(Upp)
-            Low = np.atleast_1d(Low)
+            #Upp = np.atleast_1d(Upp)
+            #Low = np.atleast_1d(Low)
             for i in range(n):  # This will need to be cleaned up eventually
                 if (Upp[i] - Xsp[i] < eps * abs(Upp[i])) and (Upp[i] > Xsp[i] and G[i] >= 0):
                     Xsp[i] = Upp[i]
