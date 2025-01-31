@@ -10,6 +10,8 @@ from ibcdfo.pounders import bmpts, formquad
 # They do so at this formquad call. Perhaps this is not a big deal, but I
 # wanted to note the following: 
 
+print("\nGet these two data files before running: \n www.mcs.anl.gov/~jlarson/my_var_before_formquad_ibcdfo.pkl \n www.mcs.anl.gov/~jlarson/my_var_before_formquad_jax.pkl\n")
+
 with open("my_var_before_formquad_ibcdfo.pkl", "rb") as f:
     data1 = dill.load(f)
 
