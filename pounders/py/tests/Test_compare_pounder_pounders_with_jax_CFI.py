@@ -12,7 +12,8 @@ This is the hfun. So given x, the Ffun must compute/return d^{init} and d^{pert}
 import ibcdfo.pounders as pdrs
 import numpy as np
 from declare_hfun_and_combine_model_with_jax_CFI import hfun, combinemodels_jax
-from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_uniform_qubit_rotations_Ffun as Ffun
+#  from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_uniform_qubit_rotations_Ffun as Ffun
+from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_single_qubit_rotations_Ffun as Ffun
 from qfi_opt.examples.classical_fisher import state_integrator, distribution
 import qfi_opt.spin_models as sm
 import ipdb
@@ -38,8 +39,8 @@ def wrapped_Ffun(params):
 
 # parameter bounds and maximum input params
 # note that other Ffun's we end up using have slightly different bounds on the theta parameters at the end of this list
-num_thetas = 1
-bounds = [(0, 1/2), (0, 1/2)] + [(0, 1/2) if _ % 2 == 0 else (0, 1) for _ in range(2 * layers)] + [(0, 1)] + num_thetas * [(0, np.pi / 2.0)]
+num_thetas = N
+bounds = [(0, 1/2), (0, 1/2)] + [(0, 1/2) if _ % 2 == 0 else (0, 1) for _ in range(2 * layers)] + [(0, 1)] + num_thetas * [(0, np.pi)]
 
 #input_params = np.array(2 * [1/4] + [1/4 if _ % 2 == 0 else 1/2 for _ in range(2 * layers)] + [1/2] + num_thetas * [0])
 Low = np.array([entry[0] for entry in bounds])
