@@ -9,6 +9,8 @@ from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
+# import dill,time
+
 def _default_model_par_values(n):
     par = np.zeros(4)
     par[0] = np.sqrt(n)
@@ -233,6 +235,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             else:
                 ierror = np.linalg.norm(IERR / np.abs(hF[Mind]), np.inf)
             print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
+            # if nf >=32:
+            #     import ipdb; ipdb.set_trace(context=21)
             if printf >= 2:
                 jerr = np.zeros((len(Mind), m))
                 for i in range(len(Mind)):
@@ -340,6 +344,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
+            # with open('my_var_before_formquad_time' + str(int(time.time())) + '.pkl', 'wb') as f:
+            #     dill.dump(locals(), f)
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xk_in unchanged)
