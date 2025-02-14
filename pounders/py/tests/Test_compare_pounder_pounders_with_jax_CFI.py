@@ -11,7 +11,7 @@ This is the hfun. So given x, the Ffun must compute/return d^{init} and d^{pert}
 
 import ibcdfo.pounders as pdrs
 import numpy as np
-from declare_hfun_and_combine_model_with_jax_CFI import hfun, combinemodels_jax
+from declare_hfun_and_combine_model_with_jax_CFI import hfun, hfun_d, combinemodels_jax
 #  from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_uniform_qubit_rotations_Ffun as Ffun
 from qfi_opt.examples.classical_fisher import compute_collective_basis_CFI_for_single_qubit_rotations_Ffun as Ffun
 from qfi_opt.examples.classical_fisher import state_integrator, distribution
@@ -19,11 +19,11 @@ import qfi_opt.spin_models as sm
 import ipdb
 
 # simulation parameters
-N = 4
+N = 2
 model = 'XX'
 coupling_exponent = 0.0#3
-dissipation_rates = 1
-layers = 1
+dissipation_rates = 0.01
+layers = 2
 
 # involved in CFI computation:
 dphi = 1e-5
@@ -41,18 +41,19 @@ def wrapped_Ffun(params):
 # note that other Ffun's we end up using have slightly different bounds on the theta parameters at the end of this list
 num_thetas = N
 bounds = [(0, 1/2), (0, 1/2)] + [(0, 1/2) if _ % 2 == 0 else (0, 1) for _ in range(2 * layers)] + [(0, 1)] + num_thetas * [(0, np.pi)]
+bounds = [(-np.inf, np.inf) for _ in range(2 * layers + 3 + num_thetas)]
 
-#input_params = np.array(2 * [1/4] + [1/4 if _ % 2 == 0 else 1/2 for _ in range(2 * layers)] + [1/2] + num_thetas * [0])
+input_params = np.array(2 * [1/4] + [1/4 if _ % 2 == 0 else 1/2 for _ in range(2 * layers)] + [1/2] + num_thetas * [0])
 Low = np.array([entry[0] for entry in bounds])
 Upp = np.array([entry[1] for entry in bounds])
-input_params = Low + np.random.rand(len(bounds)) * (Upp - Low)
+#input_params = Low + np.random.rand(len(bounds)) * (Upp - Low)
 
 nf_max = 500
 g_tol = 1e-4
 n = len(input_params)
 X_0 = input_params
 
-delta = 0.1
+delta = np.pi / 8.0
 
 # I'm too dumb to predetermine m (Juan can help), so I'll just compute an unperturbed distribution at the initial point for now:
 simulation_obj = getattr(sm, f'simulate_{model}_chain')
@@ -81,7 +82,10 @@ for call in range(2):
         Opts = {
             "hfun": hfun,  # using structure
             "combinemodels": combinemodels_jax,  # using structure
-            "printf": 1  # for debugging.
+            "printf": 1,  # for debugging.
+            "hfun_d": hfun_d,  # using structure
+            "spsolver": 4,
+            "delta_min": g_tol
         }
 
     [X, F, hF[call], flag, xkin] = pdrs.pounders(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
