@@ -1,6 +1,5 @@
 from scipy.optimize import minimize
 import numpy as np
-import ipdb
 
 def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H):
 
@@ -51,7 +50,9 @@ def run_lbfgsb(hfun, hfun_d, Fx, G, H, L, U):
         for j in range(9):
             hftrial = obj(x0 - (beta ** (-j)) * g)
             if hftrial < hFx0:
-                Xsp = x0 - (beta ** (-j)) * g
-                mdec = hftrial - hFx0
+                out = minimize(obj, x0 - (beta ** (-j)) * g, method='L-BFGS-B', jac=jac, bounds=bounds)
+                Xsp = out.x
+                success = out.success
+                mdec = out.fun - hFx0
                 break
     return Xsp, mdec, success

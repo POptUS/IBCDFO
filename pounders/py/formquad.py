@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.linalg
+import ipdb
 
 from .phi2eval import phi2eval
 
@@ -99,6 +100,8 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
             Mdir = Q[:, mp:n].T  # Will be empty if mp=n
         if vf:  # Only needed to do validity check
             return [Mdir, mp, valid, G, H, Mind]
+
+
     # Collect additional points
     N = phi2eval(D[Mind]).T
 
@@ -109,7 +112,7 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     # Now we add points until we have np_max starting with the most recent ones
     i = nf - 1
     while mp < np_max or np_max == n + 1:
-        if Nd[i] <= Pars[1] and i not in Mind:
+        if Nd[i] <= Pars[1] and i not in Mind and np_max > n + 1:
             Ny = np.hstack((N, phi2eval(D[[i], :]).T))
             # Update QR
             D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
