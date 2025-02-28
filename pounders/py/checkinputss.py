@@ -110,7 +110,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         print("Error: must have Upp > Low")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    if np.min([np.min(X_0[xk_in, :] - Low), np.min(Upp - X_0[xk_in, :])]) < 0:
+    if np.min([np.min(X_0 - Low), np.min(Upp - X_0)]) < 0:
         print("Error: starting point outside of bounds (Low,Upp)")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
