@@ -21,9 +21,10 @@ def hfun(z):
     v1 = jnp.sqrt(d_init)
     v2 = jnp.sqrt(d_pert)
     v3 = (v1 - v2) ** 2
-    dphi = 1e-5  # dphi (and N) should probably be passed to hfun as optional arguments for more general CFI types
-    N = 6
-    res = (-4.0 / (N * dphi)**2) * jnp.sum(v3)
+    #dphi = 1e-5  # dphi (and N) should probably be passed to hfun as optional arguments for more general CFI types
+    #N = 4
+    #res = (-4.0 / (N * dphi)**2) * jnp.sum(v3)
+    res = -4.0 * jnp.sum(v3)
     return res
 
 
