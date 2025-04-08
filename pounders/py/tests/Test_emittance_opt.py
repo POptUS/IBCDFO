@@ -2,15 +2,17 @@ import numpy as np
 from ibcdfo.pounders import general_h_funs, pounders
 
 
-def call_beamline_simulation(x):
-    # In here, put your call to your simulation that takes in the
-    # parameters x and returns the three values used in the calculation of
+def call_beamline_simulation(X):
+    # In here, put your call to your simulation that takes in the parameters 
+    # x in rows of X and returns the three values used in the calculation of
     # emittance.
     # out = put_your_sim_call_here(x)
 
-    out = x.squeeze()[:3]  # This is not doing any beamline simulation!
+    X = np.atleast_2d(X) # Just to make life easier
 
-    assert len(out) == 3, "Incorrect output dimension"
+    out = np.zeros((X.shape[0],3)) # We will always have a (rows-in-X by 3) output
+    for i,x in enumerate(X): 
+        out[i] = x[:3]  # This is not doing any beamline simulation!
     return np.squeeze(out)
 
 

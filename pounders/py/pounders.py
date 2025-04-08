@@ -119,7 +119,7 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
             X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
             return X, F, flag, xkin
         if printf:
-            print("%4i    Initial point  %11.5e\n" % (nf, np.sum(F[nf, :] ** 2)))
+            print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf])))
     else:
         X = np.vstack((X0[0 : max(1, nfs), :], np.zeros((nfmax, n))))
         F = np.vstack((F0[0:nfs, :], np.zeros((nfmax, m))))
@@ -139,13 +139,17 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, npmax, Par, 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Par[2])
-            for i in range(int(min(n - mp, nfmax - (nf + 1)))):
+            inds_to_eval = np.arange(int(min(n - mp, nfmax - (nf + 1))))
+            nf_old = nf
+
+            for i in inds_to_eval:
                 nf += 1
                 X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
+
+            nf = nf_old
+            for i in inds_to_eval:
+                nf += 1
                 F[nf] = fun(X[nf])
-                if np.any(np.isnan(F[nf])):
-                    X, F, flag = prepare_outputs_before_return(X, F, nf, -3)
-                    return X, F, flag, xkin
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Geometry point  %11.5e\n" % (nf, Fs[nf]))
