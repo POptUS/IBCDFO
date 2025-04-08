@@ -139,17 +139,15 @@ def pounders(fun, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, prin
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xkin, npmax, Par, 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xkin], Mdir[0 : n - mp, :], L, U, delta, Par[2])
-            inds_to_eval = np.arange(int(min(n - mp, nfmax - (nf + 1))))
-            nf_old = nf
 
-            for i in inds_to_eval:
-                nf += 1
-                X[nf] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[i, :]))
+            k_new   = int(min(n - mp, nfmax - (nf + 1)))  # how many new geometry points (respecting nfmax)?
+            idx_new = nf + 1 + np.arange(k_new)  # absolute indices of these points 
 
-            nf = nf_old
-            for i in inds_to_eval:
+            X[idx_new] = np.minimum(U, np.maximum(L, X[xkin] + Mdir[:k_new, :]))
+            F[idx_new]  = fun(X[idx_new])
+
+            for i in range(k_new):
                 nf += 1
-                F[nf] = fun(X[nf])
                 Fs[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Geometry point  %11.5e\n" % (nf, Fs[nf]))
