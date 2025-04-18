@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import ipdb
-from .prepare_outputs_before_return_gradient import prepare_outputs_before_return
+from ibcdfo.pounders.prepare_outputs_before_return_gradient import prepare_outputs_before_return
 
 import poptus
 
@@ -77,7 +77,7 @@ def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=No
         def hfun(F):
             return np.sum(F**2)
 
-        from .general_h_funs import leastsquares as combinemodels
+        from ibcdfo.pounders.general_h_funs import leastsquares as combinemodels
 
     # choose your spsolver
     if spsolver == 2:

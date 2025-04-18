@@ -1,6 +1,7 @@
 from gradient_pounders import pouders
 import numpy as np
 import ipdb
+import poptus
 
 def test_rosenbrock(x, a, b):
 
@@ -39,5 +40,8 @@ delta = 1.0
 L = -np.inf * np.ones(n)
 U = np.inf * np.ones(n)
 
+# logger
+logger = poptus.StandardLogger(poptus.LOG_LEVEL_DEFAULT)
+
 # note that hfun and combinemodels are least squares BY DEFAULT (hence the Nones)
-X, F, J, flag, xkin = pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, printf=True, spsolver=2, hfun=None, combinemodels=None)
+X, F, J, flag, xkin = pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=None, combinemodels=None)
