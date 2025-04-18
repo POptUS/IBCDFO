@@ -368,7 +368,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
-                G, H = combinemodels(Cres, Gres, Hres)
+                if spsolver == 4:
+                    _, G = objective_for_lbfgsb(np.zeros(n), hfun, hfun_d, F[xk_in], Gres, Hres)
+                    H = np.zeros((n, n))
+                else:
+                    G, H = combinemodels(Cres, Gres, Hres)
                 # Evaluate model-improving points to pick best one
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions
