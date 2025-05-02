@@ -1,12 +1,12 @@
 from scipy.optimize import minimize
 import numpy as np
+import ipdb
 
 def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H):
 
     n, m = np.shape(G)
     My = np.zeros(m)
     Jy = np.zeros((n, m))
-    grad = np.zeros(n)
 
     yG = y @ G
 
@@ -14,10 +14,7 @@ def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H):
         My[i] = Fx[i] + yG[i] + 0.5 * y @ H[:, :, i] @ y.T
         Jy[:, i] = G[:, i] + H[:, :, i] @ y.T
 
-    for j in range(n):
-        _, grad[j] = hfun_d(My, Jy[j, :])
-
-    return hfun(My), grad
+    return hfun(My), hfun_d(My, Jy)
 
 
 def run_lbfgsb(hfun, hfun_d, Fx, G, H, L, U):
@@ -34,25 +31,39 @@ def run_lbfgsb(hfun, hfun_d, Fx, G, H, L, U):
     n, m = np.shape(G)
 
     x0 = np.zeros(n)
+    #x0 = np.random.uniform(L, U)
 
     hFx0 = obj(x0)
 
     bounds = [(L[i], U[i]) for i in range(n)]
-    out = minimize(obj, x0, method='L-BFGS-B', jac=jac, bounds=bounds)
+    options = {"gtol": 1e-8, "ftol": 1e-8}
+    out = minimize(obj, x0, method='L-BFGS-B', jac=jac, bounds=bounds, options=options)
     Xsp = out.x
     success = out.success
-    if np.linalg.norm(Xsp) > 0:
-        mdec = out.fun - hFx0
-    else:  # solver blew it, try backtracking
-        g = jac(x0)
-        beta = 10
-        mdec = 0  # gotta error if the loop below fails
-        for j in range(9):
-            hftrial = obj(x0 - (beta ** (-j)) * g)
-            if hftrial < hFx0:
-                out = minimize(obj, x0 - (beta ** (-j)) * g, method='L-BFGS-B', jac=jac, bounds=bounds)
-                Xsp = out.x
-                success = out.success
-                mdec = out.fun - hFx0
-                break
-    return Xsp, mdec, success
+    fval = obj(Xsp)
+    if np.linalg.norm(Xsp) > 0 and fval < hFx0:
+        mdec = fval - hFx0
+        return Xsp, mdec, success
+    else:
+        # try running LBFGS without the explicit gradient.
+        print("Need to do an LBFGS run without gradients because of gradient failure!")
+        out = minimize(obj, x0, method='L-BFGS-B', bounds=bounds, options=options)
+        success = out.success
+        Xsp = out.x
+        fval = obj(Xsp)
+        if np.linalg.norm(Xsp) > 0 and fval < hFx0:
+            mdec = out.fun - hFx0
+        else:  # solver blew it, try backtracking
+            print("Trying a backtrack now because LBFGS without gradients also blew it!")
+            g = jac(x0)
+            beta = 10
+            mdec = 0  # gotta error if the loop below fails
+            for j in range(9):
+                trial = x0 - (beta ** (-j)) * g
+                hftrial = obj(trial)
+                if hftrial < hFx0:
+                    success = out.success
+                    Xsp = trial - x0
+                    mdec = hftrial - hFx0
+                    break
+        return Xsp, mdec, success

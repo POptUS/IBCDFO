@@ -318,7 +318,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     print("eps project!")
 
             if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]):
-                ipdb.set_trace()
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
                 return X, F, hF, flag, xk_in
 
