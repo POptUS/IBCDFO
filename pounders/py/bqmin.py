@@ -1,22 +1,22 @@
 import numpy as np
 
 
-def bqmin(A, B, L, U):
+def bqmin(A, B, Low, Upp):
     """
-    bqmin(A,B,L,U) -> [X,f]
-      Minimizes the quadratic 0.5 * X.T @ A @ X + B subject to L<=X<=U using the
+    bqmin(A,B,Low,Upp) -> [X,f]
+      Minimizes the quadratic 0.5 * X.T @ A @ X + B subject to Low<=X<=Upp using the
       projected gradient method with a (semi) exact line search.
       This will one day be replaced by a more efficient solver.
       This approach is not recommended for n>100.
      --INPUTS-----------------------------------------------------------------
      A       [dbl] [n-by-n] (Symmetric) Hessian matrix format
      B       [dbl] [n-by-1] Gradient vector
-     L       [dbl] [1-by-n] Vector of lower bounds assumed to be nonpositive
-     U       [dbl] [1-by-n] Vector of upper bounds, must have U(j)>=0>=L(j)
+     Low       [dbl] [1-by-n] Vector of lower bounds assumed to be nonpositive
+     Upp       [dbl] [1-by-n] Vector of upper bounds, must have Upp(j)>=0>=Low(j)
      --OUTPUTS----------------------------------------------------------------
      X       [dbl] [n-by-1] Approximate solution
      f       [dbl] Function value at X
-    function [X,f] = bqmin(A,B,L,U)
+    function [X,f] = bqmin(A,B,Low,Upp)
      --INTERMEDIATE-----------------------------------------------------------
      G       [dbl] [n-by-1]  Gradient at X
      it      [dbl] Iteration counter
@@ -28,11 +28,11 @@ def bqmin(A, B, L, U):
     n = np.shape(A)[1]  # [int] Dimension (number of continuous variables)
     maxit = 5000  # [int] maximum number of iterations
     pgtol = 1e-13  # [dbl] tolerance on final projected gradient
-    # Initial point (assumed feasible by L <= 0 <= U)
+    # Initial point (assumed feasible by Low <= 0 <= Upp)
     X = np.zeros(n)
     f = X.T @ (0.5 * A @ X + B)
     G = A @ X + B
-    Projg = X - np.maximum(np.minimum(X - G, U), L)  # Projected gradient
+    Projg = X - np.maximum(np.minimum(X - G, Upp), Low)  # Projected gradient
     it = 0  # iteration counter
     while it < maxit and np.linalg.norm(Projg, 2) > pgtol:
         it += 1
@@ -45,7 +45,7 @@ def bqmin(A, B, L, U):
         X = X - t * Projg
         f = X.T @ (0.5 * A @ X + B)
         G = A @ X + B
-        Projg = X - np.maximum(np.minimum(X - G, U), L)
+        Projg = X - np.maximum(np.minimum(X - G, Upp), Low)
     # f has type array([[dbl]])
     # f = f[0][0]
     return [X, f]

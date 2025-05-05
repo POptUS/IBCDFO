@@ -22,7 +22,7 @@ def load_tests(loader, suite, _):
     pkg_tests = loader.discover(
         start_dir=str(start_dir),
         top_level_dir=str(start_dir),
-        pattern="Test*.py",
+        pattern="[Tt]est*.py",
     )
     suite.addTests(pkg_tests)
 
