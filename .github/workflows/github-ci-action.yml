@@ -1,4 +1,6 @@
 name: GitHub CI Action
+env:
+  CLONE_PATH: ${{ github.workspace }}
 on: ["push", "pull_request"]
 jobs:
   #####----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
@@ -19,8 +21,8 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Setup python with tox
-      run: ./.github/workflows/setup_tox_github_action.sh
+    - name: Setup Python with tox
+      run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
 
     ##-- Test Execution Step
     - name: Test ibcdfo python package
@@ -46,8 +48,8 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Setup python with tox
-      run: ./.github/workflows/setup_tox_github_action.sh
+    - name: Setup Python with tox
+      run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
 
     ##-- Run Coverage for All Packages
     # Coverage is full test suite run on local clone so that coveralls

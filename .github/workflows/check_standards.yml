@@ -20,11 +20,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Setup Python environment
-        run: |
-          $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+      - name: Setup Python with tox
+        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
       - name: Check coding standards
         run: |
           pushd $CLONE_PATH
-          tox -r -e check
+          tox -r -e format
           popd
