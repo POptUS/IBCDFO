@@ -1,0 +1,79 @@
+name: Measure Python Code Coverage
+env:
+  CLONE_PATH:               ${{ github.workspace }}
+  BENDFO_DATA_PATH:         ${{ github.workspace }}/BenDFO/data
+  PY_COV_FILE:              coverage_ibcdfo
+  PY_COV_XML_FILE:          cobertura_ibcdfo_py.xml
+  PY_COV_HTML_FILE:         htmlcov_ibcdfo_py
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
+  coverage_py:
+    strategy:
+      # We only need to measure coverage with a single test setup.  Ideally
+      # this will be the latest version of python supported.
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      # -- General Setup Steps
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # -- This also installs BenDFO, installs Minq, & sets them in PYTHONPATH
+      - name: Setup Python with tox
+        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+
+      # -- Run Coverage for All Python Packages
+      - name: Generate Python coverage reports
+        run: |
+          pushd $CLONE_PATH/ibcdfo_pypkg
+          COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage,report
+          mv $PY_COV_FILE $CLONE_PATH
+          mv $PY_COV_XML_FILE $CLONE_PATH
+          mv $PY_COV_HTML_FILE $CLONE_PATH
+          popd
+
+      # -- Publish as artifact for users and subsequent jobs
+      - name: Archive Python coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-coverage-results
+          path: |
+             ${{ env.PY_COV_FILE }}
+             ${{ env.PY_COV_XML_FILE }}
+             ${{ env.PY_COV_HTML_FILE }}
+
+  # ----- PUBLISH FULL CODE COVERAGE REPORT
+  publish:
+    needs: [coverage_py]
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Access Python coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: python-coverage-results
+          path: ${{ env.CLONE_PATH }}
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: |
+            ${{ env.CLONE_PATH }}/${{ env.PY_COV_XML_FILE }}
+          fail_ci_if_error: true

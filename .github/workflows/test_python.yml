@@ -1,0 +1,44 @@
+# ----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
+name: Test IBCDFO Python Package
+env:
+  CLONE_PATH: ${{ github.workspace }}
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test_ibcdfo:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # python-versions must be maintained consistent with associated setup.py
+      # and tox.ini configuration.
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # Failing with root cause not yet understood (Issue #168)
+          - os: macos-14
+            python-version: "3.9"
+          - os: macos-15
+            python-version: "3.9"
+    steps:
+    # -- General Setup Steps
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # -- This also installs BenDFO, installs Minq, & sets them in PYTHONPATH
+    - name: Setup Python with tox
+      run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+
+    # -- Test Execution Step
+    - name: Test IBCDFO Python package
+      run: |
+        pushd $CLONE_PATH/ibcdfo_pypkg
+        tox -r -e nocoverage
+        popd
