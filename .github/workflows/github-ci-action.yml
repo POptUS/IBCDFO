@@ -12,10 +12,10 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     ##-- General Setup Steps
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -39,10 +39,10 @@ jobs:
         python-version: ["3.12"]
     steps:
     ##-- General Setup Steps
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -67,7 +67,7 @@ jobs:
 
     ##-- Publish full coverage report as artifact
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage-results
         path: |
@@ -78,7 +78,7 @@ jobs:
     # These are pure python and don't depend on OS or python version used
     # for testing
     - name: Archive tested ibcdfo distributions
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tested-ibcdfo-packages
         path: |
