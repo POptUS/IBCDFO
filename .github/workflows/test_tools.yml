@@ -1,6 +1,7 @@
 name: Test repository tools
 env:
   CLONE_PATH: ${{ github.workspace }}
+  IBCDFO_PKG: ${{ github.workspace }}/ibcdfo_pypkg
   TOOLS_PATH: ${{ github.workspace }}/tools
 on:
   push:
@@ -25,7 +26,7 @@ jobs:
         run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
       - name: Build and install package
         run: |
-          pushd $CLONE_PATH
+          pushd $IBCDFO_PKG
           # Build universal wheel for testing
           python -m build --wheel
           python -m pip install dist/ibcdfo-*-py3-none-any.whl
