@@ -8,7 +8,7 @@
 SCRIPT_PATH=$(dirname -- "${BASH_SOURCE[0]}")
 IBCDFO_PYPKG=$(realpath $SCRIPT_PATH/../ibcdfo_pypkg)
 
-echo "Clean-up clone at $IBCDFO_PYPKG (y/n): "
+echo -n "Clean-up clone at $IBCDFO_PYPKG (y/n): "
 read do_cleaning
 if [[ "$do_cleaning" == "y" ]]; then
     rm -rf $IBCDFO_PYPKG/.tox
