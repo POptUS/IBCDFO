@@ -1,4 +1,4 @@
-name: Check Code Standard Adherence
+name: Check Python Code Standard Adherence
 env:
   CLONE_PATH: ${{ github.workspace }}
   TOOLS_PATH: ${{ github.workspace }}/tools
