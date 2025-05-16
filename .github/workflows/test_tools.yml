@@ -1,0 +1,36 @@
+name: Test repository tools
+env:
+  CLONE_PATH: ${{ github.workspace }}
+  TOOLS_PATH: ${{ github.workspace }}/tools
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test_tools:
+    strategy:
+      matrix:
+        os:             [ubuntu-latest]
+        python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Python with tox
+        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+      - name: Build and install package
+        run: |
+          pushd $CLONE_PATH
+          # Build universal wheel for testing
+          python -m build --wheel
+          python -m pip install dist/ibcdfo-*-py3-none-any.whl
+          popd
+          python -m pip list
+      - name: Use tools
+        run: |
+          $TOOLS_PATH/test_ibcdfo_python_installation.py
