@@ -38,13 +38,15 @@ def main():
     )
     VERBOSE_HELP = "Verbosity level of unittest logging"
     parser = argparse.ArgumentParser(
-        description=DESCRIPTION,
-        formatter_class=argparse.RawTextHelpFormatter
+        description=DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument(
-        "--verbose", "-v",
-        type=int, choices=VALID_VERBOSITY, default=DEFAULT_VERBOSITY,
-        help=VERBOSE_HELP
+        "--verbose",
+        "-v",
+        type=int,
+        choices=VALID_VERBOSITY,
+        default=DEFAULT_VERBOSITY,
+        help=VERBOSE_HELP,
     )
 
     # ----- GET COMMAND LINE ARGUMENTS

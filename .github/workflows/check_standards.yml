@@ -27,6 +27,9 @@ jobs:
         run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
 
       # -- Run scripts that run on full repository including packages
-      # The script uses tox internally
+      # The scripts uses tox internally
       - name: Check coding standards
-        run: $TOOLS_PATH/check_flake8_compliance.sh
+        run: |
+          $TOOLS_PATH/check_flake8_compliance.sh
+          echo " "
+          $TOOLS_PATH/format_with_black.sh
