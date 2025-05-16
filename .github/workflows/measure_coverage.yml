@@ -1,10 +1,11 @@
 name: Measure Python Code Coverage
 env:
-  CLONE_PATH:               ${{ github.workspace }}
-  BENDFO_DATA_PATH:         ${{ github.workspace }}/BenDFO/data
-  PY_COV_FILE:              coverage_ibcdfo
-  PY_COV_XML_FILE:          cobertura_ibcdfo_py.xml
-  PY_COV_HTML_FILE:         htmlcov_ibcdfo_py
+  CLONE_PATH:       ${{ github.workspace }}
+  BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
+  MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
+  PY_COV_FILE:      coverage_ibcdfo
+  PY_COV_XML_FILE:  cobertura_ibcdfo_py.xml
+  PY_COV_HTML_FILE: htmlcov_ibcdfo_py
 on:
   push:
     branches: [main, develop]
@@ -23,21 +24,29 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       # -- General Setup Steps
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout BenDFO repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/BenDFO
+          path: BenDFO
       - uses: actions/checkout@v4
-
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      # -- This also installs BenDFO, installs Minq, & sets them in PYTHONPATH
       - name: Setup Python with tox
         run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
 
       # -- Run Coverage for All Python Packages
       - name: Generate Python coverage reports
         run: |
+          echo "PYTHONPATH=$$BENDFO_PY_PATH:$MINQ5_PY_PATH" >> $GITHUB_ENV
           pushd $CLONE_PATH/ibcdfo_pypkg
+          # This downloads dfo.dat automatically
           COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage,report
           mv $PY_COV_FILE $CLONE_PATH
           mv $PY_COV_XML_FILE $CLONE_PATH

@@ -45,6 +45,9 @@ jobs:
           python -m pip list
       - name: Use tools
         run: |
-          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
-          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+          echo "PYTHONPATH=$$BENDFO_PY_PATH:$MINQ5_PY_PATH" >> $GITHUB_ENV
+          # TODO: If we ask people to install BenDFO and to add it to
+          # PYTHONPATH, we shouldn't be asking them to copy across data from
+          # that clone.
+          cp $BENDFO_DATA_PATH/dfo.dat .
           $TOOLS_PATH/test_ibcdfo_python_installation.py
