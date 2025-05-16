@@ -44,7 +44,8 @@ jobs:
       # -- Run Coverage for All Python Packages
       - name: Generate Python coverage reports
         run: |
-          echo "PYTHONPATH=$$BENDFO_PY_PATH:$MINQ5_PY_PATH" >> $GITHUB_ENV
+          PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           pushd $CLONE_PATH/ibcdfo_pypkg
           # This downloads dfo.dat automatically
           COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage,report

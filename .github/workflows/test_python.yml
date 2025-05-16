@@ -46,7 +46,8 @@ jobs:
     # -- Run test suite through installation
     - name: Test IBCDFO Python package
       run: |
-        echo "PYTHONPATH=$$BENDFO_PY_PATH:$MINQ5_PY_PATH" >> $GITHUB_ENV
+        PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+        echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
         pushd $CLONE_PATH/ibcdfo_pypkg
         # This downloads dfo.dat automatically
         tox -r -e nocoverage
