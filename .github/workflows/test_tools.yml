@@ -46,6 +46,8 @@ jobs:
           python -m pip list
 
       # -- Run each tool individually
+      # The check_standards action already uses check_flake8_compliance.sh,
+      # so we don't test it here as well.
       - name: Use tools
         run: |
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH

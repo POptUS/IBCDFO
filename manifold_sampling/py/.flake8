@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 80
+ignore =
+    # E203 is not PEP 8 compliant. https://github.com/PyCQA/pycodestyle/issues/373
+    E203
+    # TODO: We let these slide for now.  But these should likely be cleaned up a
+    # different branch at some time.
+    E501
+per-file-ignores =
+    __init__.py:F401
