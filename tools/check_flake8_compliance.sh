@@ -28,12 +28,12 @@ popd &> /dev/null
 
 # manually check Python code *not* included in a package directly.
 for dir in "${FOLDERS[@]}"; do
-    echo
+    echo " "
     echo "Check Python code in $dir/* ..."
     pushd $dir &> /dev/null   || exit 1
     flake8 --config=./.flake8 || exit $?
     popd &> /dev/null
 done
-echo
+echo " "
 
 popd &> /dev/null

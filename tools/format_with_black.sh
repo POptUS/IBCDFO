@@ -26,12 +26,12 @@ popd &> /dev/null
 
 # manually format Python code *not* included in a package.
 for dir in "${FOLDERS[@]}"; do
-    echo
+    echo " "
     echo "Format Python code in $dir/* ..."
     pushd $dir &> /dev/null     || exit 1
     black --config=./.black .   || exit $?
     popd &> /dev/null
 done
-echo
+echo " "
 
 popd &> /dev/null
