@@ -4,6 +4,7 @@ env:
   CLONE_PATH:     ${{ github.workspace }}
   BENDFO_PY_PATH: ${{ github.workspace }}/BenDFO/py
   MINQ5_PY_PATH:  ${{ github.workspace }}/minq/py/minq5
+  IBCDFO_PKG:     ${{ github.workspace }}/ibcdfo_pypkg
 on:
   push:
     branches: [main, develop]
@@ -12,7 +13,6 @@ on:
 
 jobs:
   test_ibcdfo:
-    runs-on: ${{ matrix.os }}
     strategy:
       # python-versions must be maintained consistent with associated setup.py
       # and tox.ini configuration.
@@ -25,6 +25,7 @@ jobs:
             python-version: "3.9"
           - os: macos-15
             python-version: "3.9"
+    runs-on: ${{ matrix.os }}
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
@@ -48,7 +49,7 @@ jobs:
       run: |
         export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
         echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-        pushd $CLONE_PATH/ibcdfo_pypkg
+        pushd $IBCDFO_PKG
         # This downloads dfo.dat automatically
         tox -r -e nocoverage
         popd
