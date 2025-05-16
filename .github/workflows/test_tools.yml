@@ -45,5 +45,6 @@ jobs:
           python -m pip list
       - name: Use tools
         run: |
-          PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           $TOOLS_PATH/test_ibcdfo_python_installation.py
