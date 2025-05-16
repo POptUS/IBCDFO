@@ -1,8 +1,11 @@
 name: Test repository tools
 env:
-  CLONE_PATH: ${{ github.workspace }}
-  IBCDFO_PKG: ${{ github.workspace }}/ibcdfo_pypkg
-  TOOLS_PATH: ${{ github.workspace }}/tools
+  CLONE_PATH:       ${{ github.workspace }}
+  BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
+  BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
+  MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
+  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
+  TOOLS_PATH:       ${{ github.workspace }}/tools
 on:
   push:
     branches: [main, develop]
@@ -17,7 +20,15 @@ jobs:
         python-version: ["3.13"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout BenDFO repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/BenDFO
+          path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -34,4 +45,5 @@ jobs:
           python -m pip list
       - name: Use tools
         run: |
+          PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           $TOOLS_PATH/test_ibcdfo_python_installation.py

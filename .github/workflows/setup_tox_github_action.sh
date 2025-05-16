@@ -37,12 +37,15 @@ echo " "
 # TODO: It would be better to use the MINQ submodule in the IBCDFO clone to
 # confirm that the submodule is working properly and to use the official minq
 # hash assigned in the submodule.
-git clone https://github.com/POptUS/BenDFO.git
-git clone https://github.com/POptUS/MINQ.git
-pushd BenDFO/py/
-export PYTHONPATH="$PYTHONPATH:$(pwd)"
-popd
-pushd MINQ/py/minq5/
-export PYTHONPATH="$PYTHONPATH:$(pwd)"
-popd
-echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+#git clone https://github.com/POptUS/BenDFO.git
+#git clone https://github.com/POptUS/MINQ.git
+#pushd BenDFO/py/
+#export PYTHONPATH="$PYTHONPATH:$(pwd)"
+#popd
+#pushd BenDFO/data/
+#export PYTHONPATH="$PYTHONPATH:$(pwd)"
+#popd
+#pushd MINQ/py/minq5/
+#export PYTHONPATH="$PYTHONPATH:$(pwd)"
+#popd
+#echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
