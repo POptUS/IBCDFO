@@ -1,6 +1,8 @@
 import unittest
 
-from ibcdfo import load_tests
+from ibcdfo import (
+    load_tests
+)
 
 
 def test(verbosity=1):
