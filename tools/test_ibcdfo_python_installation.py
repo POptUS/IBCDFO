@@ -4,6 +4,7 @@
 Run the script with -h to obtain more information regarding the script.
 """
 
+import os
 import sys
 import inspect
 import argparse
@@ -17,13 +18,17 @@ _FAILURE = 1
 _SUCCESS = 0
 
 
+def log_and_abort(msg):
+    print()
+    print(f"ERROR: {msg}")
+    print()
+    sys.exit(_FAILURE)
+
+
 try:
     import ibcdfo
 except ImportError as error:
-    print()
-    print(f"ERROR: {error.name} Python package not installed")
-    print()
-    exit(_FAILURE)
+    log_and_abort(f"{error.name} Python package not installed")
 
 
 def main():
@@ -69,6 +74,20 @@ def main():
         print(f"\t{dependence}")
     print("Location: {}".format(location))
     print()
+
+    if "PYTHONPATH" not in os.environ:
+        log_and_abort("Please setup PYTHONPATH as required by package")
+
+    print("PYTHONPATH setting")
+    print("-" * 45)
+    for item in os.environ["PYTHONPATH"].split(":"):
+        print(item)
+    print()
+
+    dfo_dat_path = Path.cwd().joinpath("dfo.dat")
+    if not dfo_dat_path.is_file():
+        log_and_abort("Please install dfo.dat in current working directory")
+
     sys.stdout.flush()
 
     # ----- RUN FULL TEST SUITE
@@ -76,4 +95,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

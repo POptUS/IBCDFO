@@ -3,6 +3,9 @@
 #
 # Format all code to match black's uncompromising tastes.
 #
+# NOTE: This will potentially alter Python code in your local clone.  Avoid
+# using this if you have uncommitted changes or untracked files.
+#
 # This returns exit codes that are compatible with the use of this
 # script in CI jobs.
 #
@@ -14,7 +17,7 @@ CLONE_PATH=$SCRIPT_PATH/..
 # all source code that is ultimately included in the package.
 declare -a FOLDERS=("tools")
 
-pushd $CLONE_PATH
+pushd $CLONE_PATH &> /dev/null  || exit 1
 
 pushd ibcdfo_pypkg &> /dev/null || exit 1
 # Let Python package format its code.
