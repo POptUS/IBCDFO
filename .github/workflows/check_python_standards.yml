@@ -17,6 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       # -- General Setup Steps
+      # No need to clone minq
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}

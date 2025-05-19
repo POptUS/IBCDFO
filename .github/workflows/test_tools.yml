@@ -21,6 +21,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       # -- General Setup Steps
+      # This action requires minq
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v4
         with:
@@ -46,8 +47,10 @@ jobs:
           python -m pip list
 
       # -- Run each tool individually
-      # The check_standards action already uses check_flake8_compliance.sh,
-      # so we don't test it here as well.
+      # The check_standards action already uses
+      # * check_flake8_compliance.sh and
+      # * format_with_black.sh
+      # so we don't test them here as well.
       - name: Use tools
         run: |
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH

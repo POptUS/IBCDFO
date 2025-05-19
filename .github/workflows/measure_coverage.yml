@@ -25,6 +25,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       # -- General Setup Steps
+      # This action requires minq
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v4
         with:
@@ -42,12 +43,12 @@ jobs:
         run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
 
       # -- Run Coverage for All Python Packages
+      # The tox task downloads dfo.dat automatically
       - name: Generate Python coverage reports
         run: |
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           pushd $IBCDFO_PKG
-          # This downloads dfo.dat automatically
           COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage,report
           mv $PY_COV_FILE $CLONE_PATH
           mv $PY_COV_XML_FILE $CLONE_PATH
@@ -73,13 +74,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Access Python coverage reports
         uses: actions/download-artifact@v4
         with:
           name: python-coverage-results
           path: ${{ env.CLONE_PATH }}
-
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v4
         with:
