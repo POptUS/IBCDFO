@@ -8,6 +8,7 @@ from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+
 def _default_model_par_values(n):
     par = np.zeros(4)
     par[0] = np.sqrt(n)
