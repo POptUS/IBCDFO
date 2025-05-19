@@ -25,6 +25,8 @@ python -m pip install --upgrade setuptools
 python -m pip install build
 python -m pip install tox
 echo " "
+which tox
+echo " "
 python --version
 tox --version
 echo " "
