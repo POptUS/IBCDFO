@@ -4,9 +4,7 @@ import numpy as np
 
 from .bmpts import bmpts
 from .bqmin import bqmin
-from .checkinputss import (
-    checkinputss
-)
+from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
