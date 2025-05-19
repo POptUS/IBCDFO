@@ -5,7 +5,6 @@ from setuptools import setup, find_packages
 
 _PKG_ROOT = Path(__file__).resolve().parent
 
-
 def readme_md():
     fname = _PKG_ROOT.joinpath("README.md")
     with codecs.open(fname, encoding="utf8") as fptr:

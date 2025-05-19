@@ -2,7 +2,6 @@ import unittest
 
 from ibcdfo import load_tests
 
-
 def test(verbosity=1):
     """
     Run the full set of tests in the package with results presented to caller
