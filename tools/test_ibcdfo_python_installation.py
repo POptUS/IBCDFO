@@ -10,9 +10,7 @@ import inspect
 import argparse
 import importlib
 
-from pathlib import (
-    Path
-)
+from pathlib import Path
 
 # ----- HARDCODED VALUES
 # Exit codes so that this can be used in CI build server
