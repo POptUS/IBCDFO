@@ -14,6 +14,7 @@ if [[ "$do_cleaning" == "y" ]]; then
     rm -rf $IBCDFO_PYPKG/.tox
     rm -rf $IBCDFO_PYPKG/dist
     rm -rf $IBCDFO_PYPKG/build
+    rm -rf $IBCDFO_PYPKG/src/ibcdfo.egg-info
     rm -f  $IBCDFO_PYPKG/.coverage_ibcdfo
     rm -f  $IBCDFO_PYPKG/cobertura_ibcdfo.xml
     rm -rf $IBCDFO_PYPKG/htmlcov_ibcdfo

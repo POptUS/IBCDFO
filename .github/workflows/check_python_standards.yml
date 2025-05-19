@@ -33,4 +33,7 @@ jobs:
         run: |
           $TOOLS_PATH/check_flake8_compliance.sh
           echo " "
-          $TOOLS_PATH/format_with_black.sh
+          # Having black do reformatting in action results in no change to the
+          # files in the repo and no errors are reported.  With this flag, we
+          # print useful info and raise an error when changes need to be made.
+          $TOOLS_PATH/format_with_black.sh --diff

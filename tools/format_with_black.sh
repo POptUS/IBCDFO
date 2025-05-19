@@ -17,22 +17,41 @@ CLONE_PATH=$SCRIPT_PATH/..
 # all source code that is ultimately included in the package.
 declare -a FOLDERS=("tools")
 
-pushd $CLONE_PATH &> /dev/null  || exit 1
+if   [[ $# -eq 0 ]]; then
+    tox_task=format
+    flags=
+elif [[ $# -eq 1 ]]; then
+    if [[ "$1" != "--diff" ]]; then
+        echo
+        echo "Only optional argument allowed is --diff"
+        echo
+        exit 1
+    fi
+    tox_task=format_safe
+    flags="--check --diff"
+else
+    echo
+    echo "No or one command line arguments please"
+    echo
+    exit 1
+fi
 
-pushd ibcdfo_pypkg &> /dev/null || exit 1
+pushd $CLONE_PATH &> /dev/null       || exit 1
+
+pushd ibcdfo_pypkg &> /dev/null      || exit 1
 # Let Python package format its code.
-tox -r -e format                || exit $?
+tox -r -e $tox_task                  || exit $?
 
 # Load virtual env so that black is available and ...
-. ./.tox/format/bin/activate    || exit $?
+. ./.tox/${tox_task}/bin/activate    || exit $?
 popd &> /dev/null
 
 # manually format Python code *not* included in a package.
 for dir in "${FOLDERS[@]}"; do
     echo " "
     echo "Format Python code in $dir/* ..."
-    pushd $dir &> /dev/null     || exit 1
-    black --config=./.black .   || exit $?
+    pushd $dir &> /dev/null          || exit 1
+    black --config=./.black . $flags || exit $?
     popd &> /dev/null
 done
 echo " "
