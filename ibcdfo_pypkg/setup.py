@@ -1,7 +1,9 @@
 import codecs
 from pathlib import Path
 
-from setuptools import setup
+from setuptools import (
+    setup, find_packages
+)
 
 _PKG_ROOT = Path(__file__).resolve().parent
 
@@ -45,6 +47,7 @@ setup(
     author_email="jmlarson@anl.gov",
     maintainer="Jeffrey Larson",
     maintainer_email="jmlarson@anl.gov",
+    packages=find_packages(where="src"),
     package_dir={"": "src"},
     package_data=package_data,
     url="https://github.com/POptUS/IBCDFO",
