@@ -51,6 +51,7 @@ from .choose_generator_set import choose_generator_set
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
     # Deduce p from evaluating Ffun at x0
     try:
