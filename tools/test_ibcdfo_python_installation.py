@@ -17,6 +17,7 @@ from pathlib import Path
 _FAILURE = 1
 _SUCCESS = 0
 
+
 def log_and_abort(msg):
     print()
     print(f"ERROR: {msg}")
