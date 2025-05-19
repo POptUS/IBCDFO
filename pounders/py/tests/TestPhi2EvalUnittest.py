@@ -13,4 +13,5 @@ class TestPhi2EvalUnittest(unittest.TestCase):
         T[2, 5] = 0.5
 
         P = pdrs.phi2eval(D)
+        self.assertTrue(False)
         self.assertTrue(np.all(P == T))
