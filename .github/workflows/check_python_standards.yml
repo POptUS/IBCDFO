@@ -1,0 +1,39 @@
+name: Check Python Code Standard Adherence
+env:
+  CLONE_PATH: ${{ github.workspace }}
+  TOOLS_PATH: ${{ github.workspace }}/tools
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  check_standards:
+    strategy:
+      matrix:
+        os:             [ubuntu-latest]
+        python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      # -- General Setup Steps
+      # No need to clone minq
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Python with tox
+        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+
+      # -- Run scripts that run on full repository including packages
+      # The scripts uses tox internally
+      - name: Check coding standards
+        run: |
+          $TOOLS_PATH/check_flake8_compliance.sh
+          echo " "
+          # Having black do reformatting in action results in no change to the
+          # files in the repo and no errors are reported.  With this flag, we
+          # print useful info and raise an error when changes need to be made.
+          $TOOLS_PATH/format_with_black.sh --diff

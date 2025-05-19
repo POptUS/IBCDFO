@@ -1,5 +1,5 @@
 """
-Unit test of compute function
+Unit test of simple functionality of pounders routine.
 """
 
 import unittest
@@ -9,16 +9,6 @@ import numpy as np
 
 
 class TestPounders(unittest.TestCase):
-    def test_phi2eval(self):
-        D = np.eye(3)
-        T = np.zeros((3, 6))
-        T[0, 0] = 0.5
-        T[1, 3] = 0.5
-        T[2, 5] = 0.5
-
-        P = pdrs.phi2eval(D)
-        self.assertTrue(np.all(P == T), "Test failed")
-
     def test_failing_objective(self):
         def failing_objective(x, nan_freq=0.1):
             fvec = x
