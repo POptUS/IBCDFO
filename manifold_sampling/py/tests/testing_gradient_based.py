@@ -6,7 +6,7 @@ import numpy as np
 import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling.h_examples import pw_maximum_squared
+from ibcdfo.manifold_sampling.h_examples import one_norm, pw_maximum_squared
 from ibcdfo.manifold_sampling.manifold_sampling_primal_with_gradients import manifold_sampling_primal_with_gradients
 
 if not os.path.exists("msp_benchmark_results"):
@@ -15,11 +15,11 @@ if not os.path.exists("msp_benchmark_results"):
 dfo = np.loadtxt("dfo.dat")
 
 Results = {}
-probs_to_solve = np.arange(53)
+probs_to_solve = [6] #np.arange(53)
 
-subprob_switch = "quadprog"
+subprob_switch = "linprog"
 
-hfuns = [pw_maximum_squared]
+hfuns = [one_norm]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
@@ -40,8 +40,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return np.squeeze(fvec), J
 
     for i, hfun in enumerate(hfuns):
-
-        X, F, Grad, h, xkin, flag = manifold_sampling_primal_with_gradients(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+        X, F, Grad, h, nf, xkin, flag = manifold_sampling_primal_with_gradients(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch, printf=True)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
