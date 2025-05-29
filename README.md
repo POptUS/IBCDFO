@@ -7,7 +7,7 @@ Interpolation-Based Composite Derivative-Free Optimization
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Coverage Status](https://coveralls.io/repos/github/POptUS/IBCDFO/badge.svg?branch=main)](https://coveralls.io/github/POptUS/IBCDFO?branch=main)
+[![Coverage Status](https://codecov.io/gh/POptUS/IBCDFO/graph/badge.svg?token=D49I3TI8W2)](https://codecov.io/gh/POptUS/IBCDFO)
 [![Continuous Integration](https://github.com/POptUS/IBCDFO/workflows/IBCDFO-CI/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions)
 
 This page contains source code for interpolation-based optimization methods for
