@@ -87,7 +87,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             duals_g = -1.0 * res.ineqlin.marginals
             duals_u = -1.0 * res.upper.marginals[1:]
             duals_l = res.lower.marginals[1:]
-
+            #ipdb.set_trace()
             # # Prepare your data for MATLAB. MATLAB expects column-major order,
             # # and the MATLAB Engine API for Python requires MATLAB types for some data
             # c_matlab = matlab.double(ff.flatten().tolist())
@@ -148,7 +148,11 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     lambda_star[cols] = duals_g
 
     s = x[1:]
-    tau = max(-np.expand_dims(bk, 1) + np.dot(G_k.T, s)) + 0.5 * np.dot(s.T, np.dot(H, s))
+    if subprob_switch == "quadprog":
+        tau = max(-np.expand_dims(bk, 1) + np.dot(G_k.T, s)) + 0.5 * np.dot(s.T, np.dot(H, s))
+    elif subprob_switch == "linprog":
+        tau = max(-bk + np.dot(G_k.T, s)) + 0.5 * np.dot(s.T, np.dot(H, s))
+
     if tau > 0:
         tau = 0
         s = np.zeros(n)
