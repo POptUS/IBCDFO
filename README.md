@@ -9,7 +9,6 @@ Interpolation-Based Composite Derivative-Free Optimization
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Coverage Status](https://codecov.io/gh/POptUS/IBCDFO/graph/badge.svg?token=D49I3TI8W2)](https://codecov.io/gh/POptUS/IBCDFO)
 
-Python actions
 [![Standards](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml)
 
 This page contains source code for interpolation-based optimization methods for
