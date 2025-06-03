@@ -107,6 +107,10 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
             G_k = Gres @ D_k
+
+            if G_k.shape[1] == 3:
+                import ipdb; ipdb.set_trace(context=21)
+
             beta = np.maximum(0, f_bar - h[xkin])
 
             # Line 6: Choose Hessians (in this code: a nontrivial master model Hessian!)
