@@ -46,6 +46,9 @@
 import numpy as np
 from ibcdfo.pounders import checkinputss
 import ipdb
+import csv
+import os
+import subprocess
 
 from .build_p_models import build_p_models
 from .call_user_scripts_with_gradients import call_user_scripts
@@ -121,7 +124,9 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             Low = np.maximum(L - X[xkin], -delta)
             Upp = np.minimum(U - X[xkin], delta)
 
-            s_k_H = solve_primal(H_K, G_k, f_bar, beta, h[xkin], Low, Upp)
+            H_for_each_manifold = np.zeros((G_k.shape[1],n,n))
+
+            s_k_H = solve_primal(H_for_each_manifold, G_k, f_bar, beta, h[xkin], Low, Upp)
 
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch, eng)
             if lp_fail_flag:
@@ -211,10 +216,13 @@ def solve_primal(H, G, f_bar, beta, f_x_k, L, U):
     gams_file = 'solve_wanping_problem'
     devnull = open(os.devnull, 'w')
 
+    os.remove("s.out")
     p = subprocess.call(['gams', gams_file + '.gms', 'lo=2'], cwd='./', stdout=devnull)
     assert p == 0, "Error in GAMS call"
 
-    s = np.loadtxt("results.csv", delimiter=',') 
+    s = np.loadtxt("s.out") 
+    s = np.maximum(s,L)
+    s = np.minimum(s,U)
 
     return s
 
