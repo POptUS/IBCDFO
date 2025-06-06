@@ -194,6 +194,11 @@ def save_array_to_csv(arr, filename):
             writer.writerow([str(i) for i in idx] + [val])
 
 def solve_primal(H, G, f_bar, beta, f_x_k, L, U): 
+    N, K = np.shape(G)
+
+    with open("sets.inc", "w") as f:
+        f.write(f"SET N /0 * {N-1}/;\n")
+        f.write(f"SET K /0 * {K-1}/;\n")
 
     save_array_to_csv(H, "H.csv")
     save_array_to_csv(G, "G.csv")
