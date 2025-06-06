@@ -108,9 +108,6 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
             G_k = Gres @ D_k
 
-            if G_k.shape[1] == 3:
-                import ipdb; ipdb.set_trace(context=21)
-
             beta = np.maximum(0, f_bar - h[xkin])
 
             # Line 6: Choose Hessians (in this code: a nontrivial master model Hessian!)
@@ -123,6 +120,9 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             # Line 7: Find a candidate s_k by solving QP
             Low = np.maximum(L - X[xkin], -delta)
             Upp = np.minimum(U - X[xkin], delta)
+
+            s_k_H = solve_primal(H_K, G_k, f_bar, beta, h[xkin], Low, Upp)
+
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch, eng)
             if lp_fail_flag:
                 return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
@@ -184,3 +184,35 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
         return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
     else:
         return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, chi_k)
+
+
+
+def save_array_to_csv(arr, filename):
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
+        for idx, val in np.ndenumerate(arr):
+            writer.writerow([str(i) for i in idx] + [val])
+
+def solve_primal(H, G, f_bar, beta, f_x_k, L, U): 
+
+    save_array_to_csv(H, "H.csv")
+    save_array_to_csv(G, "G.csv")
+    save_array_to_csv(f_bar, "f_bar.csv")
+    save_array_to_csv(beta, "beta.csv")
+    save_array_to_csv(f_x_k, "f_x_k.csv")
+    save_array_to_csv(L, "L.csv")
+    save_array_to_csv(U, "U.csv")
+
+    gams_file = 'solve_wanping_problem'
+    devnull = open(os.devnull, 'w')
+
+    p = subprocess.call(['gams', gams_file + '.gms', 'lo=2'], cwd='./', stdout=devnull)
+    assert p == 0, "Error in GAMS call"
+
+    s = np.loadtxt("results.csv", delimiter=',') 
+
+    return s
+
+
+
+
