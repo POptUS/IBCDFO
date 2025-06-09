@@ -6,7 +6,8 @@ function [X, F, flag, xk_in] = ...
 
 if ~exist('hfun', 'var')
     % Use least-squares hfun by default
-    addpath('../general_h_funs/');
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    addpath(fullfile(here_path, 'general_h_funs'));
     hfun = @(F)sum(F.^2);
     combinemodels = @leastsquares;
 end
@@ -16,6 +17,17 @@ end
 if ~exist('printf', 'var')
     printf = 0; % Don't print by default
 end
+
+if     spsolver == 2 % Arnold Neumaier's minq5
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    minq_path = fullfile(here_path, '..', '..', 'minq');
+    addpath(fullfile(minq_path, 'm', 'minq5'));
+elseif spsolver == 3 % Arnold Neumaier's minq8
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    minq_path = fullfile(here_path, '..', '..', 'minq');
+    addpath(fullfile(minq_path, 'm', 'minq8'));
+end
+
 % 0. Check inputs
 [flag, X0, np_max, F0, Low, Upp] = ...
     checkinputss(fun, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp);
