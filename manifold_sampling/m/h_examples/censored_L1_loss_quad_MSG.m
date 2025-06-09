@@ -77,8 +77,8 @@ if nargin == 1
         grads = cell2mat([g{:}])';
         hashes_as_mat = cell2mat([H{:}]);
     else
-        grads = cell2mat(allcomb(g{:}))';  % Can get this here: https://www.mathworks.com/matlabcentral/fileexchange/10064-allcomb-varargin-
-        hashes_as_mat = cell2mat(allcomb(H{:}));
+        grads = cell2mat(product_of_cells(g{:}))';
+        hashes_as_mat = cell2mat(product_of_cells(H{:}));
     end
 
     b = size(hashes_as_mat, 1);
