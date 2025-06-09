@@ -23,6 +23,8 @@ jobs:
           # TEMPORARY: POUNDERs didn't use nf_max evaluations
           - os: macos-14
             matlab-release: "R2024a"
+          - os: macos-15
+            matlab-release: "R2023b"
     runs-on: ${{ matrix.os }}
     steps:
     # -- General Setup Steps
