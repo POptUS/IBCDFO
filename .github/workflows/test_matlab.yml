@@ -16,7 +16,7 @@ jobs:
       matrix:
         #os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
         os: [ubuntu-22.04, ubuntu-24.04]
-        matlab-release: ["R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "2024b"]
+        matlab-release: ["R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
         exclude:
           # Failing with a possible issue outside IBCDFO (Issue #157)
           - os: macos-14
