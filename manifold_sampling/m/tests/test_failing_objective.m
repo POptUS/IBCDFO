@@ -4,6 +4,9 @@
 
 function [] = test_failing_objective()
 
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+
 nfmax = 1000;
 n = 3;
 xs = [10; 20; 30];
@@ -25,3 +28,5 @@ assert(flag == -1, "Should have failed");
 objective = @(x) x;
 [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, objective, X0, [L 1], U, nfmax, 'linprog');
 assert(flag == -1, "Should have failed");
+
+path(oldpath);

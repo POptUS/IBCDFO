@@ -1,6 +1,17 @@
 % This wrapper tests various algorithms against the Benchmark functions from the
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
+%
+% To run this test, you must first install a BenDFO clone and add
+%    /path/to/BenDFO/data
+%    /path/to/BenDFO/m
+% to the MATLAB path.
+%
+
 function [] = benchmark_manifold_sampling()
+
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+addpath(fullfile(here_path, '..', 'h_examples'));
 
 global C D Qs zs cs
 nfmax = 100;
@@ -69,6 +80,8 @@ for row = [2, 1, 7, 8, 43, 44, 45]
     end
 end
 save(filename, 'Results');
+
+path(oldpath);
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)
