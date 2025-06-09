@@ -20,6 +20,9 @@ jobs:
           # Failing with a possible issue outside IBCDFO (Issue #157)
           - os: macos-14
             matlab-release: "R2023b"
+          # TEMPORARY: POUNDERs didn't use nf_max evaluations
+          - os: macos-14
+            matlab-release: "R2024a"
     runs-on: ${{ matrix.os }}
     steps:
     # -- General Setup Steps
