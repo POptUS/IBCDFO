@@ -63,7 +63,7 @@ upper
 ;
 
 objective(K)..  obj_val =g= (f_bar(K) + sum(N, G(N,K)*s(N)) - beta(K)) + 0.5 * sum((N,M), s(N)*H(K,N,M)*s(M)) - f_x_k('0');
-lower(N).. L(N) =g= s(N);
+lower(N).. L(N) =l= s(N);
 upper(N).. s(N) =l= U(N);
 
 
