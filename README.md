@@ -12,6 +12,7 @@ Interpolation-Based Composite Derivative-Free Optimization
 [![Test repository tools](https://github.com/POptUS/IBCDFO/actions/workflows/test_tools.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_tools.yml)
 
 [![Check MATLAB Code Standard Adherence](https://github.com/POptUS/IBCDFO/actions/workflows/check_matlab_standards.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/check_matlab_standards.yml)
+[![Test IBCDFO MATLAB Code](https://github.com/POptUS/IBCDFO/actions/workflows/test_matlab.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_matlab.yml)
 
 [![Check Python Code Standard Adherence](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml)
 [![Test IBCDFO Python Package](https://github.com/POptUS/IBCDFO/actions/workflows/test_python.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_python.yml)
@@ -62,6 +63,8 @@ submodules simultaneously, run
 
 ``git pull --recurse-submodules``.
 
+### Python
+
 The `ibcdfo` python package can be installed by setting up a terminal with the
 target python and pip pair and executing
 ```
@@ -80,6 +83,25 @@ command.  The installation can be partially tested by executing
 ```
 where the output `<version>` should be identical to the value used during
 installation.
+
+## Testing
+
+### MATLAB
+In addition to completing the general installation steps, users must have an
+up-to-date [BenDFO](https://github.com/POptUS/BenDFO) clone installed and add
+
+    /path/to/BenDFO/data
+    /path/to/BenDFO/m
+
+to their MATLAB path.  To run tests,
+
+   1. open MATLAB in the same folder as this file and
+   2. execute `runtests("IncludeSubfolders", true)` from the prompt to run just
+      the tests or
+   3. execute `runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)`
+      from the prompt to run the tests and generate a code coverage report.
+
+The test output indicates where the HTML-format code coverage report can be found.
 
 ## License
 
