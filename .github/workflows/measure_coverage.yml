@@ -1,4 +1,4 @@
-name: Measure Python & MATLAB Code Coverage
+name: Measure Code Coverage
 env:
   CLONE_PATH:               ${{ github.workspace }}
   BENDFO_M_PATH:            ${{ github.workspace }}/BenDFO/m
