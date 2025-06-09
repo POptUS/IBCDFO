@@ -21,6 +21,8 @@ jobs:
           - os: macos-14
             matlab-release: "R2023b"
           # TEMPORARY: POUNDERs didn't use nf_max evaluations
+          - os: macos-13
+            matlab-release: "R2022b"
           - os: macos-14
             matlab-release: "R2024a"
           - os: macos-15
