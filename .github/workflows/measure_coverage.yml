@@ -1,12 +1,20 @@
-name: Measure Python Code Coverage
+name: Measure Python & MATLAB Code Coverage
 env:
-  CLONE_PATH:       ${{ github.workspace }}
-  BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
-  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
-  PY_COV_FILE:      coverage_ibcdfo
-  PY_COV_XML_FILE:  cobertura_ibcdfo_py.xml
-  PY_COV_HTML_FILE: htmlcov_ibcdfo_py
+  CLONE_PATH:               ${{ github.workspace }}
+  BENDFO_M_PATH:            ${{ github.workspace }}/BenDFO/m
+  BENDFO_DATA_PATH:         ${{ github.workspace }}/BenDFO/data
+  POUNDERS_M_PATH:          ${{ github.workspace }}/pounders/m
+  MSAMP_M_PATH:             ${{ github.workspace }}/manifold_sampling/m
+  BENDFO_PY_PATH:           ${{ github.workspace }}/BenDFO/py
+  MINQ5_PY_PATH:            ${{ github.workspace }}/minq/py/minq5
+  IBCDFO_PKG:               ${{ github.workspace }}/ibcdfo_pypkg
+  PY_COV_FILE:              coverage_ibcdfo
+  PY_COV_XML_FILE:          cobertura_ibcdfo_py.xml
+  PY_COV_HTML_FILE:         htmlcov_ibcdfo_py
+  POUNDERS_M_COV_HTML_FILE: htmlcov_ibcdfo_pounders_m
+  POUNDERS_M_COV_XML_FILE:  cobertura_ibcdfo_pounders_m.xml
+  MSAMP_M_COV_HTML_FILE:    htmlcov_ibcdfo_msamp_m
+  MSAMP_M_COV_XML_FILE:     cobertura_ibcdfo_msamp_m.xml
 on:
   push:
     branches: [main, develop]
@@ -65,24 +73,91 @@ jobs:
              ${{ env.PY_COV_XML_FILE }}
              ${{ env.PY_COV_HTML_FILE }}
 
+  # ----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
+  coverage_m:
+    strategy:
+      # We only need to measure coverage with a single test setup.  Ideally
+      # this will be the latest MATLAB release supported.
+      matrix:
+        os: [ubuntu-latest]
+        matlab-release: ["R2024a"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      # -- General Setup Steps
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout BenDFO repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/BenDFO
+          path: BenDFO
+      - name: Set up MATLAB ${{ matrix.matlab-release }}
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: ${{ matrix.matlab-release }}
+          products: Optimization_Toolbox
+
+      # -- Test Execution Step
+      # This requires R2023b or higher
+      - name: Generate code coverage report for MATLAB code
+        uses: matlab-actions/run-command@v2
+        with:
+          command: >
+              addpath("${{ env.BENDFO_M_PATH }}"),
+              addpath("${{ env.BENDFO_DATA_PATH }}"),
+              cd ${{ env.POUNDERS_M_PATH }},
+              [results, cov_p] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
+              assertSuccess(results),
+              cd ${{ env.MSAMP_M_PATH }},
+              [results, cov_ms] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
+              assertSuccess(results),
+              cd ${{ env.CLONE_PATH }},
+              fp = generateHTMLReport(cov_p, "${{ env.POUNDERS_M_COV_HTML_FILE }}"),
+              generateCoberturaReport(cov_p, "${{ env.POUNDERS_M_COV_XML_FILE }}");
+              fp = generateHTMLReport(cov_ms, "${{ env.MSAMP_M_COV_HTML_FILE }}"),
+              generateCoberturaReport(cov_ms, "${{ env.MSAMP_M_COV_XML_FILE }}");
+
+      # -- Publish as artifact for users and subsequent jobs
+      - name: Archive MATLAB coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: matlab-coverage-results
+          path: |
+             ${{ env.POUNDERS_M_COV_HTML_FILE }}
+             ${{ env.POUNDERS_M_COV_XML_FILE }}
+             ${{ env.MSAMP_M_COV_HTML_FILE }}
+             ${{ env.MSAMP_M_COV_XML_FILE }}
+
   # ----- PUBLISH FULL CODE COVERAGE REPORT
   publish:
-    needs: [coverage_py]
+    needs: [coverage_py, coverage_m]
     strategy:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Access Python coverage reports
         uses: actions/download-artifact@v4
         with:
           name: python-coverage-results
           path: ${{ env.CLONE_PATH }}
+
+      - name: Access MATLAB coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: matlab-coverage-results
+          path: ${{ env.CLONE_PATH }}
+
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
+            ${{ env.CLONE_PATH }}/${{ env.POUNDERS_M_COV_XML_FILE }},
+            ${{ env.CLONE_PATH }}/${{ env.MSAMP_M_COV_XML_FILE }},
             ${{ env.CLONE_PATH }}/${{ env.PY_COV_XML_FILE }}
           fail_ci_if_error: true
