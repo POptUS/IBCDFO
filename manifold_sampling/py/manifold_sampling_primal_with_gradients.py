@@ -129,6 +129,8 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             s_k_H = solve_primal(H_for_each_manifold, G_k, f_bar, beta, h[xkin], Low, Upp)
 
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch, eng)
+            print(f"s_k_0: {s_k} vs s_k_H {s_k_H}")
+
             if lp_fail_flag:
                 return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
 
