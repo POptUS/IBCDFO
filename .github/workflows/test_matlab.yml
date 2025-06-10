@@ -3,8 +3,8 @@ name: Test IBCDFO MATLAB Code
 env:
   BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
-  POUNDERS_PATH:    ${{ github.workspace }}/IBCDFO/pounders/m
-  MSAMP_PATH:       ${{ github.workspace }}/IBCDFO/manifold_sampling/m
+  POUNDERS_M_PATH:  ${{ github.workspace }}/IBCDFO/pounders/m
+  MSAMP_M_PATH:     ${{ github.workspace }}/IBCDFO/manifold_sampling/m
 on:
   push:
     branches: [main, develop]
@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
-        matlab-release: ["R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
+        matlab-release: ["R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b"]
         exclude:
           # Failing with a possible issue outside IBCDFO (Issue #157)
           - os: macos-14
@@ -46,7 +46,7 @@ jobs:
         command: >
             addpath("${{ env.BENDFO_M_PATH }}"),
             addpath("${{ env.BENDFO_DATA_PATH }}"),
-            cd ${{ env.POUNDERS_PATH }},
+            cd ${{ env.POUNDERS_M_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results);
 
@@ -56,6 +56,6 @@ jobs:
         command: >
             addpath("${{ env.BENDFO_M_PATH }}"),
             addpath("${{ env.BENDFO_DATA_PATH }}"),
-            cd ${{ env.MSAMP_PATH }},
+            cd ${{ env.MSAMP_M_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results),
