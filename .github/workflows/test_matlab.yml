@@ -14,21 +14,11 @@ jobs:
   test_ibcdfo:
     strategy:
       matrix:
-        #os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
-        os: [macos-13]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
         matlab-release: ["R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
         exclude:
           # Failing with a possible issue outside IBCDFO (Issue #157)
           - os: macos-14
-            matlab-release: "R2023b"
-          # TEMPORARY: POUNDERs didn't use nf_max evaluations
-          #- os: macos-13
-          #  matlab-release: "R2022b"
-          #- os: macos-13
-          #  matlab-release: "R2023a"
-          - os: macos-14
-            matlab-release: "R2024a"
-          - os: macos-15
             matlab-release: "R2023b"
     runs-on: ${{ matrix.os }}
     steps:
