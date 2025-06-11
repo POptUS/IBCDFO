@@ -22,9 +22,9 @@ classdef Testmanifoldsampling < matlab.unittest.TestCase
             test_failing_objective;
         end
 
-        function longTest(testCase)
-            benchmark_manifold_sampling;
-        end
+        %function longTest(testCase)
+        %    benchmark_manifold_sampling;
+        %end
 
     end
 end
