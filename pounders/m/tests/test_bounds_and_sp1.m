@@ -3,8 +3,17 @@
 %   - the handling of bounds
 %   - printing
 %   - Using starting points in X0 and F0
+%
+% To run this test, you must first install a BenDFO clone and add
+%    /path/to/BenDFO/data
+%    /path/to/BenDFO/m
+% to the MATLAB path.
 
 function [] = test_bounds_and_sp1()
+
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+addpath(fullfile(here_path, '..', 'general_h_funs'));
 
 nf_max = 100;
 g_tol = 1e-13;
@@ -73,10 +82,10 @@ for row = [7, 8]
 end
 
 % Test success without last (optional) arguments to pounders
-minq_location = '../../../../minq/m/minq5/';
-addpath(minq_location);
-
 [X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U);
+
+path(oldpath);
+
 assert(flag == 0, "Test didn't complete");
 end
 

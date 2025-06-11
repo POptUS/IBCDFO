@@ -43,6 +43,10 @@
 
 function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch)
 
+% We use POUNDERS checkinputss function
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+addpath(fullfile(here_path, '..', '..', 'pounders', 'm'));
+
 % Deduce p from evaluating Ffun at x0
 try
     F0 = Ffun(x0);
