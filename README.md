@@ -90,18 +90,13 @@ installation.
 
 ### MATLAB
 In addition to completing the general installation steps, users must have an
-up-to-date [BenDFO](https://github.com/POptUS/BenDFO) clone installed and add
+up-to-date [BenDFO](https://github.com/POptUS/BenDFO) clone installed in the
+same folder as their IBCDFO clone.
 
-    /path/to/BenDFO/data
-    /path/to/BenDFO/m
+To run tests with coverage enabled,
 
-to their MATLAB path.  To run tests,
-
-   1. open MATLAB in the same folder as this file and
-   2. execute `runtests("IncludeSubfolders", true)` from the prompt to run just
-      the tests or
-   3. execute `runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)`
-      from the prompt to run the tests and generate a code coverage report.
+   1. open MATLAB in the `tools` folder and
+   2. execute `test_ibcdfo`.
 
 The test output indicates where the HTML-format code coverage report can be found.
 
