@@ -7,7 +7,7 @@ function [] = test_failing_objective()
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 oldpath = addpath(fullfile(here_path, '..'));
 
-nfmax = 1000;
+nfmax = -1;
 n = 3;
 xs = [10; 20; 30];
 L = -Inf(1, n);

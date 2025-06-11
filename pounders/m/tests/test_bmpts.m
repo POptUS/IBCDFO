@@ -27,7 +27,7 @@ for i = 1:3
     F0(i, :) = objective(X0(i, :));
 end
 
-nfs = -1; % Points that have been evaluated
+nfs = 3; % Points that have been evaluated
 xk_in = 1; % Best point's index in X0
 delta = 1e3; % Starting TR radius
 
