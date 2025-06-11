@@ -20,13 +20,13 @@ classdef Testpounders < matlab.unittest.TestCase
 
         function shortTests(testCase)
             test_failing_objective;
-            %test_bounds_and_sp1;
-            %test_bmpts;
+            test_bounds_and_sp1;
+            test_bmpts;
         end
 
-        %function longTest(testCase)
-        %    benchmark_pounders;
-        %end
+        function longTest(testCase)
+            benchmark_pounders;
+        end
 
     end
 end

@@ -14,7 +14,6 @@ from dfoxs import dfoxs
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
-        pass
         if not os.path.exists("benchmark_results"):
             os.makedirs("benchmark_results")
 

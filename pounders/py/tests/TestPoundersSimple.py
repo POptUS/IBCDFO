@@ -48,7 +48,7 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_best] = pdrs.pounders({}, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
         self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
-    def __test_basic_pounders_usage(self):
+    def test_basic_pounders_usage(self):
         def vecFun(x):
             """
             Input:
@@ -95,7 +95,7 @@ class TestPounders(unittest.TestCase):
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
-    def __test_pounders_one_output(self):
+    def test_pounders_one_output(self):
         combinemodels = pdrs.identity_combine
 
         # Sample calling syntax for pounders
@@ -120,7 +120,7 @@ class TestPounders(unittest.TestCase):
 
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, "The optimum should be the lower bounds.")
 
-    def __test_pounders_maximizing_sum_squares(self):
+    def test_pounders_maximizing_sum_squares(self):
         combinemodels = pdrs.neg_leastsquares
 
         # Sample calling syntax for pounders
