@@ -4,6 +4,9 @@
 
 function [] = test_failing_objective()
 
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+
 spsolver = 1;
 
 nf_max = 1000;
@@ -31,3 +34,5 @@ assert(flag == -3, "No NaN was encountered in this test, but (with high probabil
 % Intentionally not passing a function for an objective
 [X, F, flag, xk_best] = pounders(X0, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp, printf, spsolver);
 assert(flag == -1, "Should have failed");
+
+path(oldpath);
