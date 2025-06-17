@@ -16,7 +16,7 @@ X0 = xs';
 
 rand('seed', 1);
 objective = @(x)failing_objective(x);
-hfun = @pw_maximum_squared;
+hfun = @this_is_never_used;
 
 % [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, objective, X0, L, U, nfmax, 'linprog');
 % assert(flag == -3, "No NaN was encountered in this test, but (with high probability) should have been.");
