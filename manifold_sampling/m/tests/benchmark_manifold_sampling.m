@@ -20,7 +20,6 @@ subprob_switch = 'linprog';
 
 load dfo.dat;
 
-filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat'];
 Results = cell(1, 53);
 
 if ~exist("mpc_test_files_smaller_Q", "dir")
@@ -82,6 +81,8 @@ for row = [1, 2, 7, 8, 43, 44, 45]
         % save('-mat7-binary', filename, 'Results') % Octave save
     end
 end
+
+filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat'];
 save(filename, 'Results');
 
 path(oldpath);
