@@ -1,16 +1,25 @@
 % This wrapper tests various algorithms against the Benchmark functions from the
 % More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
+%
+% To run this test, you must first install a BenDFO clone and add
+%    /path/to/BenDFO/data
+%    /path/to/BenDFO/m
+% to the MATLAB path.
+%
+
 function [] = benchmark_manifold_sampling()
 
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+addpath(fullfile(here_path, '..', 'h_examples'));
+
 global C D Qs zs cs
-nfmax = 100;
 factor = 10;
 
 subprob_switch = 'linprog';
 
 load dfo.dat;
 
-filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat'];
 Results = cell(1, 53);
 
 if ~exist("mpc_test_files_smaller_Q", "dir")
@@ -23,7 +32,7 @@ D_L1_loss = load('mpc_test_files_smaller_Q/D_for_benchmark_probs.csv');
 Qzb = load('mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized_subset.mat')';
 
 % for row = find(cellfun(@length,Results)==0)
-for row = [2, 1, 7, 8, 43, 44, 45]
+for row = [1, 2, 7, 8, 43, 44, 45]
     nprob = dfo(row, 1);
     n = dfo(row, 2);
     m = dfo(row, 3);
@@ -33,8 +42,8 @@ for row = [2, 1, 7, 8, 43, 44, 45]
     BenDFO.n = n;
     BenDFO.m = m;
 
-    LB = -Inf * ones(1, n);
-    UB = Inf * ones(1, n);
+    LB = -5000 * ones(1, n);
+    UB = 5000 * ones(1, n);
 
     xs = dfoxs(n, nprob, factor^factor_power);
 
@@ -49,9 +58,14 @@ for row = [2, 1, 7, 8, 43, 44, 45]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     jj = 1;
-    % for hfuns = {@censored_L1_loss_quad_MSG}
     for hfuns = {@censored_L1_loss, @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1, @pw_maximum,  @pw_maximum_squared, @pw_minimum, @pw_minimum_squared, @quantile}
         hfun = hfuns{1};
+        nfmax = 100;
+        if row == 1
+            if jj == 1 || jj == 7
+                nfmax = 400;  % Increasing nfmax for a few tests helps cover parts of manifold_sampling_primal
+            end
+        end
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
 
@@ -68,7 +82,11 @@ for row = [2, 1, 7, 8, 43, 44, 45]
         % save('-mat7-binary', filename, 'Results') % Octave save
     end
 end
+
+filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat'];
 save(filename, 'Results');
+
+path(oldpath);
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)

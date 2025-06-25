@@ -1,4 +1,4 @@
-function [G, H] = emittance(Cres, Gres, Hres)
+function [G, H] = emittance_combine(Cres, Gres, Hres)
 
 [n, ~, m] = size(Hres);
 
