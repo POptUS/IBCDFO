@@ -1,6 +1,9 @@
 % This tests bmpts.m when it notes that:
 % "Geometry points need to be coordinate directions!"
 
+[here_path, ~, ~] = fileparts(mfilename('fullpath'));
+oldpath = addpath(fullfile(here_path, '..'));
+
 nf_max = 100;
 g_tol = 1e-13;
 
@@ -29,3 +32,4 @@ xk_in = 1; % Best point's index in X0
 delta = 1e3; % Starting TR radius
 
 [X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, 0, 1);
+path(oldpath);

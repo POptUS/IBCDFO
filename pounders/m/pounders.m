@@ -4,9 +4,12 @@
 function [X, F, hF, flag, xk_in] = ...
     pounders(fun, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp, printf, spsolver, hfun, combinemodels)
 
+[HERE_PATH, ~, ~] = fileparts(mfilename('fullpath'));
+MINQ_PATH = fullfile(HERE_PATH, '..', '..', 'minq');
+
 if ~exist('hfun', 'var')
     % Use least-squares hfun by default
-    addpath('../general_h_funs/');
+    addpath(fullfile(HERE_PATH, 'general_h_funs'));
     hfun = @(F)sum(F.^2);
     combinemodels = @leastsquares;
 end
@@ -16,6 +19,13 @@ end
 if ~exist('printf', 'var')
     printf = 0; % Don't print by default
 end
+
+if     spsolver == 2 % Arnold Neumaier's minq5
+    addpath(fullfile(MINQ_PATH, 'm', 'minq5'));
+elseif spsolver == 3 % Arnold Neumaier's minq8
+    addpath(fullfile(MINQ_PATH, 'm', 'minq8'));
+end
+
 % 0. Check inputs
 [flag, X0, np_max, F0, Low, Upp] = ...
     checkinputss(fun, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp);

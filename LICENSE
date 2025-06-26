@@ -1,7 +1,11 @@
 MIT License
 
-Copyright (c) 2023, POptUS: Practical Optimization Using Structure
-All rights reserved.
+Interpolation-Based Composite Derivative-Free Optimization (IBCDFO) 
+Part of POptUS: Practical Optimization Using Structure
+Copyright (c) 2023, The Regents of the University of California,
+through Lawrence Berkeley National Laboratory and UChicago Argonne
+LLC through Argonne National Laboratory (subject to receipt of any
+required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

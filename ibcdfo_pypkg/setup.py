@@ -1,7 +1,7 @@
 import codecs
 from pathlib import Path
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 _PKG_ROOT = Path(__file__).resolve().parent
 
@@ -20,10 +20,11 @@ def version():
 
 # Changes made to python_requires should be propagated to all tox.ini and all
 # GitHub Action config files.
-python_requires = ">=3.8"
+python_requires = ">=3.9"
 code_requires = ["numpy>=1.16.5", "scipy>=1.6"]
-test_requires = ["ipdb"]  # "BenDFO" is required, but not yet installable
-install_requires = code_requires + test_requires
+minq_requires = ["ipdb"]
+test_requires = []  # "BenDFO" is required, but not yet installable
+install_requires = code_requires + minq_requires + test_requires
 
 package_data = {
     "IBCDFO": [
@@ -44,6 +45,7 @@ setup(
     author_email="jmlarson@anl.gov",
     maintainer="Jeffrey Larson",
     maintainer_email="jmlarson@anl.gov",
+    packages=find_packages(where="src"),
     package_dir={"": "src"},
     package_data=package_data,
     url="https://github.com/POptUS/IBCDFO",
