@@ -36,7 +36,7 @@ assert(flag == -3, "No NaN was encountered in this test, but (with high probabil
 assert(flag == -1, "Should have failed");
 
 % Intentionally putting a NaN in F to cover part of pounders.m
-objective = @(x) nan(1,3);
+objective = @(x) nan(1, 3);
 [X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp, printf, spsolver);
 assert(flag == -3, "Should have failed immediately after first eval");
 
