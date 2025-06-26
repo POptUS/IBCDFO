@@ -20,7 +20,7 @@ if ~exist('printf', 'var')
     printf = 0; % Don't print by default
 end
 
-if     spsolver == 2 % Arnold Neumaier's minq5
+if spsolver == 2 % Arnold Neumaier's minq5
     addpath(fullfile(MINQ_PATH, 'm', 'minq5'));
 elseif spsolver == 3 % Arnold Neumaier's minq8
     addpath(fullfile(MINQ_PATH, 'm', 'minq8'));
