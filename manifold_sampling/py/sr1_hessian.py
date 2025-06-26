@@ -24,11 +24,11 @@ def sr1_hessian(H_mm, X, nf, xkin, F, Grad, hfun, Hash):
     y = G_k_nf - G_k_xkin
     y = np.squeeze(y)
 
-    # denominator = (y - s @ H_mm) @ s
-    denominator = (s - y @ H_mm) @ y
+    denominator = (y - s @ H_mm) @ s
+    # denominator = (s - y @ H_mm) @ y
     if np.abs(denominator) > 1e-11:
-        # H_mm = H_mm + (y - s @ H_mm) @ (y - s @ H_mm).T / denominator
-        H_mm = H_mm + (s - y @ H_mm) @ (s - y @ H_mm).T / denominator
+        H_mm = H_mm + (y - s @ H_mm) @ (y - s @ H_mm).T / denominator
+        # H_mm = H_mm + (s - y @ H_mm) @ (s - y @ H_mm).T / denominator
 
 
     return H_mm

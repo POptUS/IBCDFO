@@ -22,8 +22,8 @@ probs_to_solve = [6] #np.arange(53)
 subprob_switch = "linprog"
 
 # H_selection = "overapproximating_hessian"
-# H_selection = "sr1_hessian"
-H_selection = "bfgs_hessian"
+H_selection = "sr1_hessian"
+# H_selection = "bfgs_hessian"
 # H_selection = "bfgs_hessian_local"
 
 hfuns = [one_norm]
