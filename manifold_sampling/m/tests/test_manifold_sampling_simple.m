@@ -1,4 +1,4 @@
-% This tests a single-manifold case for manifold sampling. 
+% This tests a single-manifold case for manifold sampling.
 
 function [] = test_manifold_sampling_simple()
 
@@ -34,7 +34,7 @@ for row = [1, 2]
 
     [~, ~, hF, xkin, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch);
     if row == 1 || row == 2
-        assert(hF(xkin) <= 36.0 + 1e-8, "Not within 1e-8 of known minima")
+        assert(hF(xkin) <= 36.0 + 1e-8, "Not within 1e-8 of known minima");
     end
 end
 path(oldpath);
