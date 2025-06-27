@@ -31,6 +31,5 @@ nfs = 3; % Points that have been evaluated
 xk_in = 1; % Best point's index in X0
 delta = 1e3; % Starting TR radius
 
-[X, F, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, 0, 1);
-
+[X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, 0, 1);
 path(oldpath);
