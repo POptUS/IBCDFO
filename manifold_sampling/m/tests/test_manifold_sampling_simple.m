@@ -6,7 +6,7 @@ function [] = test_manifold_sampling_simple()
 oldpath = addpath(fullfile(here_path, '..'));
 addpath(fullfile(here_path, '..', 'h_examples'));
 
-nfmax = 300;
+nf_max = 300;
 factor = 10;
 
 hfun = @sum_squared;
@@ -32,7 +32,7 @@ for row = [1, 2]
     Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
     x0 = xs';
 
-    [~, ~, hF, xkin, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch);
+    [~, ~, hF, xkin, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
     if row == 1 || row == 2
         assert(hF(xkin) <= 36.0 + 1e-8, "Not within 1e-8 of known minima");
     end

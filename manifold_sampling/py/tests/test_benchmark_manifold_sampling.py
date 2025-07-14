@@ -30,7 +30,7 @@ Results = {}
 probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
 subprob_switch = "linprog"
-nfmax = 50
+nf_max = 50
 
 hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
@@ -61,14 +61,14 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
             def hfun_to_pass(z, H0=None):
                 return piecewise_quadratic(z, H0, Qs=Qs, zs=zs, cs=cs)
 
-            X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
+            X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nf_max, subprob_switch)
         else:
             if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
-                nfmax = 10000
+                nf_max = 10000
             else:
-                nfmax = 50
+                nf_max = 50
 
-            X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+            X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
@@ -77,4 +77,4 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
 
-    sp.io.savemat("./msp_benchmark_results/manifold_sampling_py_nfmax=" + str(nfmax) + ".mat", Results)
+    sp.io.savemat("./msp_benchmark_results/manifold_sampling_py_nf_max=" + str(nf_max) + ".mat", Results)

@@ -10,19 +10,19 @@
 %                         gradients at the point given.
 %  Ffun:    [func handle] Evaluates F, the black box simulation, returning
 %                         a [1 x m] vector.
-%  nfmax:   [int]         Maximum number of function evaluations.
+%  nf_max:   [int]         Maximum number of function evaluations.
 %  x0:      [1 x n dbl]   Starting point.
 %  L:       [1 x n dbl]   Lower bounds.
 %  U:       [1 x n dbl]   Upper bounds.
 %  GAMS_options:
 %
 % Outputs:
-%   X:      [nfmax x n]   Points evaluated
-%   F:      [nfmax x p]   Their simulation values
-%   h:      [nfmax x 1]   The values h(F(x))
+%   X:      [nf_max x n]   Points evaluated
+%   F:      [nf_max x p]   Their simulation values
+%   h:      [nf_max x 1]   The values h(F(x))
 %   xkin:   [int]         Current trust region center
 
-function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_options)
+function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_options)
 
     % Deduce p from evaluating Ffun at x0
     try
@@ -37,7 +37,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, ~, xkin, Hres] = check_inputs_and_initialize(x0, F0, nfmax);
+    [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, ~, xkin, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
 
     [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
 
@@ -46,11 +46,11 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
         [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + delta * I_n(i, :), tol, L, U, 1);
     end
 
-    while nf < nfmax
+    while nf < nf_max
         [~, xkin] = min(h(1:nf));
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
+        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
@@ -59,7 +59,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nfmax, x0, L, U, GAMS_opti
             h = h(1:nf, :);
             return
         end
-        if nf >= nfmax
+        if nf >= nf_max
             return
         end
         % ================================

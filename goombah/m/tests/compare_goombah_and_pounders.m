@@ -14,7 +14,7 @@ addpath('../../../manifold_sampling/m/h_examples/');
 load dfo.dat;
 
 spsolver = 2; % TRSP Solver
-nfmax = 100;
+nf_max = 100;
 gtol = 1e-13;
 factor = 10;
 
@@ -64,14 +64,14 @@ for row = 1:length(dfo)
         end
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_and_GOOMBAH_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
+        filename = ['./benchmark_results/poundersM_and_GOOMBAH_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
 
         for method = [1, 2]
             if method == 1
-                [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nfmax, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
+                [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nf_max, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
                 Results{method, hfun_cases, row}.alg = 'POUNDERs';
             elseif method == 2
-                [X, F, h, xkin] = goombah(@sum_squared, objective, nfmax, X0, L, U, GAMS_options, subprob_switch);
+                [X, F, h, xkin] = goombah(@sum_squared, objective, nf_max, X0, L, U, GAMS_options, subprob_switch);
                 Results{method, hfun_cases, row}.alg = 'GOOMBAH';
             end
 

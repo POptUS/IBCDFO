@@ -9,13 +9,13 @@ LW = 2;
 FS = 12;
 Label_FS = 12;
 
-nfmax = 100;
+nf_max = 100;
 probtype = 'smooth';
 
 countm = 0;
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename)
             if strcmp(hfun, 'leastsquares')
                 col = 1;
@@ -34,7 +34,7 @@ end
 countpy = 0;
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename)
             P1 = load(filename);
             countpy = countpy + 1';
@@ -53,9 +53,9 @@ assert(countpy == countm);
 
 np = countm;
 ns = 2;
-nf = nfmax;
+nf = nf_max;
 prob_dim = zeros(np, 1);
-H = inf(nfmax, np, ns);
+H = inf(nf_max, np, ns);
 Solvers = {[method '-M'], [method '-py']};
 
 addpath('../../BenDFO/profiling/');
@@ -63,10 +63,10 @@ addpath('../../BenDFO/profiling/');
 for k = 1:np
     for s = 1:ns
         if s == 1
-            len = min([nfmax, length(M{k}.H)]);
+            len = min([nf_max, length(M{k}.H)]);
             H(1:len, k, s) = M{k}.H(1:len);
         elseif s == 2
-            len = min([nfmax, length(P{k}.H)]);
+            len = min([nf_max, length(P{k}.H)]);
             H(1:len, k, s) = P{k}.H(1:len);
         end
     end
@@ -99,14 +99,14 @@ for tau = logspace(-7, -1, 7)
     ax_height = outerpos(4) - ti(2) - ti(4);
     ax.Position = [left bottom ax_width ax_height];
 
-    print(f, ['Fvalue_data_tau=' num2str(tau) '_nfmax=' int2str(len) '_' Solvers{1} '_vs_' Solvers{2} '.png'], '-dpng', '-r400');
+    print(f, ['Fvalue_data_tau=' num2str(tau) '_nf_max=' int2str(len) '_' Solvers{1} '_vs_' Solvers{2} '.png'], '-dpng', '-r400');
     close all;
 end
 
 for row = 1:53
     for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename_m = ['m/tests/benchmark_results/poundersM_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
-        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nfmax=' int2str(nfmax) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename_m = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
+        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
         if exist(filename_p)
             M1 = load(filename_m);
             P1 = load(filename_p);

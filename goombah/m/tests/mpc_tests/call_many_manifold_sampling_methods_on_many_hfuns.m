@@ -31,7 +31,7 @@ addpath('test_problems/');
 addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
 
 % Declare parameters for benchmark study
-nfmax_c = 20; % Full tests used 100; % Multiplied by dimension to set max evals
+nf_max_c = 20; % Full tests used 100; % Multiplied by dimension to set max evals
 factor = 10; % Multiple for x0 declaration
 num_solvers = 4; % Number of solvers being benchmarked
 solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH_wo_MSP'}; % Used when saving filenames for ease of reference
@@ -68,7 +68,7 @@ for mw_prob_num = [7] % full tests are 1:53
         m = dfo(mw_prob_num, 3);
         factor_power = dfo(mw_prob_num, 4);
         x0 = dfoxs(n, nprob, factor^factor_power)';
-        nfmax = nfmax_c * (n + 1);
+        nf_max = nf_max_c * (n + 1);
 
         for seed = 1:num_seeds
             % Individual for censored-L1 loss h instance
@@ -94,7 +94,7 @@ for mw_prob_num = [7] % full tests are 1:53
 
                 for s = 1:4
 
-                    filename = ['./benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '.mat'];
+                    filename = ['./benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nf_max_c=' num2str(nf_max_c) '_constr=' int2str(constr) '.mat'];
                     if exist(filename, 'file')
                         continue
                     end
@@ -105,9 +105,9 @@ for mw_prob_num = [7] % full tests are 1:53
                         % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % % Dual (SIOPT) manifold sampling
                         % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        % [X, F, h, xkin, flag] = manifold_sampling_SIOPT(hfun{1}, Ffun, x0, nfmax);
+                        % [X, F, h, xkin, flag] = manifold_sampling_SIOPT(hfun{1}, Ffun, x0, nf_max);
 
-                        % assert(size(X, 1) <= nfmax, "Method grew the size of X");
+                        % assert(size(X, 1) <= nf_max, "Method grew the size of X");
 
                         % Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         % Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -133,7 +133,7 @@ for mw_prob_num = [7] % full tests are 1:53
                             GAMS_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options, subprob_switch);
+                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nf_max, x0, LB, UB, GAMS_options, subprob_switch);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -145,9 +145,9 @@ for mw_prob_num = [7] % full tests are 1:53
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % PRIMAL MANIFOLD SAMPLING %%%%
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        [X, F, h, xkin, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, LB, UB, nfmax, subprob_switch);
+                        [X, F, h, xkin, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, LB, UB, nf_max, subprob_switch);
 
-                        assert(size(X, 1) <= nfmax, "Method grew the size of X");
+                        assert(size(X, 1) <= nf_max, "Method grew the size of X");
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -172,7 +172,7 @@ for mw_prob_num = [7] % full tests are 1:53
                             GAMS_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, nfmax, x0, LB, UB, GAMS_options);
+                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, nf_max, x0, LB, UB, GAMS_options);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];

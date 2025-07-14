@@ -45,7 +45,7 @@ m = size(F, 2);
 G = zeros(n, m);
 H = zeros(n, n, m);
 
-% Precompute the scaled displacements (could be expensive for larger nfmax)
+% Precompute the scaled displacements (could be expensive for larger nf_max)
 D = zeros(nf, n); % Scaled displacements
 Nd = zeros(nf, 1); % Norm of scaled displacements
 for i = 1:nf
