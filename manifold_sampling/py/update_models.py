@@ -4,7 +4,7 @@ from ibcdfo.pounders import bmpts, formquad
 from .call_user_scripts import call_user_scripts
 
 
-def update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U):
+def update_models(hfun, Ffun, n, p, nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U):
     Cres = F[xkin, :]
     Res = np.zeros(F.shape)  # Stores the residuals for model updates
 
@@ -19,7 +19,7 @@ def update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pa
     if mp < n and geometry_pt_flag:  # Must obtain and evaluate bounded geometry points
         Mdir, mp = bmpts(X[xkin], Mdir[: n - mp], L, U, delta, fq_pars["Par"][2])
 
-        for i in range(min(n - mp, nfmax - nf)):
+        for i in range(min(n - mp, nf_max - nf)):
             nf, X, F, h, Hash, _ = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin, :] + Mdir[i, :], tol, L, U, 1)
             D = Mdir[i, :]
 

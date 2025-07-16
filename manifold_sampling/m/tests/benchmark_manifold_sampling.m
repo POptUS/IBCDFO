@@ -60,16 +60,16 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     jj = 1;
     for hfuns = {@censored_L1_loss, @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1, @pw_maximum,  @pw_maximum_squared, @pw_minimum, @pw_minimum_squared, @quantile}
         hfun = hfuns{1};
-        nfmax = 100;
+        nf_max = 100;
         if row == 1
             if jj == 1 || jj == 7
-                nfmax = 400;  % Increasing nfmax for a few tests helps cover parts of manifold_sampling_primal
+                nf_max = 400;  % Increasing nf_max for a few tests helps cover parts of manifold_sampling_primal
             end
         end
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
 
-        [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch);
+        [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
 
         Results{jj, row}.alg = 'Manifold sampling';
         Results{jj, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun='];
@@ -83,7 +83,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     end
 end
 
-filename = ['./benchmark_results/manifold_samplingM_nfmax=' num2str(nfmax) '.mat'];
+filename = ['./benchmark_results/manifold_samplingM_nf_max=' num2str(nf_max) '.mat'];
 save(filename, 'Results');
 
 path(oldpath);

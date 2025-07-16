@@ -1,6 +1,6 @@
-function [X, F, h, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, Mdir, np, hfun, Ffun, Hash, fq_pars, tol, nfmax, L, U)
-    % global nprob Qs zs bs p x0 nfmax h_activity_tol row_in_dfo_dat s inst
-    % A.n=n; A.nf=nf; A.xkin=xkin; A.delta=delta; A.X=X; A.F=F; A.h=h; A.gentype=gentype; A.Mdir=Mdir; A.np=np; A.hfun=hfun; A.Ffun=Ffun; A.Hash=Hash; A.fq_pars=fq_pars; A.tol=tol; A.nfmax=nfmax; A.L=L; A.U=U;
+function [X, F, h, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, Mdir, np, hfun, Ffun, Hash, fq_pars, tol, nf_max, L, U)
+    % global nprob Qs zs bs p x0 nf_max h_activity_tol row_in_dfo_dat s inst
+    % A.n=n; A.nf=nf; A.xkin=xkin; A.delta=delta; A.X=X; A.F=F; A.h=h; A.gentype=gentype; A.Mdir=Mdir; A.np=np; A.hfun=hfun; A.Ffun=Ffun; A.Hash=Hash; A.fq_pars=fq_pars; A.tol=tol; A.nf_max=nf_max; A.L=L; A.U=U;
 
     % Evaluate model-improving points to pick best one
     % ! May eventually want to normalize Mdir first for infty norm
@@ -17,13 +17,13 @@ function [X, F, h, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xkin,
         %     end
         % end
         Xsp = Mdir1(i, :);
-        % Only do this evaluation if the point is new and nf < nfmax
-        if ~ismember(X(xkin, :) + Xsp, X(1:nf, :), 'rows') && nf < nfmax
+        % Only do this evaluation if the point is new and nf < nf_max
+        if ~ismember(X(xkin, :) + Xsp, X(1:nf, :), 'rows') && nf < nf_max
             [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + Xsp, tol, L, U, 1);
         end
     end
     [~, ~, valid] = formquad(X(1:nf, :), F(1:nf, :), delta, xkin, fq_pars.npmax, fq_pars.Par, 1);
-    if ~valid && nf < nfmax
+    if ~valid && nf < nf_max
         disp(nf);
         disp(gentype);
         disp('Proceeding with nonvalid model! Report this to Stefan in Alg1');

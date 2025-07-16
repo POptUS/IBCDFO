@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def check_inputs_and_initialize(x0, F0, nfmax):
+def check_inputs_and_initialize(x0, F0, nf_max):
     x0 = x0.squeeze()
     n = int(len(x0))
     p = int(len(F0))
@@ -30,11 +30,11 @@ def check_inputs_and_initialize(x0, F0, nfmax):
 
     # kappa_mh = 0;    # [dbl] > 0 that bounds the component model Hessians
 
-    assert nfmax >= n + 1, "nfmax is less than n+1, exiting"
+    assert nf_max >= n + 1, "nf_max is less than n+1, exiting"
 
-    X = np.vstack((x0, np.zeros((nfmax - 1, n))))
-    F = np.vstack((F0, np.zeros((nfmax - 1, p))))
-    h = np.zeros((nfmax, 1))
+    X = np.vstack((x0, np.zeros((nf_max - 1, n))))
+    F = np.vstack((F0, np.zeros((nf_max - 1, p))))
+    h = np.zeros((nf_max, 1))
     Hash = {}
 
     nf = 0
