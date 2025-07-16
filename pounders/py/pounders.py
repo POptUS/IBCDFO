@@ -7,6 +7,8 @@ from .bqmin import bqmin
 from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
+from .lbfgsb import run_lbfgsb, run_bayes_opt, objective_for_lbfgsb
+import ipdb
 
 
 def _default_model_par_values(n):
@@ -139,6 +141,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     if "hfun" in Options:
         hfun = Options["hfun"]
+        if spsolver == 4:
+            hfun_d = Options["hfun_d"]
         combinemodels = Options["combinemodels"]
     else:
         hfun = lambda F: np.sum(F**2)
@@ -219,11 +223,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         Cres = F[xk_in]
         Hres = Hres + Hresdel
         c = hF[xk_in]
-        G, H = combinemodels(Cres, Gres, Hres)
+        if spsolver == 4:
+            G = objective_for_lbfgsb(np.zeros(n), hfun, hfun_d, F[xk_in], Gres, Hres, Options["sim_params"],compute_grad=True)
+        else:
+            G, H = combinemodels(Cres, Gres, Hres)
         ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
         ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
         ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
-        if printf:
+        if printf and spsolver != 4:
             IERR = np.zeros(len(Mind))
             for i in range(len(Mind)):
                 D = X[Mind[i]] - X[xk_in]
@@ -232,14 +239,17 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 ierror = np.nan
             else:
                 ierror = np.linalg.norm(IERR / np.abs(hF[Mind]), np.inf)
+        else:
+            ierror = 0.0
+        if printf:
             print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
-            if printf >= 2:
-                jerr = np.zeros((len(Mind), m))
-                for i in range(len(Mind)):
-                    D = X[Mind[i]] - X[xk_in]
-                    for j in range(m):
-                        jerr[i, j] = (Cres[j] - F[Mind[i], j]) + D @ (Gres[:, j] + 0.5 * Hres[:, :, j] @ D)
-                print(jerr)
+        if printf >= 2:
+            jerr = np.zeros((len(Mind), m))
+            for i in range(len(Mind)):
+                D = X[Mind[i]] - X[xk_in]
+                for j in range(m):
+                    jerr[i, j] = (Cres[j] - F[Mind[i], j]) + D @ (Gres[:, j] + 0.5 * Hres[:, :, j] @ D)
+            print(jerr)
             # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
@@ -261,7 +271,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     break
                 # Recalculate gradient based on a MFN model
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
-                G, H = combinemodels(Cres, Gres, Hres)
+                if spsolver == 4:
+                    G = objective_for_lbfgsb(np.zeros(n), hfun, hfun_d, F[xk_in], Gres, Hres, Options["sim_params"],
+                                             compute_grad=True)
+                else:
+                    G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
                 ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
@@ -282,6 +296,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # elif spsolver == 3:  # Arnold Neumaier's minq8
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"
+        elif spsolver == 4: # LBFGSB
+            [Xsp, mdec, successful_lbfgs] = run_bayes_opt(hfun, hfun_d, F[xk_in], Gres, Hres, Lows.T, Upps.T,
+                                                               Options["sim_params"])
         Xsp = Xsp.squeeze()
         step_norm = np.linalg.norm(Xsp, np.inf)
 
@@ -344,7 +361,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
-                G, H = combinemodels(Cres, Gres, Hres)
+                if spsolver == 4:
+                    G = objective_for_lbfgsb(np.zeros(n), hfun, hfun_d, F[xk_in], Gres, Hres, Options["sim_params"],
+                                             compute_grad=True)
+                    H = np.zeros((n, n))
+                else:
+                    G, H = combinemodels(Cres, Gres, Hres)
                 # Evaluate model-improving points to pick best one
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions

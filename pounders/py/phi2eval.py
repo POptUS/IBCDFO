@@ -20,3 +20,10 @@ def phi2eval(X):
         Phi[:, j : j + n - k - 1] = np.multiply(X[:, [k]], X[:, k + 1 :]) / np.sqrt(2)
         j += n - k - 1
     return Phi
+
+def natural_basis(X):
+
+    num_points = np.shape(X)[0]
+    Phi = phi2eval(X)
+
+    return np.concatenate((np.ones((num_points, 1)), X, Phi), axis=1)
