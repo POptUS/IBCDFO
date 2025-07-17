@@ -61,6 +61,8 @@ from .overapproximating_hessian import overapproximating_hessian
 from .sr1_hessian import sr1_hessian
 from .bfgs_hessian import bfgs_hessian
 from .bfgs_hessian_local import bfgs_hessian_local
+from .sr1_hessian_local import sr1_hessian_local
+from .min_norm_interpolation_hessian import min_norm_interpolation_hessian
 
 # # You'll need to uncomment the following two, and not have `eng = []` if you
 # # want to use matlab's linprog in minimize_affine_envelope
@@ -111,21 +113,36 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                 return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-            D_k, Act_Z_k, f_bar, Xlist = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
+            D_k, Act_Z_k, f_bar, Xlist, full_Act_Z_k = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
             G_k = Gres @ D_k
+
+
+            Xlist = np.array(Xlist).astype(int)
 
             beta = np.maximum(0, f_bar - h[xkin])
 
             # Line 6: Choose Hessians (in this code: a nontrivial master model Hessian!)
             # this does nothing with subprob_switch==quadprog, but I don't want to change the minimize_affine_envelope API right now.
             H_k = np.zeros((G_k.shape[1], n + 1, n + 1))
-
-            if H_selection == "overapproximating_hessian":
+            if H_selection == "zero_hessian":
+                H_mm = np.zeros((n, n))
+            elif H_selection == "overapproximating_hessian":
                 H_mm = 1e-8 * np.eye(n)
                 H_mm = overapproximating_hessian(H_mm, X, nf, xkin, h, G_k, f_bar, beta, delta)
             elif H_selection == "bfgs_hessian_local":
                 H_mm = 1e-8 * np.eye(n)
                 H_mm = bfgs_hessian_local(H_mm, X, xkin, F, Grad, hfun, Xlist, Hash)
+            elif H_selection == "sr1_hessian_local":
+                H_mm = 1e-8 * np.eye(n)
+                H_mm = sr1_hessian_local(H_mm, X, xkin, F, Grad, hfun, Xlist, Hash)
+            elif H_selection == "min_norm_interpolation_hessian":
+                if len(Xlist) == 0:
+                    H_mm = 1e-8 * np.eye(n)
+                else:
+                    # Use min-norm interpolation Hessian
+                    f_k, __ = hfun(F[xkin], full_Act_Z_k)
+                    beta_full = np.maximum(0, f_k - h[xkin])
+                    H_mm = min_norm_interpolation_hessian(X, nf, xkin, F, G_k, f_k, beta_full, h, Xlist)
 
             # Line 7: Find a candidate s_k by solving QP
             Low = np.maximum(L - X[xkin], -delta)
@@ -134,7 +151,7 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             H_for_each_manifold = np.zeros((G_k.shape[1],n,n))
 
             #s_k_H = solve_primal(H_for_each_manifold, G_k, f_bar, beta, h[xkin], Low, Upp)
-
+            
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch, eng)
             #print(f"s_k_0: {s_k} vs s_k_H {s_k_H}")
 
@@ -168,7 +185,7 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                 break
             else:
                 # Line 18: Check temporary activities after adding TRSP solution to X
-                __, tmp_Act_Z_k, __, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
+                __, tmp_Act_Z_k, __, __, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
                 if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
@@ -181,13 +198,13 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                         delta = tol["gamma_dec"] * delta
 
         if successful:
-            eigenvalues = np.linalg.eigvals(H_mm)
-            min_eigenvalue = np.min(eigenvalues)
-            max_eigenvalue = np.max(eigenvalues)
+            # eigenvalues = np.linalg.eigvals(H_mm)
+            # min_eigenvalue = np.min(eigenvalues)
+            # max_eigenvalue = np.max(eigenvalues)
 
-            print("Eigenvalues:", eigenvalues)
-            print("Minimum eigenvalue:", min_eigenvalue)
-            print("Maximum eigenvalue:", max_eigenvalue)
+            # print("Eigenvalues:", eigenvalues)
+            # print("Minimum eigenvalue:", min_eigenvalue)
+            # print("Maximum eigenvalue:", max_eigenvalue)
 
             if H_selection == "sr1_hessian":
                 H_mm = sr1_hessian(H_mm, X, nf, xkin, F, Grad, hfun, Hash)

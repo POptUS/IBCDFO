@@ -17,14 +17,17 @@ if not os.path.exists("msp_benchmark_results"):
 dfo = np.loadtxt("BenDFO/data/dfo.dat")
 
 Results = {}
-probs_to_solve = [6] #np.arange(53)
+probs_to_solve = [52] #np.arange(53)
 
 subprob_switch = "linprog"
 
-# H_selection = "overapproximating_hessian"
-H_selection = "sr1_hessian"
+H_selection = "overapproximating_hessian"
+# H_selection = "sr1_hessian"
 # H_selection = "bfgs_hessian"
 # H_selection = "bfgs_hessian_local"
+# H_selection = "sr1_hessian_local"
+# H_selection = "min_norm_interpolation_hessian"
+# H_selection = "zero_hessian"
 
 hfuns = [one_norm]
 
