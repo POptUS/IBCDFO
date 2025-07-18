@@ -51,18 +51,18 @@ import os
 import subprocess
 import cvxpy as cp
 
-from .build_p_models import build_p_models
-from .call_user_scripts_with_gradients import call_user_scripts
-from .check_inputs_and_initialize_with_gradients import check_inputs_and_initialize
-from .choose_generator_set import choose_generator_set
-from .minimize_affine_envelope import minimize_affine_envelope
-from .prepare_outputs_before_return_with_gradients import prepare_outputs_before_return
-from .overapproximating_hessian import overapproximating_hessian
-from .sr1_hessian import sr1_hessian
-from .bfgs_hessian import bfgs_hessian
-from .bfgs_hessian_local import bfgs_hessian_local
-from .sr1_hessian_local import sr1_hessian_local
-from .min_norm_interpolation_hessian import min_norm_interpolation_hessian
+from build_p_models import build_p_models
+from call_user_scripts_with_gradients import call_user_scripts
+from check_inputs_and_initialize_with_gradients import check_inputs_and_initialize
+from choose_generator_set import choose_generator_set
+from minimize_affine_envelope import minimize_affine_envelope
+from prepare_outputs_before_return_with_gradients import prepare_outputs_before_return
+from overapproximating_hessian import overapproximating_hessian
+from sr1_hessian import sr1_hessian
+from bfgs_hessian import bfgs_hessian
+from bfgs_hessian_local import bfgs_hessian_local
+#from sr1_hessian_local import sr1_hessian_local
+from min_norm_interpolation_hessian import min_norm_interpolation_hessian
 
 # # You'll need to uncomment the following two, and not have `eng = []` if you
 # # want to use matlab's linprog in minimize_affine_envelope

@@ -1,7 +1,7 @@
 import numpy as np
 import ipdb
 # from .minimize_affine_envelope import minimize_affine_envelope
-from .solve_proj_zero_convex_hull import solve_proj_zero_convex_hull
+from solve_proj_zero_convex_hull import solve_proj_zero_convex_hull
 
 def sr1_hessian(H_mm, X, nf, xkin, F, Grad, hfun, Hash):
 
