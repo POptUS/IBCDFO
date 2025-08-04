@@ -14,6 +14,7 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     fq_pars.Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
     fq_pars.Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
     fq_pars.Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
+    fq_pars.Par(5) = 0;  % [log] Flag to find affine points in forward order (0)
     % fq_pars.npmax = (n + 1) * (n + 2) / 2;     % [int] number of points in model building
     fq_pars.npmax = 2 * n + 1;     % [int] number of points in model building
 
