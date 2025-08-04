@@ -7,7 +7,6 @@ import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
 
-
 dfo = np.loadtxt("dfo.dat")
 
 spsolver = 2
