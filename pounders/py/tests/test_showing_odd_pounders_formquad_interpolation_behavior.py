@@ -1,5 +1,11 @@
 """
-Unit test of compute function
+In rare cases, after a subproblem solution has been evaluated,
+formquad+pounders produces an interpolation set with fewer than n+1 points.
+This is because the order in which points are examined for sufficient affine
+independence is reverse lexicographic.
+
+This test demonstrates that behavior, although the iteration on which the
+behavior occurs can differ dramatically from system to system. 
 """
 
 import ibcdfo.pounders as pdrs
