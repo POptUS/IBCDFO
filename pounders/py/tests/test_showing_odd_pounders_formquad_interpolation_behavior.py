@@ -5,7 +5,7 @@ This is because the order in which points are examined for sufficient affine
 independence is reverse lexicographic.
 
 This test demonstrates that behavior, although the iteration on which the
-behavior occurs can differ dramatically from system to system. 
+behavior occurs can differ dramatically from system to system.
 """
 
 import ibcdfo.pounders as pdrs
