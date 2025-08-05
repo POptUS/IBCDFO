@@ -9,28 +9,28 @@ def unroll_z_into_matrix_sm(z, sim_params):
     num_qubits = sim_params['num_qubits']
 
     # reconstruct rho
-    rho_shape = 2**num_qubits
-    rho = np.zeros((rho_shape, rho_shape), dtype='complex128')
+    A_shape = 2**num_qubits
+    A = np.zeros((A_shape, A_shape), dtype='complex128')
 
     # populate the real entries of rho:
     Fdim = len(z)
     fdim_idx = 0
     fdim_idx_end = int(Fdim / 2)
     upper_triangular_array = z[fdim_idx:fdim_idx_end]
-    upper_triangular_indices = np.triu_indices(rho_shape)
-    rho[upper_triangular_indices] = upper_triangular_array
+    upper_triangular_indices = np.triu_indices(A_shape)
+    A[upper_triangular_indices] = upper_triangular_array
 
     # populate the complex entries:
     fdim_idx = fdim_idx_end
     fdim_idx_end = Fdim
     upper_triangular_array = z[fdim_idx:fdim_idx_end]
-    rho[upper_triangular_indices] += 1j * upper_triangular_array
+    A[upper_triangular_indices] += 1j * upper_triangular_array
 
-    # make Hermitian
-    rho += rho.T.conj()
-    rho[np.diag_indices_from(rho)] /= 2.0
+    # enforce Hermitian
+    A += A.T.conj()
+    A[np.diag_indices_from(A)] /= 2.0
 
-    return rho
+    return A
 
 def unroll_z_into_matrix(z, sim_params):
     n = sim_params['n']
@@ -75,6 +75,9 @@ def unroll_z_into_matrix(z, sim_params):
 
 def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H, sim_params, compute_grad=False):
 
+    # note that the gradients of My are currently wrong because they do not account for  rho = A*A.conj().T or the
+    # normalization by trace. Must fix soon, hopefully with jax.
+
     n, m = np.shape(G)
     My = np.zeros(m)
     Jy = np.zeros((n, m))
@@ -90,6 +93,7 @@ def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H, sim_params, compute_grad=Fal
 
         grad = np.zeros(n)
         for j in range(n):
+            # please note this is currently hardcoded for spin models (sm)
             jth_partial = unroll_z_into_matrix_sm(Jy[j, :], sim_params)
             grad[j] = np.real(np.trace(hfundMy.T @ jth_partial))
         return grad
@@ -98,7 +102,7 @@ def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H, sim_params, compute_grad=Fal
         return hfunMy
 
 
-def run_lbfgsb(hfun, hfun_d, Fx, G, H, L, U, sim_params):
+def run_lbfgsb(hfun, hfun_d, Fx, G, H, L, U, sim_params, initial_point=None):
 
     #  create wrapper functions (sooooo stupid, but i want to use scipy for now because i trust LBFGS-B)
     def obj(y):
@@ -111,13 +115,16 @@ def run_lbfgsb(hfun, hfun_d, Fx, G, H, L, U, sim_params):
 
     n, m = np.shape(G)
 
-    x0 = np.zeros(n)
-    #x0 = np.random.uniform(L, U)
+    if initial_point is None:
+        x0 = np.zeros(n)
+    else:
+        x0 = initial_point
 
     hFx0 = obj(x0)
 
     bounds = [(L[i], U[i]) for i in range(n)]
     options = {"gtol": 1e-12, "ftol": 1e-12}
+    #print("Remember: You turned off gradients for now until you fix them.")
     out = minimize(obj, x0, method='L-BFGS-B', bounds=bounds, options=options, jac=jac)
     Xsp = out.x
     success = out.success
@@ -181,6 +188,12 @@ def run_bayes_opt(hfun, hfun_d, Fx, G, H, L, U, sim_params, random_seed=888):
         verbose=1
     )
 
+    # let the solver know it needs to evaluate the center
+    initial_point = {}
+    for t in range(n):
+        initial_point['x[' + str(t) + ']'] = 0.0
+    optimizer.probe(params=initial_point, lazy=True)
+
     optimizer.maximize(
         init_points=n, # intuition: Latin hypercube sampling
         n_iter=10*n
@@ -192,4 +205,11 @@ def run_bayes_opt(hfun, hfun_d, Fx, G, H, L, U, sim_params, random_seed=888):
     for t in range(n):
         Xsp[t] = optimizer.max['params']['x[' + str(t) + ']']
 
-    return Xsp, mdec, True
+    ## now clean up the solution IF the solution is inactive at all bounds
+    #if not np.any(Xsp == L) and not np.any(Xsp == U):
+    #    print("LBFGS cleanup: ")
+    Xsp, mdec_lbfgs, success = run_lbfgsb(hfun, hfun_d, Fx, G, H, L, U, sim_params, initial_point=Xsp)
+    mdec += mdec_lbfgs
+    print("LBFGS flag: ", success)
+
+    return Xsp, mdec, success

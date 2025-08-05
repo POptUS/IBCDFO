@@ -27,7 +27,12 @@ def retraction(rho, tol=1e-12):
     return rho_new
 
 @jit
-def qfi(rho, G, num_qubits, eps=1e-12):
+def qfi(A, G, num_qubits, eps=1e-12):
+
+    # put back into density matrix form:
+    rho = A @ A.conj().T
+    rho /= jnp.trace(rho)
+
     # Eigendecomposition of rho
     lambdas, psi = jnp.linalg.eigh(rho)  # lambdas: (n,), psi: (n,n), columns are eigenvectors
 
@@ -80,7 +85,9 @@ if __name__ == "__main__":
     # X should be a a trace zero matrix:
     X = manifold.random_tangent_vector(rho)
 
-    hfun = lambda X: qfi(retraction(rho + X), G, num_qubits)
+    #hfun = lambda X: qfi(retraction(rho + X), G, num_qubits)
+    # what if no retraction?
+    hfun = lambda X: qfi(rho + X, G, num_qubits)
     grad_hfun = jit(grad(hfun, argnums=0))
 
     obj_val = hfun(X)

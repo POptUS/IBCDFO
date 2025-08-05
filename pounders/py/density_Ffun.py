@@ -1,6 +1,7 @@
 import qfi_opt.spin_models as sm
 import numpy as np
 import qfi_opt.examples.PermSolver_methods as methods
+from scipy.linalg import sqrtm
 
 def rollup(rho):
 
@@ -25,6 +26,17 @@ def rollup(rho):
     return Fvec
 
 
+def take_square_root(rho):
+
+    # ensure hermitian:
+    rho = 0.5 * (rho + rho.T.conj())
+
+    # compute matrix sqrt
+    A = sqrtm(rho)
+
+    return A
+
+
 def sm_density_Ffun(params, sim_params):
 
     # unpack necessary attributes from sim_params
@@ -37,6 +49,8 @@ def sm_density_Ffun(params, sim_params):
     sim_obj = getattr(sm, f'simulate_{model}_chain')
     rho = sim_obj(params=params, num_qubits=num_qubits, dissipation_rates=dissipation_rate,
                   coupling_exponent=coupling_exponent)
+
+    rho = take_square_root(rho)
 
     return rollup(rho)
 

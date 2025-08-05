@@ -297,7 +297,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"
         elif spsolver == 4: # LBFGSB
-            [Xsp, mdec, successful_lbfgs] = run_bayes_opt(hfun, hfun_d, F[xk_in], Gres, Hres, Lows.T, Upps.T,
+            [Xsp, mdec, successful_lbfgs] = run_lbfgsb(hfun, hfun_d, F[xk_in], Gres, Hres, Lows.T, Upps.T,
                                                                Options["sim_params"])
         Xsp = Xsp.squeeze()
         step_norm = np.linalg.norm(Xsp, np.inf)
