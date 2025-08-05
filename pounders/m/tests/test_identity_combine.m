@@ -1,7 +1,7 @@
-function Test_showing_failure()
-    % This is a matlab test trying to reproduce the behavior of the python test 
+function test_identity_combine()
+    % This is a matlab test trying to reproduce the behavior of the python test
     % pounders/py/tests/test_showing_odd_pounders_formquad_interpolation_behavior.py
-    % but doesn't fully do so due to the difference in matlab/python.
+    % but doesn't fully do so due to differences in matlab/python.
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     oldpath = addpath(fullfile(here_path, '..'));
@@ -47,4 +47,3 @@ end
 function [y] = calfun_wrapper_y(x, struct, probtype)
     [y, ~, ~] = calfun(x, struct, probtype);
 end
-
