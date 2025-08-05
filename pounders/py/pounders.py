@@ -10,11 +10,12 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
 def _default_model_par_values(n):
-    par = np.zeros(4)
+    par = np.zeros(5)
     par[0] = np.sqrt(n)
     par[1] = max(10, np.sqrt(n))
     par[2] = 10**-3
     par[3] = 0.001
+    par[4] = 0
 
     return par
 
@@ -342,6 +343,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 D = X[: nf + 1] - X[xk_in]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+                if len(Mind) < n + 1:
+                    # This is almost never triggered but is a safeguard for
+                    # pathological cases where one needs to recover from
+                    # unusual conditioning of recent interpolation sets
+                    Model["Par"][4] = 1
+                    [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+                    Model["Par"][4] = 0
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)

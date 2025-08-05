@@ -46,6 +46,7 @@ Par(1) = sqrt(n); % [dbl] delta multiplier for checking validity
 Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
 Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
 Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
+Par(5) = 0;     % [log] Flag to find affine points in forward order (0)
 if printf
     disp('  nf   delta    fl  np       f0           g0       ierror');
     progstr = '%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n'; % Line-by-line
@@ -312,6 +313,14 @@ while nf < nf_max
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
                 formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Par, 0);
+            if length(Mind) < n + 1
+                % This is almost never triggered but is a safeguard for
+                % pathological cases where one needs to recover from
+                % unusual conditioning of recent interpolation sets
+                Par(5) = 1;
+                [~, ~, valid, Gres, Hresdel, Mind] = formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Par, 0);
+               Par(5) = 0;
+            end
             Hres = Hres + Hresdel;
             % Update for modelimp; Cres unchanged b/c xk_in unchanged
             [G, H] = combinemodels(Cres, Gres, Hres);
