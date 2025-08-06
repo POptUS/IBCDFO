@@ -27,7 +27,6 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
                 if h_i[0] <= hxkin[0] or XkDi <= delta2:
                     if i != xkin:
                         Act_Z_k = np.unique(np.concatenate((Act_Z_k, Act_tmp)), axis=0)
-                        full_Act_Z_k = np.concatenate((full_Act_Z_k, Act_tmp))
                         Xlist = np.append(Xlist, i)
 
     Act_Z_k = np.asarray(Act_Z_k)
@@ -37,4 +36,4 @@ def choose_generator_set(X, Hash, gentype, xkin, nf, delta, F, hfun):
     Act_Z_k = Act_Z_k[unique_indices]
     f_k = f_k[unique_indices]
 
-    return D_k, Act_Z_k, f_k, Xlist, full_Act_Z_k
+    return D_k, Act_Z_k, f_k, Xlist

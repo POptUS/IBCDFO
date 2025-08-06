@@ -3,6 +3,11 @@ from scipy.optimize import linprog
 from cvxopt import matrix, solvers
 import cvxpy as cp
 import ipdb
+from scipy.spatial.distance import cdist
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # for 3D plotting
+
 
 def vech(A):
     return A[np.tril_indices_from(A)]
@@ -78,43 +83,91 @@ def add_row_if_increases_rank(A, b, new_row, new_ele):
     rank_after = np.linalg.matrix_rank(A_new, tol=1e-8)
 
     if rank_after > rank_before:
-        return A_new, b_new
+        return A_new, b_new, True
     else:
-        return A, b  # return unchanged matrix
+        return A, b, False  # return unchanged matrix
 
-def min_norm_interpolation_hessian(X, nf, xkin, F, G_k, f_k, beta, h, Xlist):
+def linear_model_k(s, b, G):
+    # mk_s = max(np.expand_dims(bk, 1) + np.dot(G_k.T, s))
+    lineark_s = max(b + np.dot(G.T, s))
+    return lineark_s
+
+def model_k(s, b, G, H):
+
+    mk_s = linear_model_k(s, b, G) + 0.5 * np.dot(s, np.dot(H, s))
+    return mk_s
+    
+
+# def min_norm_interpolation_hessian(X, nf, xkin, F, G_k, f_k, beta, h, Xlist):
+def min_norm_interpolation_hessian(X, xkin, f, f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta, plot_m=False):
 
     Xlist = np.array(Xlist).astype(int)
 
-    # Inputs:
     x_k = X[xkin]  # current point x_k
     n = x_k.shape[0]  # dimension
 
     Dn = duplication_matrix(n)  # duplication matrix
     P = Dn.T @ Dn  # P = D^T D
-    # P = 0.5 * (P + P.T)
 
-    # A = np.zeros((len(Xlist), n * (n + 1) // 2))
-    # b = np.zeros(len(Xlist))
+    bk = f_bar - beta # - f
     A = np.empty((0, n * (n + 1) // 2))
     b = np.empty((0,))
-    for i, index in enumerate(Xlist):
+    added_rows = np.empty((0,))
+
+    XkDist = cdist(X[Xlist], X[xkin: xkin+1], metric="chebyshev").flatten()
+    # print("XkDist:", XkDist)
+    sorted_dis = np.argsort(XkDist)
+    sorted_idx = Xlist[sorted_dis]
+    for i, index in enumerate(sorted_idx):
+        # x_diff = X[Xlist[index]] - x_k
         x_diff = X[index] - x_k
         # print("x_diff:", x_diff)
         S = np.outer(x_diff, x_diff)
-        linear_term = max(np.dot(G_k.T, x_diff))  # Assuming G_k is a matrix of gradients
-        # m_ki = linear_term + f_k[i] - beta[i]
-        m_ki = linear_term + f_k[i]
+        linear_i = linear_model_k(x_diff, bk, G_k)
         new_row = vech(S)
-        new_ele = h[index] - m_ki
-        A, b = add_row_if_increases_rank(A, b, new_row, new_ele)
-        # b = np.append(b, h[index] - m_ki)
+        new_ele = h[index] - linear_i
+        A, b, add_flag = add_row_if_increases_rank(A, b, new_row, new_ele)
 
-    # print("b:", b)
+        if add_flag == True:
+            added_rows = np.append(added_rows, index)
+
+    added_rows = np.array(added_rows).astype(int)
+
+    # print("Added rows:", added_rows)
+    # print("A.shape", A.shape)
+
+    # Xlist = np.array(Xlist).astype(int)
+
+    # # Inputs:
+    # x_k = X[xkin]  # current point x_k
+    # n = x_k.shape[0]  # dimension
+
+    # Dn = duplication_matrix(n)  # duplication matrix
+    # P = Dn.T @ Dn  # P = D^T D
+    # # P = 0.5 * (P + P.T)
+
+    # # A = np.zeros((len(Xlist), n * (n + 1) // 2))
+    # # b = np.zeros(len(Xlist))
+    # A = np.empty((0, n * (n + 1) // 2))
+    # b = np.empty((0,))
+    # for i, index in enumerate(Xlist):
+    #     x_diff = X[index] - x_k
+    #     # print("x_diff:", x_diff)
+    #     S = np.outer(x_diff, x_diff)
+    #     linear_term = max(np.dot(G_k.T, x_diff))  # Assuming G_k is a matrix of gradients
+    #     # m_ki = linear_term + f_k[i] - beta[i]
+    #     m_ki = linear_term + f_k[i]
+    #     new_row = vech(S)
+    #     new_ele = h[index] - m_ki
+    #     A, b = add_row_if_increases_rank(A, b, new_row, new_ele)
+    #     # b = np.append(b, h[index] - m_ki)
+
+    # # print("b:", b)
 
     if A.size == 0:
         return np.zeros((n, n))  # If no constraints, return zero matrix
     
+    b = b*2
 
     A = A @ P
     # print("A:", A)
@@ -131,31 +184,52 @@ def min_norm_interpolation_hessian(X, nf, xkin, F, G_k, f_k, beta, h, Xlist):
     # print("Optimal h_opt:", h_opt)
     H = vech_inv(h_opt)
 
-    print("Optimal H:", H)
 
-    # Define symmetric variable H
-    # H = cp.Variable((n, n), symmetric=True)
+    if plot_m == True:
 
-    # print("Xlist:", Xlist)
-    # print("n:", n)
+        x = np.linspace(x_k[0]-1, x_k[0]+1, 100)
+        y = np.linspace(x_k[1]-1, x_k[1]+1, 100)
+        X_mesh, Y_mesh = np.meshgrid(x, y)
 
-    # # Define constraints
-    # constraints = []
-    # for i, index in enumerate(Xlist):
-    #     x_diff = X[index] - x_k
-    #     linear_term = max(np.dot(G_k.T, x_diff))  # Assuming G_k is a matrix of gradients
-    #     quad_term = 0.5 * cp.quad_form(x_diff, H)
-    #     m_ki = h[xkin] + linear_term - beta[i] + quad_term
-    #     constraints.append(m_ki == h[Xlist[i]])
+        # Apply the function to each point in the grid
+        Z1 = np.array([[model_k([x, y]-x_k, bk, G_k, H) for x, y in zip(row_x, row_y)] 
+                    for row_x, row_y in zip(X_mesh, Y_mesh)])
+        
 
-    # # Define problem
-    # objective = cp.Minimize(cp.norm(H, 2))  # Spectral norm
-    # prob = cp.Problem(objective, constraints)
+        # Apply the function to each point in the grid
+        Z2 = np.array([[hfun(Ffun(np.array([x, y]))[0])[0] for x, y in zip(row_x, row_y)] 
+                    for row_x, row_y in zip(X_mesh, Y_mesh)])
+        
+        # ax = fig.add_subplot(111, projection='3d')
 
-    # # Solve it
-    # prob.solve()
-    # print("Problem status:", prob.status)
+        contour1 = plt.contour(X_mesh, Y_mesh, Z1, cmap='viridis', alpha=0.7, levels=40, linestyles='dashed')
+        contour2 = plt.contour(X_mesh, Y_mesh, Z2, cmap='viridis', alpha=0.7, levels=40)
+        plt.clabel(contour1, inline=True, fontsize=10)
+        plt.clabel(contour2, inline=True, fontsize=10)
+        plt.colorbar(contour1, label='m_k')
+        plt.colorbar(contour2, label='f')
 
-    # # Output the optimal H
-    # print("Optimal H:", H.value)
+        plt.scatter(x_k[0], x_k[1], marker='o', color='red', s=10, label='x_k')  # Current point
+
+
+        error = []
+        for i, index in enumerate(added_rows):
+            x_ind = X[index]
+            if index in added_rows:
+                marker = 'x'
+            else:
+                marker = 's'
+            plt.scatter(x_ind[0], x_ind[1], marker=marker, color='blue', s=10, label=f'X[{index}]')
+            error.append(np.abs(hfun(Ffun(x_ind)[0])[0] - model_k(x_ind - x_k, bk, G_k, H)))
+            # print("error", np.abs(hfun(Ffun(x_ind)[0])[0] - model_k(x_ind - x_k, bk, G_k, H)))
+        print("error on the interpolation points:", max(error))
+
+        # plt.contour(X_mesh, Y_mesh, Z1, levels=20, cmap='viridis', linestyles='solid')
+        # plt.contour(X_mesh, Y_mesh, Z2, levels=20, cmap='plasma', linestyles='dashed')
+        plt.title('Contour Plot of m_k and f')
+        plt.legend()
+        plt.show()
+
+    # print("Optimal H:", H)
+
     return H

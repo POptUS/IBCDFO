@@ -40,7 +40,7 @@
 #   Hres [n x n x p]    Model Hessians for each of the p outputs from Ffun
 #   Hash [cell]         Contains the hashes active at each evaluated point in X
 #   Act_Z_k [l cell]    List of hashes for active selection functions in TR
-#   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
+#   G_k  [n x l]        Matrix of model gradients compareosed with gradients of elements in Act_Z_k
 #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
 import numpy as np
@@ -64,18 +64,39 @@ from bfgs_hessian_local import bfgs_hessian_local
 #from sr1_hessian_local import sr1_hessian_local
 from min_norm_interpolation_hessian import min_norm_interpolation_hessian
 
+from scipy.optimize import minimize
+
 # # You'll need to uncomment the following two, and not have `eng = []` if you
 # # want to use matlab's linprog in minimize_affine_envelope
 # import matlab.engine
 # eng = matlab.engine.start_matlab()
 eng = []
 
-def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob_switch, H_selection, gtol=None, printf=False):
+
+
+def linear_model_k(s, b, G):
+    # mk_s = max(np.expand_dims(bk, 1) + np.dot(G_k.T, s))
+    lineark_s = max(b + np.dot(G.T, s))
+    return lineark_s
+
+def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob_switch, H_selection, H_selection_compare=None, gtol=None, printf=False):
     # Deduce p from evaluating Ffun at x0
     try:
         F0, Grad0 = Ffun(x0)
     finally:
         pass
+
+    def f(x):
+        fval = hfun(Ffun(x)[0])[0]
+        return fval
+    
+
+
+    def model_k(s, b, G, H):
+
+        mk_s = linear_model_k(s, b, G) + 0.5 * np.dot(s, np.dot(H, s))
+        return mk_s
+    
 
     n, delta, _, fq_pars, tol, X, F, Grad, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, Grad0, nfmax)
 
@@ -100,6 +121,13 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
 
     H_mm = 1e-8 * np.eye(n)
 
+    compare1 = np.empty((0,))
+    compare2 = np.empty((0,))
+    compare3_1 = np.empty((0,))
+    compare3_2 = np.empty((0,))
+    compare4_1 = np.empty((0,))
+    compare4_2 = np.empty((0,))
+
     while nf + 1 < nfmax and delta > tol["mindelta"]:
         bar_delta = delta
 
@@ -108,12 +136,14 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             # Line 4: build models
             Gres = Grad[xkin].T
             if len(Gres) == 0:
-                return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -1)
+                X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -1)
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
             if nf + 1 >= nfmax:
-                return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
+                X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-            D_k, Act_Z_k, f_bar, Xlist, full_Act_Z_k = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
+            D_k, Act_Z_k, f_bar, Xlist = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
             G_k = Gres @ D_k
 
 
@@ -140,9 +170,20 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                     H_mm = 1e-8 * np.eye(n)
                 else:
                     # Use min-norm interpolation Hessian
-                    f_k, __ = hfun(F[xkin], full_Act_Z_k)
-                    beta_full = np.maximum(0, f_k - h[xkin])
-                    H_mm = min_norm_interpolation_hessian(X, nf, xkin, F, G_k, f_k, beta_full, h, Xlist)
+                    # f_k, __ = hfun(F[xkin], full_Act_Z_k)
+                    # beta_full = np.maximum(0, f_k - h[xkin])
+                    # if n == 2:
+                    #     plot_m = True
+                    # else:
+                    #     plot_m = False
+                    # if nf % 10 == 0:
+                    #     plot_m = True
+                    # else:
+                    #     plot_m = False
+                    # plot_m = False
+                    H_mm = min_norm_interpolation_hessian(X, xkin, h[xkin], f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta)
+            
+
 
             # Line 7: Find a candidate s_k by solving QP
             Low = np.maximum(L - X[xkin], -delta)
@@ -156,18 +197,94 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             #print(f"s_k_0: {s_k} vs s_k_H {s_k_H}")
 
             if lp_fail_flag:
-                return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
+                X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+            
+            # Check 1: error on X[Xlist]
+            error1 = np.empty((0,))
+            if Xlist is None or len(Xlist) == 0:
+                error1 = np.append(error1, np.nan)
+                compare1 = np.append(compare1, np.nan)
+            else:
+                for i, index in enumerate(Xlist):
+                    x_ind = X[index]
+                    error1 = np.append(error1, np.abs(f(x_ind) - model_k(x_ind-X[xkin], f_bar - beta, G_k, H_mm))) 
+                    # print("error", np.abs(hfun(Ffun(x_ind)[0])[0] - model_k(x_ind - x_k, bk, G_k, H)))
+                
+                # print("error1:", np.max(error1))
+                compare1 = np.append(compare1, np.max(error1))
+
+
+            # Check 2: error on a small neighborhood of x_k
+            x_range = np.linspace(X[xkin][0]-delta/2, X[xkin][0]+delta/2, 20)
+            y_range = np.linspace(X[xkin][1]-delta/2, X[xkin][1]+delta/2, 20)
+            X_mesh, Y_mesh = np.meshgrid(x_range, y_range)
+            Z1_test = np.array([[model_k([x, y]-X[xkin], f_bar - beta, G_k, H_mm) for x, y in zip(row_x, row_y)] 
+                        for row_x, row_y in zip(X_mesh, Y_mesh)])
+                
+            # Z2_test = np.array([[hfun(Ffun(np.array([x, y]))[0])[0] for x, y in zip(row_x, row_y)] 
+            #             for row_x, row_y in zip(X_mesh, Y_mesh)])
+            Z2_test = np.array([[f(np.array([x, y])) for x, y in zip(row_x, row_y)] 
+                        for row_x, row_y in zip(X_mesh, Y_mesh)])
+            # print("Error at neighboring points:", np.max(np.abs(Z1_test - Z2_test)))
+            compare2 = np.append(compare2, np.max(np.abs(Z1_test - Z2_test)))
+
+            # Check 3: f(y^*) - m_k(y^*)
+            trust_region_constraint = {
+                'type': 'ineq',
+                'fun': lambda x: delta**2 - np.linalg.norm(x - X[xkin])
+            }
+            optp = minimize(f, X[xkin], constraints=trust_region_constraint, method='SLSQP')
+            # print("Minimizer:", optp.x)
+            # print("f(y^*) and f(y^*) - m_k(y^*):", optp.fun, optp.fun - model_k(optp.x - X[xkin], f_bar - beta, G_k, H_mm))
+            compare3_1 = np.append(compare3_1, optp.fun)
+            compare3_2 = np.append(compare3_2, model_k(optp.x - X[xkin], f_bar - beta, G_k, H_mm))
+
+            # Check 4:
+            if H_selection_compare is None:
+                if H_selection == "min_norm_interpolation_hessian":
+                    H_selection_compare = "zero_hessian"
+                else:
+                    H_selection_compare = "min_norm_interpolation_hessian"
+
+            if H_selection_compare == "zero_hessian":
+                H_mm_compare = np.zeros((n, n))
+            elif H_selection_compare == "overapproximating_hessian":
+                H_mm_compare = 1e-8 * np.eye(n)
+                H_mm_compare = overapproximating_hessian(H_mm_compare, X, nf, xkin, h, G_k, f_bar, beta, delta)
+            elif H_selection_compare == "bfgs_hessian_local":
+                H_mm_compare = 1e-8 * np.eye(n)
+                H_mm_compare = bfgs_hessian_local(H_mm_compare, X, xkin, F, Grad, hfun, Xlist, Hash)
+            elif H_selection_compare == "sr1_hessian_local":
+                H_mm_compare = 1e-8 * np.eye(n)
+                H_mm_compare = sr1_hessian_local(H_mm_compare, X, xkin, F, Grad, hfun, Xlist, Hash)
+            elif H_selection_compare == "min_norm_interpolation_hessian":
+                H_mm_compare = min_norm_interpolation_hessian(X, xkin, h[xkin], f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta)
+            
+            m_k_current = model_k(s_k, f_bar - beta, G_k, H_mm)
+            
+            s_k_compare, __, __, __, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm_compare, delta, Low, Upp, H_k, subprob_switch, eng)
+            if lp_fail_flag:
+                m_k_compare = np.nan
+            else:
+                m_k_compare = model_k(s_k_compare, f_bar - beta, G_k, H_mm_compare)
+            compare4_1 = np.append(compare4_1, m_k_current)
+            compare4_2 = np.append(compare4_2, m_k_compare)
+            print("m_k_current vs m_k_compare:", m_k_current, m_k_compare)
+
 
             # Line 8: Compute stationary measure chi_k
             Low = np.maximum(L - X[xkin], -1.0)
             Upp = np.minimum(U - X[xkin], 1.0)
             __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
             if lp_fail_flag:
-                return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
+                X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
-                return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, chi_k)
+                X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, chi_k)
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
 
             # Line 12: Evaluate F
             nf, X, F, Grad, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, Grad, h, Hash, Ffun, hfun, np.squeeze(X[xkin] + s_k.T), tol, L, U, 1)
@@ -185,7 +302,7 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                 break
             else:
                 # Line 18: Check temporary activities after adding TRSP solution to X
-                __, tmp_Act_Z_k, __, __, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
+                __, tmp_Act_Z_k, __, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
                 if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
@@ -223,11 +340,14 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
         if printf:
             print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, h[xkin], chi_k, delta))
             #print("max eig of H_mm: ", np.amax(np.linalg.eig(H_mm)[0]))
+    # print("error: ", error)
 
     if nf + 1 >= nfmax:
-        return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
+        X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
+        return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
     else:
-        return prepare_outputs_before_return(X, F, Grad, h, nf, xkin, chi_k)
+        X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, chi_k)
+        return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
 
 
 
