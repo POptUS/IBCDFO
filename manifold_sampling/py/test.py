@@ -10,6 +10,8 @@ from dfoxs import dfoxs
 from h_examples import one_norm, pw_maximum_squared
 from manifold_sampling_primal_with_gradients import manifold_sampling_primal_with_gradients
 
+import matplotlib.pyplot as plt
+
 if not os.path.exists("msp_benchmark_results"):
     os.makedirs("msp_benchmark_results")
 
@@ -25,8 +27,11 @@ subprob_switch = "linprog"
 # H_selection = "bfgs_hessian"
 # H_selection = "bfgs_hessian_local"
 # H_selection = "sr1_hessian_local"
-H_selection = "min_norm_interpolation_hessian"
+# H_selection = "min_norm_interpolation_hessian"
 # H_selection = "zero_hessian"
+
+H_selections = ["min_norm_interpolation_hessian", "zero_hessian"]
+H_selection_compares = ["zero_hessian", "min_norm_interpolation_hessian"]
 
 hfuns = [one_norm]
 
@@ -49,13 +54,41 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return np.squeeze(fvec), J
 
     for i, hfun in enumerate(hfuns):
-        X, F, Grad, h, nf, xkin, flag = manifold_sampling_primal_with_gradients(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch, H_selection, printf=True)
+        for idx, H_selection in enumerate(H_selections):
+            print("H_selection:", H_selection)
+            print("H_selection_compare:", H_selection_compares[idx])
+            X, F, Grad, h, nf, xkin, flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2 = manifold_sampling_primal_with_gradients(
+                hfun, Ffun, x0, LB, UB, nfmax, subprob_switch, H_selection, H_selection_compare=H_selection_compares[idx], printf=True)
 
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + str(hfun)]
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["Fvec"] = F
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
+            Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
+            Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
+            Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + str(hfun)]
+            Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["Fvec"] = F
+            Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
+            Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
 
+            plt.figure(num=1)
+            plt.plot(compare1, label=H_selection)
+            plt.title("Figure 1: error on Xlist")
+            plt.legend()
+
+            plt.figure(num=2)
+            plt.plot(compare2, label=H_selection)
+            plt.title("Figure 2: error on the neighborhood of x_k")
+            plt.legend()
+
+            plt.figure(num=3)
+            plt.plot(compare3_1, label=H_selection+' f(y^*)')
+            plt.plot(compare3_2, linestyle='--', label=H_selection+' m_k(y^*)')
+            plt.title("Figure 3: f(y^*) and m_k(y^*)")
+            plt.legend()
+
+            plt.figure(num=4)
+            plt.plot(compare4_1, label=H_selection+'(cur) vs '+ H_selection_compares[idx])
+            plt.plot(compare4_2, linestyle='--', label=H_selection_compares[idx]+'(cmp) vs '+ H_selection)
+            plt.title("Figure 4: m_k_cur and m_k_cmp")
+            plt.legend()
+
+
+    plt.show()
     sp.io.savemat("./msp_benchmark_results/manifold_sampling_py_with_gradients.mat", Results)
