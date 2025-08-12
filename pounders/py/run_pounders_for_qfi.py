@@ -3,11 +3,11 @@ import pickle
 import ibcdfo.pounders as pdrs
 import numpy as np
 import ipdb
-from lbfgsb import unroll_z_into_matrix_sm
+from lbfgsb import unroll_z_into_matrix_sm, unroll_z_into_matrix
 import qfi_opt.spin_models as sm
-from density_Ffun import sm_density_Ffun as density_Ffun
-from retraction_qfi_hfun import qfi, retraction
 from jax import jit, grad
+import qfi_opt.examples.PermSolver_methods as methods
+
 
 def run_pounders(initial_point, Ffun, hfun, hfun_d, sim_params, m, delta_0=0.125, spsolver=4, Prior=None, nf_max=500, g_tol=1e-4, delta_max=[]):
 
@@ -56,7 +56,11 @@ dissipation_rate = float(sys.argv[3])
 layers = int(sys.argv[4])
 coupling_exponent = float(sys.argv[5])
 n = 3 + 2 * layers
-G = sm.collective_op(sm.PAULI_Z, num_qubits) / 2
+
+if coupling_exponent > 0.0:
+    G = sm.collective_op(sm.PAULI_Z, num_qubits) / 2
+else:
+    G = getattr(methods, 'MatSz')(num_qubits // 2)
 
 # create dictionary from simulation parameters
 sim_params = {'G': G,
@@ -70,11 +74,29 @@ initial_point = np.array(2 * [1 / 4] + [1 / 4 if _ % 2 == 0 else 1 / 2 for _ in 
 #initial_point = np.random.uniform(-np.ones(n), np.ones(n))
 
 # specify hfun and hfun_d
-#hfun = lambda X: -1.0 * qfi(retraction(X), G, num_qubits)
-hfun = lambda X: -1.0 * qfi(X, G, num_qubits)
+hfun = lambda X: -1.0 * qfi(X, G, sim_params)
 hfun_d = jit(grad(hfun, argnums=0))
-rollup_hfun = lambda F: hfun(unroll_z_into_matrix_sm(F, sim_params))
-rollup_hfun_d = lambda F: hfun_d(unroll_z_into_matrix_sm(F, sim_params))
+if coupling_exponent == 0.0:
+    rollup_hfun = lambda F: hfun(unroll_z_into_matrix(F, sim_params))
+    rollup_hfun_d = lambda F: hfun_d(unroll_z_into_matrix(F, sim_params))
+
+    from density_Ffun import permsolver_density_Ffun as density_Ffun
+    from qfi_opt.examples import PermSolver_matrix as matrix
+    from retraction_qfi_hfun import qfi_permsolver as qfi
+
+    # map short-range to infinite-range
+    parent_models = {"ising": "OAT", "XX": "OAT", "local_TAT": "TAT"}
+    # construct Hamiltonian for infinite-range model
+    Hamiltonian_set = getattr(matrix, f'{parent_models[model]}Mat')(1.0, num_qubits // 2)
+    sim_params['Hmat_set'] = Hamiltonian_set
+
+    # temporary: you have to do one evaluation of this function:
+    _, sim_params = density_Ffun(initial_point, sim_params)
+else:
+    rollup_hfun = lambda F: hfun(unroll_z_into_matrix_sm(F, sim_params))
+    rollup_hfun_d = lambda F: hfun_d(unroll_z_into_matrix_sm(F, sim_params))
+    from density_Ffun import sm_density_Ffun as density_Ffun
+    from retraction_qfi_hfun import qfi
 
 # three more parameters for pounders:
 delta_0 = 1e-2

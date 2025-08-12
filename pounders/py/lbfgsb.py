@@ -33,7 +33,6 @@ def unroll_z_into_matrix_sm(z, sim_params):
     return A
 
 def unroll_z_into_matrix(z, sim_params):
-    n = sim_params['n']
 
     # reconstruct rho
     shape_vector = sim_params['shape_vector']
@@ -67,11 +66,12 @@ def unroll_z_into_matrix(z, sim_params):
         # get ready for next iteration
         fdim_idx = fdim_idx_end
 
+    # Can probably engineer this better, but jax is going to want a matrix, not a list of arrays.
     block_matrix = block_diag(rho[0], rho[1])
     for j in range(2, Jmax):
         block_matrix = block_diag(block_matrix, rho[j])
 
-    return block_matrix
+    return block_matrix # rho
 
 def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H, sim_params, compute_grad=False):
 
@@ -93,8 +93,10 @@ def objective_for_lbfgsb(y, hfun, hfun_d, Fx, G, H, sim_params, compute_grad=Fal
 
         grad = np.zeros(n)
         for j in range(n):
-            # please note this is currently hardcoded for spin models (sm)
-            jth_partial = unroll_z_into_matrix_sm(Jy[j, :], sim_params)
+            if 'Fdim' in sim_params:
+                jth_partial = unroll_z_into_matrix(Jy[j, :], sim_params)
+            else:
+                jth_partial = unroll_z_into_matrix_sm(Jy[j, :], sim_params)
             grad[j] = np.real(np.trace(hfundMy.T @ jth_partial))
         return grad
     else:

@@ -50,9 +50,9 @@ def sm_density_Ffun(params, sim_params):
     rho = sim_obj(params=params, num_qubits=num_qubits, dissipation_rates=dissipation_rate,
                   coupling_exponent=coupling_exponent)
 
-    rho = take_square_root(rho)
+    A = take_square_root(rho)
 
-    return rollup(rho)
+    return rollup(A)
 
 
 def permsolver_density_Ffun(params, sim_params):
@@ -61,9 +61,9 @@ def permsolver_density_Ffun(params, sim_params):
     params = np.squeeze(params.T)
 
     rho = methods.simulate_layers(params=params,
-                                  num_qubits=sim_params['N'],
+                                  num_qubits=sim_params['num_qubits'],
                                   Hamiltonian_set=sim_params['Hmat_set'],
-                                  dissipation_rates=sim_params['dissipation'])
+                                  dissipation_rates=sim_params['dissipation_rate'])
 
     return_new_params_flag = False
     if 'Fdim' in sim_params:
@@ -89,8 +89,10 @@ def permsolver_density_Ffun(params, sim_params):
         subdim = np.shape(rho[nb])[0]
         fdim_idx_end = int(fdim_idx + subdim * (subdim + 1) / 2)
 
+        A = take_square_root(rho[nb])
+
         upper_triangular_indices = np.triu_indices(rho[nb].shape[0])
-        upper_triangular_array = rho[nb][upper_triangular_indices]
+        upper_triangular_array = A[upper_triangular_indices]
 
         # store the real part of the array first
         Fvec[fdim_idx:fdim_idx_end] = np.real(upper_triangular_array)

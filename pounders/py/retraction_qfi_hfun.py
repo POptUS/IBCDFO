@@ -26,8 +26,12 @@ def retraction(rho, tol=1e-12):
 
     return rho_new
 
-@jit
-def qfi(A, G, num_qubits, eps=1e-12):
+#@jit
+def qfi(A, G, sim_params, eps=1e-12):
+
+    #ipdb.set_trace()
+
+    num_qubits = sim_params["num_qubits"]
 
     # put back into density matrix form:
     rho = A @ A.conj().T
@@ -53,6 +57,56 @@ def qfi(A, G, num_qubits, eps=1e-12):
 
     # Sum over all (i,j) to get the QFI
     return jnp.sum(qfi_matrix) / num_qubits**2
+
+
+#@jit
+def qfi_permsolver(A, G, sim_params, eps=1e-12):
+
+    num_qubits = sim_params["num_qubits"]
+    shape_vector = sim_params["shape_vector"]
+
+    # note that G has len Jmax.
+    Jmax = len(shape_vector)
+
+    # Initialize QFI and grad
+    running_sum = 0
+    fdim_idx = 0
+
+    for jm in range(Jmax):
+        # put A back into density matrix rho form:
+        fdim_idx_end = fdim_idx + shape_vector[jm]
+        Ajm = A[fdim_idx:fdim_idx_end, fdim_idx:fdim_idx_end]
+        fdim_idx = fdim_idx_end
+
+        rho = Ajm @ Ajm.conj().T
+        if shape_vector[jm] > 1:
+            rho /= jnp.trace(rho)
+
+            # eigendecomposition of rho
+            lambdas, psi = jnp.linalg.eigh(rho)
+
+            Gjm = G[jm]
+
+            # Compute the matrix elements ⟨ψ_i|G|ψ_j⟩ = psi[:,i]† G psi[:,j]
+            G_mat = psi.conj().T @ Gjm @ psi  # This is G in the eigenbasis of rho
+            G_abs_squared = jnp.abs(G_mat) ** 2  # |⟨ψ_i|G|ψ_j⟩|²
+
+            # Build the denominator λ_i + λ_j and numerator (λ_i - λ_j)^2
+            lambda_i = lambdas[:, None]
+            lambda_j = lambdas[None, :]
+
+            denom = lambda_i + lambda_j
+            numer = (lambda_i - lambda_j) ** 2
+
+            # Avoid division by zero: mask out zero denominators
+            mask = denom > eps
+            qfi_matrix = jnp.where(mask, 2 * numer / denom * G_abs_squared, 0.0)
+
+            # Sum over all (i,j) to get the QFI
+            running_sum += jnp.sum(qfi_matrix) / (num_qubits ** 2)
+
+    return running_sum
+
 
 
 if __name__ == "__main__":
