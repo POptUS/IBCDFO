@@ -51,18 +51,18 @@ import os
 import subprocess
 import cvxpy as cp
 
-from build_p_models import build_p_models
-from call_user_scripts_with_gradients import call_user_scripts
-from check_inputs_and_initialize_with_gradients import check_inputs_and_initialize
-from choose_generator_set import choose_generator_set
-from minimize_affine_envelope import minimize_affine_envelope
-from prepare_outputs_before_return_with_gradients import prepare_outputs_before_return
-from overapproximating_hessian import overapproximating_hessian
-from sr1_hessian import sr1_hessian
-from bfgs_hessian import bfgs_hessian
-from bfgs_hessian_local import bfgs_hessian_local
-#from sr1_hessian_local import sr1_hessian_local
-from min_norm_interpolation_hessian import min_norm_interpolation_hessian
+from .build_p_models import build_p_models
+from .call_user_scripts_with_gradients import call_user_scripts
+from .check_inputs_and_initialize_with_gradients import check_inputs_and_initialize
+from .choose_generator_set import choose_generator_set
+from .minimize_affine_envelope import minimize_affine_envelope
+from .prepare_outputs_before_return_with_gradients import prepare_outputs_before_return
+from .overapproximating_hessian import overapproximating_hessian
+from .sr1_hessian import sr1_hessian
+from .bfgs_hessian import bfgs_hessian
+from .bfgs_hessian_local import bfgs_hessian_local
+from .sr1_hessian_local import sr1_hessian_local
+from .min_norm_interpolation_hessian import min_norm_interpolation_hessian
 
 from scipy.optimize import minimize
 
@@ -127,6 +127,8 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
     compare3_2 = np.empty((0,))
     compare4_1 = np.empty((0,))
     compare4_2 = np.empty((0,))
+    radius_hist= np.empty((0,))
+    succ_hist  = np.empty((0,))
 
     while nf + 1 < nfmax and delta > tol["mindelta"]:
         bar_delta = delta
@@ -137,10 +139,10 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             Gres = Grad[xkin].T
             if len(Gres) == 0:
                 X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -1)
-                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2, radius_hist, succ_hist
             if nf + 1 >= nfmax:
                 X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
-                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2, radius_hist, succ_hist
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar, Xlist = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
@@ -181,7 +183,7 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                     # else:
                     #     plot_m = False
                     # plot_m = False
-                    H_mm = min_norm_interpolation_hessian(X, xkin, h[xkin], f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta)
+                    H_mm = min_norm_interpolation_hessian(X, xkin, h[xkin], f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta, Hash)
             
 
 
@@ -198,21 +200,23 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
 
             if lp_fail_flag:
                 X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
-                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2, radius_hist, succ_hist
             
-            # Check 1: error on X[Xlist]
+            # Check 1: error on X[Xlist], X
             error1 = np.empty((0,))
-            if Xlist is None or len(Xlist) == 0:
+            # if Xlist is None or len(Xlist) == 0:
+            #     error1 = np.append(error1, np.nan)
+            #     compare1 = np.append(compare1, np.nan)
+            if X is None or len(X) == 0:
                 error1 = np.append(error1, np.nan)
                 compare1 = np.append(compare1, np.nan)
             else:
-                for i, index in enumerate(Xlist):
-                    x_ind = X[index]
+                for i, x_ind in enumerate(X):
+                    if i == xkin:
+                        continue
                     error1 = np.append(error1, np.abs(f(x_ind) - model_k(x_ind-X[xkin], f_bar - beta, G_k, H_mm))) 
-                    # print("error", np.abs(hfun(Ffun(x_ind)[0])[0] - model_k(x_ind - x_k, bk, G_k, H)))
-                
-                # print("error1:", np.max(error1))
                 compare1 = np.append(compare1, np.max(error1))
+            # compare1 = np.append(compare1, f(X[xkin]+s_k))
 
 
             # Check 2: error on a small neighborhood of x_k
@@ -259,7 +263,7 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                 H_mm_compare = 1e-8 * np.eye(n)
                 H_mm_compare = sr1_hessian_local(H_mm_compare, X, xkin, F, Grad, hfun, Xlist, Hash)
             elif H_selection_compare == "min_norm_interpolation_hessian":
-                H_mm_compare = min_norm_interpolation_hessian(X, xkin, h[xkin], f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta)
+                H_mm_compare = min_norm_interpolation_hessian(X, xkin, h[xkin], f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta, Hash)
             
             m_k_current = model_k(s_k, f_bar - beta, G_k, H_mm)
             
@@ -279,12 +283,12 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
             if lp_fail_flag:
                 X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, -2)
-                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2, radius_hist, succ_hist
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
                 X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, chi_k)
-                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+                return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2, radius_hist, succ_hist
 
             # Line 12: Evaluate F
             nf, X, F, Grad, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, Grad, h, Hash, Ffun, hfun, np.squeeze(X[xkin] + s_k.T), tol, L, U, 1)
@@ -314,6 +318,10 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
                         # Line 24: Shrink delta
                         delta = tol["gamma_dec"] * delta
 
+        
+        radius_hist = np.append(radius_hist, delta)
+        succ_hist = np.append(succ_hist, successful*delta)
+
         if successful:
             # eigenvalues = np.linalg.eigvals(H_mm)
             # min_eigenvalue = np.min(eigenvalues)
@@ -322,11 +330,6 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
             # print("Eigenvalues:", eigenvalues)
             # print("Minimum eigenvalue:", min_eigenvalue)
             # print("Maximum eigenvalue:", max_eigenvalue)
-
-            if H_selection == "sr1_hessian":
-                H_mm = sr1_hessian(H_mm, X, nf, xkin, F, Grad, hfun, Hash)
-            elif H_selection == "bfgs_hessian":
-                H_mm = bfgs_hessian(H_mm, X, nf, xkin, F, Grad, hfun, Hash)
             
             xkin = nf
             if rho_k > tol["eta3"] and np.linalg.norm(s_k, ord=np.inf) > 0.8 * bar_delta:
@@ -344,10 +347,10 @@ def manifold_sampling_primal_with_gradients(hfun, Ffun, x0, L, U, nfmax, subprob
 
     if nf + 1 >= nfmax:
         X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, 0)
-        return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+        return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2, radius_hist, succ_hist
     else:
         X, F, Grad, h, nf, xkin, exit_flag = prepare_outputs_before_return(X, F, Grad, h, nf, xkin, chi_k)
-        return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2
+        return X, F, Grad, h, nf, xkin, exit_flag, compare1, compare2, compare3_1, compare3_2, compare4_1, compare4_2, radius_hist, succ_hist
 
 
 

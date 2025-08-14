@@ -79,13 +79,12 @@ def add_row_if_increases_rank(A, b, new_row, new_ele):
     else:
         rank_before = np.linalg.matrix_rank(A, tol=1e-8)
     A_new = np.vstack([A, new_row])
-    b_new = np.append(b, new_ele)
     rank_after = np.linalg.matrix_rank(A_new, tol=1e-8)
 
     if rank_after > rank_before:
-        return A_new, b_new, True
+        return True
     else:
-        return A, b, False  # return unchanged matrix
+        return False  # return unchanged matrix
 
 def linear_model_k(s, b, G):
     # mk_s = max(np.expand_dims(bk, 1) + np.dot(G_k.T, s))
@@ -99,7 +98,7 @@ def model_k(s, b, G, H):
     
 
 # def min_norm_interpolation_hessian(X, nf, xkin, F, G_k, f_k, beta, h, Xlist):
-def min_norm_interpolation_hessian(X, xkin, f, f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta, plot_m=False):
+def min_norm_interpolation_hessian(X, xkin, f, f_bar, beta, G_k, h, Xlist, hfun, Ffun, delta, Hash, plot_m=False):
 
     Xlist = np.array(Xlist).astype(int)
 
@@ -114,55 +113,37 @@ def min_norm_interpolation_hessian(X, xkin, f, f_bar, beta, G_k, h, Xlist, hfun,
     b = np.empty((0,))
     added_rows = np.empty((0,))
 
-    XkDist = cdist(X[Xlist], X[xkin: xkin+1], metric="chebyshev").flatten()
-    # print("XkDist:", XkDist)
-    sorted_dis = np.argsort(XkDist)
+    # XkDist = cdist(X[Xlist], X[xkin: xkin+1], metric="chebyshev").flatten()
+    # # print("XkDist:", XkDist)
+    # sorted_dis = np.argsort(XkDist)
+    # sorted_idx = Xlist[sorted_dis]
+    measure = np.array([np.abs(hfun(Ffun(X[idx])[0])[0] - linear_model_k(X[idx] - x_k, bk, G_k))
+                    for idx in Xlist])
+    sorted_dis = np.argsort(measure)[::-1]
     sorted_idx = Xlist[sorted_dis]
     for i, index in enumerate(sorted_idx):
-        # x_diff = X[Xlist[index]] - x_k
         x_diff = X[index] - x_k
-        # print("x_diff:", x_diff)
         S = np.outer(x_diff, x_diff)
         linear_i = linear_model_k(x_diff, bk, G_k)
         new_row = vech(S)
         new_ele = h[index] - linear_i
-        A, b, add_flag = add_row_if_increases_rank(A, b, new_row, new_ele)
+        add_flag = add_row_if_increases_rank(A, b, new_row, new_ele)
 
         if add_flag == True:
+            if added_rows.size == 0:
+                add_flag = True
+            else:
+                for j in added_rows:
+                    if Hash[index] == Hash[j]:
+                        add_flag = False
+                        break
+        if add_flag == True:
+            print(Hash[index])
             added_rows = np.append(added_rows, index)
+            A = np.vstack([A, new_row])
+            b = np.append(b, new_ele)
 
     added_rows = np.array(added_rows).astype(int)
-
-    # print("Added rows:", added_rows)
-    # print("A.shape", A.shape)
-
-    # Xlist = np.array(Xlist).astype(int)
-
-    # # Inputs:
-    # x_k = X[xkin]  # current point x_k
-    # n = x_k.shape[0]  # dimension
-
-    # Dn = duplication_matrix(n)  # duplication matrix
-    # P = Dn.T @ Dn  # P = D^T D
-    # # P = 0.5 * (P + P.T)
-
-    # # A = np.zeros((len(Xlist), n * (n + 1) // 2))
-    # # b = np.zeros(len(Xlist))
-    # A = np.empty((0, n * (n + 1) // 2))
-    # b = np.empty((0,))
-    # for i, index in enumerate(Xlist):
-    #     x_diff = X[index] - x_k
-    #     # print("x_diff:", x_diff)
-    #     S = np.outer(x_diff, x_diff)
-    #     linear_term = max(np.dot(G_k.T, x_diff))  # Assuming G_k is a matrix of gradients
-    #     # m_ki = linear_term + f_k[i] - beta[i]
-    #     m_ki = linear_term + f_k[i]
-    #     new_row = vech(S)
-    #     new_ele = h[index] - m_ki
-    #     A, b = add_row_if_increases_rank(A, b, new_row, new_ele)
-    #     # b = np.append(b, h[index] - m_ki)
-
-    # # print("b:", b)
 
     if A.size == 0:
         return np.zeros((n, n))  # If no constraints, return zero matrix
@@ -170,8 +151,6 @@ def min_norm_interpolation_hessian(X, xkin, f, f_bar, beta, G_k, h, Xlist, hfun,
     b = b*2
 
     A = A @ P
-    # print("A:", A)
-    # print("b:", b)
 
     P  = matrix(P)  # P = D^T D
     q  = matrix(np.zeros((n * (n + 1) // 2, 1)))  # q = 0
@@ -181,8 +160,54 @@ def min_norm_interpolation_hessian(X, xkin, f, f_bar, beta, G_k, h, Xlist, hfun,
     b = matrix(b)
     solution = solvers.qp(P, q, None, None, A, b)
     h_opt = np.array(solution['x']).flatten()
-    # print("Optimal h_opt:", h_opt)
     H = vech_inv(h_opt)
+
+
+    # measure_after = np.array([np.abs(hfun(Ffun(X[idx])[0])[0]- model_k(X[idx] - x_k, bk, G_k, H)) for idx in Xlist])
+    # # print(np.linalg.norm(measure-measure_after, np.inf))
+    # sorted_dis_after = np.argsort(measure_after)
+    # sorted_idx_after = Xlist[sorted_dis_after]
+    # # print("Measure on the interpolation points:", measure_after)
+
+    # A = np.empty((0, n * (n + 1) // 2))
+    # b = np.empty((0,))
+    # added_rows = np.empty((0,))
+
+
+    # for i, index in enumerate(sorted_idx_after):
+    #     # x_diff = X[Xlist[index]] - x_k
+    #     x_diff = X[index] - x_k
+    #     # print("x_diff:", x_diff)
+    #     S = np.outer(x_diff, x_diff)
+    #     linear_i = linear_model_k(x_diff, bk, G_k)
+    #     new_row = vech(S)
+    #     new_ele = h[index] - linear_i
+    #     A, b, add_flag = add_row_if_increases_rank(A, b, new_row, new_ele)
+
+    #     if add_flag == True:
+    #         added_rows = np.append(added_rows, index)
+
+    # added_rows = np.array(added_rows).astype(int)
+
+    # if A.size == 0:
+    #     return np.zeros((n, n))  # If no constraints, return zero matrix
+    
+    # b = b*2
+
+    # A = A @ P
+
+    # P  = matrix(P)  # P = D^T D
+    # q  = matrix(np.zeros((n * (n + 1) // 2, 1)))  # q = 0
+
+
+    # A = matrix(A)
+    # b = matrix(b)
+    # solution = solvers.qp(P, q, None, None, A, b)
+    # h_opt = np.array(solution['x']).flatten()
+    # # print("Optimal h_opt:", h_opt)
+    # H = vech_inv(h_opt)
+    # measure_after = np.array([np.abs(hfun(Ffun(X[idx])[0])[0]- model_k(X[idx] - x_k, bk, G_k, H)) for idx in Xlist])
+    # print("Measure on the interpolation points after:", measure_after)
 
 
     if plot_m == True:
@@ -231,5 +256,6 @@ def min_norm_interpolation_hessian(X, xkin, f, f_bar, beta, G_k, h, Xlist, hfun,
         plt.show()
 
     # print("Optimal H:", H)
+
 
     return H

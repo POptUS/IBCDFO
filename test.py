@@ -29,7 +29,7 @@ subprob_switch = "linprog"
 # H_selection = "bfgs_hessian_local"
 # H_selection = "sr1_hessian_local"
 # H_selection = "min_norm_interpolation_hessian"
-H_selection = "zero_hessian"
+# H_selection = "zero_hessian"
 
 H_selections = ["min_norm_interpolation_hessian", "zero_hessian"]
 H_selection_compares = ["zero_hessian", "min_norm_interpolation_hessian"]
@@ -70,7 +70,8 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             plt.figure(num=1)
             plt.plot(compare1, label=H_selection)
-            plt.title("Figure 1: error on Xlist")
+            # plt.title("Figure 1: error on Xlist")
+            plt.title("Figure 1: f(x_k+s_k)")
             plt.legend()
 
             plt.figure(num=2)
