@@ -1,9 +1,9 @@
 import jax.numpy as jnp
 from jax import jit, grad
-from DensityMatrixManifold import DensityMatrixManifold
+#from DensityMatrixManifold import DensityMatrixManifold
 import ipdb
 
-@jit
+#@jit
 def retraction(rho, tol=1e-12):
     # First-order retraction: rho + X, projected back to trace 1 and PSD
     # Step 1: Take a step in ambient space

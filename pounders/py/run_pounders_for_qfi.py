@@ -75,6 +75,7 @@ initial_point = np.array(2 * [1 / 4] + [1 / 4 if _ % 2 == 0 else 1 / 2 for _ in 
 
 # specify hfun and hfun_d
 hfun = lambda X: -1.0 * qfi(X, G, sim_params)
+#hfun_d = grad(hfun, argnums=0)
 hfun_d = jit(grad(hfun, argnums=0))
 if coupling_exponent == 0.0:
     rollup_hfun = lambda F: hfun(unroll_z_into_matrix(F, sim_params))
