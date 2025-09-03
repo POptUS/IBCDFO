@@ -19,7 +19,7 @@ def update_models(hfun, Ffun, n, p, nf, nf_max, xkin, delta, F, X, h, Hres, fq_p
     if mp < n and geometry_pt_flag:  # Must obtain and evaluate bounded geometry points
         Mdir, mp = bmpts(X[xkin], Mdir[: n - mp], L, U, delta, fq_pars["Par"][2])
 
-        for i in range(min(n - mp, nf_max - nf)):
+        for i in range(min(n - mp, nf_max - nf - 1)):
             nf, X, F, h, Hash, _ = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin, :] + Mdir[i, :], tol, L, U, 1)
             D = Mdir[i, :]
 
