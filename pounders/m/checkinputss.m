@@ -1,8 +1,8 @@
 % checkinputss.m, Version 0.1, Modified 3/3/10
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 %
-% [flag,X_0,np_max,F0,Low,Upp] = ...
-%          checkinputss(fun,X_0,n,np_max,nf_max,g_tol,delta,nfs,m,F0,xk_in,Low,Upp)
+% [flag,X_0,np_max,F_0,Low,Upp] = ...
+%          checkinputss(fun,X_0,n,np_max,nf_max,g_tol,delta,nfs,m,F_0,xk_in,Low,Upp)
 %
 % Checks the inputs provided to pounders.
 % A warning message is produced if a nonfatal input is given (and the
@@ -13,11 +13,11 @@
 % see inputs for pounders
 % --OUTPUTS----------------------------------------------------------------
 % flag  [int] = 1 if inputs pass the test
-%             = 0 if a warning was produced (X_0,np_max,F0,Low,Upp are changed)
+%             = 0 if a warning was produced (X_0,np_max,F_0,Low,Upp are changed)
 %             = -1 if a fatal error was produced (pounders terminates)
 %
-function [flag, X_0, np_max, F0, Low, Upp, xk_in] = ...
-    checkinputss(fun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, Low, Upp)
+function [flag, X_0, np_max, F_0, Low, Upp, xk_in] = ...
+    checkinputss(fun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, F_0, xk_in, Low, Upp)
 
 flag = 1; % By default, everything is OK
 
@@ -72,21 +72,21 @@ if nfs2 ~= max(nfs, 1)
 end
 
 % Check matrix of initial function values
-[nfs2, m2] = size(F0);
+[nfs2, m2] = size(F_0);
 if nfs2 < nfs
-    disp('  Error: fewer than nfs function values in F0');
+    disp('  Error: fewer than nfs function values in F_0');
     flag = -1;
     return
 elseif nfs > 1 && m ~= m2
-    disp('  Error: F0 does not contain the right number of residuals');
+    disp('  Error: F_0 does not contain the right number of residuals');
     flag = -1;
     return
 elseif nfs2 > nfs
-    disp('  Warning: number of starting f values nfs does not match input F0');
+    disp('  Warning: number of starting f values nfs does not match input F_0');
     flag = 0;
 end
-if any(any(isnan(F0)))
-    disp("  Error: F0 contains a NaN.");
+if any(any(isnan(F_0)))
+    disp("  Error: F_0 contains a NaN.");
     flag = -1;
     return
 end

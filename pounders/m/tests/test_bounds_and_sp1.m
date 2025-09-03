@@ -2,7 +2,7 @@
 %   - the spsolver=1 and spsolver=3 cases
 %   - the handling of bounds
 %   - printing
-%   - Using starting points in X0 and F0
+%   - Using starting points in X_0 and Ffun(X_0)
 %
 % To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
@@ -55,8 +55,8 @@ for row = [7, 8]
     printf = 1;
     spsolver = 1;
 
-    objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
-    F_init = objective(X_0)';
+    Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
+    F_init = Ffun(X_0)';
 
     for spsolver = [1, 3]
         for hfun_cases = 1:3
@@ -82,7 +82,7 @@ for row = [7, 8]
             Options.spsolver = spsolver;
             Options.printf = printf;
 
-            [X, F, hF, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
+            [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
 
             if flag == 0
                 check_stationary(X(xk_best, :), Low, Upp, BenDFO, combinemodels);
@@ -92,7 +92,7 @@ for row = [7, 8]
 end
 
 % Test success without last (optional) arguments to pounders
-[X, F, hF, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp);
+[X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp);
 
 path(oldpath);
 

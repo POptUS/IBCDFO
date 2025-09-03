@@ -22,9 +22,9 @@ X_0 = xs';
 delta_0 = 0.1;
 
 rand('seed', 1);
-objective = @(x)failing_objective(x);
+Ffun = @(x)failing_objective(x);
 
-[X, F, hF, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp);
+[X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp);
 assert(flag == -3, "No NaN was encountered in this test, but (with high probability) should have been.");
 
 Model.spsolver = spsolver;
@@ -34,8 +34,8 @@ Model.spsolver = spsolver;
 assert(flag == -1, "Should have failed");
 
 % Intentionally putting a NaN in F to cover part of pounders.m
-objective = @(x) nan(1, 3);
-[X, F, hF, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
+Ffun = @(x) nan(1, 3);
+[X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
 assert(flag == -3, "Should have failed immediately after first eval");
 
 path(oldpath);
