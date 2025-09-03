@@ -28,6 +28,7 @@ if ~isstruct(Model)
     error("Model must be a struct");
 end
 
+% --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
 if ~isfield(Options, 'delta_max')
     Options.delta_max = min(.5 * min(Upp - Low), 1e3 * delta_0); % [dbl] Maximum tr radius
 end
@@ -103,7 +104,7 @@ elseif spsolver == 3 % Arnold Neumaier's minq8
 end
 
 % 0. Check inputs
-[flag, X_0, np_max, F0, Low, Upp, xk_in] = ...
+[flag, X_0, np_max, F_0, Low, Upp, xk_in] = ...
     checkinputss(Ffun, X_0, n, Model.np_max, nf_max, g_tol, delta, nfs, m, Prior.F_init, Prior.xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = [];
@@ -112,7 +113,6 @@ if flag == -1 % Problem with the input
     return
 end
 
-% --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
 if printf
     disp('  nf   delta    fl  np       f0           g0       ierror');
     progstr = '%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n'; % Line-by-line
@@ -143,13 +143,13 @@ if nfs == 0 % Need to do the first evaluation
     F = zeros(nf_max, m); % Stores the function values
     hF = zeros(nf_max, 1); % Stores the sum of squares of evaluated points
     nf = 1;
-    F0 = Ffun(X(nf, :));
-    if length(F0) ~= m
-        disp('  Error: F0 does not contain the right number of residuals');
+    F_0 = Ffun(X(nf, :));
+    if length(F_0) ~= m
+        disp('  Error: F_0 does not contain the right number of residuals');
         flag = -1;
         return
     end
-    F(nf, :) = F0;
+    F(nf, :) = F_0;
     if any(isnan(F(nf, :)))
         [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
         return
@@ -159,7 +159,7 @@ if nfs == 0 % Need to do the first evaluation
     end
 else % Have other function values around
     X = [X_0(1:nfs, :); zeros(nf_max, n)]; % Stores the point locations
-    F = [F0(1:nfs, :); zeros(nf_max, m)]; % Stores the function values
+    F = [F_0(1:nfs, :); zeros(nf_max, m)]; % Stores the function values
     hF = zeros(nf_max + nfs, 1); % Stores the sum of squares of evaluated points
     nf = nfs;
     nf_max = nf_max + nfs;
