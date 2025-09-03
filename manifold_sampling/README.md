@@ -11,7 +11,7 @@ where `x` is an `[n by 1]` vector, `F` is a blackbox function mapping from `R^n`
 ## API
 The manifold_sampling_primal API is
 ````
-[X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch)
+[X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch)
 ````
 
 ### Inputs
@@ -32,13 +32,13 @@ The manifold_sampling_primal API is
 ### Outputs
 ````
 Outputs:
-  X:      [nfmax x n]   Points evaluated
-  F:      [nfmax x p]   Their simulation values
-  h:      [nfmax x 1]   The values h(F(x))
+  X:      [nf_max x n]   Points evaluated
+  F:      [nf_max x p]   Their simulation values
+  h:      [nf_max x 1]   The values h(F(x))
   xkin:   [int]         Current trust region center
   flag:   [int]         Inform user why we stopped.
                           -1 if error
-                           0 if nfmax function evaluations were performed
+                           0 if nf_max function evaluations were performed
                            final model gradient norm otherwise
 ````
 

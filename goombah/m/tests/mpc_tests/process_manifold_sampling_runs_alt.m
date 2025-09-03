@@ -25,7 +25,7 @@ probtype = 'smooth';
 vecout = 1;
 
 % Declare parameters for benchmark study
-nfmax_c = 20; % Multiplied by dimension to set max evals
+nf_max_c = 20; % Multiplied by dimension to set max evals
 factor = 10; % Multiple for x0 declaration
 num_solvers = 4; % Number of solvers being benchmarked
 solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
@@ -58,7 +58,7 @@ for mw_prob_num = [7] % 1:53 % The More-Wild benchmark problem number
         m = dfo(mw_prob_num, 3);
         factor_power = dfo(mw_prob_num, 4);
         x0 = dfoxs(n, nprob, factor^factor_power)';
-        nfmax = nfmax_c * (n + 1);
+        nf_max = nf_max_c * (n + 1);
         eye_n = eye(n);
 
         for seed = 1:num_seeds
@@ -73,18 +73,18 @@ for mw_prob_num = [7] % 1:53 % The More-Wild benchmark problem number
             cs = Qzb.b_mat{mw_prob_num, seed};
 
             for hfun = {@pw_minimum_squared, @pw_maximum_squared, @censored_L1_loss, @piecewise_quadratic}
-                Hist_norm = inf(nfmax, num_solvers);
-                Hist_h = inf(nfmax, num_solvers);
+                Hist_norm = inf(nf_max, num_solvers);
+                Hist_h = inf(nf_max, num_solvers);
 
                 for s = 1:num_solvers
 
-                    run_filename = ['benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '.mat'];
+                    run_filename = ['benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nf_max_c=' num2str(nf_max_c) '_constr=' int2str(constr) '.mat'];
                     if ~exist(run_filename, 'file') || dir(run_filename).bytes == 0
                         continue
                     end
 
                     processed_filename = ['processed_results/processed_' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' ...
-                                          int2str(seed) '_' func2str(hfun{1}) '_nfmax_c=' num2str(nfmax_c) '_constr=' int2str(constr) '_alt.mat'];
+                                          int2str(seed) '_' func2str(hfun{1}) '_nf_max_c=' num2str(nf_max_c) '_constr=' int2str(constr) '_alt.mat'];
                     if exist(processed_filename, 'file')
                         continue
                     end
@@ -94,7 +94,7 @@ for mw_prob_num = [7] % 1:53 % The More-Wild benchmark problem number
                     A = A.Results{s, seed, mw_prob_num};
 
                     % First find the grad at all evaluated points
-                    evals = min(nfmax, size(A.Fvec, 1));
+                    evals = min(nf_max, size(A.Fvec, 1));
                     point_grads = cell(evals, 1);
                     point_fs = cell(evals, 1);
                     for i = 1:evals

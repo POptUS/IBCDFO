@@ -55,8 +55,6 @@ if isfield(Options, 'hfun')
     combinemodels = Options.combinemodels;
 else
     % Use least-squares hfun by default
-    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
-    addpath(fullfile(here_path, 'general_h_funs'));
     hfun = @(F)sum(F.^2);
     combinemodels = @leastsquares;
 end
@@ -66,6 +64,13 @@ end
 if ~isfield(Options, 'printf')
     Options.printf = 0; % Don't print by default
 end
+
+[HERE_PATH, ~, ~] = fileparts(mfilename('fullpath'));
+MINQ_PATH = fullfile(HERE_PATH, '..', '..', 'minq');
+
+if ~exist('hfun', 'var')
+    % Use least-squares hfun by default
+    addpath(fullfile(HERE_PATH, 'general_h_funs'));
 
 if ~isfield(Model, 'np_max')
     Model.np_max = 2 * n + 1;
@@ -77,6 +82,7 @@ if ~isfield(Model, 'Par')
     Model.Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
     Model.Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
     Model.Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
+    Model.Par(5) = 0;     % [log] Flag to find affine points in forward order (0)
 end
 
 nfs = Prior.nfs;
@@ -91,14 +97,10 @@ eta_1 = Options.eta_1;
 printf = Options.printf;
 delta_inact = Options.delta_inact;
 
-if     spsolver == 2 % Arnold Neumaier's minq5
-    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
-    minq_path = fullfile(here_path, '..', '..', 'minq');
-    addpath(fullfile(minq_path, 'm', 'minq5'));
+if spsolver == 2 % Arnold Neumaier's minq5
+    addpath(fullfile(MINQ_PATH, 'm', 'minq5'));
 elseif spsolver == 3 % Arnold Neumaier's minq8
-    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
-    minq_path = fullfile(here_path, '..', '..', 'minq');
-    addpath(fullfile(minq_path, 'm', 'minq8'));
+    addpath(fullfile(MINQ_PATH, 'm', 'minq8'));
 end
 
 % 0. Check inputs
@@ -378,6 +380,14 @@ while nf < nf_max
             end
             [~, ~, valid, Gres, Hresdel, Mind] = ...
                 formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+            if length(Mind) < n + 1
+                % This is almost never triggered but is a safeguard for
+                % pathological cases where one needs to recover from
+                % unusual conditioning of recent interpolation sets
+                Par(5) = 1;
+                [~, ~, valid, Gres, Hresdel, Mind] = formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
+               Par(5) = 0;
+            end
             Hres = Hres + Hresdel;
             % Update for modelimp; Cres unchanged b/c xk_in unchanged
             [G, H] = combinemodels(Cres, Gres, Hres);

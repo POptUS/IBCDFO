@@ -1,0 +1,5 @@
+# TODO: Transfer rest of setup.py here?
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

@@ -24,6 +24,7 @@ classdef Testpounders < matlab.unittest.TestCase
             test_bmpts;
             test_one_m_pounders;
             test_emittance_opt;
+            test_identity_combine;
         end
 
         function longTest(testCase)

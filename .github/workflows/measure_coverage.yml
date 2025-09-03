@@ -1,10 +1,13 @@
-name: Measure Python & MATLAB Code Coverage
+name: Measure Code Coverage
 env:
   CLONE_PATH:               ${{ github.workspace }}
   BENDFO_M_PATH:            ${{ github.workspace }}/BenDFO/m
   BENDFO_DATA_PATH:         ${{ github.workspace }}/BenDFO/data
-  POUNDERS_PATH:            ${{ github.workspace }}/pounders/m
-  MSAMP_PATH:               ${{ github.workspace }}/manifold_sampling/m
+  POUNDERS_M_PATH:          ${{ github.workspace }}/pounders/m
+  MSAMP_M_PATH:             ${{ github.workspace }}/manifold_sampling/m
+  BENDFO_PY_PATH:           ${{ github.workspace }}/BenDFO/py
+  MINQ5_PY_PATH:            ${{ github.workspace }}/minq/py/minq5
+  IBCDFO_PKG:               ${{ github.workspace }}/ibcdfo_pypkg
   PY_COV_FILE:              coverage_ibcdfo
   PY_COV_XML_FILE:          cobertura_ibcdfo_py.xml
   PY_COV_HTML_FILE:         htmlcov_ibcdfo_py
@@ -14,39 +17,46 @@ env:
   MSAMP_M_COV_XML_FILE:     cobertura_ibcdfo_msamp_m.xml
 on:
   push:
-    branches:
-      - main
+    branches: [main, develop]
   pull_request:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
 
 jobs:
   # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
   coverage_py:
-    runs-on: ${{ matrix.os }}
     strategy:
       # We only need to measure coverage with a single test setup.  Ideally
       # this will be the latest version of python supported.
       matrix:
         os: [ubuntu-latest]
         python-version: ["3.13"]
+    runs-on: ${{ matrix.os }}
     steps:
       # -- General Setup Steps
-      - uses: actions/checkout@v4
-
+      # This action requires minq
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout BenDFO repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/BenDFO
+          path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
       - name: Setup Python with tox
-        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh
+        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
 
       # -- Run Coverage for All Python Packages
+      # The tox task downloads dfo.dat automatically
       - name: Generate Python coverage reports
         run: |
-          pushd $CLONE_PATH/ibcdfo_pypkg
+          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+          pushd $IBCDFO_PKG
           COVERAGE_FILE=$PY_COV_FILE COVERAGE_XML_FILE=$PY_COV_XML_FILE COVERAGE_HTML_FILE=$PY_COV_HTML_FILE tox -r -e coverage,report
           mv $PY_COV_FILE $CLONE_PATH
           mv $PY_COV_XML_FILE $CLONE_PATH
@@ -65,13 +75,13 @@ jobs:
 
   # ----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
   coverage_m:
-    runs-on: ${{ matrix.os }}
     strategy:
       # We only need to measure coverage with a single test setup.  Ideally
       # this will be the latest MATLAB release supported.
       matrix:
         os: [ubuntu-latest]
-        matlab-release: ["R2024b"]
+        matlab-release: ["R2025a"]
+    runs-on: ${{ matrix.os }}
     steps:
       # -- General Setup Steps
       - name: Checkout IBCDFO repository
@@ -97,10 +107,10 @@ jobs:
           command: >
               addpath("${{ env.BENDFO_M_PATH }}"),
               addpath("${{ env.BENDFO_DATA_PATH }}"),
-              cd ${{ env.POUNDERS_PATH }},
+              cd ${{ env.POUNDERS_M_PATH }},
               [results, cov_p] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
               assertSuccess(results),
-              cd ${{ env.MSAMP_PATH }},
+              cd ${{ env.MSAMP_M_PATH }},
               [results, cov_ms] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
               assertSuccess(results),
               cd ${{ env.CLONE_PATH }},
@@ -123,10 +133,10 @@ jobs:
   # ----- PUBLISH FULL CODE COVERAGE REPORT
   publish:
     needs: [coverage_py, coverage_m]
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 

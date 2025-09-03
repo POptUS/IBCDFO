@@ -1,11 +1,24 @@
+**NOTE: The `main` branch is currently in a state of transition (Issue #173)
+and should not presently be used.  Instead, please consider using `main-v0`**
+
 # IBCDFO
 
 Interpolation-Based Composite Derivative-Free Optimization
 
+### Repository
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Coverage Status](https://coveralls.io/repos/github/POptUS/IBCDFO/badge.svg?branch=main)](https://coveralls.io/github/POptUS/IBCDFO?branch=main)
-[![Continuous Integration](https://github.com/POptUS/IBCDFO/workflows/IBCDFO-CI/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions)
+[![Coverage Status](https://codecov.io/gh/POptUS/IBCDFO/graph/badge.svg?token=D49I3TI8W2)](https://codecov.io/gh/POptUS/IBCDFO)
+[![Measure Code Coverage](https://github.com/POptUS/IBCDFO/actions/workflows/measure_coverage.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/measure_coverage.yml)
+[![Test repository tools](https://github.com/POptUS/IBCDFO/actions/workflows/test_tools.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_tools.yml)
+
+### MATLAB
+[![Check MATLAB Code Standard Adherence](https://github.com/POptUS/IBCDFO/actions/workflows/check_matlab_standards.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/check_matlab_standards.yml)
+[![Test IBCDFO MATLAB Code](https://github.com/POptUS/IBCDFO/actions/workflows/test_matlab.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_matlab.yml)
+
+### Python
+[![Check Python Code Standard Adherence](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml)
+[![Test IBCDFO Python Package](https://github.com/POptUS/IBCDFO/actions/workflows/test_python.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_python.yml)
 
 This page contains source code for interpolation-based optimization methods for
 composite derivative-free optimization.
@@ -77,18 +90,13 @@ installation.
 
 ### MATLAB
 In addition to completing the general installation steps, users must have an
-up-to-date [BenDFO](https://github.com/POptUS/BenDFO) clone installed and add
+up-to-date [BenDFO](https://github.com/POptUS/BenDFO) clone installed in the
+same folder as their IBCDFO clone.
 
-    /path/to/BenDFO/data
-    /path/to/BenDFO/m
+To run tests with coverage enabled,
 
-to their MATLAB path.  To run tests,
-
-   1. open MATLAB in the same folder as this file and
-   2. execute `runtests("IncludeSubfolders", true)` from the prompt to run just
-      the tests or
-   3. execute `runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)`
-      from the prompt to run the tests and generate a code coverage report.
+   1. open MATLAB in the `tools` folder and
+   2. execute `test_ibcdfo`.
 
 The test output indicates where the HTML-format code coverage report can be found.
 

@@ -33,4 +33,9 @@ Model.spsolver = spsolver;
 [X, F, hF, flag, xk_best] = pounders(X_0, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
 assert(flag == -1, "Should have failed");
 
+% Intentionally putting a NaN in F to cover part of pounders.m
+objective = @(x) nan(1, 3);
+[X, F, hF, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
+assert(flag == -3, "Should have failed immediately after first eval");
+
 path(oldpath);

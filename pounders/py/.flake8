@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 200
+ignore =
+    # E203 is not PEP 8 compliant. https://github.com/PyCQA/pycodestyle/issues/373
+    E203
+per-file-ignores =
+    __init__.py:F401
+    # These are old tests
+    tests/old_unit_tests/test_pounders.py:F841,E501
+    # Allow lambda expressions
+    pounders.py:E731
+    tests/*.py:E731

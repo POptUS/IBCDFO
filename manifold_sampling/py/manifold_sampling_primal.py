@@ -14,16 +14,16 @@
 #                      - [p x l] gradients of h_i(z) for each hash in H
 #  Ffun:    [func]    Evaluates F, the black box simulation, returning a [1 x p] vector.
 #  x0:      [1 x n]   Starting point
-#  nfmax:   [int]     Maximum number of function evaluations
+#  nf_max:   [int]     Maximum number of function evaluations
 #
 # Outputs:
-#   X:      [nfmax x n]   Points evaluated
-#   F:      [nfmax x p]   Their simulation values
-#   h:      [nfmax x 1]   The values h(F(x))
+#   X:      [nf_max x n]   Points evaluated
+#   F:      [nf_max x p]   Their simulation values
+#   h:      [nf_max x 1]   The values h(F(x))
 #   xkin:   [int]         Current trust region center
 #   flag:   [int]         Inform user why we stopped.
 #                           -1 if error
-#                            0 if nfmax function evaluations were performed
+#                            0 if nf_max function evaluations were performed
 #                            final model gradient norm otherwise
 #
 # Some other values
@@ -58,15 +58,15 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 eng = []
 
 
-def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
+def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     # Deduce p from evaluating Ffun at x0
     try:
         F0 = Ffun(x0)
     finally:
         pass
 
-    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nfmax)
-    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nfmax, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
+    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nf_max)
+    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nf_max, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
     if flag == -1:
         if printf:
             print("MSP: Error with inputs. Exiting.")
@@ -81,13 +81,13 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nfmax, subprob_switch):
 
     H_mm = np.zeros((n, n))
 
-    while nf + 1 < nfmax and delta > tol["mindelta"]:
+    while nf + 1 < nf_max and delta > tol["mindelta"]:
         bar_delta = delta
 
         # Line 3: manifold sampling while loop
-        while nf + 1 < nfmax:
+        while nf + 1 < nf_max:
             # Line 4: build models
-            Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
+            Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
                 return prepare_outputs_before_return(X, F, h, nf, xkin, -1)
             if nf + 1 >= nfmax:

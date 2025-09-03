@@ -4,7 +4,7 @@ from ibcdfo.pounders import bmpts, formquad
 from .call_user_scripts import call_user_scripts
 
 
-def update_models(hfun, Ffun, n, p, nf, nfmax, xkin, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U):
+def update_models(hfun, Ffun, n, p, nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U):
     Cres = F[xkin, :]
     Res = np.zeros(F.shape)  # Stores the residuals for model updates
 

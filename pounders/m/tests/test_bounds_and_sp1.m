@@ -92,7 +92,6 @@ end
 
 % Test success without last (optional) arguments to pounders
 [X, F, hF, flag, xk_best] = pounders(objective, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp);
-
 path(oldpath);
 
 assert(flag == 0, "Test didn't complete");

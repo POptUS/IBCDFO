@@ -28,6 +28,7 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     Pars[1] [dbl] delta multiplier for all interpolation points
     Pars[2] [dbl] Pivot threshold for validity
     Pars[3] [dbl] Pivot threshold for additional points (.001)
+    Pars[4] [log] Flag to find affine points in forward order (0)
     vf      [log] Flag indicating you just want to check model validity
     --OUTPUTS----------------------------------------------------------------
     Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
@@ -67,7 +68,12 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     # Counter for number of interpolation points
     mp = 0
     for aff in range(2):
-        for i in reversed(range(nf)):
+        # Order to look for Affinely independent points (generators in Python can't be rewound)
+        if not Pars[4]:
+            indorder = reversed(range(nf))
+        else:
+            indorder = range(nf)
+        for i in indorder:
             if Nd[i] <= Pars[aff]:
                 proj = np.linalg.norm(D[i] @ Q[:, mp:n], 2)  # Project D onto null
                 if proj >= Pars[aff + 2]:  # add this index to Mind
