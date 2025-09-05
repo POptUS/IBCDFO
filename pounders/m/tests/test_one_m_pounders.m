@@ -38,9 +38,9 @@ Options.spsolver = spsolver;
 Options.printf = printf;
 
 Model.np_max = np_max;
-[X, F, hf, flag, xkin] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model);
+[X, F, hf, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model);
 
 path(oldpath);
 
 assert(flag == 0, "We should solve this within 200 evaluations");
-assert(norm(X(xkin, :) - ones(1, 2)) <= g_tol * 10, "We should be within 10*gtol of the known optimum [1,1]");
+assert(norm(X(xk_best, :) - ones(1, 2)) <= g_tol * 10, "We should be within 10*gtol of the known optimum [1,1]");
