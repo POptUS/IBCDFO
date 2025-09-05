@@ -32,7 +32,7 @@ Options.combinemodels = combinemodels;
 Options.spsolver = spsolver;
 Options.printf = printf;
 
-[Xout, Fouf, hFout, flag, xk_best] = pounders(@call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
+[Xout, Fout, hFout, flag, xk_best] = pounders(@call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
 
 path(oldpath);
 
