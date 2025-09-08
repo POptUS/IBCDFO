@@ -103,6 +103,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                   = -3 error if a NaN was encountered
                   = -4 error in TRSP Solver
                   = -5 unable to get model improvement with current parameters
+                  = -6 delta is less than delta_min with a valid model 
     xk_in    [int] Index of point in X representing approximate minimizer
     """
     if Options is None:
