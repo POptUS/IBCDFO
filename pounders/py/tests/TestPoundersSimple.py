@@ -42,7 +42,7 @@ class TestPounders(unittest.TestCase):
 
         Ffun_to_fail = lambda x: np.hstack((x, x))
         [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-        self.assertEqual(flag, -1, "Dimension error on should have occured on first eval.")
+        self.assertEqual(flag, -1, "Dimension error should have occurred on first eval.")
 
         # Intentionally crashing pounders
         [X, F, hF, flag, xk_best] = pdrs.pounders({}, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
