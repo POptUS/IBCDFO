@@ -145,8 +145,7 @@ if nfs == 0 % Need to do the first evaluation
     nf = 1;
     F_0 = Ffun(X(nf, :));
     if length(F_0) ~= m
-        disp('  Error: F_0 does not contain the right number of residuals');
-        flag = -1;
+        [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -1);
         return
     end
     F(nf, :) = F_0;

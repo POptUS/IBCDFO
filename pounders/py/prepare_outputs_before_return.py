@@ -18,7 +18,7 @@ def prepare_outputs_before_return(X, F, hF, nf, exit_flag):
     elif exit_flag == -6:
         print("Terminating because delta_min reached with a valid model.")
     elif exit_flag == -1:
-        print("Some input to pounders was fatally incorrect. Exiting.")
+        print("Number of residuals in output of fun does not match supplied m. Exiting.")
     elif exit_flag == 0:
         print("g is sufficiently small.")
 
