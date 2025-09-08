@@ -84,7 +84,7 @@ class TestPounders(unittest.TestCase):
 
                 if flag == 0:
                     self.assertTrue(evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations")
-                elif flag != -4:
+                elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations")
 
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}

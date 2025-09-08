@@ -18,7 +18,7 @@ function [X, F, hF, exit_flag] = prepare_outputs_before_return(X, F, hF, nf, exi
     elseif exit_flag == -6
         disp('Terminating because delta_min reached with a valid model.');
     elseif exit_flag == -1
-        disp('Number of residuals in output of fun does not match supplied m. Exiting.')
+        disp('Number of residuals in output of fun does not match supplied m. Exiting.');
     elseif exit_flag == 0
         disp('g is sufficiently small');
     end
