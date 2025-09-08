@@ -357,7 +357,11 @@ while nf < nf_max
         if (rho >= eta_1)  &&  (step_norm > delta_inact * delta)
             delta = min(delta * gamma_inc, delta_max);
         elseif valid
-            delta = max(delta * gamma_dec, delta_min);
+            delta = delta * gamma_dec;
+            if delta <= delta_min:
+                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -6);
+                return
+            end
         end
     else % Don't evaluate f at Xsp
         rho = -1; % Force yourself to do a model-improving point
