@@ -17,28 +17,40 @@ function test_identity_combine()
     BenDFO.m = m;
     BenDFO.n = n;
 
-    X0 = dfoxs(n, nprob, 1)';
+    X_0 = dfoxs(n, nprob, 1)';
 
     Low = -Inf(1, n);
     Upp = Inf(1, n);
 
-    npmax = 2 * n + 1;
+    np_max = 2 * n + 1;
     nf_max = 1000;
-    gtol = 1e-13;
-    delta = 0.1;
+    g_tol = 1e-13;
+    delta_0 = 0.1;
     nfs = 1;
 
     hfun = @(F)F;
     combinemodels = @identity_combine;
 
     Ffun = @(x)calfun_wrapper_y(x, BenDFO, 'smooth');
-    F0 = Ffun(X0);
-    xkin = 1;
+    F_0 = Ffun(X_0);
+    xk_in = 1;
 
     printf = 1;
     spsolver = 1;
 
-    [X, F, flag, xk_best] = pounders(Ffun, X0, n, npmax, nf_max, gtol, delta, nfs, 1, F0, xkin, Low, Upp, printf, spsolver, hfun, combinemodels);
+    Prior.xk_in = xk_in;
+    Prior.X_0 = X_0;
+    Prior.F_init = F_0;
+    Prior.nfs = nfs;
+
+    Options.hfun = hfun;
+    Options.combinemodels = combinemodels;
+    Options.spsolver = spsolver;
+    Options.printf = printf;
+
+    Model.np_max = np_max;
+
+    [X, F, hf, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, 1, Low, Upp, Prior, Options, Model);
 
     path(oldpath);
 

@@ -2,7 +2,7 @@
 %   - the spsolver=1 and spsolver=3 cases
 %   - the handling of bounds
 %   - printing
-%   - Using starting points in X0 and F0
+%   - Using starting points in X_0 and Ffun(X_0)
 %
 % To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
@@ -41,22 +41,22 @@ for row = [7, 8]
 
     np_max = 2 * n + 1;  % Maximum number of interpolation points [2*n+1]
     if row == 7
-        L = -2 * ones(1, n);
-        U = 2 * ones(1, n);
+        Low = -2 * ones(1, n);
+        Upp = 2 * ones(1, n);
     else
-        L = [-12, 0];
-        U = [0, 10];
+        Low = [-12, 0];
+        Upp = [0, 10];
     end
 
     nfs = 1;
-    X0 = xs';
+    X_0 = xs';
     xk_in = 1;
-    delta = 0.1;
+    delta_0 = 0.1;
     printf = 1;
     spsolver = 1;
 
-    objective = @(x)calfun_wrapper(x, BenDFO, 'smooth');
-    F0 = objective(X0)';
+    Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
+    F_init = Ffun(X_0)';
 
     for spsolver = [1, 3]
         for hfun_cases = 1:3
@@ -72,17 +72,27 @@ for row = [7, 8]
                 combinemodels = @neg_leastsquares;
             end
 
-            [X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U, printf, spsolver, hfun, combinemodels);
+            Prior.xk_in = xk_in;
+            Prior.X_0 = X_0;
+            Prior.F_init = F_init;
+            Prior.nfs = nfs;
+
+            Options.hfun = hfun;
+            Options.combinemodels = combinemodels;
+            Options.spsolver = spsolver;
+            Options.printf = printf;
+
+            [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
 
             if flag == 0
-                check_stationary(X(xk_best, :), L, U, BenDFO, combinemodels);
+                check_stationary(X(xk_best, :), Low, Upp, BenDFO, combinemodels);
             end
         end
     end
 end
 
 % Test success without last (optional) arguments to pounders
-[X, F, hF, flag, xk_best] = pounders(objective, X0, n, np_max, nf_max, g_tol, delta, nfs, m, F0, xk_in, L, U);
+[X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp);
 
 path(oldpath);
 
