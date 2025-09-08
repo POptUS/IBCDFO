@@ -96,8 +96,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points in X
     hF      [dbl] [nf_max+nfs-by-1] Composed values h(Ffun) for evaluated points in X
     flag    [dbl] Termination criteria flag:
-                  = 0 normal termination because of grad,
-                  > 0 exceeded nf_max evals,   flag = norm of grad at final X
+                  > 0 exceeded nf_max evals, flag = norm of grad at final X
+                  = 0 normal termination because model grad < g_tol on small delta
                   = -1 if input was fatally incorrect (error message shown)
                   = -2 if a valid model produced X[nf] == X[xk_in] or (mdec == 0, hF[nf] == hF[xk_in])
                   = -3 error if a NaN was encountered
