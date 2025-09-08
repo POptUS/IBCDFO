@@ -93,7 +93,7 @@ for row = 1:length(dfo)
 
         if flag == 0
             assert(size(X, 1) <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations");
-        elseif flag ~= -4 && flag ~= -2
+        elseif flag ~= -6 && flag ~= -4 && flag ~= -2
             assert(size(X, 1) == nf_max + nfs, "POUNDERs didn't use nf_max evaluations");
         end
 

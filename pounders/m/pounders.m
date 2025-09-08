@@ -358,7 +358,7 @@ while nf < nf_max
             delta = min(delta * gamma_inc, delta_max);
         elseif valid
             delta = delta * gamma_dec;
-            if delta <= delta_min:
+            if delta <= delta_min
                 [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -6);
                 return
             end
