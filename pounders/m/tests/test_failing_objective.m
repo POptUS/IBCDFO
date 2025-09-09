@@ -38,4 +38,9 @@ Ffun = @(x) nan(1, 3);
 [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
 assert(flag == -3, "Should have failed immediately after first eval");
 
+% Intentionally given the wrong size of F to cover part of pounders.m
+Ffun = @(x) ones(1, 6);
+[X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
+assert(flag == -1, "Should have failed");
+
 path(oldpath);
