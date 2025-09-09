@@ -12,7 +12,7 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 def _default_model_par_values(n):
     par = np.zeros(5)
     par[0] = np.sqrt(n)
-    par[1] = max(10, np.sqrt(n))
+    par[1] = np.maximum(10, np.sqrt(n))
     par[2] = 10**-3
     par[3] = 0.001
     par[4] = 0
@@ -96,13 +96,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points in X
     hF      [dbl] [nf_max+nfs-by-1] Composed values h(Ffun) for evaluated points in X
     flag    [dbl] Termination criteria flag:
-                  = 0 normal termination because of grad,
-                  > 0 exceeded nf_max evals,   flag = norm of grad at final X
+                  > 0 exceeded nf_max evals, flag = norm of grad at final X
+                  = 0 normal termination because model grad < g_tol on small delta
                   = -1 if input was fatally incorrect (error message shown)
                   = -2 if a valid model produced X[nf] == X[xk_in] or (mdec == 0, hF[nf] == hF[xk_in])
                   = -3 error if a NaN was encountered
                   = -4 error in TRSP Solver
                   = -5 unable to get model improvement with current parameters
+                  = -6 delta is less than delta_min with a valid model
     xk_in    [int] Index of point in X representing approximate minimizer
     """
     if Options is None:
@@ -130,8 +131,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     nfs = Prior["nfs"]
     delta = delta_0
     spsolver = Options.get("spsolver", 2)
-    delta_max = Options.get("delta_max", min(0.5 * np.min(Upp - Low), (10**3) * delta))
-    delta_min = Options.get("delta_min", min(delta * (10**-13), g_tol / 10))
+    delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
+    delta_min = Options.get("delta_min", np.minimum(delta * (10**-13), g_tol / 10))
     gamma_dec = Options.get("gamma_dec", 0.5)
     gamma_inc = Options.get("gamma_inc", 2)
     eta_1 = Options.get("eta1", 0.05)
@@ -244,7 +245,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             # input("Enter a key and press Enter to continue\n") - Don't uncomment when using Pytest with test_pounders.py
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
-            delta = max(g_tol, np.max(np.abs(X[xk_in])) * eps)
+            delta = np.maximum(g_tol, np.max(np.abs(X[xk_in])) * eps)
             [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
@@ -254,7 +255,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     F[nf] = Ffun(X[nf])
                     if np.any(np.isnan(F[nf])):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                        return X, F, flag, xk_in
+                        return X, F, hF, flag, xk_in
                     hF[nf] = hfun(F[nf])
                     if printf:
                         print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
@@ -327,9 +328,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 xk_in = nf  # Change current center
             # 4b. Update the trust-region radius:
             if (rho >= eta_1) and (step_norm > delta_inact * delta):
-                delta = min(delta * gamma_inc, delta_max)
+                delta = np.minimum(delta * gamma_inc, delta_max)
             elif valid:
-                delta = max(delta * gamma_dec, delta_min)
+                delta = delta * gamma_dec
+                if delta <= delta_min:
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -6)
+                    return X, F, hF, flag, xk_in
+
         else:  # Don't evaluate f at Xsp
             rho = -1  # Force yourself to do a model-improving point
             if printf:

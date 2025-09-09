@@ -145,8 +145,7 @@ if nfs == 0 % Need to do the first evaluation
     nf = 1;
     F_0 = Ffun(X(nf, :));
     if length(F_0) ~= m
-        disp('  Error: F_0 does not contain the right number of residuals');
-        flag = -1;
+        [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -1);
         return
     end
     F(nf, :) = F_0;
@@ -357,7 +356,11 @@ while nf < nf_max
         if (rho >= eta_1)  &&  (step_norm > delta_inact * delta)
             delta = min(delta * gamma_inc, delta_max);
         elseif valid
-            delta = max(delta * gamma_dec, delta_min);
+            delta = delta * gamma_dec;
+            if delta <= delta_min
+                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -6);
+                return
+            end
         end
     else % Don't evaluate f at Xsp
         rho = -1; % Force yourself to do a model-improving point

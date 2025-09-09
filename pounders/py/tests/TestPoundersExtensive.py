@@ -20,11 +20,15 @@ class TestPounders(unittest.TestCase):
         dfo = np.loadtxt("dfo.dat")
 
         spsolver = 2
-        nf_max = 50
         g_tol = 1e-13
         factor = 10
 
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
+            if row == 0:
+                nf_max = 500  # Testing delta_min stopping on first problem
+            else:
+                nf_max = 50
+
             n = int(n)
             m = int(m)
 
@@ -80,7 +84,7 @@ class TestPounders(unittest.TestCase):
 
                 if flag == 0:
                     self.assertTrue(evals <= nf_max + nfs, "POUNDERs evaluated more than nf_max evaluations")
-                elif flag != -4:
+                elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, "POUNDERs didn't use nf_max evaluations")
 
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
