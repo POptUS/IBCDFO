@@ -77,7 +77,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
             print("Warning: number of starting f values nfs does not match input F_init")
             flag = 0
         if np.any(np.isnan(F_init)):
-            print("Error: F_init contains a NaN.")
+            print("Error: F_init contains a NaN")
             flag = -1
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
 
@@ -100,6 +100,10 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         flag = 0
     elif n2 != n or nfs2 != 1:
         print("Error: bounds are not 1-by-n vectors")
+        flag = -1
+        return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
+    if np.any(np.isnan(Upp)) or np.any(np.isnan(Low)):
+        print("Error: Upp or Low bounds contain a NaN")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     if np.min(Upp - Low) <= 0:
