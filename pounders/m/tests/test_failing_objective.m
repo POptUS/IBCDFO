@@ -43,4 +43,32 @@ Ffun = @(x) ones(1, 6);
 [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], Model);
 assert(flag == -1, "Should have failed");
 
+% Intentionally testing failures
+didFail = false;
+try
+    [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], [], 'wrong');
+catch ME
+    didFail = true;    
+    assert(strcmp(ME.message, 'Model must be a struct'));
+end
+assert(didFail, 'pounders call did not fail as expected');
+
+didFail = false;
+try
+    [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], 'wrong');
+catch ME
+    didFail = true;    
+    assert(strcmp(ME.message, 'Options must be a struct'));
+end
+assert(didFail, 'pounders call did not fail as expected');
+
+didFail = false;
+try
+    [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, 'wrong');
+catch ME
+    didFail = true;    
+    assert(strcmp(ME.message, 'Prior must be a struct'));
+end
+assert(didFail, 'pounders call did not fail as expected');
+
 path(oldpath);
