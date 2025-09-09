@@ -83,7 +83,8 @@ for row = 1:length(dfo)
             end
         else
             if flag == 0
-                solved(row, hfun_cases) = xk_best;
+                solved(row, hfun_cases) = 1;
+                % solved(row, hfun_cases) = xk_best;
             end
         end
 
