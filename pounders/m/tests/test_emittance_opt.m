@@ -20,7 +20,6 @@ F_0 = zeros(1, m); % Initial evaluations (parameters with completed simulations)
 F_0(1, :) = call_beamline_simulation(X_0);
 nfs = 1; % Number of initial evaluations
 xk_in = 1; % Index in F_0 for starting the optimization (usually the point with minimal emittance)
-spsolver = 2;
 
 Prior.xk_in = xk_in;
 Prior.X_0 = X_0;
@@ -29,7 +28,6 @@ Prior.nfs = nfs;
 
 Options.hfun = hfun;
 Options.combinemodels = combinemodels;
-Options.spsolver = spsolver;
 Options.printf = printf;
 
 [Xout, Fout, hFout, flag, xk_best] = pounders(@call_beamline_simulation, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);
