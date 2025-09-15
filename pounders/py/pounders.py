@@ -229,7 +229,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             IERR = np.zeros(len(Mind))
             for i in range(len(Mind)):
                 D = X[Mind[i]] - X[xk_in]
-                IERR[i] = (c - hF[Mind[i]]) + [D @ (G + 0.5 * H @ D)]
+                IERR[i] = (c - hF[Mind[i]]) + (D @ (G + 0.5 * H @ D))
             if np.any(hF[Mind] == 0.0):
                 ierror = np.nan
             else:
