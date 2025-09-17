@@ -51,6 +51,12 @@ from .choose_generator_set import choose_generator_set
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
+# # You'll need to uncomment the following two, and not have `eng = []` if you
+# # want to use matlab's linprog in minimize_affine_envelope
+# import matlab.engine
+# eng = matlab.engine.start_matlab()
+eng = []
+
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     # Deduce p from evaluating Ffun at x0
@@ -62,6 +68,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nf_max)
     flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nf_max, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
     if flag == -1:
+        print("MSP: Error with inputs. Exiting.")
         X = x0
         F = F0
         h = []
@@ -81,12 +88,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             # Line 4: build models
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
-                print(np.array(["Model building failed. Empty Gres. Delta = " + str(delta)]))
-                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, -1)
-                return X, F, h, xkin, flag
+                return prepare_outputs_before_return(X, F, h, nf, xkin, -1)
             if nf + 1 >= nf_max:
-                flag = 0
-                return X, F, h, xkin, flag
+                return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
@@ -102,18 +106,20 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             # Line 7: Find a candidate s_k by solving QP
             Low = np.maximum(L - X[xkin], -delta)
             Upp = np.minimum(U - X[xkin], delta)
-            s_k, tau_k, __, lambda_k = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch)
+            s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch, eng)
+            if lp_fail_flag:
+                return prepare_outputs_before_return(X, F, h, nf, xkin, -2)
 
             # Line 8: Compute stationary measure chi_k
             Low = np.maximum(L - X[xkin], -1.0)
             Upp = np.minimum(U - X[xkin], 1.0)
-            __, __, chi_k, __ = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch)
+            __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xkin], f_bar, beta, G_k, np.zeros((n, n)), delta, Low, Upp, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
+            if lp_fail_flag:
+                return prepare_outputs_before_return(X, F, h, nf, xkin, -2)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
-                print("Convergence satisfied: small stationary measure and small delta")
-                X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
-                return X, F, h, xkin, flag
+                return prepare_outputs_before_return(X, F, h, nf, xkin, chi_k)
 
             # Line 12: Evaluate F
             nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin] + np.transpose(s_k), tol, L, U, 1)
@@ -153,11 +159,10 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             # Line 21: iteration is unsuccessful; shrink Delta
             delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
-        print("nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n" % (nf, h[xkin], chi_k, delta))
+        if printf:
+            print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, np.squeeze(h[xkin]), chi_k, delta))
 
     if nf + 1 >= nf_max:
-        flag = 0
+        return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
     else:
-        X, F, h, flag = prepare_outputs_before_return(X, F, h, nf, chi_k)
-
-    return X, F, h, xkin, flag
+        return prepare_outputs_before_return(X, F, h, nf, xkin, chi_k)
