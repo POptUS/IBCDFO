@@ -89,7 +89,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
             if len(Gres) == 0:
                 return prepare_outputs_before_return(X, F, h, nf, xkin, -1)
-            if nf + 1 >= nfmax:
+            if nf + 1 >= nf_max:
                 return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
