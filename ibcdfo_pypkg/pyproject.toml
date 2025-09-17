@@ -1,5 +1,58 @@
-# TODO: Transfer rest of setup.py here?
-
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "ibcdfo"
+version = "1.0.0b1"
+description = "Interpolation-Based Composite Derivative-Free Optimization"
+readme = "README.md"
+
+authors = [
+    {name = "Jeffrey Larson",  email = "jmlarson@anl.gov"},
+    {name = "Matt Menickelly", email = "mmenickelly@anl.gov"},
+    {name = "Stefan M. Wild",  email = "wild@lbl.gov"}
+]
+maintainers = [
+    {name = "Jeffrey Larson", email = "jmlarson@anl.gov"}
+]
+
+license = "MIT"
+license-files = ["LICENSE"]
+
+requires-python = ">=3.9"
+# BenDFO is also required but is not yet pip installable
+dependencies = [
+    "numpy>=1.16.5", "scipy>=1.6",  # Code
+    "ipdb",                         # Minq
+    "jax"                           # Testing
+]
+
+keywords = ["ibcdfo"]
+classifiers=[
+    "Natural Language :: English",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics"
+]
+
+[project.urls]
+Homepage      = "https://github.com/POptUS/IBCDFO"
+Documentation = "https://github.com/POptUS/IBCDFO"
+Repository    = "https://github.com/POptUS/IBCDFO"
+Issues        = "https://github.com/POptUS/IBCDFO/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ibcdfo = ["pounders/tests/benchmark_results/*.txt"]

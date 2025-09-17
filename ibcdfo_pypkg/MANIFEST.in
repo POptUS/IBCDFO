@@ -1,3 +1,2 @@
-include LICENSE VERSION
-prune src/ibcdfo/pounders/tests/old_unit_tests
+include LICENSE
 prune src/ibcdfo/pounders/unused_code
