@@ -160,7 +160,7 @@ def piecewise_quadratic(z, H0=None, **kwargs):
 
     Qs = kwargs["Qs"]
     zs = kwargs["zs"]
-    cs = kwargs["cs"]
+    cs = np.squeeze(kwargs["cs"])
 
     if H0 is None:
         n, J = zs.shape
