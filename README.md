@@ -67,27 +67,26 @@ submodules simultaneously, run
 ``git pull --recurse-submodules``.
 
 ### Python
+The `ibcdfo` Python package can be installed from a local clone by setting up a
+terminal with the target python and executing
+```
+$ cd /path/to/IBCDFO/ibcdfo_pypkg
+$ python -m pip install .
+```
 
-The `ibcdfo` python package can be installed by setting up a terminal with the
-target python and pip pair and executing
+## Testing
+
+### Python
+An installation can be partially tested by executing
 ```
-> pushd ibcdfo_pypkg
-> python setup.py sdist
-> pip install dist/ibcdfo-<version>.tar.gz
-> popd
-```
-where `<version>` can be determined by looking at the output of the `sdist`
-command.  The installation can be partially tested by executing
-```
-> python
+$ python
 >>> import ibcdfo
 >>> ibcdfo.__version__
 <version>
+>>> ibcdfo.test()
 ```
 where the output `<version>` should be identical to the value used during
 installation.
-
-## Testing
 
 ### MATLAB
 In addition to completing the general installation steps, users must have an
