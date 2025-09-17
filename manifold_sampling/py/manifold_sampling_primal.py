@@ -160,7 +160,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
         if printf:
-            print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, h[xkin], chi_k, delta))
+            print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, float(h[xkin]), chi_k, delta))
 
     if nf + 1 >= nf_max:
         return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
