@@ -67,7 +67,13 @@ submodules simultaneously, run
 ``git pull --recurse-submodules``.
 
 ### Python
-The `ibcdfo` Python package can be installed from a local clone by setting up a
+The `ibcdfo` Python package requires that the [MINQ](https://github.com/POptUS/minq) Python code be installed.  MINQ is not distributed as a Python package but is included in this repository as a submodule.  Therefore, following the above installation procedures should ensure that it is available.  When using the `ibcdfo` package, specify its location by adding
+```
+/path/to/IBCDFO/minq/py/minq5
+```
+to your `PYTHONPATH` environment variable.
+
+The `ibcdfo` Python package can be installed from the same local clone by setting up a
 terminal with the target python and executing
 ```
 $ cd /path/to/IBCDFO/ibcdfo_pypkg
@@ -77,7 +83,13 @@ $ python -m pip install .
 ## Testing
 
 ### Python
-An installation can be partially tested by executing
+The `ibcdfo` Python package requires that the [BenDFO](https://github.com/POptUS/BenDFO) Python package be installed.  When testing the `ibcdfo` package, specify its location by adding
+```
+/path/to/BenDFO/py
+```
+to your `PYTHONPATH` environment variable.
+
+An installation can be partially tested by executing from `/path/to/BenDFO/data`
 ```
 $ python
 >>> import ibcdfo
@@ -85,8 +97,7 @@ $ python
 <version>
 >>> ibcdfo.test()
 ```
-where the output `<version>` should be identical to the value used during
-installation.
+where the output `<version>` should be identical to the value used during installation.
 
 ### MATLAB
 In addition to completing the general installation steps, users must have an
