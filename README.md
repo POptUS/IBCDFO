@@ -83,7 +83,7 @@ $ python -m pip install .
 ## Testing
 
 ### Python
-The `ibcdfo` Python package requires that the [BenDFO](https://github.com/POptUS/BenDFO) Python package be installed.  When testing the `ibcdfo` package, specify its location by adding
+The `ibcdfo` Python package requires that the [BenDFO](https://github.com/POptUS/BenDFO) Python package be installed for testing.  It is not distributed as a Python package and users must clone it manually.  When testing the `ibcdfo` package, specify its location by adding
 ```
 /path/to/BenDFO/py
 ```
