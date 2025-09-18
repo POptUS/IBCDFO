@@ -1,2 +1,1 @@
-include LICENSE
 prune src/ibcdfo/pounders/unused_code
