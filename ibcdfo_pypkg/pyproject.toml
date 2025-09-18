@@ -1,9 +1,9 @@
 [build-system]
-requires = ["setuptools>=80", "setuptools_scm>=8"]
+requires = ["setuptools>=80", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-# Package version managed automatically by setuptools_scm based on git tags
+# Package version managed automatically by setuptools-scm based on git tags
 dynamic = ["version"]
 
 name        = "ibcdfo"
@@ -23,7 +23,7 @@ license       = "MIT"
 license-files = ["LICENSE"]
 
 requires-python = ">=3.9"
-# BenDFO is also required but is not yet pip installable
+# BenDFO is also required for testing but is not yet pip installable
 dependencies = [
     "numpy>=1.16.5", "scipy>=1.6",  # Code
     "ipdb",                         # Minq
@@ -48,13 +48,12 @@ classifiers=[
 ]
 
 [project.urls]
-Homepage      = "https://github.com/POptUS/IBCDFO"
-Documentation = "https://github.com/POptUS/IBCDFO"
 Repository    = "https://github.com/POptUS/IBCDFO"
+Documentation = "https://github.com/POptUS/IBCDFO"
 Issues        = "https://github.com/POptUS/IBCDFO/issues"
 
 # Manual, fine control of data file inclusion in package.  Since we are using
-# setuptools_scm, which likes to add everything to distributions, the actual
+# setuptools-scm, which likes to add everything to distributions, the actual
 # contents should be confirmed directly and MANIFEST.in might beat out
 # specifications here.
 [tool.setuptools]
