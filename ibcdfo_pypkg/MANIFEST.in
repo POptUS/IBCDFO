@@ -1,1 +1,5 @@
+exclude .black .flake8 .coveragerc
+exclude tox.ini
+exclude src/ibcdfo/manifold_sampling/.flake8
+exclude src/ibcdfo/pounders/.flake8 src/ibcdfo/pounders/.gitignore
 prune src/ibcdfo/pounders/unused_code
