@@ -6,7 +6,7 @@ m = 5  # Dimension of the square matrices
 np.random.seed(0)
 A = {}
 for i in range(n):
-    # Make 5 random positive-and negative-definite matricies
+    # Make 5 random positive- and negative-definite matrices
     B = np.random.uniform(-1, 1, (m, m))
     A[i] = (-1) ** i * 0.5 * (B @ B.T)
 
