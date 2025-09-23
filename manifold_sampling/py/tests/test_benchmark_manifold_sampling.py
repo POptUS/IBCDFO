@@ -7,7 +7,7 @@ import scipy as sp
 import scipy.io as sio
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling.h_examples import piecewise_quadratic, pw_maximum, pw_maximum_squared, pw_minimum, pw_minimum_squared, quantile
+from ibcdfo.manifold_sampling.h_examples import one_norm, censored_L1_loss, piecewise_quadratic, pw_maximum, pw_maximum_squared, pw_minimum, pw_minimum_squared, quantile
 from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
 
 if not os.path.exists("msp_benchmark_results"):
@@ -32,7 +32,7 @@ probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 subprob_switch = "linprog"
 nf_max = 50
 
-hfuns = [pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
+hfuns = [one_norm, censored_L1_loss, pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
@@ -46,7 +46,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
-    ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row]) & (C_L1_loss[:, 1] == 0))
+    ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row] + 1) & (C_L1_loss[:, 1] == 1))
     C = C_L1_loss[ind, 3 : m + 3]
     D = D_L1_loss[ind, 3 : m + 3]
 
@@ -56,18 +56,26 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     cs = Qzb["b_mat"][probs_to_solve[row], 0]
 
     for i, hfun in enumerate(hfuns):
+        if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
+            nf_max = 10000
+        elif hfun.__name__ == "censored_L1_loss" and nprob == 1:
+            nf_max = 10000
+        else:
+            nf_max = 150
+
         if hfun.__name__ == "piecewise_quadratic":
 
             def hfun_to_pass(z, H0=None):
                 return piecewise_quadratic(z, H0, Qs=Qs, zs=zs, cs=cs)
 
             X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nf_max, subprob_switch)
-        else:
-            if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
-                nf_max = 10000
-            else:
-                nf_max = 50
+        elif hfun.__name__ == "censored_L1_loss":
 
+            def hfun_to_pass(z, H0=None):
+                return censored_L1_loss(z, H0, C=C, D=D)
+
+            X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nf_max, subprob_switch)
+        else:
             X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
