@@ -15,7 +15,6 @@ count = 0
 
 
 def Ffun_slow_sort2(y):
-    global AllX, AllEigVecs, count
     eigvals, eigvecs = compute_M_and_eig(y)
 
     if len(AllX):
@@ -37,7 +36,6 @@ def Ffun_slow_sort2(y):
 
 
 def Ffun_all_perms(y):
-    global AllX, AllEigVecs, count
     eigvals, eigvecs = compute_M_and_eig(y)
 
     if len(AllX):
