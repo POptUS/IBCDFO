@@ -56,6 +56,9 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     cs = Qzb["b_mat"][probs_to_solve[row], 0]
 
     for i, hfun in enumerate(hfuns):
+
+        print("Running manifold sampling with hfun = " + hfun.__name__ + " and More-Wild problem number = " + str(int(nprob)))
+
         if hfun.__name__ == "pw_maximum_squared" and nprob == 1:
             nf_max = 10000
         elif hfun.__name__ == "censored_L1_loss" and nprob == 1:
