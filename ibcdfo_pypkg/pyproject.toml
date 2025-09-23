@@ -16,7 +16,8 @@ authors = [
     {name = "Stefan M. Wild",  email = "wild@lbl.gov"}
 ]
 maintainers = [
-    {name = "Jeffrey Larson", email = "jmlarson@anl.gov"}
+    {name = "Jeffrey Larson",  email = "jmlarson@anl.gov"},
+    {name = "Matt Menickelly", email = "mmenickelly@anl.gov"}
 ]
 
 license       = "MIT"

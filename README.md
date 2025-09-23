@@ -74,7 +74,7 @@ The `ibcdfo` Python package requires that the [MINQ](https://github.com/POptUS/m
 to your `PYTHONPATH` environment variable.
 
 The `ibcdfo` Python package can be installed from the same local clone by setting up a
-terminal with the target python and executing
+terminal with the target `python` and executing
 ```
 $ cd /path/to/IBCDFO/ibcdfo_pypkg
 $ python -m pip install .
