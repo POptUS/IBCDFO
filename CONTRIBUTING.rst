@@ -17,7 +17,7 @@ and interacting with us to ensure that your effort is well-directed.
 Contribution Process
 --------------------
 
-Contrbutors should typically branch from, and
+Contributors should typically branch from, and
 make pull requests to, the ``main`` branch. The ``main`` branch is used only
 for releases. Pull requests may be made from a fork, for those without
 repository write access.
