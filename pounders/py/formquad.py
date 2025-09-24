@@ -47,15 +47,15 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     G = np.zeros((n, m))
     H = np.zeros((n, n, m))
     # Precompute the scaled displacements (could be expensive for larger nf_max)
-    D = np.zeros((nf, n))  # Scaled displacements
     scale_mat = np.ones((n, n)) / np.sqrt(2)
     scale_mat[np.diag_indices(n)] = 1
     inds_to_use_in_H = np.triu_indices(n)
 
-    assert isinstance(np_max, int), "Must be an integer"
-    assert isinstance(xk_in, int), "Must be an integer"
+    assert isinstance(np_max, (int, np.integer)), "np_max must be an integer"
+    assert isinstance(xk_in, (int, np.integer)), "xk_in must be an integer"
 
     D = (X[:nf] - X[xk_in]) / delta
+    D = D.astype(np.float64)  # Convert entries to float to use qr_insert
     Nd = np.linalg.norm(D, 2, axis=1)
 
     # Get n+1 sufficiently affinely independent points:
@@ -85,7 +85,6 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
                     else:
                         # Update QR
-                        D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
                         [Q, R] = scipy.linalg.qr_insert(Q, R, D[[i], :].T, mp - 1, "col")
                         # [Q, R] = flipFirstRow(Q, R, 0, np.shape(Q)[1]-1)
                         # [Q, R] = flipSignQ(Q, R, 0, np.shape(Q)[1]-1)
@@ -118,7 +117,6 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
         if Nd[i] <= Pars[1] and i not in Mind:
             Ny = np.hstack((N, phi2eval(D[[i], :]).T))
             # Update QR
-            D[i] = np.float64(D[i])  # Convert entries to float to use qr_insert
             [Qy, Ry] = scipy.linalg.qr_insert(Q, R, np.hstack((1, D[i])), mp, "row")
             # [Qy, Ry] = flipFirstRow(Qy, Ry, 0, np.shape(Q)[1]-1)
             # [Qy, Ry] = flipSignQ(Qy, Ry, 0, np.shape(Q)[1]-1)
