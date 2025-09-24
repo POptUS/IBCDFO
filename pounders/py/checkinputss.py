@@ -116,4 +116,6 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     Upp = Upp.squeeze()
     Low = Low.squeeze()
+    Upp = np.atleast_1d(Upp)
+    Low = np.atleast_1d(Low)
     return [flag, X_0, np_max, F_init, Low, Upp, xk_in]

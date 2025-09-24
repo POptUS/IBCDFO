@@ -285,7 +285,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"
         Xsp = Xsp.squeeze()
-        step_norm = np.linalg.norm(Xsp, np.inf)
+        step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
         # 4. Evaluate the function at the new point
         if (step_norm >= 0.01 * delta or valid) and not (mdec == 0 and not valid):

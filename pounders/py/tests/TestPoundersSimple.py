@@ -152,3 +152,27 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, "The optimum should be the upper bounds.")
+
+    def test_pounders_one_dimensional(self):
+
+        def Ffun(x: float) -> np.ndarray:
+            """
+            Smooth R -> R^3 function with ||f(x)||_2 minimized at x = 0.7.
+            Returns a 3-vector.
+            """
+            t = x.squeeze() - 0.7
+            return np.array([t, t**2, t**3], dtype=float)
+
+        # Sample calling syntax for pounders
+        n = 1
+
+        X_0 = 0.4 * np.ones((n, 1))  # Test giving of column vector
+        nf_max = 200
+        g_tol = 10**-13
+        delta = 0.1
+        m = 3
+        Low = 0.1 * np.ones(n)
+        Upp = np.ones(n)
+        [X, F, hF, flag, xk_in] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
+
+        self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, "The optimum should be close to 0.7.")
