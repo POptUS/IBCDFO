@@ -11,13 +11,17 @@ import numpy as np
 
 # I am redefining the call to pdrs.pounders below to include a call to
 # concurrent_pounders just to test both without having to duplicate every
-# call in this regression test. 
+# call in this regression test.
 _orig_pounders = pdrs.pounders
+
+
 def _pounders_both(*args, **kwargs):
     conc.pounders(*args, **kwargs)
     return _orig_pounders(*args, **kwargs)
 
+
 pdrs.pounders = _pounders_both
+
 
 class TestPounders(unittest.TestCase):
     def test_failing_objective(self):

@@ -6,6 +6,8 @@ import os
 import unittest
 
 import ibcdfo.pounders as pdrs
+import ibcdfo.pounders.concurrent_pounders as conc
+
 import numpy as np
 import scipy as sp
 from calfun import calfun
@@ -13,11 +15,14 @@ from dfoxs import dfoxs
 
 # I am redefining the call to pdrs.pounders below to include a call to
 # concurrent_pounders just to test both without having to duplicate every
-# call in this regression test. 
+# call in this regression test.
 _orig_pounders = pdrs.pounders
+
+
 def _pounders_both(*args, **kwargs):
     conc.pounders(*args, **kwargs)
     return _orig_pounders(*args, **kwargs)
+
 
 pdrs.pounders = _pounders_both
 
