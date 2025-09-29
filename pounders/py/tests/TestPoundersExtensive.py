@@ -47,16 +47,16 @@ class TestPounders(unittest.TestCase):
             n = int(n)
             m = int(m)
 
-            def Ffun(y):
-                # It is possible to have python use the same Ffun values via
-                # octave. This can be slow on some systems. To (for example)
-                # test difference between matlab and python, used the following
-                # line and add "from oct2py import octave" on a system with octave
-                # installed.
-                # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
-                out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
-                assert len(out) == m, "Incorrect output dimension"
-                return np.squeeze(out)
+            # def Ffun(y):
+            #     # It is possible to have python use the same Ffun values via
+            #     # octave. This can be slow on some systems. To (for example)
+            #     # test difference between matlab and python, used the following
+            #     # line and add "from oct2py import octave" on a system with octave
+            #     # installed.
+            #     # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
+            #     out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
+            #     assert len(out) == m, "Incorrect output dimension"
+            #     return np.squeeze(out)
 
             def Ffun_batch(Y):
                 Y = np.atleast_2d(Y)
@@ -72,7 +72,7 @@ class TestPounders(unittest.TestCase):
             Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
             nfs = 1
             F_init = np.zeros((1, m))
-            F_init[0] = Ffun(X_0)
+            F_init[0] = Ffun_batch(X_0)
             xind = 0
             delta = 0.1
             if row in [8, 9]:
@@ -98,7 +98,7 @@ class TestPounders(unittest.TestCase):
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
 
