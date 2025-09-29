@@ -6,6 +6,7 @@ import os
 import unittest
 
 import ibcdfo.pounders as pdrs
+import ibcdfo.pounders.concurrent_pounders as conn
 import numpy as np
 import scipy as sp
 from calfun import calfun
@@ -43,6 +44,15 @@ class TestPounders(unittest.TestCase):
                 assert len(out) == m, "Incorrect output dimension"
                 return np.squeeze(out)
 
+            def Ffun_batch(Y):
+                Y = np.atleast_2d(Y)
+
+                out = np.zeros((Y.shape[0], m))  # We will always have a (rows-in-X by 3) output
+                for i, y in enumerate(Y):
+                    out[i] = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
+
+                return np.squeeze(out)
+
             X_0 = dfoxs(n, nprob, int(factor**factor_power))
             Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
             Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
@@ -75,6 +85,7 @@ class TestPounders(unittest.TestCase):
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
                 [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                [X, F, hF, flag, xk_best] = conn.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 evals = F.shape[0]
 
