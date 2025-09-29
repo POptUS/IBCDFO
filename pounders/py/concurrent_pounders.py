@@ -204,7 +204,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
-            idx_new = nf + 1 + np.arange(k_new)  # absolute indices of these points 
+            idx_new = nf + 1 + np.arange(k_new)  # absolute indices of these points
 
             X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
             F[idx_new] = Ffun(X[idx_new])

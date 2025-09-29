@@ -1,18 +1,18 @@
 import numpy as np
-from ibcdfo.pounders import general_h_funs, concurrent_pounders
+from ibcdfo.pounders import concurrent_pounders, general_h_funs
 
 
 def call_beamline_simulation_batch(X):
-    # In here, put your call to your simulation that takes in the parameters 
+    # In here, put your call to your simulation that takes in the parameters
     # x in rows of X and returns the three values used in the calculation of
     # emittance.
     # out = put_your_sim_call_here(x)
     print(X.shape)
 
-    X = np.atleast_2d(X) # Just to make life easier
+    X = np.atleast_2d(X)  # Just to make life easier
 
-    out = np.zeros((X.shape[0],3)) # We will always have a (rows-in-X by 3) output
-    for i, x in enumerate(X): 
+    out = np.zeros((X.shape[0], 3))  # We will always have a (rows-in-X by 3) output
+    for i, x in enumerate(X):
         out[i] = x[:3]  # This is not doing any beamline simulation!
     return np.squeeze(out)
 
