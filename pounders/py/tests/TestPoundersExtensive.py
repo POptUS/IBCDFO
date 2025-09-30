@@ -13,19 +13,6 @@ import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
 
-# # I am redefining the call to pdrs.pounders below to include a call to
-# # concurrent_pounders just to test both without having to duplicate every
-# # call in this regression test.
-# _orig_pounders = pdrs.pounders
-
-
-# def _pounders_both(*args, **kwargs):
-#     conc.pounders(*args, **kwargs)
-#     return _orig_pounders(*args, **kwargs)
-
-
-# pdrs.pounders = _pounders_both
-
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
@@ -98,7 +85,10 @@ class TestPounders(unittest.TestCase):
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+
+                self.assertTrue(np.array_equal(X, Xc), "Mismatch in X between pdrs and conc")
 
                 evals = F.shape[0]
 
