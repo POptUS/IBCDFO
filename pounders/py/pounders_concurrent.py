@@ -36,6 +36,11 @@ def _default_prior():
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     """
+    This modification of pounders takes all model_building points and sends
+    them to the Ffun as a batch. The Ffun can then send them to be evaluated
+    concurrently, giving significant wall-time speed up to many problems,
+    especially for Ffun objectives with larger input dimensions.
+
     POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
       [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
 
@@ -198,13 +203,18 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-            for i in range(int(min(n - mp, nf_max - (nf + 1)))):
+            k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
+            idx_new = nf + 1 + np.arange(k_new)  # absolute indices of these points
+
+            X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
+            F[idx_new] = Ffun(X[idx_new])
+
+            if np.any(np.isnan(F[idx_new])):
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                return X, F, hF, flag, xk_in
+
+            for i in range(k_new):
                 nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
-                F[nf] = Ffun(X[nf])
-                if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                    return X, F, hF, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
                     print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
