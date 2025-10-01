@@ -34,11 +34,14 @@ class TestPounders(unittest.TestCase):
             m = int(m)
 
             # def Ffun(y):
-            #     # It is possible to have python use the same Ffun values via
-            #     # octave. This can be slow on some systems. To (for example)
-            #     # test difference between matlab and python, used the following
-            #     # line and add "from oct2py import octave" on a system with octave
-            #     # installed.
+            #     # It is possible to have python use the same Ffun values as computed by
+            #     # matlab via octave.
+            #     # Please note this can be slow on some systems. 
+            #     # This functionality is useful, for example, to test differences between 
+            #     # matlab and python solvers with a common matlab-computed Ffun. 
+            #     # To do this, make sure octave is installed on your system and use the 
+            #     # import statement "from oct2py import octave".
+            #     # Then, replace the uncommented line below with 
             #     # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
             #     out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
             #     assert len(out) == m, "Incorrect output dimension"
