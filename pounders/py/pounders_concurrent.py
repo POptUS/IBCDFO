@@ -209,6 +209,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
             F[idx_new] = Ffun(X[idx_new])
 
+            if np.any(np.isnan(F[idx_new])):
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                return X, F, hF, flag, xk_in
+
             for i in range(k_new):
                 nf += 1
                 hF[nf] = hfun(F[nf])
