@@ -387,3 +387,62 @@ def quantile(z, H0=None):
             grads[j, k] = 2 * z_sort[j]
 
         return h, grads
+
+
+def max_gamma_over_KY(z, H0=None):
+    """
+    Computes h = max_j z_j / KY_j, where z_j = gamma(kappa, Delta, zeta, KY_j).
+
+    Inputs
+    ------
+    z : array-like, shape (11,)
+        Values of gamma(...) evaluated at the 11 KY points.
+    H0 : optional list of str
+        Hashes (indices as strings) of manifolds to evaluate specifically.
+        If None, returns active/near-active manifolds at z.
+    KY : optional array-like, shape (11,)
+        The KY grid; defaults to [0.10, 0.15, ..., 0.60].
+
+    Outputs (H0 is None)
+    --------------------
+    h : float
+        The maximum value over j of z_j / KY_j.
+    grads : ndarray, shape (11, l)
+        Columns are gradients of each active manifold (dh/dz_j = 1/KY_j).
+    Hash : list[str], length l
+        String indices of active/near-active manifolds, matching grads columns.
+
+    Outputs (H0 provided)
+    ---------------------
+    h : ndarray, shape (l,)
+        Values z_j / KY_j for requested manifolds.
+    grads : ndarray, shape (11, l)
+        Gradient columns for requested manifolds.
+    """
+
+    KY = np.linspace(0.10, 0.60, 11)  # Fixed KY grid: [0.10, 0.15, ..., 0.60] (11 values)
+
+    z = np.asarray(z, dtype=float).ravel()
+    assert z.size == 11, f"Expected 11 values in z (got {z.size})."
+    assert KY.size == 11, f"Expected 11 KY values (got {KY.size})."
+
+    # Per-manifold values and gradient magnitudes
+    vals = z / KY  # shape (11,)
+    grad_mag = 1.0 / KY  # dh/dz_j for active j
+
+    if H0 is None:
+        h = float(np.max(vals))
+        inds, grads, Hash = _activities_and_inds(h, vals, n=len(z))
+        for j in range(len(inds)):
+            grads[inds[j], j] = grad_mag[inds[j]]
+        return h, grads, Hash
+    else:
+        H0 = list(H0)
+        J = len(H0)
+        h = np.zeros(J, dtype=float)
+        grads = np.zeros((len(z), J), dtype=float)
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = vals[j]
+            grads[j, k] = grad_mag[j]
+        return h, grads
