@@ -1,5 +1,5 @@
 import numpy as np
-from ibcdfo.pounders import concurrent_pounders, general_h_funs
+from ibcdfo.pounders import pounders_concurrent, general_h_funs
 
 
 def call_beamline_simulation_batch(X):
@@ -46,7 +46,7 @@ Options["combinemodels"] = combinemodels
 Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = concurrent_pounders.pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xk_inout] = pounders_concurrent.pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 

@@ -5,12 +5,12 @@ Unit test of simple functionality of pounders routine.
 import unittest
 
 import ibcdfo.pounders as pdrs
-import ibcdfo.pounders.concurrent_pounders as conc
+import ibcdfo.pounders.pounders_concurrent as conc
 import numpy as np
 
 
 # I am defining this call to pounders to include calls to pounders
-# and concurrent_pounders without having to duplicate every
+# and pounders_concurrent without having to duplicate every
 # call in this regression test.
 def both_pounders(*args, **kwargs):
     conc.pounders(*args, **kwargs)
