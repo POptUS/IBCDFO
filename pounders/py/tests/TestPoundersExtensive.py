@@ -7,7 +7,6 @@ import unittest
 
 import ibcdfo.pounders as pdrs
 import ibcdfo.pounders.pounders_concurrent as conc
-
 import numpy as np
 import scipy as sp
 from calfun import calfun

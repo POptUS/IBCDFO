@@ -1,5 +1,5 @@
 import numpy as np
-from ibcdfo.pounders import pounders_concurrent, general_h_funs
+from ibcdfo.pounders import general_h_funs, pounders_concurrent
 
 
 def call_beamline_simulation_batch(X):
