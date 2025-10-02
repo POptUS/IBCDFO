@@ -3,7 +3,7 @@
 import os
 
 import ibcdfo.pounders as pdrs
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
@@ -52,31 +52,31 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
     X, F, h_pounders, flag, xk_in = pdrs.pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
 
-    # --- Plotting ---
-    plt.figure(figsize=(10, 4))
+    # # --- Plotting ---
+    # plt.figure(figsize=(10, 4))
 
-    # Raw values
-    plt.subplot(1, 2, 1)
-    plt.plot(h_pounders, label="pounders (raw)")
-    plt.plot(h_msp, label="msp (raw)")
-    plt.xlabel("Iteration / evaluation")
-    plt.ylabel("h values")
-    plt.title(f"Raw h values (prob {int(nprob)})")
-    plt.legend()
+    # # Raw values
+    # plt.subplot(1, 2, 1)
+    # plt.plot(h_pounders, label="pounders (raw)")
+    # plt.plot(h_msp, label="msp (raw)")
+    # plt.xlabel("Iteration / evaluation")
+    # plt.ylabel("h values")
+    # plt.title(f"Raw h values (prob {int(nprob)})")
+    # plt.legend()
 
-    # Cumulative minima
-    plt.subplot(1, 2, 2)
-    plt.plot(np.minimum.accumulate(h_pounders), label="pounders (cummin)")
-    plt.plot(np.minimum.accumulate(h_msp), label="msp (cummin)")
-    plt.xlabel("Iteration / evaluation")
-    plt.ylabel("Best-so-far h values")
-    plt.title(f"Cumulative min h values (prob {int(nprob)})")
-    plt.legend()
+    # # Cumulative minima
+    # plt.subplot(1, 2, 2)
+    # plt.plot(np.minimum.accumulate(h_pounders), label="pounders (cummin)")
+    # plt.plot(np.minimum.accumulate(h_msp), label="msp (cummin)")
+    # plt.xlabel("Iteration / evaluation")
+    # plt.ylabel("Best-so-far h values")
+    # plt.title(f"Cumulative min h values (prob {int(nprob)})")
+    # plt.legend()
 
-    plt.tight_layout()
+    # plt.tight_layout()
 
-    # Save to file
-    fname = os.path.join("plots", f"prob{int(nprob)}.png")
-    plt.savefig(fname, dpi=200)
-    plt.close()
-    print(f"Saved plot for problem {int(nprob)} to {fname}")
+    # # Save to file
+    # fname = os.path.join("plots", f"prob{int(nprob)}.png")
+    # plt.savefig(fname, dpi=200)
+    # plt.close()
+    # print(f"Saved plot for problem {int(nprob)} to {fname}")
