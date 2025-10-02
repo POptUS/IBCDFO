@@ -1,5 +1,11 @@
-# This wrapper tests various algorithms against the Benchmark functions from the
-# More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
+# This tests pounders and MSP against two BenDFO oracles, chosen because their
+# output dimension m = 11, which is the case for the FES application being solved. 
+#
+# NOTE: In the intended application, gamma(kappa, Delta, zeta, KY) depends
+#       on only four input parameters (kappa, Delta, zeta, KY).
+#       The BenDFO test functions used in this test do not have n = 4,
+#       so these tests are only for testing the algorithms and hfun definition
+#       rather than representing the true physics problem.
 import os
 
 import ibcdfo.pounders as pdrs

@@ -391,7 +391,17 @@ def quantile(z, H0=None):
 
 def max_gamma_over_KY(z, H0=None):
     """
-    Computes h = max_j z_j / KY_j, where z_j = gamma(kappa, Delta, zeta, KY_j).
+    Computes h = max_j { z_j / KY_j }, where each z_j represents the ouput from
+    the application-specific function gamma(kappa, Delta, zeta, KY_j). 
+
+    Notes
+    -----
+    - The symbols kappa, Delta, and zeta are domain parameters from
+      the physics/application model. They are *not* related to parameters
+      in the manifold sampling algorithm itself.
+    - The role of hfun in manifold sampling is simply to wrap this
+      application objective in the required (value, gradients, hashes)
+      interface. The actual Ffun corresponds to gamma(·).
 
     Inputs
     ------
