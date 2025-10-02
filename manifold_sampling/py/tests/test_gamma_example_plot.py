@@ -1,5 +1,5 @@
 # This tests pounders and MSP against two BenDFO oracles, chosen because their
-# output dimension m = 11, which is the case for the FES application being solved. 
+# output dimension m = 11, which is the case for the FES application being solved.
 #
 # NOTE: In the intended application, gamma(kappa, Delta, zeta, KY) depends
 #       on only four input parameters (kappa, Delta, zeta, KY).
