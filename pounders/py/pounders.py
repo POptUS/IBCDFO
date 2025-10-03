@@ -151,20 +151,30 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if "logger" not in Options:
         logger = poptus.StandardLogger(poptus.LOG_LEVEL_DEFAULT)
 
+    valid_logger = isinstance(logger, poptus.AbcLogger)
+
+    if not valid_logger:
+        logger = poptus.StandardLogger(poptus.LOG_LEVEL_DEFAULT)
+
     def log(msg):
         logger.log("POUNDers", msg, poptus.LOG_LEVEL_DEFAULT)
 
     def log_debug(msg, level):
         logger.log("POUNDers", msg, poptus.LOG_LEVEL_MIN_DEBUG + level)
 
+    def log_and_abort(exception, msg):
+        logger.error("POUNDers", msg)
+        raise exception(msg)
+
+    if not valid_logger:
+        log_and_abort(TypeError, "Invalid and nonempty logger supplied.")
+
     # choose your spsolver
     if spsolver == 2:
         try:
             from minqsw import minqsw
-        except ModuleNotFoundError as e:
-            # TODO: Should this use logger.error?
-            print(e)
-            sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
+        except:
+            log_and_abort(ModuleNotFoundError, "Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
@@ -174,6 +184,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         return X, F, hF, flag, xk_in
     eps = np.finfo(float).eps  # Define machine epsilon
     # TODO: delete this block when we're done with this PR.
+    #  I just want to point out that the formatting of output has changed, and it may be desirable to fix it up.
     # if printf:
     # print("  nf   delta    fl  np       f0           g0       ierror")
     # progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
@@ -252,6 +263,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             log(f"nf: {nf}, delta: {delta}, fl: {valid}, np: {mp}, f(x): {hF[xk_in]}, ng: {ng}, ierror: {ierror}")
             # print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
             if printf >= 2:
+                # TODO: Do we really want to keep this? This PR is a good time to update this printing nightmare.
                 jerr = np.zeros((len(Mind), m))
                 for i in range(len(Mind)):
                     D = X[Mind[i]] - X[xk_in]
