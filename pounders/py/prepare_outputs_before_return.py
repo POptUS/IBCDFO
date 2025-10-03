@@ -1,5 +1,6 @@
 import poptus
 
+
 def prepare_outputs_before_return(X, F, hF, nf, logger, exit_flag):
     """
     This function is called to cleanup X and F, set the exit value, and display

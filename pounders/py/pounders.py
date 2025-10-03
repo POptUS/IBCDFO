@@ -174,9 +174,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         return X, F, hF, flag, xk_in
     eps = np.finfo(float).eps  # Define machine epsilon
     # TODO: delete this block when we're done with this PR.
-    #if printf:
-        #print("  nf   delta    fl  np       f0           g0       ierror")
-        #progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
+    # if printf:
+    # print("  nf   delta    fl  np       f0           g0       ierror")
+    # progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
     if Prior["nfs"] == 0:
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
@@ -192,7 +192,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             return X, F, hF, flag, xk_in
         if printf:
             log(f"nf: {nf}, Initial function value {hfun(F[nf, :])}")
-            #print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
+            # print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
     else:
         X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
         F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
@@ -221,7 +221,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     return X, F, hF, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
-                    #print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
+                    # print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
                     log(f"nf: {nf}, Geometry point value {hF[nf]}")
                 D = Mdir[i, :]
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
@@ -250,7 +250,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             else:
                 ierror = np.linalg.norm(IERR / np.abs(hF[Mind]), np.inf)
             log(f"nf: {nf}, delta: {delta}, fl: {valid}, np: {mp}, f(x): {hF[xk_in]}, ng: {ng}, ierror: {ierror}")
-            #print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
+            # print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
             if printf >= 2:
                 jerr = np.zeros((len(Mind), m))
                 for i in range(len(Mind)):
@@ -275,7 +275,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     hF[nf] = hfun(F[nf])
                     if printf:
                         log(f"nf: {nf}, Critical point value {hF[nf]}")
-                        #print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
+                        # print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
@@ -403,7 +403,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 hF[nf] = hfun(F[nf])
                 if printf:
                     log(f"nf: {nf}, Model point value {hF[nf]}")
-                    #print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
+                    # print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
                 if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
                     if printf:
                         log_debug("Function value improvement came from model point.", 0)
