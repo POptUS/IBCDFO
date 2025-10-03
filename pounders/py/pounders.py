@@ -73,7 +73,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     m       [int] Number of components returned from Ffun
     Low     [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
     Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-    logger  [obj] POptUS logger object
 
     Prior   [dict] of past evaluations of values Ffun with keys:
         X_init  [dbl] [nfs-by-n] Set of initial points
