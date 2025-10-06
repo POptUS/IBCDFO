@@ -391,7 +391,7 @@ def quantile(z, H0=None):
 
 def max_gamma_over_KY(z, H0=None):
     """
-    Computes h = max_j { z_j / KY_j }, where each z_j represents the ouput from
+    Computes h = max_j { z_j / KY_j }, where each z_j represents the output from
     the application-specific function gamma(kappa, Delta, zeta, KY_j).
 
     Notes

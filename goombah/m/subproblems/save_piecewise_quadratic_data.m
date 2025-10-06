@@ -44,7 +44,7 @@ function [] = save_piecewise_quadratic_data(Q, z, c)
     zs.uels{2} = Ls.uels;
 
     cs.name = 'c';
-    cs.ts   = 'Objective constat terms';
+    cs.ts   = 'Objective constant terms';
     cs.type = 'parameter';
     cs.val = c;
     cs.form = 'full';
