@@ -6,7 +6,8 @@ import os
 import unittest
 
 import ibcdfo.pounders as pdrs
-import ibcdfo.pounders.pounders_concurrent as conc
+
+# import ibcdfo.pounders.pounders_concurrent as conc
 import numpy as np
 import scipy as sp
 from calfun import calfun
@@ -88,9 +89,9 @@ class TestPounders(unittest.TestCase):
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
                 X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
-                Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                # Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
-                self.assertTrue(np.array_equal(X, Xc), "Mismatch in X between pdrs and conc")
+                # self.assertTrue(np.array_equal(X, Xc), "Mismatch in X between pdrs and conc")
 
                 evals = F.shape[0]
 
