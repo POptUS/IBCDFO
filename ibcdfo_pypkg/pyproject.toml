@@ -1,5 +1,68 @@
-# TODO: Transfer rest of setup.py here?
-
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=80", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
+
+[project]
+# Package version managed automatically by setuptools-scm based on git tags
+dynamic = ["version"]
+
+name        = "ibcdfo"
+description = "Interpolation-Based Composite Derivative-Free Optimization"
+readme      = "README.md"
+
+authors = [
+    {name = "Jeffrey Larson",  email = "jmlarson@anl.gov"},
+    {name = "Matt Menickelly", email = "mmenickelly@anl.gov"},
+    {name = "Stefan M. Wild",  email = "wild@lbl.gov"}
+]
+maintainers = [
+    {name = "Jeffrey Larson",  email = "jmlarson@anl.gov"},
+    {name = "Matt Menickelly", email = "mmenickelly@anl.gov"}
+]
+
+license       = "MIT"
+license-files = ["LICENSE"]
+
+requires-python = ">=3.9"
+# BenDFO is also required for testing but is not yet pip installable
+dependencies = [
+    "numpy>=1.16.5", "scipy>=1.6",  # Code
+    "ipdb",                         # Minq
+    "jax"                           # Testing
+]
+
+keywords = ["ibcdfo"]
+classifiers=[
+    "Natural Language :: English",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics"
+]
+
+[project.urls]
+Repository    = "https://github.com/POptUS/IBCDFO"
+Documentation = "https://github.com/POptUS/IBCDFO"
+Issues        = "https://github.com/POptUS/IBCDFO/issues"
+
+# Manual, fine control of data file inclusion in package.  Since we are using
+# setuptools-scm, which likes to add everything to distributions, the actual
+# contents should be confirmed directly and MANIFEST.in might beat out
+# specifications here.
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where      = ["src"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"ibcdfo.pounders.tests.benchmark_results" = ["*.txt"]
