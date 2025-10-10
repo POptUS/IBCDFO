@@ -5,3 +5,5 @@ ignore =
     E203
 per-file-ignores =
     __init__.py:F401
+    # Allow lambda expressions
+    tests/*.py:E731

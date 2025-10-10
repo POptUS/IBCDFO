@@ -1,5 +1,5 @@
 function [h, grads, Hash] = pw_minimum_squared(z, H0)
-% Evaluates the pointwise minimimum function
+% Evaluates the pointwise minimum function
 %   min_j { z_j^2 }
 %
 % Inputs:

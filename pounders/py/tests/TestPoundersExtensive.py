@@ -6,6 +6,7 @@ import os
 import unittest
 
 import ibcdfo.pounders as pdrs
+import ibcdfo.pounders.pounders_concurrent as conc
 import numpy as np
 import scipy as sp
 from calfun import calfun
@@ -32,15 +33,27 @@ class TestPounders(unittest.TestCase):
             n = int(n)
             m = int(m)
 
-            def Ffun(y):
-                # It is possible to have python use the same Ffun values via
-                # octave. This can be slow on some systems. To (for example)
-                # test difference between matlab and python, used the following
-                # line and add "from oct2py import octave" on a system with octave
-                # installed.
-                # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
-                out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
-                assert len(out) == m, "Incorrect output dimension"
+            # def Ffun(y):
+            #     # It is possible to have python use the same Ffun values as computed by
+            #     # matlab via octave.
+            #     # Please note this can be slow on some systems.
+            #     # This functionality is useful, for example, to test differences between
+            #     # matlab and python solvers with a common matlab-computed Ffun.
+            #     # To do this, make sure octave is installed on your system and use the
+            #     # import statement "from oct2py import octave".
+            #     # Then, replace the uncommented line below with
+            #     # out = octave.feval("calfun_wrapper", y, m, nprob, "smooth", [], 1, 1)
+            #     out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
+            #     assert len(out) == m, "Incorrect output dimension"
+            #     return np.squeeze(out)
+
+            def Ffun_batch(Y):
+                Y = np.atleast_2d(Y)
+
+                out = np.zeros((Y.shape[0], m))  # We will always have a (rows-in-X by 3) output
+                for i, y in enumerate(Y):
+                    out[i] = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
+
                 return np.squeeze(out)
 
             X_0 = dfoxs(n, nprob, int(factor**factor_power))
@@ -48,7 +61,7 @@ class TestPounders(unittest.TestCase):
             Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
             nfs = 1
             F_init = np.zeros((1, m))
-            F_init[0] = Ffun(X_0)
+            F_init[0] = Ffun_batch(X_0)
             xind = 0
             delta = 0.1
             if row in [8, 9]:
@@ -74,7 +87,10 @@ class TestPounders(unittest.TestCase):
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+
+                self.assertTrue(np.array_equal(X, Xc), "Mismatch in X between pdrs and conc")
 
                 evals = F.shape[0]
 

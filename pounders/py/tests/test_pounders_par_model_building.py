@@ -1,16 +1,19 @@
 import numpy as np
-from ibcdfo.pounders import general_h_funs, pounders
+from ibcdfo.pounders import general_h_funs, pounders_concurrent
 
 
-def call_beamline_simulation(x):
-    # In here, put your call to your simulation that takes in the
-    # parameters x and returns the three values used in the calculation of
+def call_beamline_simulation_batch(X):
+    # In here, put your call to your simulation that takes in the parameters
+    # x in rows of X and returns the three values used in the calculation of
     # emittance.
     # out = put_your_sim_call_here(x)
+    print(X.shape)
 
-    out = x.squeeze()[:3]  # This is not doing any beamline simulation!
+    X = np.atleast_2d(X)  # Just to make life easier
 
-    assert len(out) == 3, "Incorrect output dimension"
+    out = np.zeros((X.shape[0], 3))  # We will always have a (rows-in-X by 3) output
+    for i, x in enumerate(X):
+        out[i] = x[:3]  # This is not doing any beamline simulation!
     return np.squeeze(out)
 
 
@@ -21,7 +24,7 @@ X_0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
 nf_max = int(100)  # Max number of evaluations to be used by optimizer
 Low = -1 * np.ones((1, n))  # 1-by-n Vector of lower bounds
 Upp = np.ones((1, n))  # 1-by-n Vector of upper bounds
-Ffun = call_beamline_simulation  # Simulation function, accepting single points to evaluate
+Ffun = call_beamline_simulation_batch  # Simulation function, accepting a matrix with rows of points to evaluate
 printf = True
 
 # Not as important to adjust:
@@ -43,7 +46,7 @@ Options["combinemodels"] = combinemodels
 Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xk_inout] = pounders_concurrent.pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 
