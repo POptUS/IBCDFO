@@ -151,7 +151,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if "logger" not in Options:
         logger = poptus.StandardLogger(poptus.LOG_LEVEL_DEFAULT)
 
-    valid_logger = isinstance(logger, poptus.AbcLogger)
+    valid_logger = isinstance(logger, poptus.AbstractLogger)
 
     if not valid_logger:
         logger = poptus.StandardLogger(poptus.LOG_LEVEL_DEFAULT)
