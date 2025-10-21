@@ -1,6 +1,7 @@
 import sys
 
 import numpy as np
+import poptus
 
 from .bmpts import bmpts
 from .bqmin import bqmin
@@ -80,6 +81,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         nfs     [int] Number of function values in F_init known in advance
 
     Options [dict] of options to the method
+        logger   [obj] POptUS logger object
         printf   [int] 0 No printing to screen (default)
                        1 Debugging level of output to screen
                        2 More verbose screen output
@@ -146,13 +148,33 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         hfun = lambda F: np.sum(F**2)
         from .general_h_funs import leastsquares as combinemodels
 
+    if "logger" not in Options:
+        logger = poptus.StandardLogger(poptus.LOG_LEVEL_DEFAULT)
+
+    valid_logger = isinstance(logger, poptus.AbstractLogger)
+
+    if not valid_logger:
+        logger = poptus.StandardLogger(poptus.LOG_LEVEL_DEFAULT)
+
+    def log(msg):
+        logger.log("POUNDers", msg, poptus.LOG_LEVEL_DEFAULT)
+
+    def log_debug(msg, level):
+        logger.log("POUNDers", msg, poptus.LOG_LEVEL_MIN_DEBUG + level)
+
+    def log_and_abort(exception, msg):
+        logger.error("POUNDers", msg)
+        raise exception(msg)
+
+    if not valid_logger:
+        log_and_abort(TypeError, "Invalid and nonempty logger supplied.")
+
     # choose your spsolver
     if spsolver == 2:
         try:
             from minqsw import minqsw
-        except ModuleNotFoundError as e:
-            print(e)
-            sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
+        except:
+            log_and_abort(ModuleNotFoundError, "Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
@@ -161,9 +183,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         hF = []
         return X, F, hF, flag, xk_in
     eps = np.finfo(float).eps  # Define machine epsilon
-    if printf:
-        print("  nf   delta    fl  np       f0           g0       ierror")
-        progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
+    # TODO: delete this block when we're done with this PR.
+    #  I just want to point out that the formatting of output has changed, and it may be desirable to fix it up.
+    # if printf:
+    # print("  nf   delta    fl  np       f0           g0       ierror")
+    # progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
     if Prior["nfs"] == 0:
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
@@ -171,14 +195,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         nf = 0  # in Matlab this is 1
         F_0 = np.atleast_2d(Ffun(X[nf]))
         if F_0.shape[1] != m:
-            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -1)
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -1)
             return X, F, hF, flag, xk_in
         F[nf] = F_0
         if np.any(np.isnan(F[nf])):
-            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -3)
             return X, F, hF, flag, xk_in
         if printf:
-            print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
+            log(f"nf: {nf}, Initial function value {hfun(F[nf, :])}")
+            # print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
     else:
         X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
         F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
@@ -203,18 +228,19 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -3)
                     return X, F, hF, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
-                    print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
+                    # print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
+                    log(f"nf: {nf}, Geometry point value {hF[nf]}")
                 D = Mdir[i, :]
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
             if mp < n:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -5)
                 return X, F, hF, flag, xk_in
 
         #  1b. Update the quadratic model
@@ -234,8 +260,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 ierror = np.nan
             else:
                 ierror = np.linalg.norm(IERR / np.abs(hF[Mind]), np.inf)
-            print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
+            log(f"nf: {nf}, delta: {delta}, fl: {valid}, np: {mp}, f(x): {hF[xk_in]}, ng: {ng}, ierror: {ierror}")
+            # print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
             if printf >= 2:
+                # TODO: Do we really want to keep this? This PR is a good time to update this printing nightmare.
                 jerr = np.zeros((len(Mind), m))
                 for i in range(len(Mind)):
                     D = X[Mind[i]] - X[xk_in]
@@ -254,11 +282,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                     F[nf] = Ffun(X[nf])
                     if np.any(np.isnan(F[nf])):
-                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -3)
                         return X, F, hF, flag, xk_in
                     hF[nf] = hfun(F[nf])
                     if printf:
-                        print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
+                        log(f"nf: {nf}, Critical point value {hF[nf]}")
+                        # print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
@@ -268,7 +297,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
                 ng = np.linalg.norm(G * (ind_Lownotbinding + ind_Uppnotbinding).T, 2)
             if ng < g_tol:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, 0)
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, 0)
                 return X, F, hF, flag, xk_in
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
@@ -279,7 +308,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         elif spsolver == 2:  # Arnold Neumaier's minq5
             [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
             if minq_err < 0:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -4)
                 return X, F, hF, flag, xk_in
         # elif spsolver == 3:  # Arnold Neumaier's minq8
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
@@ -295,20 +324,20 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             for i in range(n):  # This will need to be cleaned up eventually
                 if (Upp[i] - Xsp[i] < eps * abs(Upp[i])) and (Upp[i] > Xsp[i] and G[i] >= 0):
                     Xsp[i] = Upp[i]
-                    print("eps project!")
+                    log_debug("eps project!", 0)
                 elif (Xsp[i] - Low[i] < eps * abs(Low[i])) and (Low[i] < Xsp[i] and G[i] >= 0):
                     Xsp[i] = Low[i]
-                    print("eps project!")
+                    log_debug("eps project!", 0)
 
             if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]):
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -2)
                 return X, F, hF, flag, xk_in
 
             nf += 1
             X[nf] = Xsp
             F[nf] = Ffun(X[nf])
             if np.any(np.isnan(F[nf])):
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -3)
                 return X, F, hF, flag, xk_in
             hF[nf] = hfun(F[nf])
 
@@ -316,7 +345,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 rho = (hF[nf] - hF[xk_in]) / mdec
             else:
                 if hF[nf] == hF[xk_in]:
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -2)
                     return X, F, hF, flag, xk_in
                 else:
                     rho = np.inf * np.sign(hF[nf] - hF[xk_in])
@@ -332,13 +361,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             elif valid:
                 delta = delta * gamma_dec
                 if delta <= delta_min:
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -6)
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -6)
                     return X, F, hF, flag, xk_in
 
         else:  # Don't evaluate f at Xsp
             rho = -1  # Force yourself to do a model-improving point
             if printf:
-                print("Warning: skipping sp soln!-----------")
+                log_debug("Warning: skipping subproblem solution.", 0)
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
@@ -381,14 +410,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
                 F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, logger, -3)
                     return X, F, hF, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
-                    print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
+                    log(f"nf: {nf}, Model point value {hF[nf]}")
+                    # print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
                 if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
                     if printf:
-                        print("**improvement from model point****")
+                        log_debug("Function value improvement came from model point.", 0)
                     # Update model to reflect new base point
                     D = X[nf] - X[xk_in]
                     xk_in = nf  # Change current center
@@ -397,6 +427,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     for j in range(m):
                         Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
     if printf:
-        print("Number of function evals exceeded")
+        log_debug("Number of function evals exceeded", 0)
     flag = ng
     return X, F, hF, flag, xk_in
