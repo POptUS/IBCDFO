@@ -40,6 +40,11 @@ jobs:
       with:
         repository: POptUS/BenDFO
         path: BenDFO
+    - name: Checkout POptUS repository
+      uses: actions/checkout@v4
+      with:
+        repository: POptUS/POptUS
+        path: POptUS
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
