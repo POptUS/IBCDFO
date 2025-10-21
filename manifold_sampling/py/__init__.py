@@ -1,5 +1,5 @@
 """
-Manifold Samping
+Manifold Sampling
 Given a user-provided blackbox function F that depends on an n-dimensional
 vector x and returning m scalar values, this code solves the structured
 blackbox optimization problem
