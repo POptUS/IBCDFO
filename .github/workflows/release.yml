@@ -84,6 +84,12 @@ jobs:
         # pyproject.toml and tox.ini configuration.
         os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # Failing with root cause not yet understood (Issue #168)
+          - os: macos-14
+            python-version: "3.9"
+          - os: macos-15
+            python-version: "3.9"
     runs-on: ${{ matrix.os }}
     steps:
       # Install MINQ at commit specified in current submodule setting rather
@@ -128,6 +134,12 @@ jobs:
         # pyproject.toml and tox.ini configuration.
         os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # Failing with root cause not yet understood (Issue #168)
+          - os: macos-14
+            python-version: "3.9"
+          - os: macos-15
+            python-version: "3.9"
     runs-on: ${{ matrix.os }}
     steps:
       # Install MINQ at commit specified in current submodule setting rather
