@@ -89,6 +89,17 @@ jobs:
         python-version: ["3.13"]
     runs-on: ${{ matrix.os }}
     steps:
+      # Install MINQ at commit specified in current submodule setting rather
+      # than installing as clone of actual MINQ repo.
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout BenDFO repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/BenDFO
+          path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -125,6 +136,17 @@ jobs:
         python-version: ["3.13"]
     runs-on: ${{ matrix.os }}
     steps:
+      # Install MINQ at commit specified in current submodule setting rather
+      # than installing as clone of actual MINQ repo.
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout BenDFO repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/BenDFO
+          path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
