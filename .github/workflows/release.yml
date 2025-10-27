@@ -28,7 +28,7 @@ on:
   # setups.
   #
   # Significant but simpler testing is done on feature branches using the
-  # test_sdist *action* (not the test_sdist job below).
+  # test_python action.
   # TODO: Temporarily run on PR into main for testing.  Remove before this
   # is merged into main.
   push:
