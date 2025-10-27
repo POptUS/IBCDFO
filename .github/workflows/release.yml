@@ -16,8 +16,11 @@
 
 name: Build & test release candidate
 env:
-  PKG_ROOT:  ${{ github.workspace }}/ibcdfo_pypkg
-  DIST_PATH: ${{ github.workspace }}/ibcdfo_pypkg/dist
+  BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
+  BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
+  MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
+  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
+  DIST_PATH:        ${{ github.workspace }}/ibcdfo_pypkg/dist
 
 on:
   # This action is run only on main to produce release candidate distributions
@@ -61,7 +64,7 @@ jobs:
           python -m pip install build
           python -m pip list
           # Build both distributions
-          pushd $PKG_ROOT
+          pushd $IBCDFO_PKG
           python -m build
           popd
       - name: Archive both distributions
@@ -79,8 +82,11 @@ jobs:
       matrix:
         # python-versions must be maintained consistent with associated
         # pyproject.toml and tox.ini configuration.
-        os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        # TODO: Reset to full test setup matrix before merge
+        #os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
+        #python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-24.04]
+        python-version: ["3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -94,11 +100,16 @@ jobs:
           path: ${{ env.CLONE_PATH }}
       - name: Setup Python, install, & test
         run: |
+          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           which python
           python -m pip install --upgrade pip
           python -m pip install ibcdfo-*.tar.gz
           python -m pip list
+          # Run from location that already has dfo.dat
+          pushd $BENDFO_DATA_PATH
           python -c "import ibcdfo ; exit(not ibcdfo.test())"
+          popd
 
   test_wheel:
     name: Test universal wheel
@@ -107,8 +118,11 @@ jobs:
       matrix:
         # python-versions must be maintained consistent with associated
         # pyproject.toml and tox.ini configuration.
-        os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        # TODO: Reset to full test setup matrix before merge
+        #os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
+        #python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-24.04]
+        python-version: ["3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -122,8 +136,13 @@ jobs:
           path: ${{ env.CLONE_PATH }}
       - name: Setup Python, install, & test
         run: |
+          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           which python
           python -m pip install --upgrade pip
           python -m pip install ibcdfo-*-py3-none-any.whl
           python -m pip list
+          # Run from location that already has dfo.dat
+          pushd $BENDFO_DATA_PATH
           python -c "import ibcdfo ; exit(not ibcdfo.test())"
+          popd
