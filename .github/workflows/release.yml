@@ -41,21 +41,19 @@ on:
 jobs:
   build:
     name: Build release candidate distributions
-    strategy:
-      matrix:
-        os:             [ubuntu-latest]
-        python-version: ["3.13"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       # Clone the repository with the full history since setuptools-scm needs
       # the tags to set the correct version.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          # Ideally this will always use the newest Python version supported by
+          # package
+          python-version: 3.13
       - name: Construct sdist and wheel
         run: |
           # Install dependencies
@@ -114,7 +112,7 @@ jobs:
           path: ${{ env.CLONE_PATH }}
       - name: Setup Python, install, & test
         run: |
-          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           which python
           python -m pip install --upgrade pip
@@ -164,7 +162,7 @@ jobs:
           path: ${{ env.CLONE_PATH }}
       - name: Setup Python, install, & test
         run: |
-          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           which python
           python -m pip install --upgrade pip
