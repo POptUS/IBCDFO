@@ -19,7 +19,7 @@ X_0 = zeros(3, n); % Starting points
 
 X_0(1, :) = xs; % Near origin
 X_0(2, :) = 10 * xs; % Farther from origin
-X_0(3, :) = 100 * xs; % Co-linear
+X_0(3, :) = 100 * xs; % Collinear
 
 Ffun = @(x) x; % Identity mapping
 F_init = zeros(3, n);
