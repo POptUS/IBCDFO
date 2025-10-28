@@ -306,7 +306,7 @@ while nf < nf_max
 
     % 4. Evaluate the function at the new point (provided the model is
     % valid, or the step is sufficiently large and mdec isn't zero)
-    if valid || (step_norm >= 0.01 * delta && mdec ~= 0) 
+    if valid || (step_norm >= 0.01 * delta && mdec ~= 0)
 
         Xsp = min(Upp, max(Low, X(xk_in, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
 
@@ -329,10 +329,10 @@ while nf < nf_max
         nf = nf + 1;
         X(nf, :) = Xsp;
         if all(Xsp == X(xk_in, :))
-            % We don't want to do the expensive F eval if Xsp is already in X 
+            % We don't want to do the expensive F eval if Xsp is already in X
             F(nf, :) = F(xk_in, :);
         else
-            F(nf, :)] = Ffun(X(nf, :));
+            F(nf, :) = Ffun(X(nf, :));
         end
 
         if any(isnan(F(nf, :)))
