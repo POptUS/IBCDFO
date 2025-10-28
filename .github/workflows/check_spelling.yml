@@ -3,7 +3,7 @@ permissions:
   contents: read
 env:
   CLICOLOR: 1
-  TYPOS_CFG: ${{ github.workspace }}/typos.toml
+  TYPOS_CFG: ${{ github.workspace }}/.typos.toml
 on:
   push:
     branches: [main]
