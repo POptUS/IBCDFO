@@ -287,8 +287,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         Xsp = Xsp.squeeze()
         step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
-        # 4. Evaluate the function at the new point
-        if (step_norm >= 0.01 * delta or valid) and not (mdec == 0 and not valid):
+        # 4. Evaluate the function at the new point (provided the model is
+        # valid, or the step is sufficiently large and mdec isn't zero)
+        if valid or (step_norm >= 0.01 * delta and mdec != 0):
             Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
 
             # Project if we're within machine precision
@@ -300,13 +301,18 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     Xsp[i] = Low[i]
                     print("eps project!")
 
-            if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]):
+            if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]) and delta < np.sqrt(eps):
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
                 return X, F, hF, flag, xk_in
 
             nf += 1
             X[nf] = Xsp
-            F[nf] = Ffun(X[nf])
+            if np.array_equiv(Xsp, X[xk_in]):
+                # We don't want to do the expensive F eval if Xsp is already in X 
+                F[nf] = F[xk_in])
+            else:
+                F[nf] = Ffun(X[nf])
+
             if np.any(np.isnan(F[nf])):
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                 return X, F, hF, flag, xk_in
@@ -314,10 +320,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
             if mdec != 0:
                 rho = (hF[nf] - hF[xk_in]) / mdec
-            else:
+            else: # Note: this conditional only occurs when model is valid
                 if hF[nf] == hF[xk_in]:
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
-                    return X, F, hF, flag, xk_in
+                    if delta < np.sqrt(eps):
+                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                        return X, F, hF, flag, xk_in
+                    else:
+                        rho = -np.inf
                 else:
                     rho = np.inf * np.sign(hF[nf] - hF[xk_in])
 
