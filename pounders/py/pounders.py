@@ -308,8 +308,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             nf += 1
             X[nf] = Xsp
             if np.array_equiv(Xsp, X[xk_in]):
-                # We don't want to do the expensive F eval if Xsp is already in X 
-                F[nf] = F[xk_in])
+                # We don't want to do the expensive F eval if Xsp is already in X
+                F[nf] = F[xk_in]
             else:
                 F[nf] = Ffun(X[nf])
 
@@ -320,7 +320,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
             if mdec != 0:
                 rho = (hF[nf] - hF[xk_in]) / mdec
-            else: # Note: this conditional only occurs when model is valid
+            else:  # Note: this conditional only occurs when model is valid
                 if hF[nf] == hF[xk_in]:
                     if delta < np.sqrt(eps):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
