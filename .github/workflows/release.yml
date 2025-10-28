@@ -113,7 +113,6 @@ jobs:
       - name: Setup Python, install, & test
         run: |
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
-          #echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           which python
           python -m pip install --upgrade pip
           python -m pip install ibcdfo-*.tar.gz
@@ -163,7 +162,6 @@ jobs:
       - name: Setup Python, install, & test
         run: |
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
-          #echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           which python
           python -m pip install --upgrade pip
           python -m pip install ibcdfo-*-py3-none-any.whl
