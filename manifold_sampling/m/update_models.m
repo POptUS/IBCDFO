@@ -1,6 +1,11 @@
 function [valid, Gres, Hres, X, F, h, nf, Hash] = update_models(hfun, Ffun, n, p, nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U)
     Cres = F(xkin, :);
     Res = zeros(size(F)); % Stores the residuals for model updates
+
+    % GH Actions prints
+    assert(ndims(Hres) == 3, 'update_models: Hres must be a 3-D array, but has ndims(Hres) = %d.', ndims(Hres)); 
+    assert(size(Hres, 3) == nout, 'update_models: size(Hres,3) = %d does not match size(F,2) = %d.', size(Hres,3), len(Cres));
+
     for i = 1:nf
         D = X(i, :) - X(xkin, :);
         for j = 1:length(Cres)
