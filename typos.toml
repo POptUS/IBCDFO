@@ -1,0 +1,10 @@
+[files]
+extend-exclude = [".git", "minq"]
+ignore-hidden = false
+
+[default]
+check-filename = true
+check-file = true
+binary = false
+locale = "en"
+unicode = true
