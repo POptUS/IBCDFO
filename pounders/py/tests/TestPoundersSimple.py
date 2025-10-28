@@ -57,8 +57,6 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_best] = both_pounders({}, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
         self.assertEqual(flag, -1, "We are testing proper failure of pounders")
 
-        self.assertTrue(False)
-
     def test_basic_pounders_usage(self):
         def vecFun(x):
             """
