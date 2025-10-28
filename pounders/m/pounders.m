@@ -331,8 +331,9 @@ while nf < nf_max
         if all(Xsp == X(xk_in, :))
             % We don't want to do the expensive F eval if Xsp is already in X 
             F(nf, :) = F(xk_in, :);
-        else:
+        else
             F(nf, :)] = Ffun(X(nf, :));
+        end
 
         if any(isnan(F(nf, :)))
             [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
@@ -346,9 +347,10 @@ while nf < nf_max
             if hF(nf) == hF(xk_in)
                 if delta < sqrt(eps)
                     [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
+                    return
                 else
                     rho = -inf;
-                return
+                end
             else
                 rho = inf * sign(hF(nf) - hF(xk_in));
             end
