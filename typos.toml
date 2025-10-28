@@ -12,4 +12,3 @@ unicode = true
 [default.extend-words]
 Nd = "Nd"
 gam = "gam"
-ontext = "ontext"
