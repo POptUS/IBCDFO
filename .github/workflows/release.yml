@@ -115,7 +115,7 @@ jobs:
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           which python
           python -m pip install --upgrade pip
-          python -m pip install ibcdfo-*.tar.gz
+          python -m pip install ibcdfo-*.tgz
           python -m pip list
           # Run from location that already has dfo.dat
           pushd $BENDFO_DATA_PATH
@@ -164,7 +164,7 @@ jobs:
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           which python
           python -m pip install --upgrade pip
-          python -m pip install ibcdfo-*-py3-none-any.whl
+          python -m pip install ibcdf-*-py3-none-any.whl
           python -m pip list
           # Run from location that already has dfo.dat
           pushd $BENDFO_DATA_PATH
