@@ -140,9 +140,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
-                if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
+                if len(tmp_Act_Z_k.intersection(Act_Z_k)) == len(tmp_Act_Z_k):
                     # Line 20: See if intersection is nonempty
-                    if np.any(np.isin(hashes_at_nf, Act_Z_k)):
+                    if len(hashes_at_nf.intersection(Act_Z_k)) > 0:
                         successful = False
                         break
                     else:
