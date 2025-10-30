@@ -29,7 +29,7 @@ jobs:
     steps:
     # -- General Setup Steps
     # This action requires minq
-    - name: Chckout IBCDFO repository
+    - name: Checkout IBCDFO repository
       uses: actions/checkout@v4
       with:
         submodules: recursive
