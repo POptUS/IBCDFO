@@ -36,7 +36,7 @@ def _default_prior():
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     """
-    POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
+    POUNDERS: Pracical Optimization Using No Derivatives for sums of Squares
       [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
 
     This code minimizes output from a structured blackbox function, solving
