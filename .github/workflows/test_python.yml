@@ -6,10 +6,13 @@ env:
   MINQ5_PY_PATH:  ${{ github.workspace }}/minq/py/minq5
   IBCDFO_PKG:     ${{ github.workspace }}/ibcdfo_pypkg
 on:
-  push:
-    branches: [main, develop]
+  # This action is used only to run a significant but smallish set of test
+  # setups on feature branches.
+  #
+  # More thorough testing is done on main with the release action as part of
+  # creating and verifying potential release candidate distributions.
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   test_ibcdfo:
