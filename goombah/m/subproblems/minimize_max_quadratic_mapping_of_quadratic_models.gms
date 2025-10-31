@@ -41,19 +41,17 @@ $gdxin piecewise_quadratic_data.gdx
 $load L Q z c
 $gdxin
 
-$ontext
-For variable scaling:
-  Let v_u be the variable seen by the user (i.e. in the original model)
-  Let v_a be the variable passed on to the algorithm
-  Let c be the scale factor
-    v_a = v_u / c
-
-For equation scaling:
-  Let e_u be the equation seen by the user (i.e. in the original model)
-  Let e_a be the equation passed on to the algorithm
-  Let d be the scale factor
-    e_a = e_u / d
-$offtext
+* For variable scaling:
+*   Let v_u be the variable seen by the user (i.e. in the original model)
+*   Let v_a be the variable passed on to the algorithm
+*   Let c be the scale factor
+*     v_a = v_u / c
+*
+* For equation scaling:
+*   Let e_u be the equation seen by the user (i.e. in the original model)
+*   Let e_a be the equation passed on to the algorithm
+*   Let d be the scale factor
+*     e_a = e_u / d
 
 VARIABLES
   tau     Objective value

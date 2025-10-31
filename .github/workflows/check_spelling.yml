@@ -1,0 +1,26 @@
+name: Check spelling
+permissions:
+  contents: read
+env:
+  CLICOLOR: 1
+  TYPOS_CFG: ${{ github.workspace }}/.typos.toml
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  spelling:
+    # No need to spell check submodules
+    name: Spell Check with Typos
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v4
+      with:
+        submodules: false
+    - name: Spell Check Repo
+      uses: crate-ci/typos@v1.38.1
+      with:
+        config: ${{ env.TYPOS_CFG }}
