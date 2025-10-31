@@ -16,6 +16,7 @@
 
 name: Build & test release candidate
 env:
+  CLONE_PATH:       ${{ github.workspace }}
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
   MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
@@ -29,6 +30,9 @@ on:
   #
   # Significant but simpler testing is done on feature branches using the
   # test_python action.
+  # TODO: Remove after confirming that changes work correctly.
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
   release:
@@ -111,7 +115,7 @@ jobs:
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           which python
           python -m pip install --upgrade pip
-          python -m pip install ibcdfo-*.tar.gz
+          python -m pip install $CLONE_PATH/ibcdfo-*.tar.gz
           python -m pip list
           # Run from location that already has dfo.dat
           pushd $BENDFO_DATA_PATH
@@ -160,7 +164,7 @@ jobs:
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           which python
           python -m pip install --upgrade pip
-          python -m pip install ibcdfo-*-py3-none-any.whl
+          python -m pip install $CLONE_PATH/ibcdfo-*-py3-none-any.whl
           python -m pip list
           # Run from location that already has dfo.dat
           pushd $BENDFO_DATA_PATH
