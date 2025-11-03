@@ -1,6 +1,8 @@
 # This is an example modified from
 # https://florianschanda.github.io/miss_hit/configuration.html
-name: Check MATLAB Code Standard Adherence
+#
+# Refer to Issue #177 for potential issues with this action.
+name: MATLAB Code Standard Adherence
 on:
   push:
     branches: [main]
@@ -8,21 +10,20 @@ on:
     branches: [main]
 
 jobs:
+  # Prefer using the latest Python version supported by the package
   check_standards:
-    strategy:
-      matrix:
-        os:             [ubuntu-latest]
-        python-version: ["3.13"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       # -- General Setup Steps
-      # No need to clone minq
+      # No need to check standards in submodules
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
+        with:
+          submodules: false
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.13
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools
