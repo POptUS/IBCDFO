@@ -90,9 +90,15 @@ class TestPounders(unittest.TestCase):
                 X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
                 Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
-                if not np.array_equal(X, Xc):
-                    print("J", X.shape, Xc.shape)
-                    self.assertTrue(np.array_equal(X, Xc), f"Mismatch in X between pdrs and conc (‖X - Xc‖ = {np.linalg.norm(X - Xc)}).")
+                self.assertTrue(
+                    np.array_equal(X, Xc),
+                    f"Mismatch in X between pdrs and conc. "
+                    f"Shapes: X={X.shape}, Xc={Xc.shape}. "
+                    f"‖X−Xc‖={np.linalg.norm(X - Xc):.3e}. "
+                    f"Max diff rows={np.argsort(np.linalg.norm(X - Xc, axis=1))[-3:] if X.ndim>1 else 'N/A'}. "
+                    f"Agree rows={np.where(np.linalg.norm(X - Xc, axis=1) == 0)[0] if X.ndim>1 else np.where(X == Xc)[0]}."
+                )
+
 
                 evals = F.shape[0]
 
