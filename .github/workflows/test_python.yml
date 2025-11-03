@@ -1,10 +1,12 @@
 # ----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
+# TODO: Remove use of POPTUS_CLONE once a release of that package is in PyPI
 name: Test IBCDFO Python Package
 env:
   CLONE_PATH:     ${{ github.workspace }}
   BENDFO_PY_PATH: ${{ github.workspace }}/BenDFO/py
   MINQ5_PY_PATH:  ${{ github.workspace }}/minq/py/minq5
   IBCDFO_PKG:     ${{ github.workspace }}/ibcdfo_pypkg
+  POPTUS_CLONE:   ${{ github.workspace }}/POptUS
 on:
   # This action is used only to run a significant but smallish set of test
   # setups on feature branches.
@@ -41,6 +43,11 @@ jobs:
       with:
         repository: POptUS/BenDFO
         path: BenDFO
+    - name: Checkout POptUS repository
+      uses: actions/checkout@v4
+      with:
+        repository: POptUS/POptUS
+        path: POptUS
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:

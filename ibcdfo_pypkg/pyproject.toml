@@ -26,6 +26,7 @@ license-files = ["LICENSE"]
 requires-python = ">=3.9"
 # BenDFO is also required for testing but is not yet pip installable
 dependencies = [
+    "poptus",                       # Code
     "numpy>=1.16.5", "scipy>=1.6",  # Code
     "ipdb",                         # Minq
     "jax"                           # Testing

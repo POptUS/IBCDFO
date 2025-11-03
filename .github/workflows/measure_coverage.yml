@@ -1,3 +1,4 @@
+# TODO: Remove use of POPTUS_CLONE once a release of that package is in PyPI
 name: Measure Code Coverage
 env:
   CLONE_PATH:               ${{ github.workspace }}
@@ -15,6 +16,7 @@ env:
   POUNDERS_M_COV_XML_FILE:  cobertura_ibcdfo_pounders_m.xml
   MSAMP_M_COV_HTML_FILE:    htmlcov_ibcdfo_msamp_m
   MSAMP_M_COV_XML_FILE:     cobertura_ibcdfo_msamp_m.xml
+  POPTUS_CLONE:             ${{ github.workspace }}/POptUS
 on:
   push:
     branches: [main, develop]
@@ -43,6 +45,11 @@ jobs:
         with:
           repository: POptUS/BenDFO
           path: BenDFO
+      - name: Checkout POptUS repository
+        uses: actions/checkout@v4
+        with:
+          repository: POptUS/POptUS
+          path: POptUS
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
