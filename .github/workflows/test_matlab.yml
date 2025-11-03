@@ -10,11 +10,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+
 jobs:
+  # Rather than runs tests on a full matrix of test suites, we accept running
+  # only on the oldest and lastest versions available.
   test_ibcdfo:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-15-intel]
         matlab-release: ["R2021a", "latest"]
         exclude:
           # Failing with a possible issue outside IBCDFO (Issue #157)
