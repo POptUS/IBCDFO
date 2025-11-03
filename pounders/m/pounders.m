@@ -304,8 +304,9 @@ while nf < nf_max
     Xsp = Xsp'; % Solvers currently work with column vectors
     step_norm = norm(Xsp, inf);
 
-    % 4. Evaluate the function at the new point (provided mdec isn't zero with an invalid model)
-    if (step_norm >= 0.01 * delta || valid) && ~(mdec == 0 && ~valid)
+    % 4. Evaluate the function at the new point (provided the model is
+    % valid, or the step is sufficiently large and mdec isn't zero)
+    if valid || (step_norm >= 0.01 * delta && mdec ~= 0)
 
         Xsp = min(Upp, max(Low, X(xk_in, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
 
@@ -320,14 +321,20 @@ while nf < nf_max
             end
         end
 
-        if mdec == 0 && valid && all(Xsp == X(xk_in, :))
+        if mdec == 0 && valid && all(Xsp == X(xk_in, :)) && delta < sqrt(eps)
             [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
             return
         end
 
         nf = nf + 1;
         X(nf, :) = Xsp;
-        F(nf, :) = Ffun(X(nf, :));
+        if all(Xsp == X(xk_in, :))
+            % We don't want to do the expensive F eval if Xsp is already in X
+            F(nf, :) = F(xk_in, :);
+        else
+            F(nf, :) = Ffun(X(nf, :));
+        end
+
         if any(isnan(F(nf, :)))
             [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
             return
@@ -338,8 +345,12 @@ while nf < nf_max
             rho = (hF(nf) - hF(xk_in)) / mdec;
         else % Note: this conditional only occurs when model is valid
             if hF(nf) == hF(xk_in)
-                [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
-                return
+                if delta < sqrt(eps)
+                    [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -2);
+                    return
+                else
+                    rho = -inf;
+                end
             else
                 rho = inf * sign(hF(nf) - hF(xk_in));
             end
