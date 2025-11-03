@@ -95,8 +95,8 @@ class TestPounders(unittest.TestCase):
                     f"Mismatch in X between pdrs and conc. \n"
                     f"Shapes: X={X.shape}, Xc={Xc.shape}. \n"
                     f"‖X−Xc‖={np.linalg.norm(X - Xc):.3e}. \n"
-                    f"Max diff rows={np.argsort(np.linalg.norm(X - Xc, axis=1))[-3:] if X.ndim>1 else 'N/A'}. \n"
-                    f"Agree rows={np.where(np.linalg.norm(X - Xc, axis=1) == 0)[0] if X.ndim>1 else np.where(X == Xc)[0]}.\n",
+                    f"Max diff rows = {np.argsort(np.linalg.norm(X - Xc, axis=1))[-3:] if X.ndim > 1 else 'N/A'}. \n"
+                    f"Agree rows={np.where(np.linalg.norm(X - Xc, axis=1) == 0)[0] if X.ndim > 1 else np.where(X == Xc)[0]}.\n",
                     f"hF = {hF}.\n",
                     f"hFc = {hFc}.\n",
                 )
