@@ -3,9 +3,9 @@
 name: Check MATLAB Code Standard Adherence
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   check_standards:

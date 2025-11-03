@@ -7,9 +7,9 @@ env:
   MSAMP_M_PATH:     ${{ github.workspace }}/IBCDFO/manifold_sampling/m
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 jobs:
   test_ibcdfo:
     strategy:

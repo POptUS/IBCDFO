@@ -17,9 +17,9 @@ env:
   MSAMP_M_COV_XML_FILE:     cobertura_ibcdfo_msamp_m.xml
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
