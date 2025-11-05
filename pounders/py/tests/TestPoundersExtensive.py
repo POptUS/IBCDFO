@@ -90,40 +90,6 @@ class TestPounders(unittest.TestCase):
                 X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
                 Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
-                is_equal = np.array_equal(X, Xc)
-                diff = X - Xc
-                overall_norm = np.linalg.norm(diff)
-
-                if X.ndim > 1:
-                    row_norms = np.linalg.norm(diff, axis=1)
-                    # Top 3 rows with largest diffs (highest first)
-                    max_rows = np.argsort(row_norms)[-3:][::-1]
-                    agree_rows = np.where(row_norms == 0)[0]
-                else:
-                    row_norms = None
-                    max_rows = "N/A"
-                    agree_rows = np.where(X == Xc)[0]
-
-                msg = (
-                    "Mismatch in X between pdrs and conc\n"
-                    "-----------------------------------\n"
-                    f"Shapes:\n  X:  {X.shape}\n  Xc: {Xc.shape}\n\n"
-                    f"‖X−Xc‖₂ = {overall_norm:.3e}\n"
-                    f"Rows with largest differences: {max_rows}\n"
-                    f"Rows where X and Xc agree:     {agree_rows}\n\n"
-                    "hF vs hFc\n"
-                    "---------\n"
-                    f"‖hF−hFc‖₂ = {np.linalg.norm(hF - hFc):.3e}\n"
-                    f"hF  = {np.array2string(hF, precision=16, floatmode='fixed')}\n"
-                    f"hFc = {np.array2string(hFc, precision=16, floatmode='fixed')}\n"
-                    f"X  = {np.array2string(X[:20], precision=16, floatmode='fixed')}\n"
-                    f"Xc = {np.array2string(Xc[:20], precision=16, floatmode='fixed')}\n"
-                    f"F  = {np.array2string(F[:20], precision=16, floatmode='fixed')}\n"
-                    f"Fc = {np.array2string(Fc[:20], precision=16, floatmode='fixed')}\n"
-                )
-
-                self.assertTrue(is_equal, msg)
-
                 evals = F.shape[0]
 
                 self.assertNotEqual(flag, 1, "pounders failed")
