@@ -30,10 +30,6 @@ on:
   #
   # Significant but simpler testing is done on feature branches using the
   # test_python action.
-  # TODO: Remove after this file is reviewed and is passing on the feature
-  # branch.
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
   release:
