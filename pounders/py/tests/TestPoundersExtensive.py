@@ -114,12 +114,12 @@ class TestPounders(unittest.TestCase):
                     "hF vs hFc\n"
                     "---------\n"
                     f"‖hF−hFc‖₂ = {np.linalg.norm(hF - hFc):.3e}\n"
-                    f"hF  = {np.array2string(hF, precision=3, floatmode='fixed')}\n"
-                    f"hFc = {np.array2string(hFc, precision=3, floatmode='fixed')}\n"
-                    f"X  = {np.array2string(X[:20], precision=8, floatmode='fixed')}\n"
-                    f"Xc = {np.array2string(Xc[:20], precision=8, floatmode='fixed')}\n"
-                    f"F  = {np.array2string(F[:20], precision=8, floatmode='fixed')}\n"
-                    f"Fc = {np.array2string(Fc[:20], precision=8, floatmode='fixed')}\n"
+                    f"hF  = {np.array2string(hF, precision=16, floatmode='fixed')}\n"
+                    f"hFc = {np.array2string(hFc, precision=16, floatmode='fixed')}\n"
+                    f"X  = {np.array2string(X[:20], precision=16, floatmode='fixed')}\n"
+                    f"Xc = {np.array2string(Xc[:20], precision=16, floatmode='fixed')}\n"
+                    f"F  = {np.array2string(F[:20], precision=16, floatmode='fixed')}\n"
+                    f"Fc = {np.array2string(Fc[:20], precision=16, floatmode='fixed')}\n"
                 )
 
                 self.assertTrue(is_equal, msg)
