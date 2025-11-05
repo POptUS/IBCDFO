@@ -90,6 +90,8 @@ class TestPounders(unittest.TestCase):
                 X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
                 Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
+                self.assertTrue(np.array_equal(X, Xc), "Mismatch in X between pdrs and conc")
+
                 evals = F.shape[0]
 
                 self.assertNotEqual(flag, 1, "pounders failed")
