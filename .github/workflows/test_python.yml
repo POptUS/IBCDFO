@@ -1,10 +1,10 @@
 # ----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
 name: Test IBCDFO Python Package
 env:
-  CLONE_PATH:     ${{ github.workspace }}
-  BENDFO_PY_PATH: ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:  ${{ github.workspace }}/minq/py/minq5
-  IBCDFO_PKG:     ${{ github.workspace }}/ibcdfo_pypkg
+  GH_ACTIONS_PATH: ${{ github.workspace }}/.github/workflows
+  IBCDFO_PKG:      ${{ github.workspace }}/ibcdfo_pypkg
+  BENDFO_PY_PATH:  ${{ github.workspace }}/BenDFO/py
+  MINQ5_PY_PATH:   ${{ github.workspace }}/minq/py/minq5
 on:
   # This action is used only to run a significant but smallish set of test
   # setups on feature branches.
@@ -19,8 +19,12 @@ jobs:
     strategy:
       # python-versions must be maintained consistent with associated setup.py
       # and tox.ini configuration.
+      #
+      # TODO: Strange failures on macos-15-intel prevent its use (Issue 235).
+      # This means that this action is **not** running any mac tests using Intel
+      # chips.
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         exclude:
           # Failing with root cause not yet understood (Issue #168)
@@ -46,7 +50,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup Python with tox
-      run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+      run: $GH_ACTIONS_PATH/setup_tox_github_action.sh ${{ runner.os }}
 
     # -- Run test suite through installation
     # The tox task downloads dfo.dat automatically

@@ -1,13 +1,14 @@
 name: Measure Code Coverage
 env:
   CLONE_PATH:               ${{ github.workspace }}
+  GH_ACTIONS_PATH:          ${{ github.workspace }}/.github/workflows
+  IBCDFO_PKG:               ${{ github.workspace }}/ibcdfo_pypkg
   BENDFO_M_PATH:            ${{ github.workspace }}/BenDFO/m
   BENDFO_DATA_PATH:         ${{ github.workspace }}/BenDFO/data
   POUNDERS_M_PATH:          ${{ github.workspace }}/pounders/m
   MSAMP_M_PATH:             ${{ github.workspace }}/manifold_sampling/m
   BENDFO_PY_PATH:           ${{ github.workspace }}/BenDFO/py
   MINQ5_PY_PATH:            ${{ github.workspace }}/minq/py/minq5
-  IBCDFO_PKG:               ${{ github.workspace }}/ibcdfo_pypkg
   PY_COV_FILE:              coverage_ibcdfo
   PY_COV_XML_FILE:          cobertura_ibcdfo_py.xml
   PY_COV_HTML_FILE:         htmlcov_ibcdfo_py
@@ -17,20 +18,15 @@ env:
   MSAMP_M_COV_XML_FILE:     cobertura_ibcdfo_msamp_m.xml
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
+  # Prefer using the latest Python version supported by the package
   coverage_py:
-    strategy:
-      # We only need to measure coverage with a single test setup.  Ideally
-      # this will be the latest version of python supported.
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.13"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       # -- General Setup Steps
       # This action requires minq
@@ -43,12 +39,12 @@ jobs:
         with:
           repository: POptUS/BenDFO
           path: BenDFO
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.13
       - name: Setup Python with tox
-        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+        run: $GH_ACTIONS_PATH/setup_tox_github_action.sh ${{ runner.os }}
 
       # -- Run Coverage for All Python Packages
       # The tox task downloads dfo.dat automatically
@@ -69,19 +65,14 @@ jobs:
         with:
           name: python-coverage-results
           path: |
-             ${{ env.PY_COV_FILE }}
-             ${{ env.PY_COV_XML_FILE }}
-             ${{ env.PY_COV_HTML_FILE }}
+            ${{ env.PY_COV_FILE }}
+            ${{ env.PY_COV_XML_FILE }}
+            ${{ env.PY_COV_HTML_FILE }}
 
   # ----- MEASURE COVERAGE ACROSS ALL MATLAB PACKAGES
+  # Prefer using the latest MATLAB version available
   coverage_m:
-    strategy:
-      # We only need to measure coverage with a single test setup.  Ideally
-      # this will be the latest MATLAB release supported.
-      matrix:
-        os: [ubuntu-latest]
-        matlab-release: ["R2025a"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       # -- General Setup Steps
       - name: Checkout IBCDFO repository
@@ -93,10 +84,10 @@ jobs:
         with:
           repository: POptUS/BenDFO
           path: BenDFO
-      - name: Set up MATLAB ${{ matrix.matlab-release }}
+      - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v2
         with:
-          release: ${{ matrix.matlab-release }}
+          release: "latest"
           products: Optimization_Toolbox
 
       # -- Test Execution Step
@@ -133,12 +124,12 @@ jobs:
   # ----- PUBLISH FULL CODE COVERAGE REPORT
   publish:
     needs: [coverage_py, coverage_m]
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout IBCDFO repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Access Python coverage reports
         uses: actions/download-artifact@v4
