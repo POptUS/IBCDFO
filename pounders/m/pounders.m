@@ -487,9 +487,13 @@ function check_dims_and_Hres(n, m, Hres)
 
     % --- Check Hres shape ---
     szH = size(Hres);
+    % Pad size vector to length 3 in case m == 1 (MATLAB drops trailing singleton dims)
+    if numel(szH) < 3
+        szH(end + 1:3) = 1;
+    end
+
     expected = [n, n, m];
-    if numel(szH) < 3 || any(szH(1:3) ~= expected)
-        error('Hres has wrong shape. Expected [%d %d %d], got %s.', ...
-              n, n, m, mat2str(szH));
+    if any(szH(1:3) ~= expected)
+        error('Hres has wrong shape. Expected [%d %d %d], got %s.', n, n, m, mat2str(szH));
     end
 end
