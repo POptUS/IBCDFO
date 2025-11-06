@@ -462,7 +462,7 @@ flag = ng;
 end
 
 function check_dims_and_Hres(n, m, Hres)
-    % CHECK_DIMS_AND_HRES  Verify that n, m, and m*n are integer scalars and that Hres has expected shape [n n m].
+    % CHECK_DIMS_AND_HRES  Verify that n, m, and m*n are positive integer scalars and that Hres has expected shape [n n m].
     %
     % Usage:
     %   check_dims_and_Hres(n, m, Hres)
@@ -470,19 +470,19 @@ function check_dims_and_Hres(n, m, Hres)
     % Prints diagnostic info and throws an error if any condition fails.
 
     % --- Check n ---
-    if ~(isscalar(n) && isfinite(n) && n == round(n))
-        error('Invalid n: class=%s, value=%g (must be finite integer scalar).', class(n), n);
+    if ~(isscalar(n) && isfinite(n) && n == round(n) && n > 0)
+        error('Invalid n: class=%s, value=%g (must be positive finite integer scalar).', class(n), n);
     end
 
     % --- Check m ---
-    if ~(isscalar(m) && isfinite(m) && m == round(m))
-        error('Invalid m: class=%s, value=%g (must be finite integer scalar).', class(m), m);
+    if ~(isscalar(m) && isfinite(m) && m == round(m) && m > 0)
+        error('Invalid m: class=%s, value=%g (must be positive finite integer scalar).', class(m), m);
     end
 
     % --- Check m*n ---
     mn = m * n;
-    if ~(isfinite(mn) && mn == round(mn))
-        error('Invalid m*n: m=%g, n=%g, m*n=%g (must be integer).', m, n, mn);
+    if ~(isfinite(mn) && mn == round(mn) && mn > 0)
+        error('Invalid m*n: m=%g, n=%g, m*n=%g (must be positive integer).', m, n, mn);
     end
 
     % --- Check Hres shape ---
