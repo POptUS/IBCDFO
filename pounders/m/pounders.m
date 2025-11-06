@@ -489,7 +489,7 @@ function check_dims_and_Hres(n, m, Hres)
     szH = size(Hres);
     % Pad size vector to length 3 in case m == 1 (MATLAB drops trailing singleton dims)
     if numel(szH) < 3
-        szH(end + 1:3) = 1;
+        szH(3) = 1;
     end
 
     expected = [n, n, m];
