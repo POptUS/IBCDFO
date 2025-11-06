@@ -123,8 +123,12 @@ while np < np_max || np_max == n + 1
             [Qy, Ry] = qrinsert(Q, R, np + 1, [1 D(i, :)], 'row'); % Update QR
         catch
             % Collect diagnostics without triggering more index errors
-            szQ = size(Q);         szR = size(R);         szD = size(D);
-            k   = np + 1;          nR  = size(R, 2);      mR  = size(R, 1);
+            szQ = size(Q);
+            szR = size(R);
+            szD = size(D);
+            k   = np + 1;
+            nR  = size(R, 2);
+            mR  = size(R, 1);
 
             % Safe checks (avoid indexing D(i,:) if i is out of bounds)
             valid_i = isfinite(i) && (i == round(i)) && i >= 1 && i <= size(D, 1);
