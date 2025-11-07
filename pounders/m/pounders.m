@@ -81,6 +81,9 @@ if ~isfield(Model, 'Par')
     Model.Par(5) = 0;     % [log] Flag to find affine points in forward order (0)
 end
 
+n = int32(n);
+m = int32(m);
+
 nfs = Prior.nfs;
 
 delta = delta_0;
@@ -177,48 +180,10 @@ ng = NaN; % Needed for early termination, e.g., if a model is never built
 % the first iteration!) if it has a lower f value
 
 while nf < nf_max
-    check_dims_and_Hres(n, m, Hres); % GH Actions debug prints
-
     % 1a. Compute the interpolation set.
     for i = 1:nf
         D = X(i, :) - X(xk_in, :);
-        try
-            Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, int32(round(n)), int32(round(m * n))), int32(round(n)), int32(round(m)));
-
-        catch ME
-            % Only decorate reshape-dimension issues; otherwise rethrow
-            if contains(ME.identifier, 'MATLAB:getReshapeDims') || ...
-               contains(ME.identifier, 'MATLAB:reshape')
-
-                % Normalize size vector to handle m==1 (MATLAB drops trailing singletons)
-                szH = size(Hres);
-                if numel(szH) < 3
-                    szH(end + 1:3) = 1;
-                end
-
-                % Precompute diagnostics
-                mn = m * n;
-                diags = sprintf([ ...
-                    'Reshape/size failure at i=%d.\n' ...
-                    'n=%g (class %s), integer=%d, finite=%d\n' ...
-                    'm=%g (class %s), integer=%d, finite=%d\n' ...
-                    'm*n=%g, integer=%d, finite=%d\n' ...
-                    'size(Hres)=%s\n' ...
-                    'size(X)=%s, size(F)=%s, size(Cres)=%s, size(D)=%s\n' ...
-                    'Caught: %s | %s'], ...
-                    i, n, class(n), n == round(n), isfinite(n), ...
-                    m, class(m), m == round(m), isfinite(m), ...
-                    mn, mn == round(mn), isfinite(mn), ...
-                    mat2str(szH), ...
-                    mat2str(size(X)), mat2str(size(F)), mat2str(size(Cres)), mat2str(size(D)), ...
-                    ME.identifier, ME.message);
-
-                % Throw as an assertion-style error so CI logs are explicit
-                error('POUNDERS:ReshapeDims:AssertionFail', '%s', diags);
-            else
-                rethrow(ME);
-            end
-        end
+        Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
     end
     [Mdir, np, valid, Gres, Hresdel, Mind] = ...
         formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, np_max, Model.Par, 0);
@@ -495,41 +460,4 @@ if printf
     disp('Number of function evals exceeded');
 end
 flag = ng;
-end
-
-function check_dims_and_Hres(n, m, Hres)
-    % CHECK_DIMS_AND_HRES  Verify that n, m, and m*n are positive integer scalars and that Hres has expected shape [n n m].
-    %
-    % Usage:
-    %   check_dims_and_Hres(n, m, Hres)
-    %
-    % Prints diagnostic info and throws an error if any condition fails.
-
-    % --- Check n ---
-    if ~(isscalar(n) && isfinite(n) && n == round(n) && n > 0)
-        error('Invalid n: class=%s, value=%g (must be positive finite integer scalar).', class(n), n);
-    end
-
-    % --- Check m ---
-    if ~(isscalar(m) && isfinite(m) && m == round(m) && m > 0)
-        error('Invalid m: class=%s, value=%g (must be positive finite integer scalar).', class(m), m);
-    end
-
-    % --- Check m*n ---
-    mn = m * n;
-    if ~(isfinite(mn) && mn == round(mn) && mn > 0)
-        error('Invalid m*n: m=%g, n=%g, m*n=%g (must be positive integer).', m, n, mn);
-    end
-
-    % --- Check Hres shape ---
-    szH = size(Hres);
-    % Pad size vector to length 3 in case m == 1 (MATLAB drops trailing singleton dims)
-    if numel(szH) < 3
-        szH(3) = 1;
-    end
-
-    expected = [n, n, m];
-    if any(szH(1:3) ~= expected)
-        error('Hres has wrong shape. Expected [%d %d %d], got %s.', n, n, m, mat2str(szH));
-    end
 end
