@@ -81,7 +81,9 @@ if ~isfield(Model, 'Par')
     Model.Par(5) = 0;     % [log] Flag to find affine points in forward order (0)
 end
 
-n = int32(n);
+% Casting to integers here prevents rare issues with non-integer arguments for
+% reshape on some GH Action instances
+n = int32(n); 
 m = int32(m);
 
 nfs = Prior.nfs;
