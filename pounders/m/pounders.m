@@ -183,7 +183,7 @@ while nf < nf_max
     for i = 1:nf
         D = X(i, :) - X(xk_in, :);
         try
-            Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, n, m * n), n, m);
+            Res(i, :) = F(i, :) - Cres - .5 * D * reshape(D * reshape(Hres, int32(round(n)), int32(round(m * n))), int32(round(n)), int32(round(m)));
 
         catch ME
             % Only decorate reshape-dimension issues; otherwise rethrow
