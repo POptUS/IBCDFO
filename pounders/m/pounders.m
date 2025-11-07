@@ -83,7 +83,7 @@ end
 
 % Casting to integers here prevents rare issues with non-integer arguments for
 % reshape on some GH Action instances
-n = int32(n); 
+n = int32(n);
 m = int32(m);
 
 nfs = Prior.nfs;
