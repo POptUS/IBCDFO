@@ -82,7 +82,7 @@ if ~isfield(Model, 'Par')
 end
 
 % Casting to integers here prevents rare issues with non-integer arguments for
-% reshape on some GH Action instances
+% reshape on some GH Action instances.  See Issue #237 for more details.
 n = int32(n);
 m = int32(m);
 
