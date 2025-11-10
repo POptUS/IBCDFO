@@ -3,6 +3,11 @@
 
 function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model)
 
+% Casting to integers here prevents rare issues with non-integer arguments for
+% reshape on some GH Action instances
+n = int32(n);
+m = int32(m);
+
 % Check for missing arguments and initialize if necessary
 if nargin < 12 || isempty(Model)
     Model = struct();
@@ -80,11 +85,6 @@ if ~isfield(Model, 'Par')
     Model.Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
     Model.Par(5) = 0;     % [log] Flag to find affine points in forward order (0)
 end
-
-% Casting to integers here prevents rare issues with non-integer arguments for
-% reshape on some GH Action instances
-n = int32(n);
-m = int32(m);
 
 nfs = Prior.nfs;
 
