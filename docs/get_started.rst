@@ -8,7 +8,7 @@ Install from PyPI
 ^^^^^^^^^^^^^^^^^
 .. _PyPI: https://pypi.org/project/ibcdfo/
 
-The |ibcdfo| Python pacakge is available for installation |via| PyPI_.  It can
+The |ibcdfo| Python package is available for installation |via| PyPI_.  It can
 be installbed by setting up a terminal with the target Python and |pip| pair
 and executing
 
