@@ -3,6 +3,11 @@
 
 function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model)
 
+% Casting to integers here prevents rare issues with non-integer arguments for
+% reshape on some GH Action instances
+n = int32(n);
+m = int32(m);
+
 % Check for missing arguments and initialize if necessary
 if nargin < 12 || isempty(Model)
     Model = struct();
@@ -74,8 +79,8 @@ end
 if ~isfield(Model, 'Par')
     Model.Par = zeros(1, 5);
 
-    Model.Par(1) = sqrt(n); % [dbl] delta multiplier for checking validity
-    Model.Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
+    Model.Par(1) = sqrt(double(n)); % [dbl] delta multiplier for checking validity
+    Model.Par(2) = max(10, sqrt(double(n))); % [dbl] delta multiplier for all interp. points
     Model.Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
     Model.Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
     Model.Par(5) = 0;     % [log] Flag to find affine points in forward order (0)
@@ -457,3 +462,4 @@ if printf
     disp('Number of function evals exceeded');
 end
 flag = ng;
+end
