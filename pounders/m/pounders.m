@@ -79,8 +79,8 @@ end
 if ~isfield(Model, 'Par')
     Model.Par = zeros(1, 5);
 
-    Model.Par(1) = sqrt(n); % [dbl] delta multiplier for checking validity
-    Model.Par(2) = max(10, sqrt(n)); % [dbl] delta multiplier for all interp. points
+    Model.Par(1) = sqrt(double(n)); % [dbl] delta multiplier for checking validity
+    Model.Par(2) = max(10, sqrt(double(n))); % [dbl] delta multiplier for all interp. points
     Model.Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
     Model.Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
     Model.Par(5) = 0;     % [log] Flag to find affine points in forward order (0)
