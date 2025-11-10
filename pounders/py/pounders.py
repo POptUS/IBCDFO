@@ -35,76 +35,36 @@ def _default_prior():
 
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
-    """
-    POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
-      [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
+    r"""
+    Run a |pounders| run on the optimization problem specified by the given
+    arguments.
 
-    This code minimizes output from a structured blackbox function, solving
-    min { f(X)=sum_(i=1:m) F_i(x)^2, such that Low_j <= X_j <= Upp_j, j=1,...,n }
-    where the user-provided blackbox F is specified in the handle Ffun. Evaluation
-    of this F must result in the return of a 1-by-m row vector. Bounds must be
-    specified in Upp and Low but can be set to Low=-Inf(1,n) and Upp=Inf(1,n) if the
-    unconstrained solution is desired. The algorithm will not evaluate F
-    outside of these bounds, but it is possible to take advantage of function
-    values at infeasible X if these are passed initially through (X_init, F_init).
-    In each iteration, the algorithm forms an interpolating quadratic model
-    of the function and minimizes it in an infinity-norm trust region.
+    :param Ffun:    Function that returns :math:`F(\psp)` as :math:`\nd`
+        element numpy array for given :math:`\psp`
+    :param X_0:     :math:`\max(\mathrm{nfs},1)\times \np` numpy array
+        containing set of initial points at which function values are already
+        known
+    :param n:       Dimension (number of continuous variables)
+    :param nf_max:  Maximum number of function evaluations (:math:`\ge n+1`)
+    :param g_tol:   Tolerance for the 2-norm of the model gradient
+    :param delta_0: Positive trust region radius
+    :param m:       Number of components returned from ``Ffun``
+    :param Low:     :math:`\np` element numpy array of lower bounds
+    :param Upp:     :math:`\np` element numpy array of upper bounds
+    :param Prior:   ``dict``
+    :param Options: ``dict``
+    :param Model:   ``dict``
 
-    Optionally, a user can specify an outer function (hfun) that maps the
-    elements of F to a scalar value (to be minimized). Doing this also requires
-    a function handle (combinemodels) that tells pounders how to map the linear
-    and quadratic terms from the models of the F_i into a single quadratic TRSP
-    model.
-
-    This software comes with no warranty, is not bug-free, and is not for
-    industrial use or public distribution.
-    Direct requests and bugs to wild@mcs.anl.gov.
-    A technical report/manual is forthcoming, a brief description is in
-    Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
-
-    --INPUTS-----------------------------------------------------------------
-    Ffun    [f h] Function handle so that Ffun(x) evaluates F (@calfun)
-    X_0     [dbl] [1-by-n] Initial point (zeros(1,n))
-    n       [int] Dimension (number of continuous variables)
-    nf_max  [int] Maximum number of function evaluations (>=n+1) (100)
-    g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-    delta_0 [dbl] Positive initial trust region radius (.1)
-    m       [int] Number of components returned from Ffun
-    Low     [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
-    Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-
-    Prior   [dict] of past evaluations of values Ffun with keys:
-        X_init  [dbl] [nfs-by-n] Set of initial points
-        F_init  [dbl] [nfs-by-m] Set of values for points in X_init
-        xk_in   [int] Index in X_init for initial starting point
-        nfs     [int] Number of function values in F_init known in advance
-
-    Options [dict] of options to the method
-        printf   [int] 0 No printing to screen (default)
-                       1 Debugging level of output to screen
-                       2 More verbose screen output
-        spsolver       [int] Trust-region subproblem solver flag (2)
-        hfun           [f h] Function handle for mapping output from F
-        combinemodels  [f h] Function handle for combining models of F
-
-    Model   [dict] of options for model building
-        np_max  [int] Maximum number of interpolation points (>=n+1) (2*n+1)
-        Par     [1-by-5] list for formquad
-
-    --OUTPUTS----------------------------------------------------------------
-    X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
-    F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points in X
-    hF      [dbl] [nf_max+nfs-by-1] Composed values h(Ffun) for evaluated points in X
-    flag    [dbl] Termination criteria flag:
-                  > 0 exceeded nf_max evals, flag = norm of grad at final X
-                  = 0 normal termination because model grad < g_tol on small delta
-                  = -1 if input was fatally incorrect (error message shown)
-                  = -2 if a valid model produced X[nf] == X[xk_in] or (mdec == 0, hF[nf] == hF[xk_in])
-                  = -3 error if a NaN was encountered
-                  = -4 error in TRSP Solver
-                  = -5 unable to get model improvement with current parameters
-                  = -6 delta has reached delta_min with a valid model
-    xk_in    [int] Index of point in X representing approximate minimizer
+    :return:
+        * **X**     :math:`\mathrm{nf_max+nfs}\times \np` numpy array containing
+          locations of evaluated points in the order in which they were
+          evaluated
+        * **F**     :math:`\mathrm{nf_max+nfs}\times \nd` numpy array containing
+          the function values at ``X`` with matching ordering
+        * **hF**    :math:`\mathrm{nf_max+nfs}\times 1` Composed values
+          ``h(Ffun)`` for evaluated points in ``X``
+        * **flag**  Termination criteria flag (See general |pounders| documentation)
+        * **xk_in** Zero-based index of point in ``X`` representing approximate minimizer
     """
     if Options is None:
         Options = {}

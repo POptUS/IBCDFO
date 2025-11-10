@@ -53,23 +53,19 @@ and possible values are
   :math:`\psp` satistifed user-provided gradient tolerance,
 * > 0 - exceeded the maximum number evals and the value is the 2-norm of
   :math:`\gradf` at final :math:`\psp`
-* -1 - input was fatally incorrect
-* -2 - a valid model produced ``X[nf] == X[xkin]`` or ``(mdec == 0, Fs[nf] == Fs[xkin])``
+* -1 - input was fatally incorrect (error message shown)
+* -2 - a valid model produced ``X[nf] == X[xk_in]`` or ``(mdec == 0, hF[nf] == hF[xk_in])``
 * -3 - a ``NaN`` was encountered
 * -4 - error in TRSP Solver
 * -5 - unable to get model improvement with current parameters
+* -6 = delta has reached delta_min with a valid model
 
 For more detailed information please refer to :cite:t:`POUNDERS_TAO_2017`.  A
 brief description can also be found in :cite:t:`UNEDF0_2010`.
 
 Python
 ------
-.. todo::
-
-    Add Python public API docs
-
-..
-    .. autofunction:: ibcdfo.pounders.pounders
+.. autofunction:: ibcdfo.pounders.pounders
 
 |matlab|
 --------
