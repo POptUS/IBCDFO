@@ -10,6 +10,9 @@ where :math:`F` is a blackbox function mapping from :math:`\R^{\np}` to
 :math:`\R^{\nd}`, and :math:`h` is a nonsmooth function mapping from
 :math:`\R^{\nd}` to :math:`\R`.
 
+More details can be found in :cite:t:`MSP_2021`, :cite:t:`MSP_2018`, and
+:cite:t:`MSP_2016`.
+
 Python
 ------
 .. todo::

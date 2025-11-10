@@ -10,9 +10,6 @@
 
 Direct requests and bugs to ``wild@lbl.gov``
 
-A technical report/manual that provides more details is forthcoming.  A brief
-description can be found in :cite:t:`UNEDF0_2010`.
-
 |pounders| minimizes output from a structured blackbox function :math:`F`,
 solving 
 
@@ -61,6 +58,9 @@ and possible values are
 * -3 - a ``NaN`` was encountered
 * -4 - error in TRSP Solver
 * -5 - unable to get model improvement with current parameters
+
+For more detailed information please refer to :cite:t:`POUNDERS_TAO_2017`.  A
+brief description can also be found in :cite:t:`UNEDF0_2010`.
 
 Python
 ------

@@ -6,11 +6,8 @@
 This document provides information for using the set of Interpolation-Based
 optimization methods for Composite Derivative-Free Optimization, which are
 collectively referred to as |ibcdfo| and are part of POptUS_: Practical
-Optimization Using Structure.
-
-Please refer to :cite:t:`IBCDFO_2024`, :cite:t:`POUNDERS_TAO_2017`,
-:cite:t:`MSP_2021`, :cite:t:`MSP_2018`, and :cite:t:`MSP_2016` for detailed
-information regarding the different methods provided by |ibcdfo|.
+Optimization Using Structure.  For more information on |ibcdfo| in general,
+please refer to :cite:t:`IBCDFO_2024`.
 
 All code included in IBCDFO is open source, with the particular form of license
 contained in the top-level subdirectories.  If such a subdirectory does not
@@ -19,9 +16,14 @@ otherwise encompassing IBCDFO license_.
 
 Support
 -------
-TODO: Statement about use of Issues?
+To
 
-To seek support or report issues, e-mail
+* report potential problems with |ibcdfo|,
+* propose a change, or
+* request a new feature,
+
+please check if a related Issue already exists before creating a new Issue. For
+all other communication, please email the |ibcdfo| development team at
 
 .. code-block:: none
 
@@ -33,7 +35,7 @@ Cite |ibcdfo|
 .. code-block:: console
 
   @misc{ibcdfo,
-    author = {Jeffrey Larson and Matt Menickelly and Jared P. O'Neal and Stefan M. Wild},
+    author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
     title  = {Interpolation-Based Composite Derivative-Free Optimization},
     url    = {https://github.com/POptUS/IBCDFO},
     year   = {2024},
@@ -43,7 +45,7 @@ Contributing to |ibcdfo|
 ------------------------
 
 Contributions are welcome in a variety of forms; please see
-:numref:`contributing:Contributing`.
+:numref:`contributing:Contributing` in the Developer Guide.
 
 .. toctree::
    :numbered:
