@@ -42,7 +42,7 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %       * **spsolver** - Trust-region subproblem solver flag (default is 2)
 %       * **hfun** - Outer function :math:`\hfun` that maps given
 %         :math:`\Ffun(\psp)` to scalars for minimization (default is
-%         sum-of-squares :math:`f`.)
+%         sum-of-squares that yields :math:`f`.)
 %       * **combinemodels** - Handle to function that maps the linear and
 %         quadratic terms from the models of :math:`\Ffun` into a single
 %         quadratic model (default is ordinary least squares)
