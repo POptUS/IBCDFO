@@ -5,6 +5,8 @@
     "pip":      "``pip``",
     "tox":      "``tox``",
     "matlab":   "MATLAB",
+    "minq":     "MINQ",
+    "bendfo":   "BenDFO",
     "poptus":   "POptUS",
     "ibcdfo":   "IBCDFO",
     "pounders": "POUNDerS"
