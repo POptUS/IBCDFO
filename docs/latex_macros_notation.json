@@ -7,6 +7,8 @@
         "pspHat":    "\\hat{\\psp}",
         "pspStar":   "\\psp^*",
         "dataset":   "\\mathcal{D}",
+        "Ffun":      "\\Fvec",
+        "hfun":      "h",
         "gradf":     "\\nabla f",
         "gradh":     "\\nabla h",
         "gradm":     "\\nabla m",

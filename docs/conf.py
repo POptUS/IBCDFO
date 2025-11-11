@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ibcdfo import __version__
 
-_ROOT_PATH = Path(__file__).parents[2].resolve()
+_ROOT_PATH = Path(__file__).parents[1].resolve()
 
 # In accord with version specifications for the contents of this repository, we
 # link the documentation's version to the Python package's version.

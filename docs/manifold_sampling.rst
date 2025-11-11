@@ -4,10 +4,10 @@ Manifold Sampling
 This code solves the problem
 
 .. math::
-    \min_{\psp \in \R^{\np}} h(F(\psp))
+    \min_{\psp \in \R^{\np}} \hfun(\Ffun(\psp))
 
-where :math:`F` is a blackbox function mapping from :math:`\R^{\np}` to
-:math:`\R^{\nd}`, and :math:`h` is a nonsmooth function mapping from
+where :math:`\Ffun` is a blackbox function mapping from :math:`\R^{\np}` to
+:math:`\R^{\nd}`, and :math:`\hfun` is a nonsmooth function mapping from
 :math:`\R^{\nd}` to :math:`\R`.
 
 More details can be found in :cite:t:`MSP_2021`, :cite:t:`MSP_2018`, and

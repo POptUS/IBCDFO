@@ -13,6 +13,7 @@
         "dvec":       "\\vec{d}",
         "evec":       "\\vec{e}",
         "fvec":       "\\vec{f}",
+        "Fvec":       "\\vec{F}",
         "gvec":       "\\vec{g}",
         "hvec":       "\\vec{h}",
         "ivec":       "\\vec{i}",
