@@ -41,7 +41,7 @@ To
 * propose a change to its contents, or
 * request a new feature,
 
-please check if a related [Issue](https://github.com/IBCDFO/IBCDFO/issues)
+please check if a related [Issue](https://github.com/POptUS/IBCDFO/issues)
 already exists before creating a new issue.  For all other communication, please
 send an email to the POptUS development team at
 
