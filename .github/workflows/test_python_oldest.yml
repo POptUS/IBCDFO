@@ -5,14 +5,16 @@ env:
   BENDFO_PY_PATH:  ${{ github.workspace }}/BenDFO/py
   MINQ5_PY_PATH:   ${{ github.workspace }}/minq/py/minq5
 on:
-  # TODO: Make this manual trigger only?
+  # TODO: As part of PR review, Jeff and Matt should decide if we trigger as
+  # with most actions or if we turn this into a manually triggered action that
+  # we only run, for example, when verifying a release.
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  build_supported:
+  test_ibcdfo:
     strategy:
       # python-versions must be maintained consistent with associated
       # pyproject.toml and tox.ini configuration.

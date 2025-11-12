@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.14
+          python-version: "3.14"
       - name: Setup Python with tox
         run: $GH_ACTIONS_PATH/setup_tox_github_action.sh ${{ runner.os }}
 
