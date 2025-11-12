@@ -20,7 +20,7 @@ interpretation of the value of the flag is identical across implementations
 and possible values are
 
     * norm of final model gradient if optimization was successful
-    * -1 - Termined in error
+    * -1 - Terminated in error
     * 0 - ``nf_max`` function evaluations were performed
 
 The programmatic interface is generally maintained identical between all

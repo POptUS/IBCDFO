@@ -1,8 +1,9 @@
-|pounders|: Practical Optimization Using No Derivatives for sums of Squares
-===========================================================================
+|pounders|
+==========
 
-|pounders| minimizes a sum of squares of blackbox (''zeroth-order'') functions,
-solving
+The Practical Optimization Using No Derivatives and Exploiting Recognized
+Structure method, better known as |pounders|, minimizes a sum of squares of
+blackbox (''zeroth-order'') functions, solving
 
 .. math::
    \min_{\psp \in \R^{\np}} \left\{f(\psp)=\sum_{i=1}^{\nd} F_i(\psp)^2\right\}

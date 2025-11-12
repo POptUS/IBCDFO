@@ -23,7 +23,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
 
     .. todo::
         Does $h_i$ refer to a partial derivative?
-    
+
     :param hfun: Function that, given an :math:`\np` element numpy array
         :math:`\zvec`, returns
 
