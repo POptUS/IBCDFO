@@ -65,5 +65,4 @@ Python
 
 |matlab|
 ^^^^^^^^
-.. mat:currentmodule:: pounders.m
-.. mat:autofunction:: pounders
+.. mat:autofunction:: pounders.m.pounders

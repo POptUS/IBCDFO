@@ -1,45 +1,3 @@
-# This code solves the problem
-#     minimize h(F(x))
-# where x is an [n by 1] vector, F is a blackbox function mapping from R^n to
-# R^p, and h is a nonsmooth function mapping from R^p to R.
-#
-#
-# Inputs:
-#  hfun:    [func]   Given point z, returns
-#                      - [scalar] the value h(z)
-#                      - [p x l] gradients for all l limiting gradients at z
-#                      - [1 x l list of hashes] for each manifold active at z
-#                    Given point z and l hashes H, returns
-#                      - [1 x l] the value h_i(z) for each hash in H
-#                      - [p x l] gradients of h_i(z) for each hash in H
-#  Ffun:    [func]    Evaluates F, the black box simulation, returning a [1 x p] vector.
-#  x0:      [1 x n]   Starting point
-#  nf_max:   [int]     Maximum number of function evaluations
-#
-# Outputs:
-#   X:      [nf_max x n]   Points evaluated
-#   F:      [nf_max x p]   Their simulation values
-#   h:      [nf_max x 1]   The values h(F(x))
-#   xkin:   [int]         Current trust region center
-#   flag:   [int]         Inform user why we stopped.
-#                           -1 if error
-#                            0 if nf_max function evaluations were performed
-#                            final model gradient norm otherwise
-#
-# Some other values
-#  n:       [int]     Dimension of the domain of F (deduced from x0)
-#  p:       [int]     Dimension of the domain of h (deduced from evaluating F(x0))
-#  delta:   [dbl]     Positive starting trust region radius
-# Intermediate Variables:
-#   nf    [int]         Counter for the number of function evaluations
-#   s_k   [dbl]         Step from current iterate to approx. TRSP solution
-#   norm_g [dbl]        Stationary measure ||g||
-#   Gres [n x p]        Model gradients for each of the p outputs from Ffun
-#   Hres [n x n x p]    Model Hessians for each of the p outputs from Ffun
-#   Hash [cell]         Contains the hashes active at each evaluated point in X
-#   Act_Z_k [l cell]    List of hashes for active selection functions in TR
-#   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
-#   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
 import numpy as np
 from ibcdfo.pounders import checkinputss
@@ -59,6 +17,65 @@ eng = []
 
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
+    r"""
+    Run manifold sampling on the optimization problem specified by the given
+    arguments.
+
+    .. todo::
+        Does $h_i$ refer to a partial derivative?
+    
+    :param hfun: Function that, given an :math:`\np` element numpy array
+        :math:`\zvec`, returns
+
+        * the value :math:`h(\zvec)`
+        * :math:`\np \times l` numpy array that contains gradients for all
+          :math:`l` limiting gradients at :math:`\zvec`
+        * ``list`` of :math:`l` hashes for each manifold active at :math:`\zvec`
+
+        Given point :math:`\zvec` and :math:`l` hashes :math:`H`, returns
+
+        * An :math:`l` element numpy array that contains the values
+          :math:`h_i(\zvec)` for each hash in :math:`H`
+        * A :math:`p \times l` numpy array that contains the gradients of
+          :math:`h_i(\zvec)` for each hash in :math:`H`
+
+    :param Ffun: Function that returns the value :math:`\Ffun(\psp)` of the
+        blackbox simulation as an :math:`\nd` element numpy array for given
+        :math:`\psp`
+    :param x0: :math:`\np` element numpy array that specifies the starting point
+    :param L: :math:`\np` element numpy array of lower bounds
+    :param U: :math:`\np` element numpy array of upper bounds
+    :param nf_max: Maximum number of function evaluations
+    :param subprob_switch: **???**
+
+    :return:
+        * **X** - :math:`\mathrm{nf\_max} \times \np` numpy array containing the
+            points evaluated in the order in which they were evaluated
+        * **F** - :math:`\mathrm{nf\_max} \times \nd` numpy array containing the
+          blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
+          with matching ordering
+        * **h**: :math:`\mathrm{nf\_max}` numpy array containing the values
+          :math:`\hfun(\Ffun(\psp))` for all points in ``X`` with matching
+          ordering.
+        * **xkin**: Current trust region center.  **ZERO-BASED INDEX INTO
+          X?**
+        * **flag**: Termination criteria flag (See general documentation)
+    """
+    # Some other values
+    #  n:       [int]     Dimension of the domain of F (deduced from x0)
+    #  p:       [int]     Dimension of the domain of h (deduced from evaluating F(x0))
+    #  delta:   [dbl]     Positive starting trust region radius
+    # Intermediate Variables:
+    #   nf    [int]         Counter for the number of function evaluations
+    #   s_k   [dbl]         Step from current iterate to approx. TRSP solution
+    #   norm_g [dbl]        Stationary measure ||g||
+    #   Gres [n x p]        Model gradients for each of the p outputs from Ffun
+    #   Hres [n x n x p]    Model Hessians for each of the p outputs from Ffun
+    #   Hash [cell]         Contains the hashes active at each evaluated point in X
+    #   Act_Z_k [l cell]    List of hashes for active selection functions in TR
+    #   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
+    #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
+
     # Deduce p from evaluating Ffun at x0
     try:
         F0 = Ffun(x0)
