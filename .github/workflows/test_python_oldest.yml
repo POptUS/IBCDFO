@@ -1,21 +1,18 @@
-# ----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
-name: Test IBCDFO Python Package
+name: Test Oldest Versions
 env:
   GH_ACTIONS_PATH: ${{ github.workspace }}/.github/workflows
   IBCDFO_PKG:      ${{ github.workspace }}/ibcdfo_pypkg
   BENDFO_PY_PATH:  ${{ github.workspace }}/BenDFO/py
   MINQ5_PY_PATH:   ${{ github.workspace }}/minq/py/minq5
 on:
-  # This action is used only to run a significant but smallish set of test
-  # setups on feature branches.
-  #
-  # More thorough testing is done on main with the release action as part of
-  # creating and verifying potential release candidate distributions.
+  # TODO: Make this manual trigger only?
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  test_ibcdfo:
+  build_supported:
     strategy:
       # python-versions must be maintained consistent with associated
       # pyproject.toml and tox.ini configuration.
@@ -25,10 +22,8 @@ jobs:
       # chips.
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
-    # -- General Setup Steps
     # This action requires minq
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v4
@@ -42,16 +37,15 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.10
     - name: Setup Python with tox
       run: $GH_ACTIONS_PATH/setup_tox_github_action.sh ${{ runner.os }}
 
-    # -- Run test suite through installation
     # The tox task downloads dfo.dat automatically
-    - name: Test IBCDFO Python package
+    - name: Run test suite
       run: |
         export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
         echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
         pushd $IBCDFO_PKG
-        tox -r -e nocoverage
+        tox -r -e oldest
         popd
