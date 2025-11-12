@@ -34,7 +34,6 @@ def hfun_dd(z, zd, zdt, zdd):
 
 
 def G_combine(Cres, Gres):
-    Gres[:5,:5] = numpy.eye(5)
     n, m = Gres.shape
     G = numpy.zeros(n)
     for i in range(n):
@@ -43,11 +42,6 @@ def G_combine(Cres, Gres):
 
 
 def H_combine(Cres, Gres, Hres):
-    Hres[:5,:5,0] = 0
-    Hres[:5,:5,1] = 0
-    Hres[:5,:5,2] = 0
-    Hres[:5,:5,3] = 0
-    Hres[:5,:5,4] = 0
     n, _, m = Hres.shape
     H = numpy.zeros((n, n))
     for i in range(n):
