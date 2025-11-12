@@ -57,7 +57,7 @@ The inclusion of examples is [pending](https://github.com/POptUS/IBCDFO/issues/2
 
 Refer to [Getting Started](https://ibcdfo.readthedocs.io/en/latest/get_started.html) section of User Guide.
 
-## Contributing to POptUS
+## Contributing to IBCDFO
 
 Refer to the [Developer Guide](https://ibcdfo.readthedocs.io/en/latest/contributing.html).
 
