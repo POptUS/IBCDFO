@@ -26,7 +26,7 @@ license-files = ["LICENSE"]
 requires-python = ">=3.10"
 # BenDFO is also required for testing but is not yet pip installable
 dependencies = [
-    "numpy>=1.21.1", "scipy>=1.7.3",  # Code (See Issue #227 for version limits)
+    "numpy>=1.21.1", "scipy>=1.8.0",  # Code (See Issue #227 for version limits)
     "ipdb",                           # Minq
     "jax"                             # Testing
 ]
