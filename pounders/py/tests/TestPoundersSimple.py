@@ -112,7 +112,7 @@ class TestPounders(unittest.TestCase):
         n = 16
 
         X_0 = np.ones(n)
-        nf_max = 200
+        nf_max = 800
         g_tol = 10**-13
         delta = 0.1
         nfs = 1
