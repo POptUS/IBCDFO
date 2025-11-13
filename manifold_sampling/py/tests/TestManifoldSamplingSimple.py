@@ -32,4 +32,4 @@ class TestManifoldSampling(unittest.TestCase):
 
         L = np.append(L, L)
         X, F, h, xk_best, flag = msp.manifold_sampling_primal(pw_maximum, failing_objective, X0, L, U, nf_max, subprob_switch)
-        self.assertEqual(flag, -1, "We are testing proper failure of pounders")
+        self.assertEqual(flag, -1, f"We are testing proper failure of pounders. (flag={flag})")
