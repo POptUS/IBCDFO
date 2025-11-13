@@ -19,6 +19,7 @@ Interpolation-Based Composite Derivative-Free Optimization
 ### Python
 [![Check Python Code Standard Adherence](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml)
 [![Build & test release candidate](https://github.com/POptUS/IBCDFO/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/release.yml)
+[![Test Oldest Versions](https://github.com/POptUS/IBCDFO/actions/workflows/test_python_oldest.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_python_oldest.yml)
 
 This page contains source code for interpolation-based optimization methods for
 composite derivative-free optimization.
