@@ -18,7 +18,6 @@ def both_pounders(*args, **kwargs):
 
 
 class TestPounders(unittest.TestCase):
-    self.assertTrue(False)
     def test_failing_objective(self):
         def failing_objective(x, nan_freq=0.1):
             fvec = x
