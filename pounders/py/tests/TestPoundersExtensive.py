@@ -90,7 +90,7 @@ class TestPounders(unittest.TestCase):
                 X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
                 Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
-                self.assertEqual( X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
+                self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
                 self.assertTrue(np.array_equal(X, Xc), f"Mismatch: ‖X−Xc‖={np.linalg.norm(X - Xc):.3e}")
 
                 evals = F.shape[0]
@@ -100,9 +100,9 @@ class TestPounders(unittest.TestCase):
                 self.assertTrue(X.shape[0] <= nf_max + nfs, f"POUNDERs grew the size of X: X.shape[0]={X.shape[0]}, limit={nf_max + nfs}")
 
                 if flag == 0:
-                    self.assertTrue( evals <= nf_max + nfs, f"POUNDERs evaluated more than nf_max evaluations: evals={evals}, limit={nf_max + nfs}")
+                    self.assertTrue(evals <= nf_max + nfs, f"POUNDERs evaluated more than nf_max evaluations: evals={evals}, limit={nf_max + nfs}")
                 elif flag != -6 and flag != -4:
-                    self.assertTrue( evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
+                    self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
