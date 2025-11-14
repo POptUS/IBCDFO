@@ -53,7 +53,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.13
+          python-version: "3.14"
       - name: Construct sdist and wheel
         run: |
           # Install dependencies
@@ -85,13 +85,7 @@ jobs:
         # This means that this action is **not** running any mac tests using
         # Intel chips.
         os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-        exclude:
-          # Failing with root cause not yet understood (Issue #168)
-          - os: macos-14
-            python-version: "3.9"
-          - os: macos-15
-            python-version: "3.9"
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       # Install MINQ at commit specified in current submodule setting rather
@@ -138,13 +132,7 @@ jobs:
         # This means that this action is **not** running any mac tests using
         # Intel chips.
         os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-        exclude:
-          # Failing with root cause not yet understood (Issue #168)
-          - os: macos-14
-            python-version: "3.9"
-          - os: macos-15
-            python-version: "3.9"
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       # Install MINQ at commit specified in current submodule setting rather
