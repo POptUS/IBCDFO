@@ -17,7 +17,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
 
     # # x0 used to be passed into linprog. It's not used by highs-ipm anymore,
     # # and a warning is issued. We've decided to no longer pass it to linprog,
-    # # but we keep the following commend in case it's used in the future. It is
+    # # but we keep the following comment in case it's used in the future. It is
     # # used by matlab, though.
     # x0 = np.vstack((np.array([np.max(-bk_smaller)]), np.zeros((n, 1))))
 
