@@ -2,9 +2,72 @@
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
 function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model)
+% Run a |pounders| run on the optimization problem specified by the given
+% arguments.
+%
+% :param Ffun:    Handle to function that returns :math:`\Ffun(\psp)` as
+%     :math:`1 \times \nd` vector for given :math:`\psp`
+% :param X_0:     [dbl] :math:`1 \times \np` vector that specifies the initial
+%     point
+% :param n:       [int] Dimension (number of continuous variables)
+% :param nf_max:  [int] Maximum number of function evaluations (:math:`> \np+1`)
+% :param g_tol:   [dbl] Tolerance for the 2-norm of the model gradient
+% :param delta_0: [dbl] Positive initial trust region radius
+% :param m:       [int] Number of components returned from ``Ffun``
+% :param Low:     [dbl] :math:`1 \times \np` vector of lower bounds
+% :param Upp:     [dbl] :math:`1 \times \np` vector of upper bounds
+% :param Prior:   ``struct`` of past evaluations of ``Ffun``.  Do not provide or
+%     set to an empty ``struct`` to run optimization assuming no past
+%     evaluations.  **Otherwise arguments must be provided for all dictionary
+%     entries?**
+%
+%       * **nfs** - Number of past function evaluations
+%       * **X_init** - :math:`\mathrm{nfs} \times \np` matrix of points
+%         :math:`\psp_k`
+%       * **F_init** - :math:`\mathrm{nfs} \times \nd` matrox of values
+%         :math:`\Ffun(\psp_k)` obtained with ``Ffun``
+%       * **xk_in** -  One-based index into ``X_init`` and ``F_init`` that
+%         corresponds to the point and value to use as initial point for
+%         optimization.  **IS X_0 IGNORED IN THIS CASE?**
+%
+% :param Options: ``struct`` of method options.  Do not provide or set to an
+%     empty `struct` to use default values.
+%
+%       * **printf** (default is 0)
+%
+%           * 0 - No printing to screen
+%           * 1 - Debugging level of output to screen
+%           * 2 - More verbose screen output
+%
+%       * **spsolver** - Trust-region subproblem solver flag (default is 2)
+%       * **hfun** - Outer function :math:`\hfun` that maps given
+%         :math:`\Ffun(\psp)` to scalars for minimization (default is
+%         sum-of-squares that yields :math:`f`.)
+%       * **combinemodels** - Handle to function that maps the linear and
+%         quadratic terms from the models of :math:`\Ffun` into a single
+%         quadratic model (default is ordinary least squares)
+%
+% :param Model: ``struct`` of model building options.  Do not provide or set to
+%     an empty ``struct`` to use default values.
+%
+%       * **np_max** -  Maximum number of interpolation points (:math:`>\np+1`)
+%         (default is :math:`2\np+1`)
+%       * **Par** - :math:`1 \times 5` vector for ``formquad``
+%         (default is **???**)
+%
+% :return:
+%      * **X**     [dbl] :math:`\mathrm{nf\_max+nfs}\times \np` matrix containing
+%        locations of evaluated points in the order in which they were
+%        evaluated
+%      * **F**     [dbl] :math:`\mathrm{nf\_max+nfs}\times \nd` matrix containing
+%        the function values at ``X`` with matching ordering
+%      * **hF**    [dbl] :math:`\mathrm{nf\_max+nfs}\times 1` matrix containing
+%        composed values ``hfun(Ffun)`` for evaluated points in ``X``
+%      * **flag**  [dbl] Termination criteria flag (See general |pounders| documentation)
+%      * **xk_in** [int] One-based index of point in ``X`` representing approximate minimizer
 
 % Casting to integers here prevents rare issues with non-integer arguments for
-% reshape on some GH Action instances
+% reshape on some GH Action instances.  See issue 237 for more details.
 n = int32(n);
 m = int32(m);
 

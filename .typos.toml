@@ -1,5 +1,5 @@
 [files]
-extend-exclude = [".git", "minq"]
+extend-exclude = [".git", "minq", "docs/ibcdfo.bib"]
 ignore-hidden = false
 
 [default]

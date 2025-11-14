@@ -1,0 +1,54 @@
+name: Build Guides
+env:
+  IBCDFO_PKG: ${{ github.workspace }}/ibcdfo_pypkg
+  PY_VENV:    ${{ github.workspace }}/ibcdfo_venv
+  DOCS_PATH:  ${{ github.workspace }}/docs
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Prefer using the latest Python version supported by the package
+  build_sphinx:
+    # Prefer LaTeX installation by official image over manual installation to
+    # get more consistent and quick setup times.
+    runs-on: ubuntu-latest
+    container:
+      image: texlive/texlive:latest
+    steps:
+    ##-- General Setup Steps
+    # Submodule contents are not used to build User or Developer Guides
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v4
+      with:
+        submodules: false
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.13
+    - name: Setup Python with tox
+      run: |
+        # As a consequence of using a container, we need to setup Python cleanly
+        # in dedicated venv to avoid breaking default Python installation.
+        python -m venv $PY_VENV
+        . $PY_VENV/bin/activate
+        python -m pip install --upgrade pip
+        python -m pip install tox
+    - name: Build Sphinx docs
+      run: |
+        . $PY_VENV/bin/activate
+        pip list
+        which tox
+        cd $IBCDFO_PKG
+        # TODO: Local PDF builds failing at present.
+        #tox -r -e pdf,html
+        tox -r -e html
+
+    - name: Archive IBCDFO docs
+      uses: actions/upload-artifact@v4
+      with:
+        name: ibcdfo-sphinx-docs
+        path: |
+          ${{ env.DOCS_PATH }}/build_*

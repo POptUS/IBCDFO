@@ -20,6 +20,10 @@ ibcdfo_pypkg/msp_benchmark_results
 ibcdfo_pypkg/.coverage_ibcdfo
 ibcdfo_pypkg/cobertura_ibcdfo.xml
 
+# Documentation intermediate & final products
+docs/build_pdf
+docs/build_html
+
 # IPython
 profile_default/
 ipython_config.py

@@ -1,0 +1,13 @@
+{
+    "ie":       "*i.e.,*",
+    "eg":       "*e.g.,*",
+    "via":      "*via*",
+    "pip":      "``pip``",
+    "tox":      "``tox``",
+    "matlab":   "MATLAB",
+    "minq":     "MINQ",
+    "bendfo":   "BenDFO",
+    "poptus":   "POptUS",
+    "ibcdfo":   "IBCDFO",
+    "pounders": "POUNDERS"
+}
