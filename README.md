@@ -21,6 +21,7 @@ Interpolation-Based Composite Derivative-Free Optimization.  Part of [POptUS: Pr
 ### Python
 [![Check Python Code Standard Adherence](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/check_python_standards.yml)
 [![Build & test release candidate](https://github.com/POptUS/IBCDFO/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/release.yml)
+[![Test Oldest Versions](https://github.com/POptUS/IBCDFO/actions/workflows/test_python_oldest.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_python_oldest.yml)
 
 ## License & Copyright
 
