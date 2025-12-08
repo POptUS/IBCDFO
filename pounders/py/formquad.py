@@ -150,7 +150,7 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
 
     # Precompute helpers for the M / Alpha solve
     M_rows, M_cols = M.shape
-    is_square_M = (M_rows == M_cols)
+    is_square_M = M_rows == M_cols
 
     use_MT = None
     MT_pinv = None
@@ -160,53 +160,53 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
         # Decide which least-squares system you used in the original code
         if M_rows != N.shape[1]:
             # Original code used np.linalg.lstsq(M.T, ...)
-            MT_pinv = np.linalg.pinv(M.T)   # (M.T)^+ precomputed once
+            MT_pinv = np.linalg.pinv(M.T)  # (M.T)^+ precomputed once
             use_MT = True
         else:
             # Original code used np.linalg.lstsq(M, ...)
-            M_pinv = np.linalg.pinv(M)      # M^+ precomputed once
+            M_pinv = np.linalg.pinv(M)  # M^+ precomputed once
             use_MT = False
 
     # ---- Vectorized replacement for the loop over m ----
 
     if L.shape[0] != N.shape[0]:
         # Zero-Hessian case: set all quadratic coefficients to zero directly.
-        num_beta = N.shape[0]              # == number of entries in upper triangle
-        Beta_all = np.zeros((num_beta, m)) # shape: (num_beta, m)
-        rhs_all = F                        # since N.T @ Beta_all == 0 (N is zero)
+        num_beta = N.shape[0]  # == number of entries in upper triangle
+        Beta_all = np.zeros((num_beta, m))  # shape: (num_beta, m)
+        rhs_all = F  # since N.T @ Beta_all == 0 (N is zero)
     else:
         # Normal case: solve for Omega_all from (L^T L) * Omega_all = Z^T * F
         J_all = Z.T @ F  # shape: (p, m), p = number of columns of Z
 
         Omega_all = scipy.linalg.cho_solve(
             (LTL_cf, LTL_lower),
-            J_all,                         # same Cholesky factor, multiple RHS
-        )                                  # shape: (p, m)
+            J_all,  # same Cholesky factor, multiple RHS
+        )  # shape: (p, m)
 
         # Quadratic coefficients (packed Hessian entries) for all k
-        Beta_all = L @ Omega_all           # shape: (num_beta, m)
+        Beta_all = L @ Omega_all  # shape: (num_beta, m)
 
         # Right-hand side for all k
-        rhs_all = F - N.T @ Beta_all       # shape: (mp, m)
+        rhs_all = F - N.T @ Beta_all  # shape: (mp, m)
 
     # Solve for Alpha for all k
     if is_square_M:
         # np.linalg.solve supports multiple RHS as columns
-        Alpha_all = np.linalg.solve(M.T, rhs_all)   # shape: (#alpha, m)
+        Alpha_all = np.linalg.solve(M.T, rhs_all)  # shape: (#alpha, m)
     else:
         if use_MT:
-            Alpha_all = MT_pinv @ rhs_all           # shape: (#alpha, m)
+            Alpha_all = MT_pinv @ rhs_all  # shape: (#alpha, m)
         else:
-            Alpha_all = M_pinv @ rhs_all            # shape: (#alpha, m)
+            Alpha_all = M_pinv @ rhs_all  # shape: (#alpha, m)
 
     # Fill G for all k (gradients)
-    G[:, :] = Alpha_all[1 : n + 1, :]               # same slice as in the loop
+    G[:, :] = Alpha_all[1 : n + 1, :]  # same slice as in the loop
 
     # Fill H for all k using the packed Beta_all and the mask.
     # H has shape (n, n, m); inds_to_use_in_H is a boolean mask on (n, n).
     # H[inds_to_use_in_H] has shape (num_triu, m), matching Beta_all.
-    H[inds_to_use_in_H] = Beta_all                      # upper triangle
-    H.transpose(1, 0, 2)[inds_to_use_in_H] = Beta_all   # lower triangle (mirror)
+    H[inds_to_use_in_H] = Beta_all  # upper triangle
+    H.transpose(1, 0, 2)[inds_to_use_in_H] = Beta_all  # lower triangle (mirror)
 
     # Apply scaling to all k
     H *= scale_mat[..., None]
