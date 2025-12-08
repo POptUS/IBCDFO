@@ -38,7 +38,7 @@ required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 To 
 
-* report potential problems with the POptUS package,
+* report potential problems with the IBCDFO package,
 * propose a change to its contents, or
 * request a new feature,
 
