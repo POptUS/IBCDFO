@@ -15,7 +15,7 @@ copyright = "2023, The Regents of the University of California, " \
     "LLC through Argonne National Laboratory (subject to receipt of any " \
     "required approvals from the U.S. Dept. of Energy).  All rights reserved"
 author = "Jeffrey Larson, Matt Menickelly, and Stefan M. Wild"
-version = __version__
+versio = __version__
 release = version
 
 latex_packages = [
