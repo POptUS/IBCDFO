@@ -27,7 +27,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.13
+        python-version: 3.14
     - name: Setup Python with tox
       run: |
         # As a consequence of using a container, we need to setup Python cleanly
@@ -43,7 +43,6 @@ jobs:
         which tox
         cd $IBCDFO_PKG
         # TODO: Local PDF builds failing at present.
-        #tox -r -e pdf,html
         tox -r -e html
 
     - name: Archive IBCDFO docs
