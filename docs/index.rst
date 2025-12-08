@@ -30,7 +30,7 @@ all other communication, please email the |poptus| development team at
 
     poptus@mcs.anl.gov
 
-Contributing to |ibcdfo|
+Contributing to |icdfo|
 ------------------------
 
 Contributions are welcome in a variety of forms; please see
