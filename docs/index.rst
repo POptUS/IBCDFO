@@ -53,7 +53,7 @@ Cite |ibcdfo|
    :maxdepth: 1
    :caption: User Guide:
 
-   ge_started
+   get_started
    pounders
    manifold_sampling
    bibliography
