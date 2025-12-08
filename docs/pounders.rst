@@ -31,7 +31,7 @@ algorithm forms a set of quadratic models interpolating the functions in
 infinity-norm trust region.
 
 Optionally, users can specify a custom outer-function :math:`\hfun` that, like
-:math:`f`, maps the the elements of :math:`\Ffun` to a scalar value
+:math:`f`, maps the elements of :math:`\Ffun` to a scalar value
 :math:`\hfun(\Ffun(\psp))` for minimization. Users must also provide a "combine
 models" function that |pounders| uses to map the linear and quadratic terms from
 the models of :math:`\Ffun` into a single quadratic model.
@@ -46,7 +46,7 @@ interpretation of the value of the flag is identical across implementations
 and possible values are
 
 * 0 - normal termination because norm of :math:`\gradf(\psp)` at final
-  :math:`\psp` satistifed user-provided gradient tolerance,
+  :math:`\psp` satisfied user-provided gradient tolerance,
 * > 0 - exceeded the maximum number evals and the value is the 2-norm of
   :math:`\gradf` at final :math:`\psp`
 * -1 - input was fatally incorrect (error message shown)

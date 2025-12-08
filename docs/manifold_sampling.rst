@@ -15,9 +15,9 @@ More details can be found in :cite:t:`MSP_2024`, :cite:t:`MSP_2021`,
 
 Programmatic Interface
 ----------------------
-All |pounders| implementations return a termination criteria flag.  The
-interpretation of the value of the flag is identical across implementations
-and possible values are
+All Manifold Sampling implementations return a termination criteria flag.  The
+interpretation of the value of the flag is identical across implementations and
+possible values are
 
     * norm of final model gradient if optimization was successful
     * -1 - Terminated in error

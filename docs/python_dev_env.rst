@@ -46,9 +46,10 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
   * It is intended that this be run after or with ``coverage``
   * Display a code coverage report for the package's full test suite and
     generate XML and HTML versions of the report.
-  * The ``COVERAGE_XML`` and ``COVERAGE_HTML`` environment variables can
-    optionally be set to define the name of the XML- and HTML-format reports.
-    Default report names are ``cobertura_ibcdfo.xml`` and ``htmlcov_ibcdfo``.
+  * The ``COVERAGE_XML_FILE`` and ``COVERAGE_HTML_FILE`` environment variables
+    can optionally be set to define the name of the XML- and HTML-format
+    reports.  Default report names are ``cobertura_ibcdfo.xml`` and
+    ``htmlcov_ibcdfo``.
 
 * ``tox -e check``
 

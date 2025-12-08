@@ -27,8 +27,8 @@ Add New Subpackage to |ibcdfo|
     of ``pyproject.toml`` (if any)
 
 * Test locally with |tox|
-* Synchronize Python version information in GitHub CI actions to version changes
-  made in ``pyproject.toml`` (if any)
+* Synchronize Python and external dependence version information in GitHub CI
+  actions to version changes made in ``pyproject.toml`` (if any)
 * Commit, push, and check associated GitHub CI action logs to see if constructed
   and integrated correctly
 * Update the README.md_ file if necessary
