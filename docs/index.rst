@@ -30,7 +30,7 @@ all other communication, please email the |poptus| development team at
 
     poptus@mcs.anl.gov
 
-Contributing to |icdfo|
+Contributing to |ibcdfo|
 ------------------------
 
 Contributions are welcome in a variety of forms; please see
@@ -53,7 +53,7 @@ Cite |ibcdfo|
    :maxdepth: 1
    :caption: User Guide:
 
-   get_started
+   ge_started
    pounders
    manifold_sampling
    bibliography
