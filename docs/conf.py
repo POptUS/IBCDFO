@@ -60,7 +60,7 @@ mathjax3_config = {
 for each in latex_macro_files:
     with open(f"latex_macros_{each}.json", "r") as fptr:
         macro_configs = json.load(fptr)
-    for cmd_type, macros_all in macro_configs.items():
+    for _, macros_all in macro_configs.items():
         for command, value in macros_all.items():
             assert command not in mathjax3_config['tex']['macros']
             mathjax3_config['tex']['macros'][command] = value

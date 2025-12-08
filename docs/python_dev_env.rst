@@ -2,7 +2,7 @@ Python Developer Environments
 =============================
 .. _tox: https://tox.wiki
 
-The |ibcdfo| repository includes a `tox`_ setup that defines different
+The |ibcdfo| repository includes a tox_ setup that defines different
 predefined development tasks, each of which is run in a dedicated Python virtual
 environment created and managed automatically by |tox|.
 
@@ -23,23 +23,23 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
     the name of the file that coverage results will be written to.  By default,
     results are written to ``.coverage_ibcdfo``.
   * The test runs the package code in the local clone rather than code installed
-    into python so that coverage results accessed through web services such as
+    into Python so that coverage results accessed through web services such as
     CodeCov are clean and straightforward
 
 * ``tox -e nocoverage``
 
   * Execute the full test suite for the package using the code installed into
-    python
+    Python
 
 * ``tox -e pounders``
 
-  * Execute the test suite for the pounders subpackage only using the code
-    installed into python
+  * Execute the test suite for the |pounders| subpackage only using the code
+    installed into Python
 
 * ``tox -e manifold_sampling``
 
-  * Execute the test suite for the manifold_sampling subpackage only using the
-    code installed into python
+  * Execute the test suite for the Manifold Sampling subpackage only using the
+    code installed into Python
 
 * ``tox -e report``
 
@@ -69,14 +69,15 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
 
   * Generate and render |ibcdfo|'s documentation locally in HTML
   * Documentation is built from the code in the local clone rather than code
-    installed into python.
+    installed into Python to support quick, interactive documentation work
 
-* ``tox -e pdf``
-
-  * Generate and render |ibcdfo|'s documentation locally as a PDF file
-  * Documentation is built from the code in the local clone rather than code
-    installed into python.
-  * This task uses ``make`` and requires a LaTeX installation.
+..
+    * ``tox -e pdf``
+    
+      * Generate and render |ibcdfo|'s documentation locally as a PDF file
+      * Documentation is built from the code in the local clone rather than code
+        installed into Python.
+      * This task uses ``make`` and requires a LaTeX installation.
 
 Additionally, you can run any combination of the above such as
 ``tox -e report,coverage``.
@@ -88,10 +89,10 @@ situation.
 Direct use of |tox| venvs
 -------------------------
 Developers are free to use the virtual environments created and managed
-automatically by |tox|.  The venvs created for executing the ``coverage``,
-``html``, and ``pdf``  tasks, for instance, can be especially useful since
-|ibcdfo| is installed in editable mode for these tasks, which facilitates
-interactive development and testing of the Python code and its documentation.
+automatically by |tox|.  The venvs created for executing the ``coverage`` and
+``html`` tasks, for instance, can be especially useful since |ibcdfo| is
+installed in editable mode for these tasks, which facilitates interactive
+development and testing of the Python code and its documentation.
 
 To run the full test suite during an interactive debugging session, developers
 can create a clean version of the ``coverage`` venv and activate it for
@@ -99,7 +100,7 @@ immediate use with
 
 .. code:: console
 
-    $ cd /path/to/ibcdfo_pypkg
+    $ cd /path/to/IBCDFO/ibcdfo_pypkg
     $ tox -r -e coverage
     $ . ./.tox/coverage/bin/activate
 

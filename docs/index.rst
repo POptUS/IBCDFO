@@ -2,6 +2,7 @@
 ========
 .. _POptUS: https://github.com/POptUS
 .. _license: https://github.com/poptus/IBCDFO/blob/main/LICENSE
+.. _Issue: https://github.com/POptUS/IBCDFO/issues
 
 This document provides information for using the set of Interpolation-Based
 optimization methods for Composite Derivative-Free Optimization, which are
@@ -9,10 +10,10 @@ collectively referred to as |ibcdfo| and are part of POptUS_: Practical
 Optimization Using Structure.  For more information on |ibcdfo| in general,
 please refer to :cite:t:`IBCDFO_2024`.
 
-All code included in IBCDFO is open source, with the particular form of license
-contained in the top-level subdirectories.  If such a subdirectory does not
-contain a LICENSE file, then it is automatically licensed as described in the
-otherwise encompassing IBCDFO license_.
+All code included in |ibcdfo| is open source, with the particular form of
+license contained in the top-level subdirectories.  If such a subdirectory does
+not contain a LICENSE file, then it is automatically licensed as described in
+the otherwise encompassing IBCDFO license_.
 
 Support
 -------
@@ -22,12 +23,18 @@ To
 * propose a change, or
 * request a new feature,
 
-please check if a related Issue already exists before creating a new Issue. For
-all other communication, please email the |ibcdfo| development team at
+please check if a related Issue_ already exists before creating a new Issue. For
+all other communication, please email the |poptus| development team at
 
 .. code-block:: none
 
     poptus@mcs.anl.gov
+
+Contributing to |ibcdfo|
+------------------------
+
+Contributions are welcome in a variety of forms; please see
+:numref:`contributing:Contributing` in the Developer Guide.
 
 Cite |ibcdfo|
 -------------
@@ -40,12 +47,6 @@ Cite |ibcdfo|
     url    = {https://github.com/POptUS/IBCDFO},
     year   = {2024},
   }
-
-Contributing to |ibcdfo|
-------------------------
-
-Contributions are welcome in a variety of forms; please see
-:numref:`contributing:Contributing` in the Developer Guide.
 
 .. toctree::
    :numbered:

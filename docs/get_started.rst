@@ -61,7 +61,7 @@ Python and executing
 
 .. code:: console
 
-    $ cd /path/to/clone/ibcdfo_pypkg
+    $ cd /path/to/IBCDFO/ibcdfo_pypkg
     $ python -m pip install .
 
 Testing Installation

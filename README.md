@@ -38,8 +38,8 @@ required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 To 
 
-* report potential problems with the IBCDFO package,
-* propose a change to its contents, or
+* report potential problems with IBCDFO,
+* propose a change, or
 * request a new feature,
 
 please check if a related [Issue](https://github.com/POptUS/IBCDFO/issues)
@@ -60,13 +60,15 @@ Refer to [Getting Started](https://ibcdfo.readthedocs.io/en/latest/get_started.h
 
 ## Contributing to IBCDFO
 
-Refer to the [Developer Guide](https://ibcdfo.readthedocs.io/en/latest/contributing.html).
+Contributions are welcome in a variety of forms; please see
+[Contributing](https://ibcdfo.readthedocs.io/en/latest/contributing.html) in the
+Developer Guide.
 
 ## Cite IBCDFO
 
 ```
   @misc{ibcdfo,
-    author = {Jeffrey Larson and Matt Menickelly and Jared P. O'Neal and Stefan M. Wild},
+    author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
     title  = {Interpolation-Based Composite Derivative-Free Optimization},
     url    = {https://github.com/POptUS/IBCDFO},
     year   = {2024},
