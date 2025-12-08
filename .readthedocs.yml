@@ -9,6 +9,11 @@ sphinx:
     configuration: docs/conf.py
     fail_on_warning: true
 
+# TODO: Enable this once pdflatex is capable of correctly rendering the PDF
+# file.
+#formats:
+#  - pdf
+
 python:
     install:
       - requirements: docs/requirements.txt
