@@ -71,16 +71,16 @@ class TestPounders(unittest.TestCase):
                 Results = {}
                 if hfun_cases == 1:
                     hfun = lambda F: np.sum(F**2)
-                    combinemodels = ibcdfo.pounders.leastsquares
+                    combinemodels = ibcdfo.pounders.combine_leastsquares
                 elif hfun_cases == 2:
                     alpha = 0  # If changed here, also needs to be adjusted in squared_diff_from_mean.py
                     hfun = lambda F: np.sum((F - 1 / len(F) * np.sum(F)) ** 2) - alpha * (1 / len(F) * np.sum(F)) ** 2
-                    combinemodels = ibcdfo.pounders.squared_diff_from_mean
+                    combinemodels = ibcdfo.pounders.combine_squared_diff_from_mean
                 elif hfun_cases == 3:
                     if m != 3:  # Emittance is only defined for the case when m == 3
                         continue
-                    hfun = ibcdfo.pounders.emittance_h
-                    combinemodels = ibcdfo.pounders.emittance_combine
+                    hfun = ibcdfo.pounders.h_emittance
+                    combinemodels = ibcdfo.pounders.combine_emittance
 
                 filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}

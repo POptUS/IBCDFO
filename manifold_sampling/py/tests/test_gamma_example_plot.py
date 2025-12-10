@@ -42,7 +42,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
     # --- Run pounders without using the structure ---
-    combinemodels = ibcdfo.pounders.identity_combine
+    combinemodels = ibcdfo.pounders.combine_identity
 
     def unstructured_obj(x):
         maxout = hfun(Ffun(x))

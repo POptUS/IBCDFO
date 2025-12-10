@@ -18,7 +18,7 @@ dfo = np.loadtxt("dfo.dat")
 spsolver = 2
 nf_max = 1000
 g_tol = 1e-13
-combinemodels = ibcdfo.pounders.identity_combine
+combinemodels = ibcdfo.pounders.combine_identity
 hfun = lambda F: np.squeeze(F)
 Opts = {"printf": 1, "spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
 

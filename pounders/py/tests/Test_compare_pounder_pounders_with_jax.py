@@ -45,7 +45,7 @@ for call in range(2):
         m = 1  # not using structure
         Opts = {
             "hfun": lambda F: np.squeeze(F),  # not using structure
-            "combinemodels": ibcdfo.pounders.identity_combine,  # not using structure
+            "combinemodels": ibcdfo.pounders.combine_identity,  # not using structure
         }
     elif call == 1:
         # Calls pounders to combine models of Ffun components using the derivatives of hfun (obtained by jax)

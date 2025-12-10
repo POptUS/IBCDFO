@@ -1,19 +1,37 @@
 import numpy as np
 
 
-def identity_combine(Cres, Gres, Hres):
+def combine_identity(Cres, Gres, Hres):
     return Gres.squeeze(), Hres.squeeze()
 
 
-def neg_leastsquares(Cres, Gres, Hres):
-    G, H = leastsquares(Cres, Gres, Hres)
+def combine_neg_leastsquares(Cres, Gres, Hres):
+    G, H = combine_leastsquares(Cres, Gres, Hres)
     G = -G
     H = -H
 
     return G, H
 
 
-def leastsquares(Cres, Gres, Hres):
+def h_leastsquares(F):
+    r"""
+    :math:`\hfun` function for constructing the standard |pounders|
+    least-squares objective function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\Ffun(\psp)\right)
+                = \sum_{i = 1}^{\nd} F_i(\psp)^2,
+
+    which is the :math:`\hfun` function used be default.
+
+    The ``combine_leastsquares`` function should also be passed to |pounders|
+    when using this :math:`\hfun` function.
+    """
+    return np.sum(F**2)
+
+
+def combine_leastsquares(Cres, Gres, Hres):
     n, _, m = Hres.shape
 
     G = 2 * Gres @ Cres.T
@@ -26,7 +44,7 @@ def leastsquares(Cres, Gres, Hres):
     return G, H
 
 
-def emittance_combine(Cres, Gres, Hres):
+def combine_emittance(Cres, Gres, Hres):
     n, _, m = Hres.shape
 
     assert m == 3, "Emittance calculation requires exactly three quantities"
@@ -37,14 +55,14 @@ def emittance_combine(Cres, Gres, Hres):
     return G, H
 
 
-def emittance_h(F):
+def h_emittance(F):
     assert len(F) == 3, "Emittance must have exactly 3 inputs"
     h = F[0] * F[1] - F[2] ** 2
 
     return h
 
 
-def squared_diff_from_mean(Cres, Gres, Hres):
+def combine_squared_diff_from_mean(Cres, Gres, Hres):
     """
     Combines models for the following h function
        h = @(F)sum((F - 1/m*sum(F)).^2) - alpha*(1/m*sum(F))^2

@@ -4,25 +4,17 @@ combining models.
 """
 
 # ----- PUBLIC INTERFACE
-# fmt: off
-from .general_h_funs import (
-    identity_combine,
-    leastsquares,
-    neg_leastsquares,
-    emittance_combine, emittance_h,
-    squared_diff_from_mean
-)
-
 # General h function naming rules:
 #  - h_* for h functions
 #  - combine_* for associated combine model functions
-# from .general_h_funs import (
-#     combine_identity,
-#     combine_leastsquares, h_leastsquares,
-#     combine_neg_leastsquares,
-#     combine_emittance, h_emittance,
-#     combine_squared_diff_from_mean
-# )
+# fmt: off
+from .general_h_funs import (
+    combine_identity,
+    combine_leastsquares, h_leastsquares,
+    combine_neg_leastsquares,
+    combine_emittance, h_emittance,
+    combine_squared_diff_from_mean
+)
 
 # -- Python unittest-based test framework
 # Used for automatic test discovery by main package

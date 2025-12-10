@@ -64,6 +64,8 @@ Python
 ^^^^^^
 .. autofunction:: ibcdfo.run_pounders
 
+.. autofunction:: ibcdfo.pounders.h_leastsquares
+
 |matlab|
 ^^^^^^^^
 .. mat:autofunction:: pounders.m.pounders

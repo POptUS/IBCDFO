@@ -148,8 +148,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
     else:
-        hfun = lambda F: np.sum(F**2)
-        from .general_h_funs import leastsquares as combinemodels
+        from .general_h_funs import h_leastsquares as hfun
+        from .general_h_funs import combine_leastsquares as combinemodels
 
     # choose your spsolver
     if spsolver == 2:

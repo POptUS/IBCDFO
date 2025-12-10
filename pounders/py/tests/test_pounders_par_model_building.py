@@ -28,8 +28,8 @@ Ffun = call_beamline_simulation_batch  # Simulation function, accepting a matrix
 printf = True
 
 # Not as important to adjust:
-hfun = ibcdfo.pounders.emittance_h
-combinemodels = ibcdfo.pounders.emittance_combine
+hfun = ibcdfo.pounders.h_emittance
+combinemodels = ibcdfo.pounders.combine_emittance
 m = 3  # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
 g_tol = 1e-8  # Stopping tolerance
 delta_0 = 0.1  # Initial trust-region radius
