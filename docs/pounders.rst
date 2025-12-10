@@ -65,6 +65,7 @@ Python
 .. autofunction:: ibcdfo.run_pounders
 
 .. autofunction:: ibcdfo.pounders.h_leastsquares
+.. autofunction:: ibcdfo.pounders.h_emittance
 
 |matlab|
 ^^^^^^^^

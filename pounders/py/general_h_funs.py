@@ -56,6 +56,20 @@ def combine_emittance(Cres, Gres, Hres):
 
 
 def h_emittance(F):
+    r"""
+    :math:`\hfun` function for constructing the |pounders| emittance objective
+    function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\Ffun(\psp)\right)
+                = F_1(\psp)F_2(\psp) - F_3(\psp)
+
+    limited to the special case of :math:`\Ffun : \R^{\np} \to \R^3`.
+
+    The ``combine_emittance`` function should also be passed to |pounders|
+    when using this :math:`\hfun` function.
+    """
     assert len(F) == 3, "Emittance must have exactly 3 inputs"
     h = F[0] * F[1] - F[2] ** 2
 
