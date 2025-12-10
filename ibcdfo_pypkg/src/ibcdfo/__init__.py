@@ -11,11 +11,16 @@ from importlib.metadata import version
 
 __version__ = version("ibcdfo")
 
-from . import manifold_sampling, pounders
+from .pounders.pounders import pounders as run_pounders
+from .pounders.pounders_concurrent import pounders as run_pounders_concurrent
+# fmt: off
+from .manifold_sampling.manifold_sampling_primal import (
+    manifold_sampling_primal as run_MSP
+)
 
 # ----- Python unittest-based test framework
 # Used for automatic test discovery
 from .load_tests import load_tests
 
-# Allow users to run full test suite as mytemplate.test()
+# Allow users to run full test suite as ibcdfo.test()
 from .test import test

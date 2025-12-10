@@ -29,7 +29,7 @@ to provide language-specific descriptions.
 
 Python
 ^^^^^^
-.. autofunction:: ibcdfo.manifold_sampling.manifold_sampling_primal
+.. autofunction:: ibcdfo.run_MSP
 
 |matlab|
 ^^^^^^^^

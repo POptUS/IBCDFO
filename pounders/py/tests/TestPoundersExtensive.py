@@ -5,8 +5,7 @@ Unit test of compute function
 import os
 import unittest
 
-import ibcdfo.pounders as pdrs
-import ibcdfo.pounders.pounders_concurrent as conc
+import ibcdfo
 import numpy as np
 import scipy as sp
 from calfun import calfun
@@ -72,23 +71,23 @@ class TestPounders(unittest.TestCase):
                 Results = {}
                 if hfun_cases == 1:
                     hfun = lambda F: np.sum(F**2)
-                    combinemodels = pdrs.leastsquares
+                    combinemodels = ibcdfo.pounders.leastsquares
                 elif hfun_cases == 2:
                     alpha = 0  # If changed here, also needs to be adjusted in squared_diff_from_mean.py
                     hfun = lambda F: np.sum((F - 1 / len(F) * np.sum(F)) ** 2) - alpha * (1 / len(F) * np.sum(F)) ** 2
-                    combinemodels = pdrs.squared_diff_from_mean
+                    combinemodels = ibcdfo.pounders.squared_diff_from_mean
                 elif hfun_cases == 3:
                     if m != 3:  # Emittance is only defined for the case when m == 3
                         continue
-                    hfun = pdrs.emittance_h
-                    combinemodels = pdrs.emittance_combine
+                    hfun = ibcdfo.pounders.emittance_h
+                    combinemodels = ibcdfo.pounders.emittance_combine
 
                 filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
-                Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                X, F, hF, flag, xk_best = ibcdfo.run_pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                Xc, Fc, hFc, flagc, xk_bestc = ibcdfo.run_pounders_concurrent(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
                 self.assertTrue(np.array_equal(X, Xc), f"Mismatch: ‖X−Xc‖={np.linalg.norm(X - Xc):.3e}")

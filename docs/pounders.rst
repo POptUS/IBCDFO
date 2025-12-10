@@ -62,7 +62,7 @@ to provide language-specific descriptions.
 
 Python
 ^^^^^^
-.. autofunction:: ibcdfo.pounders.pounders
+.. autofunction:: ibcdfo.run_pounders
 
 |matlab|
 ^^^^^^^^
