@@ -6,7 +6,7 @@ Structure method, better known as |pounders|, minimizes a sum of squares of
 blackbox (''zeroth-order'') functions, solving
 
 .. math::
-   \min_{\psp \in \R^{\np}} \left\{f(\psp)=\sum_{i=1}^{\nd} F_i(\psp)^2\right\}
+   \min_{\psp \in \R^{\np}} \left\{f(\psp)=\sum_{i=1}^{\nd} \Ffuncomp{i}(\psp)^2\right\}
 
 subject to
 

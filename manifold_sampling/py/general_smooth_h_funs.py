@@ -465,6 +465,11 @@ def h_max_gamma_over_KY(z, H0=None):
         z_j(\psp) = \gamma(\kappa, \Delta, \zeta, KY_j)
 
     are computed from the application-specific model function :math:`\gamma`.
+    Presently, the :math:`KY` parameters are hardcoded to the uniform grid
+
+    .. math::
+
+        (KY_1, KY_2, \cdots, KY_{11}) = (0.1, 0.15, \cdots, 0.6).
     """
     # Inputs
     # ------
@@ -473,8 +478,6 @@ def h_max_gamma_over_KY(z, H0=None):
     # H0 : optional list of str
     #     Hashes (indices as strings) of manifolds to evaluate specifically.
     #     If None, returns active/near-active manifolds at z.
-    # KY : optional array-like, shape (11,)
-    #     The KY grid; defaults to [0.10, 0.15, ..., 0.60].
 
     # Outputs (H0 is None)
     # --------------------

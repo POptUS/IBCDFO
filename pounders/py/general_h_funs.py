@@ -29,7 +29,7 @@ def h_neg_leastsquares(F):
     .. math::
 
         f(\psp) = \hfun\left(\Ffun(\psp)\right)
-                = -\sum_{i = 1}^{\nd} F_i(\psp)^2.
+                = -\sum_{i = 1}^{\nd} \Ffuncomp{i}(\psp)^2.
 
     The ``combine_neg_leastsquares`` function should also be passed to
     |pounders| when using this :math:`\hfun` function.
@@ -50,7 +50,7 @@ def h_leastsquares(F):
     .. math::
 
         f(\psp) = \hfun\left(\Ffun(\psp)\right)
-                = \sum_{i = 1}^{\nd} F_i(\psp)^2,
+                = \sum_{i = 1}^{\nd} \Ffuncomp{i}(\psp)^2,
 
     which is the :math:`\hfun` function used be default.
 
@@ -92,7 +92,7 @@ def h_emittance(F):
     .. math::
 
         f(\psp) = \hfun\left(\Ffun(\psp)\right)
-                = F_1(\psp)F_2(\psp) - F_3(\psp)
+                = \Ffuncomp{1}(\psp)\Ffuncomp{2}(\psp) - \Ffuncomp{3}(\psp)
 
     limited to the special case of :math:`\Ffun : \R^{\np} \to \R^3`.
 
@@ -110,14 +110,14 @@ def h_squared_diff_from_mean(F, alpha):
     .. math::
 
         f(\psp; \alpha) = \hfun\left(\Ffun(\psp); \alpha\right)
-          = \sum_{i=1}^{\nd} \left(F_i(\psp) - \overline{\Ffun}(\psp)\right)^2
+          = \sum_{i=1}^{\nd} \left(\Ffuncomp{i}(\psp) - \overline{\Ffun}(\psp)\right)^2
             - \alpha \overline{\Ffun}(\psp)^2
 
     where
 
     .. math::
 
-        \overline{\Ffun}(\psp) = \frac{1}{\nd}\sum_{i=1}^{\nd} F_i(\psp)
+        \overline{\Ffun}(\psp) = \frac{1}{\nd}\sum_{i=1}^{\nd} \Ffuncomp{i}(\psp)
 
     is the average value of all components in :math:`\Ffun(\psp)`.   This
     objective, therefore, prefers vectors close to their average.
@@ -132,7 +132,7 @@ def h_squared_diff_from_mean(F, alpha):
         import functools
         ALPHA = X.Y
         hfun = functools.partial(h_squared_diff_from_mean, alpha=ALPHA)
-        combine = functools.partial(combine_squared_diff_from_mean, alpha=ALPHA)
+        combinemodels = functools.partial(combine_squared_diff_from_mean, alpha=ALPHA)
     """
     F_avg = np.mean(F)
     return np.sum((F - F_avg) ** 2) - alpha * F_avg**2
