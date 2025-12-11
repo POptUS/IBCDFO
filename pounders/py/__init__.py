@@ -9,12 +9,13 @@ combining models.
 #  - combine_* for associated combine model functions
 # fmt: off
 from .general_h_funs import (
-    combine_identity,
+    combine_identity, h_identity,
     combine_leastsquares, h_leastsquares,
-    combine_neg_leastsquares,
+    combine_neg_leastsquares, h_neg_leastsquares,
     combine_emittance, h_emittance,
-    combine_squared_diff_from_mean
+    combine_squared_diff_from_mean, h_squared_diff_from_mean
 )
+# fmt: on
 
 # -- Python unittest-based test framework
 # Used for automatic test discovery by main package

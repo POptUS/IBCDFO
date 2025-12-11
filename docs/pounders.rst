@@ -64,8 +64,11 @@ Python
 ^^^^^^
 .. autofunction:: ibcdfo.run_pounders
 
+.. autofunction:: ibcdfo.pounders.h_identity
 .. autofunction:: ibcdfo.pounders.h_leastsquares
+.. autofunction:: ibcdfo.pounders.h_neg_leastsquares
 .. autofunction:: ibcdfo.pounders.h_emittance
+.. autofunction:: ibcdfo.pounders.h_squared_diff_from_mean
 
 |matlab|
 ^^^^^^^^

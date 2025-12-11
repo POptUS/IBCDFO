@@ -104,6 +104,7 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
+        hfun = ibcdfo.pounders.h_identity
         combinemodels = ibcdfo.pounders.combine_identity
 
         # Sample calling syntax for pounders
@@ -121,7 +122,6 @@ class TestPounders(unittest.TestCase):
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
-        hfun = lambda F: np.squeeze(F)
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
@@ -137,6 +137,7 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
+        hfun = ibcdfo.pounders.h_neg_leastsquares
         combinemodels = ibcdfo.pounders.combine_neg_leastsquares
 
         # Sample calling syntax for pounders
@@ -150,8 +151,6 @@ class TestPounders(unittest.TestCase):
         m = n
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
-
-        hfun = lambda F: -1.0 * np.sum(F**2)
 
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
 

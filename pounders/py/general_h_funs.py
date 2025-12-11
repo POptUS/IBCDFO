@@ -1,16 +1,45 @@
 import numpy as np
 
 
+def h_identity(F):
+    r"""
+    :math:`\hfun` function that allows users to use |pounders| for the special
+    case that their :math:`\Ffun: \R^{\np} \to \R` is already an objective
+    function or
+
+    .. math::
+
+        f(\psp) = \hfun\left(\Ffun(\psp)\right) = \Ffun(\psp).
+
+    The ``combine_identity`` function should also be passed to |pounders| when
+    using this :math:`\hfun` function.
+    """
+    return np.squeeze(F)
+
+
 def combine_identity(Cres, Gres, Hres):
     return Gres.squeeze(), Hres.squeeze()
 
 
+def h_neg_leastsquares(F):
+    r"""
+    :math:`\hfun` function for constructing the |pounders| negative
+    least-squares objective function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\Ffun(\psp)\right)
+                = -\sum_{i = 1}^{\nd} F_i(\psp)^2.
+
+    The ``combine_neg_leastsquares`` function should also be passed to
+    |pounders| when using this :math:`\hfun` function.
+    """
+    return -h_leastsquares(F)
+
+
 def combine_neg_leastsquares(Cres, Gres, Hres):
     G, H = combine_leastsquares(Cres, Gres, Hres)
-    G = -G
-    H = -H
-
-    return G, H
+    return -G, -H
 
 
 def h_leastsquares(F):
@@ -71,20 +100,45 @@ def h_emittance(F):
     when using this :math:`\hfun` function.
     """
     assert len(F) == 3, "Emittance must have exactly 3 inputs"
-    h = F[0] * F[1] - F[2] ** 2
-
-    return h
+    return F[0] * F[1] - F[2] ** 2
 
 
-def combine_squared_diff_from_mean(Cres, Gres, Hres):
+def h_squared_diff_from_mean(F, alpha):
+    r"""
+    :math:`\hfun` function for constructing the |pounders| objective function
+
+    .. math::
+
+        f(\psp; \alpha) = \hfun\left(\Ffun(\psp); \alpha\right)
+          = \sum_{i=1}^{\nd} \left(F_i(\psp) - \overline{\Ffun}(\psp)\right)^2
+            - \alpha \overline{\Ffun}(\psp)^2
+
+    where
+
+    .. math::
+
+        \overline{\Ffun}(\psp) = \frac{1}{\nd}\sum_{i=1}^{\nd} F_i(\psp)
+
+    is the average value of all components in :math:`\Ffun(\psp)`.   This
+    objective, therefore, prefers vectors close to their average.
+    For :math:`\alpha > 0` (:math:`\alpha < 0`), vectors with small (large)
+    averages are penalized.
+
+    Users can create |pounders|-compatible versions of this function and its
+    combine methods function for a particular :math:`\alpha` value as
+
+    .. code:: python
+
+        import functools
+        ALPHA = X.Y
+        hfun = functools.partial(h_squared_diff_from_mean, alpha=ALPHA)
+        combine = functools.partial(combine_squared_diff_from_mean, alpha=ALPHA)
     """
-    Combines models for the following h function
-       h = @(F)sum((F - 1/m*sum(F)).^2) - alpha*(1/m*sum(F))^2
-    That is, the objective is to have the vector close to it's mean, and have
-    a small mean (penalized by alpha)
-    """
-    alpha = 0
+    F_avg = np.mean(F)
+    return np.sum((F - F_avg) ** 2) - alpha * F_avg**2
 
+
+def combine_squared_diff_from_mean(Cres, Gres, Hres, alpha):
     n, _, m = Hres.shape
 
     m_sumF = np.mean(Cres)
