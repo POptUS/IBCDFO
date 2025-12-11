@@ -5,6 +5,7 @@ import numpy as np
 # Adjust this import to match where formquad actually lives in your codebase
 from ibcdfo.pounders.formquad import formquad
 
+
 def compare_formquad_results(results_dir="formquad_results"):
     pattern = os.path.join(results_dir, "formquad_out_row=*call=*.npy")
 
@@ -20,12 +21,12 @@ def compare_formquad_results(results_dir="formquad_results"):
         data = np.load(fname, allow_pickle=True).item()  # dict
 
         # Inputs
-        X      = data["X"]
-        Res    = data["Res"]
-        delta  = data["delta"]
-        xk_in  = data["xk_in"]
+        X = data["X"]
+        Res = data["Res"]
+        delta = data["delta"]
+        xk_in = data["xk_in"]
         np_max = data["np_max"]
-        Par    = data["Par"]
+        Par = data["Par"]
         last_arg = data["last_arg"]
 
         # Re-run formquad with saved inputs
@@ -49,14 +50,14 @@ def compare_formquad_results(results_dir="formquad_results"):
                 continue  # this output not saved for this call
 
             saved = data[key]
-            new   = new_outputs[key]
+            new = new_outputs[key]
 
             # Handle numpy arrays vs scalars/other types
             if isinstance(saved, np.ndarray) or isinstance(new, np.ndarray):
                 # Use allclose for floats; handles int arrays as well
                 equal = np.allclose(saved, new, rtol=1e-12, atol=1e-14)
             else:
-                equal = (saved == new)
+                equal = saved == new
 
             if not equal:
                 print(f"  MISMATCH for {key}:")
@@ -81,4 +82,3 @@ def compare_formquad_results(results_dir="formquad_results"):
 
 if __name__ == "__main__":
     compare_formquad_results()
-
