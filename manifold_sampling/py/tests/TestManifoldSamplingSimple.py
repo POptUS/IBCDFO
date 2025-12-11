@@ -27,8 +27,8 @@ class TestManifoldSampling(unittest.TestCase):
         np.random.seed(1)
 
         with self.assertRaises(ValueError):
-            X, F, h, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.pw_maximum, failing_objective, X0, L, U, nf_max, subprob_switch)
+            X, F, h, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, L, U, nf_max, subprob_switch)
 
         L = np.append(L, L)
-        X, F, h, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.pw_maximum, failing_objective, X0, L, U, nf_max, subprob_switch)
+        X, F, h, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, L, U, nf_max, subprob_switch)
         self.assertEqual(flag, -1, f"We are testing proper failure of pounders. (flag={flag})")

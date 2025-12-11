@@ -1,6 +1,18 @@
 Manifold Sampling
 =================
 
+.. todo::
+
+    * Does this method assume certain characteristics of :math:`\Ffun`?
+    * The notation here is in terms of composing :math:`\hfun` and :math:`\Ffun`,
+      which matches the notation in |pounders|.  However, manifold sampling
+      inline docs mention that hfuns work with :math:`\zvec`.  Reconcile
+      notation.
+    * I suspect that a general discussion of manifolds and h functions would be
+      useful here.  An upfront discussion might also allow for significant
+      simplification of the inline documentation of ``run_MSP`` and the ``h_*``
+      functions.
+
 The Manifold Sampling code solves the problem
 
 .. math::
@@ -30,6 +42,15 @@ to provide language-specific descriptions.
 Python
 ^^^^^^
 .. autofunction:: ibcdfo.run_MSP
+.. autofunction:: ibcdfo.manifold_sampling.h_one_norm
+.. autofunction:: ibcdfo.manifold_sampling.h_censored_L1_loss
+.. autofunction:: ibcdfo.manifold_sampling.h_pw_minimum
+.. autofunction:: ibcdfo.manifold_sampling.h_pw_minimum_squared
+.. autofunction:: ibcdfo.manifold_sampling.h_pw_maximum
+.. autofunction:: ibcdfo.manifold_sampling.h_pw_maximum_squared
+.. autofunction:: ibcdfo.manifold_sampling.h_piecewise_quadratic
+.. autofunction:: ibcdfo.manifold_sampling.h_quantile
+.. autofunction:: ibcdfo.manifold_sampling.h_max_gamma_over_KY
 
 |matlab|
 ^^^^^^^^

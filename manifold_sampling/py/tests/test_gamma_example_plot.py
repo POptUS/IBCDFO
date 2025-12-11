@@ -14,7 +14,7 @@ import ibcdfo
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling import max_gamma_over_KY as hfun
+from ibcdfo.manifold_sampling import h_max_gamma_over_KY as hfun
 
 dfo = np.loadtxt("dfo.dat")
 
