@@ -35,76 +35,71 @@ def _default_prior():
 
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
-    """
-    POUNDERS: Practical Optimization Using No Derivatives for sums of Squares
-      [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp)
+    r"""
+    Run a |pounders| run on the optimization problem specified by the given
+    arguments.
 
-    This code minimizes output from a structured blackbox function, solving
-    min { f(X)=sum_(i=1:m) F_i(x)^2, such that Low_j <= X_j <= Upp_j, j=1,...,n }
-    where the user-provided blackbox F is specified in the handle Ffun. Evaluation
-    of this F must result in the return of a 1-by-m row vector. Bounds must be
-    specified in Upp and Low but can be set to Low=-Inf(1,n) and Upp=Inf(1,n) if the
-    unconstrained solution is desired. The algorithm will not evaluate F
-    outside of these bounds, but it is possible to take advantage of function
-    values at infeasible X if these are passed initially through (X_init, F_init).
-    In each iteration, the algorithm forms an interpolating quadratic model
-    of the function and minimizes it in an infinity-norm trust region.
+    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
+        element numpy array for given :math:`\psp`
+    :param X_0:     :math:`\np` element numpy array that specifies the initial
+        point
+    :param n:       Dimension (number of continuous variables)
+    :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
+    :param g_tol:   Tolerance for the 2-norm of the model gradient
+    :param delta_0: Positive initial trust region radius
+    :param m:       Number of components returned from ``Ffun``
+    :param Low:     :math:`\np` element numpy array of lower bounds
+    :param Upp:     :math:`\np` element numpy array of upper bounds
+    :param Prior:   ``dict`` of past evaluations of ``Ffun``.  Set to ``None``
+        to run optimization assuming no past evaluations.  Otherwise arguments
+        must be provided for all dictionary entries?  **What if a user wants to
+        provide just values outside feasible region but not use any as the
+        initial point?**
 
-    Optionally, a user can specify an outer function (hfun) that maps the
-    elements of F to a scalar value (to be minimized). Doing this also requires
-    a function handle (combinemodels) that tells pounders how to map the linear
-    and quadratic terms from the models of the F_i into a single quadratic TRSP
-    model.
+        * **nfs** - Number of past function evaluations
+        * **X_init** - :math:`\mathrm{nfs} \times \np` numpy array of points
+          :math:`\psp_k`
+        * **F_init** - :math:`\mathrm{nfs} \times \nd` numpy array of values
+          :math:`\Ffun(\psp_k)` obtained with ``Ffun``
+        * **xk_in** -  Zero-based index into ``X_init`` and ``F_init`` that
+          corresponds to the point and value to use as initial point for
+          optimization.  **IS X_0 IGNORED IN THIS CASE?**
 
-    This software comes with no warranty, is not bug-free, and is not for
-    industrial use or public distribution.
-    Direct requests and bugs to wild@mcs.anl.gov.
-    A technical report/manual is forthcoming, a brief description is in
-    Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
+    :param Options: ``dict`` of method options.  Set to ``None`` to use default
+        values.
 
-    --INPUTS-----------------------------------------------------------------
-    Ffun    [f h] Function handle so that Ffun(x) evaluates F (@calfun)
-    X_0     [dbl] [1-by-n] Initial point (zeros(1,n))
-    n       [int] Dimension (number of continuous variables)
-    nf_max  [int] Maximum number of function evaluations (>=n+1) (100)
-    g_tol   [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
-    delta_0 [dbl] Positive initial trust region radius (.1)
-    m       [int] Number of components returned from Ffun
-    Low     [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
-    Upp     [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
+        * **printf** (default is 0)
 
-    Prior   [dict] of past evaluations of values Ffun with keys:
-        X_init  [dbl] [nfs-by-n] Set of initial points
-        F_init  [dbl] [nfs-by-m] Set of values for points in X_init
-        xk_in   [int] Index in X_init for initial starting point
-        nfs     [int] Number of function values in F_init known in advance
+            * 0 - No printing to screen
+            * 1 - Debugging level of output to screen
+            * 2 - More verbose screen output
 
-    Options [dict] of options to the method
-        printf   [int] 0 No printing to screen (default)
-                       1 Debugging level of output to screen
-                       2 More verbose screen output
-        spsolver       [int] Trust-region subproblem solver flag (2)
-        hfun           [f h] Function handle for mapping output from F
-        combinemodels  [f h] Function handle for combining models of F
+        * **spsolver** - Trust-region subproblem solver flag (default is 2)
+        * **hfun** - Outer function :math:`\hfun` that maps given
+          :math:`\Ffun(\psp)` to scalars for minimization (default is
+          sum-of-squares that yields :math:`f`)
+        * **combinemodels** - Function that maps the linear and quadratic terms
+          from the models of :math:`\Ffun` into a single quadratic model
+          (default is ordinary least squares)
 
-    Model   [dict] of options for model building
-        np_max  [int] Maximum number of interpolation points (>=n+1) (2*n+1)
-        Par     [1-by-5] list for formquad
+    :param Model: ``dict`` of model building options.  Set to ``None`` to use
+        default values.
 
-    --OUTPUTS----------------------------------------------------------------
-    X       [dbl] [nf_max+nfs-by-n] Locations of evaluated points
-    F       [dbl] [nf_max+nfs-by-m] Ffun values of evaluated points in X
-    hF      [dbl] [nf_max+nfs-by-1] Composed values h(Ffun) for evaluated points in X
-    flag    [dbl] Termination criteria flag:
-                  > 0 exceeded nf_max evals, flag = norm of grad at final X
-                  = 0 normal termination because model grad < g_tol on small delta
-                  = -1 if input was fatally incorrect (error message shown)
-                  = -2 if a valid model produced X[nf] == X[xk_in] or (mdec == 0, hF[nf] == hF[xk_in])
-                  = -3 error if a NaN was encountered
-                  = -4 error in TRSP Solver
-                  = -5 unable to get model improvement with current parameters
-                  = -6 delta has reached delta_min with a valid model
-    xk_in    [int] Index of point in X representing approximate minimizer
+        * **np_max** -  Maximum number of interpolation points (:math:`>\np+1`)
+          (default is :math:`2\np+1`)
+        * **Par** - Five element ``list`` for ``formquad`` (default is **???**)
+
+    :return:
+        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` numpy array containing
+          locations of evaluated points in the order in which they were
+          evaluated
+        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` numpy array containing
+          the function values at ``X`` with matching ordering
+        * **hF** - :math:`\mathrm{nf\_max+nfs}\times 1` Composed values
+          ``hfun(Ffun)`` for evaluated points in ``X``
+        * **flag** - Termination criteria flag (See general |pounders| documentation)
+        * **xk_in** - Zero-based index of point in ``X`` representing
+          approximate minimizer.  **EXPLAIN HOW THIS WAS DETERMINED?**
     """
     if Options is None:
         Options = {}
@@ -195,7 +190,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
+        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             for i in range(int(min(n - mp, nf_max - (nf + 1)))):
@@ -212,8 +207,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
                 break
-            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-
+            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
             if mp < n:
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
                 return X, F, hF, flag, xk_in
@@ -264,7 +258,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     break
                 # Recalculate gradient based on a MFN model
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
-
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
@@ -354,20 +347,17 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
-
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xk_in unchanged)
                 D = X[: nf + 1] - X[xk_in]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-
                 if len(Mind) < n + 1:
                     # This is almost never triggered but is a safeguard for
                     # pathological cases where one needs to recover from
                     # unusual conditioning of recent interpolation sets
                     Model["Par"][4] = 1
                     [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-
                     Model["Par"][4] = 0
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
