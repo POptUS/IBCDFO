@@ -109,8 +109,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if Options is None:
         Options = {}
 
-    row = int(Options["row"])
-
     if Model is None:
         Model = {}
         Model["Par"] = _default_model_par_values(n)
@@ -193,14 +191,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     Cres = F[xk_in]
     Hres = np.zeros((n, n, m))
     ng = np.nan  # Needed for early termination, e.g., if a model is never built
-    call = 0
     while nf + 1 < nf_max:
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
-        call += 1
-        np.save(f"formquad_results/formquad_out_row={row}_call={call}.npy", {"last_arg": 0, "X": X[0:nf+1], "Res": Res[0:nf+1], "delta": delta, "xk_in": xk_in, "np_max": Model["np_max"], "Par": Model["Par"], "Mdir": Mdir, "mp": mp, "valid": valid, "Gres": Gres, "H": Hresdel, "Mind": Mind}, allow_pickle=True)
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             for i in range(int(min(n - mp, nf_max - (nf + 1)))):
@@ -218,8 +213,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             if nf + 1 >= nf_max:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-            call += 1
-            np.save(f"formquad_results/formquad_out_row={row}_call={call}.npy", {"last_arg": 0, "X": X[0:nf+1], "Res": Res[0:nf+1], "delta": delta, "xk_in": xk_in, "np_max": Model["np_max"], "Par": Model["Par"], "mp": mp, "valid": valid, "Gres": Gres, "H": Hresdel}, allow_pickle=True)
 
             if mp < n:
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
@@ -255,8 +248,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         if ng < g_tol:
             delta = np.maximum(g_tol, np.max(np.abs(X[xk_in])) * eps)
             [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
-            call += 1
-            np.save(f"formquad_results/formquad_out_row={row}_call={call}.npy", {"last_arg": 1, "X": X[0:nf+1], "Res": F[0:nf+1], "delta": delta, "xk_in": xk_in, "np_max": Model["np_max"], "Par": Model["Par"], "Mdir": Mdir, "valid": valid}, allow_pickle=True)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
@@ -273,8 +264,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     break
                 # Recalculate gradient based on a MFN model
                 [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
-                call += 1
-                np.save(f"formquad_results/formquad_out_row={row}_call={call}.npy", {"last_arg": 0, "X": X[0:nf+1], "Res": F[0:nf+1], "delta": delta, "xk_in": xk_in, "np_max": Model["np_max"], "Par": Model["Par"], "valid": valid, "Gres": Gres, "H": Hres, "Mind": Mind}, allow_pickle=True)
 
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
@@ -365,16 +354,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
             [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
-            call += 1
-            np.save(f"formquad_results/formquad_out_row={row}_call={call}.npy", {"last_arg": 1, "X": X[0:nf+1], "Res": F[0:nf+1], "delta": delta, "xk_in": xk_in, "np_max": Model["np_max"], "Par": Model["Par"], "Mdir": Mdir, "mp": mp, "valid": valid}, allow_pickle=True)
 
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xk_in unchanged)
                 D = X[: nf + 1] - X[xk_in]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-                call += 1
-                np.save(f"formquad_results/formquad_out_row={row}_call={call}.npy", {"last_arg": 0, "X": X[0:nf+1], "Res": Res[0:nf+1], "delta": delta, "xk_in": xk_in, "np_max": Model["np_max"], "Par": Model["Par"], "valid": valid, "Gres": Gres, "H": Hresdel, "Mind": Mind}, allow_pickle=True)
 
                 if len(Mind) < n + 1:
                     # This is almost never triggered but is a safeguard for
@@ -382,8 +367,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     # unusual conditioning of recent interpolation sets
                     Model["Par"][4] = 1
                     [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-                    call += 1
-                    np.save(f"formquad_results/formquad_out_row={row}_call={call}.npy", {"last_arg": 0, "X": X[0:nf+1], "Res": Res[0:nf+1], "delta": delta, "xk_in": xk_in, "np_max": Model["np_max"], "Par": Model["Par"], "valid": valid, "Gres": Gres, "H": Hresdel, "Mind": Mind}, allow_pickle=True)
 
                     Model["Par"][4] = 0
                 Hres = Hres + Hresdel
