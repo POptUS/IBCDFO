@@ -55,8 +55,8 @@ for row = 1:length(dfo)
             hfun = @h_leastsquares;
             combinemodels = @combine_leastsquares;
         elseif hfun_cases == 2
-            ALPHA = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
-            hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - ALPHA * (1 / length(F) * sum(F))^2;
+            ALPHA = 0;
+            hfun = @(F) h_squared_diff_from_mean(F, ALPHA);
             combinemodels = @(Cres, Gres, Hres) combine_squared_diff_from_mean(Cres, Gres, Hres, ALPHA);
         elseif hfun_cases == 3
             if m ~= 3 % Emittance is only defined for the case when m == 3
