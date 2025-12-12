@@ -1,5 +1,5 @@
-function [h, grads, Hash] = censored_L1_loss(z, H0)
-% This a generalized version of Womersley's censored L1 loss function.
+function [h, grads, Hash] = h_censored_L1_loss(z, H0)
+% Please refer to the documentation for the Python version of this h function.
 
 % Hashes are output (and must be input) in the following fashion:
 %   Hash elements are strings of p integers.

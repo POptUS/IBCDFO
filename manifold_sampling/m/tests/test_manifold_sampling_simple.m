@@ -4,12 +4,12 @@ function [] = test_manifold_sampling_simple()
 
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 oldpath = addpath(fullfile(here_path, '..'));
-addpath(fullfile(here_path, '..', 'h_examples'));
+addpath(fullfile(here_path, '..', 'general_smooth_h_funs'));
 
 nf_max = 300;
 factor = 10;
 
-hfun = @sum_squared;
+hfun = @h_leastsquares;
 subprob_switch = 'linprog';
 
 load dfo.dat;

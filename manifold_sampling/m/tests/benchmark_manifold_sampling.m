@@ -11,7 +11,7 @@ function [] = benchmark_manifold_sampling()
 
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 oldpath = addpath(fullfile(here_path, '..'));
-addpath(fullfile(here_path, '..', 'h_examples'));
+addpath(fullfile(here_path, '..', 'general_smooth_h_funs'));
 
 global C D Qs zs cs
 factor = 10;
@@ -58,7 +58,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     jj = 1;
-    for hfuns = {@censored_L1_loss, @max_sum_beta_plus_const_viol, @piecewise_quadratic, @piecewise_quadratic_1, @pw_maximum,  @pw_maximum_squared, @pw_minimum, @pw_minimum_squared, @quantile, @one_norm}
+    for hfuns = {@h_censored_L1_loss, @h_max_sum_beta_plus_const_viol, @h_piecewise_quadratic, @h_piecewise_quadratic_1, @h_pw_maximum, @h_pw_maximum_squared, @h_pw_minimum, @h_pw_minimum_squared, @h_quantile, @h_one_norm}
         hfun = hfuns{1};
         nf_max = 100;
         if row == 1

@@ -1,7 +1,7 @@
-function [h, grads, Hash] = sum_squared(z, H0)
+function [h, grads, Hash] = h_leastsquares(z, H0)
 % Evaluates the sum-squared objective
-%   min sum_j { z_j^2 }
-%
+%   sum_j { z_j^2 }
+
 % Inputs:
 %  z:              [1 x p]   point where we are evaluating h
 %  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z

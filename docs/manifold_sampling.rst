@@ -53,6 +53,11 @@ Python
 
 :math:`\hfun` Functions
 ^^^^^^^^^^^^^^^^^^^^^^^
+.. todo::
+
+    * The set of functions available in |matlab| and Python are **not**
+      equal.
+
 The following :math:`\hfun` functions are available for use with both the Python
 and |matlab| implementations of Manifold Sampling.  While they are presented
 through their integration into the Python package, the documentation is valid
