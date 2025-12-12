@@ -127,7 +127,7 @@ else
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     addpath(fullfile(here_path, 'general_h_funs'));
     hfun = @(F)sum(F.^2);
-    combinemodels = @leastsquares;
+    combinemodels = @combine_leastsquares;
 end
 if ~isfield(Options, 'spsolver')
     Options.spsolver = 2; % Use minq5 by default

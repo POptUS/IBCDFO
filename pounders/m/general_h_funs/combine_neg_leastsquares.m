@@ -1,4 +1,4 @@
-function [G, H] = neg_leastsquares(Cres, Gres, Hres)
-[G, H] = leastsquares(Cres, Gres, Hres);
+function [G, H] = combine_neg_leastsquares(Cres, Gres, Hres)
+[G, H] = combine_leastsquares(Cres, Gres, Hres);
 G = -G;
 H = -H;
