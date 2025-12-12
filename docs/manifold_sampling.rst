@@ -13,7 +13,9 @@ Manifold Sampling
       simplification of the inline documentation of ``run_MSP`` and the ``h_*``
       functions.
 
-The Manifold Sampling code solves the problem
+General Description
+-------------------
+The Manifold Sampling method solves the problem
 
 .. math::
     \min_{\psp \in \R^{\np}} \hfun(\Ffun(\psp))
@@ -27,6 +29,8 @@ More details can be found in :cite:t:`MSP_2024`, :cite:t:`MSP_2021`,
 
 Programmatic Interface
 ----------------------
+Status Code
+^^^^^^^^^^^
 All Manifold Sampling implementations return a termination criteria flag.  The
 interpretation of the value of the flag is identical across implementations and
 possible values are
@@ -42,6 +46,19 @@ to provide language-specific descriptions.
 Python
 ^^^^^^
 .. autofunction:: ibcdfo.run_MSP
+
+|matlab|
+^^^^^^^^
+.. mat:autofunction:: manifold_sampling.m.manifold_sampling_primal
+
+:math:`\hfun` Functions
+^^^^^^^^^^^^^^^^^^^^^^^
+The following :math:`\hfun` functions are available for use with both the Python
+and |matlab| implementations of Manifold Sampling.  While they are presented
+through their integration into the Python package, the documentation is valid
+for the |matlab| version of these functions, which are located in
+``manifold_sampling/m/general_smooth_h_funs``.
+
 .. autofunction:: ibcdfo.manifold_sampling.h_one_norm
 .. autofunction:: ibcdfo.manifold_sampling.h_censored_L1_loss
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_minimum
@@ -51,7 +68,3 @@ Python
 .. autofunction:: ibcdfo.manifold_sampling.h_piecewise_quadratic
 .. autofunction:: ibcdfo.manifold_sampling.h_quantile
 .. autofunction:: ibcdfo.manifold_sampling.h_max_gamma_over_KY
-
-|matlab|
-^^^^^^^^
-.. mat:autofunction:: manifold_sampling.m.manifold_sampling_primal

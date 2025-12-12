@@ -261,7 +261,9 @@ def h_piecewise_quadratic(z, H0=None, **kwargs):
     .. todo::
 
         * I don't understand that formula.  Is :math:`z_j` supposed to be a
-          vector instead of a component of :math:`\zvec`?
+          vector instead of a component of :math:`\zvec`?  Is :math:`j` supposed
+          to index the set of individual functions that comprise the piecewise
+          function?
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h

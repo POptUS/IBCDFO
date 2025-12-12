@@ -1,6 +1,7 @@
 |pounders|
 ==========
-
+General Description
+-------------------
 The Practical Optimization Using No Derivatives and Exploiting Recognized
 Structure method, better known as |pounders|, minimizes a sum of squares of
 blackbox (''zeroth-order'') functions, solving
@@ -41,6 +42,8 @@ brief description can also be found in :cite:t:`UNEDF0_2010`.
 
 Programmatic Interface
 ----------------------
+Status Code
+^^^^^^^^^^^
 All |pounders| implementations return a termination criteria flag.  The
 interpretation of the value of the flag is identical across implementations
 and possible values are
@@ -64,12 +67,20 @@ Python
 ^^^^^^
 .. autofunction:: ibcdfo.run_pounders
 
-.. autofunction:: ibcdfo.pounders.h_identity
-.. autofunction:: ibcdfo.pounders.h_leastsquares
-.. autofunction:: ibcdfo.pounders.h_neg_leastsquares
-.. autofunction:: ibcdfo.pounders.h_emittance
-.. autofunction:: ibcdfo.pounders.h_squared_diff_from_mean
-
 |matlab|
 ^^^^^^^^
 .. mat:autofunction:: pounders.m.pounders
+
+:math:`\hfun` Functions
+^^^^^^^^^^^^^^^^^^^^^^^
+The following :math:`\hfun` functions are available for use with both the Python
+and |matlab| implementations of |pounders|.  While they are presented through
+their integration into the Python package, the documentation is valid for the
+|matlab| version of these functions, which are located in
+``pounders/m/general_h_funs``.
+
+.. autofunction:: ibcdfo.pounders.h_leastsquares
+.. autofunction:: ibcdfo.pounders.h_neg_leastsquares
+.. autofunction:: ibcdfo.pounders.h_identity
+.. autofunction:: ibcdfo.pounders.h_emittance
+.. autofunction:: ibcdfo.pounders.h_squared_diff_from_mean
