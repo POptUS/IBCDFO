@@ -28,7 +28,7 @@ function test_identity_combine()
     delta_0 = 0.1;
     nfs = 1;
 
-    hfun = @(F)F;
+    hfun = @h_identity;
     combinemodels = @combine_identity;
 
     Ffun = @(x)calfun_wrapper_y(x, BenDFO, 'smooth');

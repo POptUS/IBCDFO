@@ -24,7 +24,7 @@ Low = -Inf(1, n);
 Upp = Inf(1, n);
 printf = 1;
 spsolver = 2;
-hfun = @(F)F;
+hfun = @h_identity;
 combinemodels = @combine_identity;
 
 Prior.xk_in = xk_in;
