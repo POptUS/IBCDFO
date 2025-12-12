@@ -17,6 +17,7 @@ from .pounders.pounders_concurrent import pounders as run_pounders_concurrent
 from .manifold_sampling.manifold_sampling_primal import (
     manifold_sampling_primal as run_MSP
 )
+# fmt: on
 
 # ----- Python unittest-based test framework
 # Used for automatic test discovery
