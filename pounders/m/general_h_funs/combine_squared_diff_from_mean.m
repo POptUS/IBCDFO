@@ -1,10 +1,8 @@
-function [G, H] = squared_diff_from_mean(Cres, Gres, Hres)
+function [G, H] = combine_squared_diff_from_mean(Cres, Gres, Hres, alpha)
 % Combines models for the following h function
 %    h = @(F)sum((F - 1/m*sum(F)).^2) - alpha*(1/m*sum(F))^2
 % That is, the objective is to have the vector close to it's mean, and have
 % a small mean (penalized by alpha)
-alpha = 0;
-
 [n, ~, m] = size(Hres);
 
 m_sumF = mean(Cres);

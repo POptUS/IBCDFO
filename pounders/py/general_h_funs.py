@@ -1,3 +1,10 @@
+"""
+IMPORTANT: The set of functions provided here should match exactly the analogous
+set of functions offered in the MATLAB POUNDERS implementation.  In addition,
+the inline documentation in this file should be correct for both sets of
+functions.
+"""
+
 import numpy as np
 
 

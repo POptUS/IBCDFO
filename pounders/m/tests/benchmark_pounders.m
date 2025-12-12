@@ -53,17 +53,17 @@ for row = 1:length(dfo)
         Results = cell(3, 53);
         if hfun_cases == 1
             hfun = @(F)sum(F.^2);
-            combinemodels = @leastsquares;
+            combinemodels = @combine_leastsquares;
         elseif hfun_cases == 2
-            alpha = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
-            hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
-            combinemodels = @squared_diff_from_mean;
+            ALPHA = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
+            hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - ALPHA * (1 / length(F) * sum(F))^2;
+            combinemodels = @(Cres, Gres, Hres) combine_squared_diff_from_mean(Cres, Gres, Hres, ALPHA);
         elseif hfun_cases == 3
             if m ~= 3 % Emittance is only defined for the case when m == 3
                 continue
             end
-            hfun = @emittance_h;
-            combinemodels = @emittance_combine;
+            hfun = @h_emittance;
+            combinemodels = @combine_emittance;
             printf = 2; % Just to test this feature
         end
         disp([row, hfun_cases]);

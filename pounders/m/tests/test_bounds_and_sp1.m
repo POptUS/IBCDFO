@@ -62,14 +62,14 @@ for row = [7, 8]
         for hfun_cases = 1:3
             if hfun_cases == 1
                 hfun = @(F)sum(F.^2);
-                combinemodels = @leastsquares;
+                combinemodels = @combine_leastsquares;
             elseif hfun_cases == 2
-                alpha = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
-                hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
-                combinemodels = @squared_diff_from_mean;
+                ALPHA = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
+                hfun = @(F)sum((F - 1 / length(F) * sum(F)).^2) - ALPHA * (1 / length(F) * sum(F))^2;
+                combinemodels = @(Cres, Gres, Hres) combine_squared_diff_from_mean(Cres, Gres, Hres, ALPHA);
             elseif hfun_cases == 3
                 hfun = @(F)-1 * sum(F.^2);
-                combinemodels = @neg_leastsquares;
+                combinemodels = @combine_neg_leastsquares;
             end
 
             Prior.xk_in = xk_in;
