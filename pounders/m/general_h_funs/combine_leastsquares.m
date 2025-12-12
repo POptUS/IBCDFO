@@ -1,4 +1,4 @@
-function [G, H] = leastsquares(Cres, Gres, Hres)
+function [G, H] = combine_leastsquares(Cres, Gres, Hres)
 [n, ~, m] = size(Hres);
 
 G = 2 * Gres * Cres';

@@ -11,8 +11,8 @@ Upp = ones(1, n); % 1-by-n Vector of upper bounds
 printf = true;
 
 % Not as important to adjust:
-hfun = @emittance_h; % You need to define or handle external functions differently in MATLAB
-combinemodels = @emittance_combine; % Same here for external functions
+hfun = @h_emittance; % You need to define or handle external functions differently in MATLAB
+combinemodels = @combine_emittance; % Same here for external functions
 m = 3; % The number of outputs from the beamline simulation. Should be 3 for emittance minimization
 g_tol = 1e-8; % Stopping tolerance
 delta_0 = 0.1; % Initial trust-region radius

@@ -1,6 +1,7 @@
-function [h, grads, Hash] = one_norm(z, H0)
-    % Evaluates sum(abs(z_j))
-    %
+function [h, grads, Hash] = h_one_norm(z, H0)
+    % Please refer to the documentation for the Python version of this h
+    % function.
+
     % Inputs:
     %   z:    [1 x p] point where we are evaluating h
     %   H0:   (optional) [1 x l cell of strings] set of hashes where to evaluate z

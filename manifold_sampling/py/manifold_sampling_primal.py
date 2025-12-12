@@ -1,5 +1,5 @@
 import numpy as np
-from ibcdfo.pounders import checkinputss
+from ibcdfo.pounders import _checkinputss as checkinputss
 
 from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts

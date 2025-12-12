@@ -1,29 +1,29 @@
-function [h, grads, Hash] = pw_maximum_squared(z, H0)
-% Evaluates the pointwise maximum function
-%   max_j { z_j^2 }
-%
+function [h, grads, Hash] = h_quantile(z, H0)
+% Please refer to the documentation for the Python version of this h function.
+
 % Inputs:
 %  z:              [1 x p]   point where we are evaluating h
-%  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+%  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
 
 % Outputs:
 %  h: [dbl]                       function value
-%  grads: [p x l]                 gradients of each of the l manifolds active at z
-%  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+%  grads: [p x l]                 gradients of each of the l quadratics active at z
+%  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
+
+q = 2; % hard-coded. Eventually, make global or (preferred) pass it in as an argument.
 
 z = z(:);
-n = length(z);
 
 if nargin == 1
-
     z2 = z.^2;
-    h = max(z2);
+    sortedz2 = sort(z2);
+    h = sortedz2(q);
 
     atol = 1e-8;
     rtol = 1e-8;
     inds = find(abs(h - z2) <= atol + rtol * abs(z2));
 
-    grads = zeros(n, length(inds));
+    grads = zeros(length(z), length(inds));
 
     Hash = cell(1, length(inds));
     for j = 1:length(inds)

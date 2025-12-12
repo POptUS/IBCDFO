@@ -1,30 +1,28 @@
-function [h, grads, Hash] = quantile(z, H0)
-% Evaluates the q^th quantile of the values
-%  { z_j^2 }
-%
+function [h, grads, Hash] = h_pw_maximum_squared(z, H0)
+% Please refer to the documentation for the Python version of this h function.
+
 % Inputs:
 %  z:              [1 x p]   point where we are evaluating h
-%  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
+%  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
 
 % Outputs:
 %  h: [dbl]                       function value
-%  grads: [p x l]                 gradients of each of the l quadratics active at z
-%  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
-
-q = 2; % hard-coded. Eventually, make global or (preferred) pass it in as an argument.
+%  grads: [p x l]                 gradients of each of the l manifolds active at z
+%  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
 
 z = z(:);
+n = length(z);
 
 if nargin == 1
+
     z2 = z.^2;
-    sortedz2 = sort(z2);
-    h = sortedz2(q);
+    h = max(z2);
 
     atol = 1e-8;
     rtol = 1e-8;
     inds = find(abs(h - z2) <= atol + rtol * abs(z2));
 
-    grads = zeros(length(z), length(inds));
+    grads = zeros(n, length(inds));
 
     Hash = cell(1, length(inds));
     for j = 1:length(inds)
