@@ -64,6 +64,12 @@ through their integration into the Python package, the documentation is valid
 for the |matlab| version of these functions, which are located in
 ``manifold_sampling/m/general_smooth_h_funs``.
 
+.. todo::
+
+    * Give example of how to use :math:`\hfun` functions that require the
+      specification of ``kwargs``?  See |pounders| h function docs for examples
+      of how to do this.
+
 .. autofunction:: ibcdfo.manifold_sampling.h_one_norm
 .. autofunction:: ibcdfo.manifold_sampling.h_censored_L1_loss
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_minimum

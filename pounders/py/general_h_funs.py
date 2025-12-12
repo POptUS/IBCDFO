@@ -128,11 +128,14 @@ def h_squared_diff_from_mean(F, alpha):
 
     is the average value of all components in :math:`\Ffun(\psp)`.   This
     objective, therefore, prefers vectors close to their average.
-    For :math:`\alpha > 0` (:math:`\alpha < 0`), vectors with small (large)
-    averages are penalized.
+
+    :param: :math:`\alpha` is a problem-specific parameter that specifies how
+        much the objective function should penalize small (large) averages for
+        :math:`\alpha` positive (negative).
 
     Users can create |pounders|-compatible versions of this function and its
-    combine methods function for a particular :math:`\alpha` value as
+    combine models function for a particular :math:`\alpha` value with code such
+    as
 
     .. code:: python
 

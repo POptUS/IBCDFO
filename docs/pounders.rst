@@ -66,6 +66,7 @@ to provide language-specific descriptions.
 Python
 ^^^^^^
 .. autofunction:: ibcdfo.run_pounders
+.. autofunction:: ibcdfo.run_pounders_concurrent
 
 |matlab|
 ^^^^^^^^

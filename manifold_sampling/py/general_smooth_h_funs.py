@@ -22,6 +22,8 @@ def h_censored_L1_loss(z, H0=None, **kwargs):
     .. todo::
         * Either add in the equation or a reference to an article that describes
           this.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
     """
 
     C = kwargs["C"]
@@ -255,15 +257,15 @@ def h_piecewise_quadratic(z, H0=None, **kwargs):
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp)\right)
-                = \max_{j\in\set{1, \cdots, \nd}}\set{\norm{\zvec - z_j}_{Q_j^2} + b_j}
+        f(\psp; \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l)
+            & = \hfun\left(\zvec(\psp); \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l\right)\\
+            & = \max_{j\in\set{1, \cdots, l}}\set{\norm{\zvec(\psp) - \zvec_j}_{Q_j^2} + b_j}
 
     .. todo::
 
-        * I don't understand that formula.  Is :math:`z_j` supposed to be a
-          vector instead of a component of :math:`\zvec`?  Is :math:`j` supposed
-          to index the set of individual functions that comprise the piecewise
-          function?
+        * Please check if the above formula is correct.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -455,7 +457,7 @@ def h_max_gamma_over_KY(z, H0=None):
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp); KY_1, \cdots, KY_{11}\right)
+        f(\psp; KY_1, \cdots, KY_{11}) = \hfun\left(\zvec(\psp); KY_1, \cdots, KY_{11}\right)
                 = \max \left\{\frac{z_1(\psp)}{KY_1}, \cdots,
                               \frac{z_{11}(\psp)}{KY_{11}}\right\},
 
