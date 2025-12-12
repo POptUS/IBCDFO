@@ -52,7 +52,7 @@ for row = 1:length(dfo)
     for hfun_cases = 1:3
         Results = cell(3, 53);
         if hfun_cases == 1
-            hfun = @(F)sum(F.^2);
+            hfun = @h_leastsquares;
             combinemodels = @combine_leastsquares;
         elseif hfun_cases == 2
             ALPHA = 0; % If changed here, also needs to be adjusted in squared_diff_from_mean.m
