@@ -11,7 +11,7 @@ function [] = benchmark_manifold_sampling()
 
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 oldpath = addpath(fullfile(here_path, '..'));
-addpath(fullfile(here_path, '..', 'general_smooth_h_funs'));
+addpath(fullfile(here_path, '..', 'general_nonsmooth_h_funs'));
 
 global C D Qs zs cs
 factor = 10;

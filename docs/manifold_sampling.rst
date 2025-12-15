@@ -62,7 +62,7 @@ The following :math:`\hfun` functions are available for use with both the Python
 and |matlab| implementations of Manifold Sampling.  While they are presented
 through their integration into the Python package, the documentation is valid
 for the |matlab| version of these functions, which are located in
-``manifold_sampling/m/general_smooth_h_funs``.
+``manifold_sampling/m/general_nonsmooth_h_funs``.
 
 .. todo::
 

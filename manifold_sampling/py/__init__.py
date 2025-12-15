@@ -4,7 +4,7 @@ Common and useful h functions for use with the Manifold Sampling method
 
 # ----- PUBLIC INTERFACE
 # fmt: off
-from .general_smooth_h_funs import (
+from .general_nonsmooth_h_funs import (
     h_censored_L1_loss,
     h_max_gamma_over_KY,
     h_one_norm,
