@@ -2,7 +2,7 @@ function [D_k, Act_Z_k, f_k] = choose_generator_set(X, Hash, xkin, nf, delta, F,
 % Returns:
 
 % D_k:     A set of gradients of h_j at points near X(xkin,:)
-% Act_Z_k: A set of hashes for points in D_k 
+% Act_Z_k: A set of hashes for points in D_k
 
 Act_Z_k = Hash(xkin, ~cellfun(@isempty, Hash(xkin, :)));
 
