@@ -8,6 +8,7 @@ aren't "general implementations" of h_funs. They have the specific
 interface/form needed for manifold-sampling-type methods.
 """
 
+
 def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     if n is None:
         n = len(z)
