@@ -5,7 +5,7 @@ from ibcdfo.pounders import _formquad as formquad
 from .call_user_scripts import call_user_scripts
 
 
-def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nf_max, L, U):
+def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nf_max, L, U):
     # Evaluate model-improving points to pick best one
     # ! May eventually want to normalize Mdir first for infty norm
     # Plus directions

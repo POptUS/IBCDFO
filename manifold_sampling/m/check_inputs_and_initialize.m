@@ -32,8 +32,6 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     tol.hfun_test_mode = 1;   % [bool] Run some checks every time the hfun is called to see if it is implemented correctly.
     % kappa_mh = 0;    % [dbl] > 0 that bounds the component model Hessians
 
-    tol.gentype = 2;
-
     assert(nf_max >= n + 1, "nf_max is less than n+1, exiting");
 
     X = [x0; zeros(nf_max - 1, n)]; % Stores the point locations
