@@ -4,7 +4,7 @@ function [] = test_manifold_sampling_simple()
 
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 oldpath = addpath(fullfile(here_path, '..'));
-addpath(fullfile(here_path, '..', 'general_smooth_h_funs'));
+addpath(fullfile(here_path, 'general_smooth_h_funs'));
 
 nf_max = 300;
 factor = 10;
