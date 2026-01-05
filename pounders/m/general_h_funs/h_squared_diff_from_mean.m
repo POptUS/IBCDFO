@@ -9,7 +9,7 @@ function [h] = h_squared_diff_from_mean(F, alpha)
     %
     %   ALPHA = X.Y;
     %   hfun = @(F) h_squared_diff_from_mean(F, ALPHA);
-    %   combinemethods @(Cres, Gres, Hres) combine_squared_diff_from_mean(Cres, Gres, Hres, ALPHA);
+    %   combinemethods = @(Cres, Gres, Hres) combine_squared_diff_from_mean(Cres, Gres, Hres, ALPHA);
     %
     h = sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
 end

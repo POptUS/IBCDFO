@@ -99,7 +99,7 @@ def h_emittance(F):
     .. math::
 
         f(\psp) = \hfun\left(\Ffun(\psp)\right)
-                = \Ffuncomp{1}(\psp)\Ffuncomp{2}(\psp) - \Ffuncomp{3}(\psp)
+                = \Ffuncomp{1}(\psp)\Ffuncomp{2}(\psp) - \Ffuncomp{3}(\psp)^2
 
     limited to the special case of :math:`\Ffun : \R^{\np} \to \R^3`.
 
