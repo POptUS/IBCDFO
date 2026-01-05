@@ -42,13 +42,12 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
     # --- Run pounders without using the structure ---
+    identity_hfun = ibcdfo.pounders.h_identity
     combinemodels = ibcdfo.pounders.combine_identity
 
     def unstructured_obj(x):
         maxout = hfun(Ffun(x))
         return np.squeeze(maxout[0])  # only the function value
-
-    identity_hfun = lambda F: np.squeeze(F)
 
     nf_max = 200
     g_tol = 10**-13
