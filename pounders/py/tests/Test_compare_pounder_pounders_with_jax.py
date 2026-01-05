@@ -44,7 +44,7 @@ for call in range(2):
         Ffun_to_use = lambda gamma: Ffun(gamma, True)
         m = 1  # not using structure
         Opts = {
-            "hfun": lambda F: np.squeeze(F),  # not using structure
+            "hfun": ibcdfo.pounders.h_identity,  # not using structure
             "combinemodels": ibcdfo.pounders.combine_identity,  # not using structure
         }
     elif call == 1:
