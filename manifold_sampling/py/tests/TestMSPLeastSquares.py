@@ -31,9 +31,9 @@ class TestMSPLeastSquares(unittest.TestCase):
             x0 = dfoxs(n, nprob, FACTOR**factor_power)
 
             def Ffun(y):
-                out = calfun(y, m, nprob, "smooth", 0, num_outs=2)[1]
+                out = calfun(y, m, nprob, "smooth", np.nan, num_outs=2)[1]
                 assert len(out) == m, "Incorrect output dimension"
                 return np.squeeze(out)
 
-            X, F, hF, xkin, flag = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
+            _, _, hF, xkin, _ = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
             self.assertTrue(hF[xkin] <= 36.0 + 1.0e-8)
