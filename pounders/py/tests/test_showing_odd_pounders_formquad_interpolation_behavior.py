@@ -19,7 +19,7 @@ spsolver = 2
 nf_max = 1000
 g_tol = 1e-13
 combinemodels = ibcdfo.pounders.combine_identity
-hfun = lambda F: np.squeeze(F)
+hfun = ibcdfo.pounders.h_identity
 Opts = {"printf": 1, "spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
