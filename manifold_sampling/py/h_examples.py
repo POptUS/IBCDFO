@@ -456,3 +456,88 @@ def max_gamma_over_KY(z, H0=None):
             h[k] = vals[j]
             grads[j, k] = grad_mag[j]
         return h, grads
+
+
+def max_sum_beta_plus_const_viol(z, H0= None):
+    """
+    Encodes the objective 
+        max_{i=0,...,p1} z_i + alpha * sum_{i=p1+1,...,p} max(z_i, 0)^2
+
+    Behavior:
+    - If H0 is None: returns (h, grads, Hashes)
+        * h is a scalar (0-d np.ndarray)
+        * grads is shape (p, n_active)
+        * Hashes is a list[str] of length n_active, each a '0'/'1' string of length p
+    - If H0 is provided: returns (h, grads, None)
+        * h is shape (J,)
+        * grads is shape (p, J)
+    """
+    p = z.size
+    p1 = p - 1
+
+    alpha = 0.0
+    h_activity_tol = 1e-8
+
+    if H0 is None:
+        h1 = np.max(z[:p1])
+
+        # h2 = alpha * sum(max(z(p1+1:end), 0).^2); -> z[p1:]
+        h2 = float(alpha * np.sum(np.maximum(z[p1:], 0.0) ** 2))
+        h = h1 + h2
+
+        # Active indices for the max term:
+        atol = h_activity_tol
+        rtol = h_activity_tol
+
+        inds1 = np.where(np.abs(h1 - z[:p1]) <= atol + rtol * np.abs(z[:p1]))[0]
+        inds2 = p1 + np.where(zp >= -rtol)[0] 
+
+        grads = np.zeros((p, inds1.size))
+        Hash = []
+
+        for j, idx in enumerate(active1):
+            bits = ["0"] * p
+            bits[idx] = "1"
+            for ii in inds2:
+                bits[ii] = "1"
+            hash_str = "".join(bits)
+            Hash.append(hash_str)
+
+            grads[idx, j] = 1.0
+            grads[inds2, j] = alpha * 2.0 * z[inds2]
+
+        return h, grads, Hash
+
+    else: 
+        # H0 provided: evaluate on given hashes
+        J = len(H0)
+        h = np.zeros(J, dtype=float)
+        grads = np.zeros((p, J), dtype=float)
+
+        for k, hk in enumerate(H0):
+            if len(hk) != p:
+                raise ValueError(f"Each hash must be a string of length p={p}; got {len(hk)}")
+
+            # max_ind = find(H0{k}(1:p1) == '1'); MATLAB -> hk[:p1]
+            max_inds = [i for i, ch in enumerate(hk[:p1]) if ch == "1"]
+            if len(max_inds) != 1:
+                raise AssertionError("I don't know what to do in this case")
+            max_ind = max_inds[0]
+
+            grads[max_ind, k] = 1.0
+            h1 = z[max_ind]
+
+            # const_viol_inds = p1 + find(H0{k}(p1 + 1:end) == '1');
+            cv_local = [i for i, ch in enumerate(hk[p1:]) if ch == "1"]
+            const_viol_inds = np.array([p1 + i for i in cv_local], dtype=int)
+
+            if const_viol_inds.size == 0:
+                h2 = 0.0
+            else:
+                grads[const_viol_inds, k] = alpha * 2.0 * z[const_viol_inds]
+                # h2 = alpha * sum(max(z(const_viol_inds), 0).^2);
+                h2 = float(alpha * np.sum(np.maximum(z[const_viol_inds], 0.0) ** 2))
+
+            h[k] = h1 + h2
+
+        return h, grads

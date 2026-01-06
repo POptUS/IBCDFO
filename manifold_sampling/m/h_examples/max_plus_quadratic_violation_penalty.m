@@ -28,13 +28,13 @@ if nargin == 1
 
     atol = h_activity_tol;
     rtol = h_activity_tol;
-    inds1 = find(abs(h1 - z(1:p1)) <= atol + rtol * abs(z(1:p1)));
 
+    inds1 = find(abs(h1 - z(1:p1)) <= atol + rtol * abs(z(1:p1)));
     inds2 = p1 + find(z(p1 + 1:end) >= -rtol);
 
     grads = zeros(p, length(inds1));
-
     Hashes = cell(1, length(inds1));
+
     for j = 1:length(inds1)
         hash = dec2bin(0, p);
         hash(inds1(j)) = '1';
