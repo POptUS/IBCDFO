@@ -490,7 +490,7 @@ def max_plus_quadratic_violation_penalty(z, H0=None):
         rtol = h_activity_tol
 
         inds1 = np.where(np.abs(h1 - z[:p1]) <= atol + rtol * np.abs(z[:p1]))[0]
-        inds2 = p1 + np.where(z[p1 + 1 :] >= -rtol)[0]
+        inds2 = p1 + np.where(z[p1:] >= -rtol)[0]
 
         grads = np.zeros((p, inds1.size))
         Hash = []
