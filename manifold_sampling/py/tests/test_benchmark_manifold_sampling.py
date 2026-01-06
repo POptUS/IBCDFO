@@ -7,7 +7,17 @@ import scipy as sp
 import scipy.io as sio
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling.h_examples import censored_L1_loss, one_norm, max_plus_quadratic_violation_penalty, piecewise_quadratic, pw_maximum, pw_maximum_squared, pw_minimum, pw_minimum_squared, quantile
+from ibcdfo.manifold_sampling.h_examples import (
+    censored_L1_loss,
+    one_norm,
+    max_plus_quadratic_violation_penalty,
+    piecewise_quadratic,
+    pw_maximum,
+    pw_maximum_squared,
+    pw_minimum,
+    pw_minimum_squared,
+    quantile,
+)
 from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
 
 if not os.path.exists("msp_benchmark_results"):
