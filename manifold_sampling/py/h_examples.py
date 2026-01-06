@@ -458,7 +458,7 @@ def max_gamma_over_KY(z, H0=None):
         return h, grads
 
 
-def max_sum_beta_plus_const_viol(z, H0= None):
+def max_plus_quadratic_violation_penalty(z, H0= None):
     """
     Encodes the objective 
         max_{i=0,...,p1} z_i + alpha * sum_{i=p1+1,...,p} max(z_i, 0)^2
@@ -490,12 +490,12 @@ def max_sum_beta_plus_const_viol(z, H0= None):
         rtol = h_activity_tol
 
         inds1 = np.where(np.abs(h1 - z[:p1]) <= atol + rtol * np.abs(z[:p1]))[0]
-        inds2 = p1 + np.where(zp >= -rtol)[0] 
+        inds2 = p1 + np.where(z[p1+1:] >= -rtol)[0] 
 
         grads = np.zeros((p, inds1.size))
         Hash = []
 
-        for j, idx in enumerate(active1):
+        for j, idx in enumerate(inds1):
             bits = ["0"] * p
             bits[idx] = "1"
             for ii in inds2:
