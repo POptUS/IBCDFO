@@ -7,7 +7,17 @@ import scipy as sp
 import scipy.io as sio
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling.h_examples import censored_L1_loss, one_norm, piecewise_quadratic, pw_maximum, pw_maximum_squared, pw_minimum, pw_minimum_squared, quantile
+from ibcdfo.manifold_sampling.h_examples import (
+    censored_L1_loss,
+    one_norm,
+    max_plus_quadratic_violation_penalty,
+    piecewise_quadratic,
+    pw_maximum,
+    pw_maximum_squared,
+    pw_minimum,
+    pw_minimum_squared,
+    quantile,
+)
 from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
 
 if not os.path.exists("msp_benchmark_results"):
@@ -32,7 +42,7 @@ probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 subprob_switch = "linprog"
 nf_max = 50
 
-hfuns = [one_norm, censored_L1_loss, pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
+hfuns = [one_norm, censored_L1_loss, max_plus_quadratic_violation_penalty, pw_maximum_squared, pw_maximum, piecewise_quadratic, quantile, pw_minimum_squared, pw_minimum]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
