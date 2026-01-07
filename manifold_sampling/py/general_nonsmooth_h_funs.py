@@ -533,20 +533,32 @@ def h_max_gamma_over_KY(z, H0=None):
         return h, grads
 
 
-def max_plus_quadratic_violation_penalty(z, H0=None):
-    """
-    Encodes the objective
-        max_{i=0,...,p1} z_i + alpha * sum_{i=p1+1,...,p} max(z_i, 0)^2
+def h_max_plus_quadratic_violation_penalty(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling objective
+    function
 
-    Behavior:
-    - If H0 is None: returns (h, grads, Hashes)
-        * h is a scalar (0-d np.ndarray)
-        * grads is shape (p, n_active)
-        * Hashes is a list[str] of length n_active, each a '0'/'1' string of length p
-    - If H0 is provided: returns (h, grads, None)
-        * h is shape (J,)
-        * grads is shape (p, J)
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp), \cdots, z_{p1}(\psp)} +
+                  \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i(\psp), 0}^2
+
+    .. todo::
+        * p1 is not a parameter and appears to be hardcoded to m-1, which means
+          that the sum in the definition is unnecessary
+        * alpha is not a parameter and appears to be hardcoded to zero.  Mention
+          this in the docs?
     """
+    # Behavior:
+    # - If H0 is None: returns (h, grads, Hashes)
+    #     * h is a scalar (0-d np.ndarray)
+    #     * grads is shape (p, n_active)
+    #     * Hashes is a list[str] of length n_active, each a '0'/'1' string of length p
+    # - If H0 is provided: returns (h, grads, None)
+    #     * h is shape (J,)
+    #     * grads is shape (p, J)
+
     p = z.size
     p1 = p - 1
 

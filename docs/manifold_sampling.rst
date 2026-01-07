@@ -79,3 +79,4 @@ for the |matlab| version of these functions, which are located in
 .. autofunction:: ibcdfo.manifold_sampling.h_piecewise_quadratic
 .. autofunction:: ibcdfo.manifold_sampling.h_quantile
 .. autofunction:: ibcdfo.manifold_sampling.h_max_gamma_over_KY
+.. autofunction:: ibcdfo.manifold_sampling.h_max_plus_quadratic_violation_penalty

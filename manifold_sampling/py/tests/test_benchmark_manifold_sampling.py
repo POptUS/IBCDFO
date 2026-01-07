@@ -40,7 +40,7 @@ hfuns = [
     ibcdfo.manifold_sampling.h_quantile,
     ibcdfo.manifold_sampling.h_pw_minimum_squared,
     ibcdfo.manifold_sampling.h_pw_minimum,
-    ibcdfo.manifold_sampling.max_plus_quadratic_violation_penalty,
+    ibcdfo.manifold_sampling.h_max_plus_quadratic_violation_penalty,
 ]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
