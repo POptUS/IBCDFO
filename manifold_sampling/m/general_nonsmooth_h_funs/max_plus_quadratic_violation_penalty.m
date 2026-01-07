@@ -1,4 +1,4 @@
-function [h, grads, Hashes] = h_max_sum_beta_plus_const_viol(z, H0)
+function [h, grads, Hashes] = max_plus_quadratic_violation_penalty(z, H0)
 % This the outer h function required by manifold sampling.
 % If z \in R^p
 % It encodes the objective

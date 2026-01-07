@@ -13,7 +13,8 @@ from .general_nonsmooth_h_funs import (
     h_pw_maximum,
     h_pw_maximum_squared,
     h_piecewise_quadratic,
-    h_quantile
+    h_quantile,
+    max_plus_quadratic_violation_penalty
 )
 # fmt: on
 
