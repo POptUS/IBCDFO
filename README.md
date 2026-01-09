@@ -3,11 +3,13 @@ and should not presently be used.  Instead, please consider using `main-v0`**
 
 # IBCDFO
 
-Interpolation-Based Composite Derivative-Free Optimization
+Interpolation-Based Composite Derivative-Free Optimization.  Part of [POptUS: Practical Optimization Using Structure](https://github.com/POptUS).
 
 ### Repository
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Build Guides](https://github.com/POptUS/IBCDFO/actions/workflows/build_docs.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/build_docs.yml)
+
 [![Coverage Status](https://codecov.io/gh/POptUS/IBCDFO/graph/badge.svg?token=D49I3TI8W2)](https://codecov.io/gh/POptUS/IBCDFO)
 [![Measure Code Coverage](https://github.com/POptUS/IBCDFO/actions/workflows/measure_coverage.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/measure_coverage.yml)
 [![Test repository tools](https://github.com/POptUS/IBCDFO/actions/workflows/test_tools.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_tools.yml)
@@ -21,125 +23,56 @@ Interpolation-Based Composite Derivative-Free Optimization
 [![Build & test release candidate](https://github.com/POptUS/IBCDFO/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/release.yml)
 [![Test Oldest Versions](https://github.com/POptUS/IBCDFO/actions/workflows/test_python_oldest.yml/badge.svg?branch=main)](https://github.com/POptUS/IBCDFO/actions/workflows/test_python_oldest.yml)
 
-This page contains source code for interpolation-based optimization methods for
-composite derivative-free optimization.
-
-Relevant references include:
-
-  - J. Larson and M. Menickelly. Structure-aware methods for expensive
-  derivative-free nonsmooth composite optimization. *Mathematical Programming
-  Computation*. 16:1--36, 2024.
-  [DOI](https://doi.org/10.1007/s12532-023-00245-5)
-
-  - J. Larson, M. Menickelly, and B. Zhou. Manifold sampling for optimizing
-  nonsmooth nonconvex compositions. *SIAM Journal on Optimization*.
-  31(4):2638--2664, 2021.
-  [DOI](https://doi.org/10.1137/20M1378089)
-
-  - K. A. Khan, J. Larson, and S. M. Wild. Manifold sampling for optimization of
-  nonconvex functions that are piecewise linear compositions of smooth
-  components. *SIAM Journal on Optimization* 28(4):3001--3024, 2018.
-  [DOI](https://doi.org/10.1137/17m114741x)
-
-  - S. M. Wild. POUNDERS in TAO: Solving Derivative-Free Nonlinear
-  Least-Squares Problems with POUNDERS. *Advances and Trends in Optimization with
-  Engineering Applications*. SIAM. 529--539, 2017.
-  [DOI](https://doi.org/10.1137%2F1.9781611974683.ch40)
-
-  - J. Larson, M. Menickelly, and S. M. Wild. Manifold sampling for l1 nonconvex
-  optimization. *SIAM Journal on Optimization*. 26(4):2540--2563, 2016.
-  [DOI](https://doi.org/10.1137/15M1042097)
-
-## Contributing to IBCDFO
-
-Contributions are welcome in a variety of forms; please see [CONTRIBUTING](CONTRIBUTING.rst).
-
-## Installation & Updating
-Note that this repository depends on one or more submodules.  After cloning
-this repository, from within the clone please run
-
-``git submodule update --init --recursive``
-
-to fetch all files contained in the submodules.  This must be done before
-attempting to use the code in the clone.  Issuing the command `git pull` will
-update the repository, but not the submodules.  To update the clone and all its
-submodules simultaneously, run
-
-``git pull --recurse-submodules``.
-
-### Python
-The `ibcdfo` Python package requires that the [MINQ](https://github.com/POptUS/minq) Python code be installed.  MINQ is not distributed as a Python package but is included in this repository as a submodule.  Therefore, following the above installation procedures should ensure that it is available.  When using the `ibcdfo` package, specify its location by adding
-```
-/path/to/IBCDFO/minq/py/minq5
-```
-to your `PYTHONPATH` environment variable.
-
-The `ibcdfo` Python package can be installed from the same local clone by setting up a
-terminal with the target `python` and executing
-```
-$ cd /path/to/IBCDFO/ibcdfo_pypkg
-$ python -m pip install .
-```
-
-## Testing
-
-### Python
-The `ibcdfo` Python package requires that the [BenDFO](https://github.com/POptUS/BenDFO) Python package be installed for testing.  It is not distributed as a Python package and users must clone it manually.  When testing the `ibcdfo` package, specify its location by adding
-```
-/path/to/BenDFO/py
-```
-to your `PYTHONPATH` environment variable.
-
-An installation can be partially tested by executing from `/path/to/BenDFO/data`
-```
-$ python
->>> import ibcdfo
->>> ibcdfo.__version__
-<version>
->>> ibcdfo.test()
-```
-where the output `<version>` should be identical to the value used during installation.
-
-### MATLAB
-In addition to completing the general installation steps, users must have an
-up-to-date [BenDFO](https://github.com/POptUS/BenDFO) clone installed in the
-same folder as their IBCDFO clone.
-
-To run tests with coverage enabled,
-
-   1. open MATLAB in the `tools` folder and
-   2. execute `test_ibcdfo`.
-
-The test output indicates where the HTML-format code coverage report can be found.
-
-## License
+## License & Copyright
 
 All code included in IBCDFO is open source, with the particular form of license contained in the top-level
 subdirectories.  If such a subdirectory does not contain a LICENSE file, then it is automatically licensed
 as described in the otherwise encompassing IBCDFO [LICENSE](/LICENSE).
 
-## Resources
+Copyright (c) 2023, The Regents of the University of California,
+through Lawrence Berkeley National Laboratory and UChicago Argonne
+LLC through Argonne National Laboratory (subject to receipt of any
+required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
-To seek support or report issues, e-mail:
+## Support
+
+To 
+
+* report potential problems with IBCDFO,
+* propose a change, or
+* request a new feature,
+
+please check if a related [Issue](https://github.com/POptUS/IBCDFO/issues)
+already exists before creating a new issue.  For all other communication, please
+send an email to the POptUS development team at
 
  * ``poptus@mcs.anl.gov``
+
+## Documentation
+
+[User and Developer Guides](https://ibcdfo.readthedocs.io) are hosted on ReadTheDocs.
+
+The inclusion of examples is [pending](https://github.com/POptUS/IBCDFO/issues/202).
+
+## Installation & Testing
+
+Refer to [Getting Started](https://ibcdfo.readthedocs.io/en/latest/get_started.html) section of User Guide.
+
+## Contributing to IBCDFO
+
+Contributions are welcome in a variety of forms; please see
+[Contributing](https://ibcdfo.readthedocs.io/en/latest/contributing.html) in the
+Developer Guide.
 
 ## Cite IBCDFO
 
 ```
   @misc{ibcdfo,
-    author = {Jeffrey Larson and Matt Menickelly and Jared P. O'Neal and Stefan M. Wild},
+    author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
     title  = {Interpolation-Based Composite Derivative-Free Optimization},
     url    = {https://github.com/POptUS/IBCDFO},
     year   = {2024},
   }
 ```
 
-## About IBCDFO
 
-Part of [POptUS: Practical Optimization Using Structure](https://github.com/POptUS).
-
-Copyright (c) 2023, The Regents of the University of California,
-through Lawrence Berkeley National Laboratory and UChicago Argonne
-LLC through Argonne National Laboratory (subject to receipt of any
-required approvals from the U.S. Dept. of Energy).  All rights reserved.
