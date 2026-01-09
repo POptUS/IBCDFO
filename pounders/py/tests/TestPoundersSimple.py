@@ -4,8 +4,7 @@ Unit test of simple functionality of pounders routine.
 
 import unittest
 
-import ibcdfo.pounders as pdrs
-import ibcdfo.pounders.pounders_concurrent as conc
+import ibcdfo
 import numpy as np
 
 
@@ -13,8 +12,8 @@ import numpy as np
 # and pounders_concurrent without having to duplicate every
 # call in this regression test.
 def both_pounders(*args, **kwargs):
-    conc.pounders(*args, **kwargs)
-    return pdrs.pounders(*args, **kwargs)
+    ibcdfo.run_pounders_concurrent(*args, **kwargs)
+    return ibcdfo.run_pounders(*args, **kwargs)
 
 
 class TestPounders(unittest.TestCase):
@@ -105,7 +104,8 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
-        combinemodels = pdrs.identity_combine
+        hfun = ibcdfo.pounders.h_identity
+        combinemodels = ibcdfo.pounders.combine_identity
 
         # Sample calling syntax for pounders
         Ffun = lambda x: np.sum(x)
@@ -122,7 +122,6 @@ class TestPounders(unittest.TestCase):
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
-        hfun = lambda F: np.squeeze(F)
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
@@ -138,7 +137,8 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
-        combinemodels = pdrs.neg_leastsquares
+        hfun = ibcdfo.pounders.h_neg_leastsquares
+        combinemodels = ibcdfo.pounders.combine_neg_leastsquares
 
         # Sample calling syntax for pounders
         Ffun = lambda x: x
@@ -151,8 +151,6 @@ class TestPounders(unittest.TestCase):
         m = n
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
-
-        hfun = lambda F: -1.0 * np.sum(F**2)
 
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
 

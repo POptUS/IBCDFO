@@ -8,14 +8,13 @@
 #       rather than representing the true physics problem.
 import os
 
-import ibcdfo.pounders as pdrs
+import ibcdfo
 
 # import matplotlib.pyplot as plt
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling.h_examples import max_gamma_over_KY as hfun
-from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
+from ibcdfo.manifold_sampling import h_max_gamma_over_KY as hfun
 
 dfo = np.loadtxt("dfo.dat")
 
@@ -40,16 +39,15 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
-    X, F, h_msp, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+    X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
     # --- Run pounders without using the structure ---
-    combinemodels = pdrs.identity_combine
+    identity_hfun = ibcdfo.pounders.h_identity
+    combinemodels = ibcdfo.pounders.combine_identity
 
     def unstructured_obj(x):
         maxout = hfun(Ffun(x))
         return np.squeeze(maxout[0])  # only the function value
-
-    identity_hfun = lambda F: np.squeeze(F)
 
     nf_max = 200
     g_tol = 10**-13
@@ -57,7 +55,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
     Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels}
 
-    X, F, h_pounders, flag, xk_in = pdrs.pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
+    X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
 
     # # --- Plotting ---
     # plt.figure(figsize=(10, 4))

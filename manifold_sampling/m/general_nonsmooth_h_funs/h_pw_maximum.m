@@ -1,7 +1,6 @@
-function [h, grads, Hash] = pw_minimum_squared(z, H0)
-% Evaluates the pointwise minimum function
-%   min_j { z_j^2 }
-%
+function [h, grads, Hash] = h_pw_maximum(z, H0)
+% Please refer to the documentation for the Python version of this h function.
+
 % Inputs:
 %  z:              [1 x p]   point where we are evaluating h
 %  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
@@ -16,19 +15,18 @@ n = length(z);
 
 if nargin == 1
 
-    z2 = z.^2;
-    h = min(z2);
+    h = max(z);
 
     atol = 1e-8;
     rtol = 1e-8;
-    inds = find(abs(h - z2) <= atol + rtol * abs(z2));
+    inds = find(abs(h - z) <= atol + rtol * abs(z));
 
     grads = zeros(n, length(inds));
 
     Hash = cell(1, length(inds));
     for j = 1:length(inds)
         Hash{j} = int2str(inds(j));
-        grads(inds(j), j) = 2 * z(inds(j));
+        grads(inds(j), j) = 1;
     end
 
 elseif nargin == 2
@@ -38,7 +36,7 @@ elseif nargin == 2
 
     for k = 1:J
         j = str2num(H0{k});
-        h(k) = z(j)^2;
-        grads(j, k) = 2 * z(j);
+        h(k) = z(j);
+        grads(j, k) = 1;
     end
 end

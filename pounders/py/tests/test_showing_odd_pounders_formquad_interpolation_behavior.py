@@ -8,7 +8,7 @@ This test demonstrates that behavior, although the iteration on which the
 behavior occurs can differ dramatically from system to system.
 """
 
-import ibcdfo.pounders as pdrs
+import ibcdfo
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
@@ -18,8 +18,8 @@ dfo = np.loadtxt("dfo.dat")
 spsolver = 2
 nf_max = 1000
 g_tol = 1e-13
-combinemodels = pdrs.identity_combine
-hfun = lambda F: np.squeeze(F)
+combinemodels = ibcdfo.pounders.combine_identity
+hfun = ibcdfo.pounders.h_identity
 Opts = {"printf": 1, "spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
@@ -46,7 +46,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
 
     Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-    [X, F, hF, flag, xk_best] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={})
+    [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
     evals = F.shape[0]
 

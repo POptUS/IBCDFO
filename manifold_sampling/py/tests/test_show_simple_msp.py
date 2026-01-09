@@ -5,8 +5,7 @@ import os
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling.h_examples import censored_L1_loss, one_norm
-from ibcdfo.manifold_sampling.manifold_sampling_primal import manifold_sampling_primal
+import ibcdfo
 
 if not os.path.exists("mpc_test_files_smaller_Q"):
     os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
@@ -24,7 +23,7 @@ probs_to_solve = [1]
 
 subprob_switch = "linprog"
 
-hfuns = [one_norm, censored_L1_loss]
+hfuns = [ibcdfo.manifold_sampling.h_one_norm, ibcdfo.manifold_sampling.h_censored_L1_loss]
 nfmax = 150
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
@@ -44,11 +43,11 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     D = D_L1_loss[ind, 3 : m + 3]
 
     for i, hfun in enumerate(hfuns):
-        if hfun.__name__ == "censored_L1_loss":
+        if hfun.__name__ == "h_censored_L1_loss":
 
             def hfun_to_pass(z, H0=None):
-                return censored_L1_loss(z, H0, C=C, D=D)
+                return ibcdfo.manifold_sampling.h_censored_L1_loss(z, H0, C=C, D=D)
 
-            X, F, h, xkin, flag = manifold_sampling_primal(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
+            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
         else:
-            X, F, h, xkin, flag = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)

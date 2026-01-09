@@ -1,7 +1,6 @@
-function [h, grads, Hash] = pw_maximum(z, H0)
-% Evaluates the pointwise maximum function
-%   max_j { z_j }
-%
+function [h, grads, Hash] = h_pw_minimum(z, H0)
+% Please refer to the documentation for the Python version of this h function.
+
 % Inputs:
 %  z:              [1 x p]   point where we are evaluating h
 %  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
@@ -16,7 +15,7 @@ n = length(z);
 
 if nargin == 1
 
-    h = max(z);
+    h = min(z);
 
     atol = 1e-8;
     rtol = 1e-8;

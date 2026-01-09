@@ -11,10 +11,10 @@ This is the hfun. So given gamma, the Ffun computes G_of_gamma and returns its
 real and imaginary parts.
 """
 
-import ibcdfo.pounders as pdrs
+import ibcdfo
 import numpy as np
 
-from declare_hfun_and_combine_model_with_jax import combinemodels_jax, hfun
+from ibcdfo.pounders.tests.declare_hfun_and_combine_model_with_jax import combinemodels_jax, hfun
 
 
 def Ffun(gamma, nostruct=True):
@@ -44,8 +44,8 @@ for call in range(2):
         Ffun_to_use = lambda gamma: Ffun(gamma, True)
         m = 1  # not using structure
         Opts = {
-            "hfun": lambda F: np.squeeze(F),  # not using structure
-            "combinemodels": pdrs.identity_combine,  # not using structure
+            "hfun": ibcdfo.pounders.h_identity,  # not using structure
+            "combinemodels": ibcdfo.pounders.combine_identity,  # not using structure
         }
     elif call == 1:
         # Calls pounders to combine models of Ffun components using the derivatives of hfun (obtained by jax)
@@ -56,7 +56,7 @@ for call in range(2):
             "combinemodels": combinemodels_jax,  # using structure
         }
 
-    [_, _, hF[call], flag, _] = pdrs.pounders(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+    [_, _, hF[call], flag, _] = ibcdfo.run_pounders(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
     assert flag == 0, "Didn't reach critical point"
 
 

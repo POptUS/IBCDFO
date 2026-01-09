@@ -1,6 +1,6 @@
-function [X, F, h, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, gentype, Mdir, np, hfun, Ffun, Hash, fq_pars, tol, nf_max, L, U)
+function [X, F, h, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, Mdir, np, hfun, Ffun, Hash, fq_pars, tol, nf_max, L, U)
     % global nprob Qs zs bs p x0 nf_max h_activity_tol row_in_dfo_dat s inst
-    % A.n=n; A.nf=nf; A.xkin=xkin; A.delta=delta; A.X=X; A.F=F; A.h=h; A.gentype=gentype; A.Mdir=Mdir; A.np=np; A.hfun=hfun; A.Ffun=Ffun; A.Hash=Hash; A.fq_pars=fq_pars; A.tol=tol; A.nf_max=nf_max; A.L=L; A.U=U;
+    % A.n=n; A.nf=nf; A.xkin=xkin; A.delta=delta; A.X=X; A.F=F; A.h=h; A.Mdir=Mdir; A.np=np; A.hfun=hfun; A.Ffun=Ffun; A.Hash=Hash; A.fq_pars=fq_pars; A.tol=tol; A.nf_max=nf_max; A.L=L; A.U=U;
 
     % Evaluate model-improving points to pick best one
     % ! May eventually want to normalize Mdir first for infty norm
@@ -25,7 +25,6 @@ function [X, F, h, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xkin,
     [~, ~, valid] = formquad(X(1:nf, :), F(1:nf, :), delta, xkin, fq_pars.npmax, fq_pars.Par, 1);
     if ~valid && nf < nf_max
         disp(nf);
-        disp(gentype);
         disp('Proceeding with nonvalid model! Report this to Stefan in Alg1');
         % uuid = char(java.util.UUID.randomUUID);
         % global mw_prob_num hfun

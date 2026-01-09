@@ -1,4 +1,4 @@
-function [Gout, Hout] = identity_combine(~, Gres, Hres)
+function [Gout, Hout] = combine_identity(~, Gres, Hres)
     Gout = squeeze(Gres);
     Hout = squeeze(Hres);
 end

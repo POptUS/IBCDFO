@@ -110,7 +110,7 @@ while nf < nf_max && delta > tol.mindelta
         end
 
         % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-        [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
+        [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun);
         G_k = Gres * D_k;
         beta = max(0, f_bar' - h(xkin));
 
@@ -163,7 +163,7 @@ while nf < nf_max && delta > tol.mindelta
         else % Line 17: Stay in the manifold sampling loop
 
             % Line 18: Check temporary activities after adding TRSP solution to X
-            [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
+            [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun);
 
             % Lines 19: See if any new activities
             if all(ismember(tmp_Act_Z_k, Act_Z_k))
