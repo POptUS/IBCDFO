@@ -1,5 +1,5 @@
 import numpy as np
-from ibcdfo.pounders import general_h_funs, pounders_concurrent
+import ibcdfo
 
 
 def call_beamline_simulation_batch(X):
@@ -28,8 +28,8 @@ Ffun = call_beamline_simulation_batch  # Simulation function, accepting a matrix
 printf = True
 
 # Not as important to adjust:
-hfun = general_h_funs.emittance_h
-combinemodels = general_h_funs.emittance_combine
+hfun = ibcdfo.pounders.h_emittance
+combinemodels = ibcdfo.pounders.combine_emittance
 m = 3  # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
 g_tol = 1e-8  # Stopping tolerance
 delta_0 = 0.1  # Initial trust-region radius
@@ -46,7 +46,7 @@ Options["combinemodels"] = combinemodels
 Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = pounders_concurrent.pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders_concurrent(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 

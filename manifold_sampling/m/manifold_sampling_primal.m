@@ -1,31 +1,44 @@
-% This code solves the problem
-%     minimize h(F(x))
-% where x is an [n by 1] vector, F is a blackbox function mapping from R^n to
-% R^p, and h is a nonsmooth function mapping from R^p to R.
+function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch)
+% Run manifold sampling on the optimization problem specified by the given
+% arguments.
 %
+% :param hfun: Handle to function that, given a :math:`\np \times 1` point
+%     :math:`\zvec`, returns
 %
-% Inputs:
-%  hfun:    [func]   Given point z, returns
-%                      - [scalar] the value h(z)
-%                      - [p x l] gradients for all l limiting gradients at z
-%                      - [1 x l set of strings] hashes for each manifold active at z
-%                    Given point z and l hashes H, returns
-%                      - [1 x l] the value h_i(z) for each hash in H
-%                      - [p x l] gradients of h_i(z) for each hash in H
-%  Ffun:    [func]    Evaluates F, the black box simulation, returning a [1 x p] vector.
-%  x0:      [1 x n]   Starting point
-%  nf_max:   [int]     Maximum number of function evaluations
+%     * the value :math:`h(\zvec)`
+%     * :math:`\np \times l` matrix that contains gradients for all
+%       :math:`l` limiting gradients at :math:`\zvec`
+%     * :math:`1 \times l` vector of hashes for each manifold active at :math:`\zvec`
 %
-% Outputs:
-%   X:      [nf_max x n]   Points evaluated
-%   F:      [nf_max x p]   Their simulation values
-%   h:      [nf_max x 1]   The values h(F(x))
-%   xkin:   [int]         Current trust region center
-%   flag:   [int]         Inform user why we stopped.
-%                           -1 if error
-%                            0 if nf_max function evaluations were performed
-%                            final model gradient norm otherwise
+%     Given point :math:`\zvec` and :math:`l` hashes :math:`H`, returns
 %
+%     * An :math:`1 \times l` vector that contains the values :math:`h_i(\zvec)`
+%       for each hash in :math:`H`
+%     * A :math:`p \times l` matrix that contains the gradients of
+%       :math:`h_i(\zvec)` for each hash in :math:`H`
+%
+% :param Ffun: Function that returns the value :math:`\Ffun(\psp)` of the
+%     blackbox simulation as an :math:`1 \times \nd` vector for given
+%     :math:`\psp`
+% :param x0: :math:`1 \times \np` vector that specifies the starting point
+% :param L: :math:`1 \times \np` vector of lower bounds
+% :param U: :math:`1 \times \np` vector of upper bounds
+% :param nf_max: [int] Maximum number of function evaluations
+% :param subprob_switch: **???**
+%
+% :return:
+%      * **X** - :math:`\mathrm{nf\_max} \times \np` matrix containing the
+%        points evaluated in the order in which they were evaluated
+%      * **F** - :math:`\mathrm{nf\_max} \times \nd` matrix containing the
+%        blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
+%        with matching ordering
+%      * **h** - :math:`\mathrm{nf\_max} \times 1` matrix containing the values
+%        :math:`\hfun(\Ffun(\psp))` for all points in ``X`` with matching
+%        ordering.
+%      * **xkin** - Current trust region center.  **ONE-BASED INDEX INTO
+%        X?**
+%      * **flag** - Termination criteria flag (See general documentation)
+
 % Some other values
 %  n:       [int]     Dimension of the domain of F (deduced from x0)
 %  p:       [int]     Dimension of the domain of h (deduced from evaluating F(x0))
@@ -40,8 +53,6 @@
 %   Act_Z_k [l cell]      Set of hashes for active selection functions in TR
 %   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
 %   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
-
-function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch)
 
 % We use POUNDERS checkinputss function
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
@@ -99,7 +110,7 @@ while nf < nf_max && delta > tol.mindelta
         end
 
         % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-        [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
+        [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun);
         G_k = Gres * D_k;
         beta = max(0, f_bar' - h(xkin));
 
@@ -152,7 +163,7 @@ while nf < nf_max && delta > tol.mindelta
         else % Line 17: Stay in the manifold sampling loop
 
             % Line 18: Check temporary activities after adding TRSP solution to X
-            [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, 3, xkin, nf, delta, F, hfun);
+            [~, tmp_Act_Z_k, ~] = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun);
 
             % Lines 19: See if any new activities
             if all(ismember(tmp_Act_Z_k, Act_Z_k))

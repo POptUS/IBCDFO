@@ -1,24 +1,21 @@
-name: Test repository tools
+name: Test Tools
 env:
-  CLONE_PATH:       ${{ github.workspace }}
+  TOOLS_PATH:       ${{ github.workspace }}/tools
+  GH_ACTIONS_PATH:  ${{ github.workspace }}/.github/workflows
+  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
   BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
-  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
-  TOOLS_PATH:       ${{ github.workspace }}/tools
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
+  # Prefer using the latest Python version supported by the package
   test_tools:
-    strategy:
-      matrix:
-        os:             [ubuntu-latest]
-        python-version: ["3.13"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       # -- General Setup Steps
       # This action requires minq
@@ -31,32 +28,32 @@ jobs:
         with:
           repository: POptUS/BenDFO
           path: BenDFO
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.14"
       - name: Setup Python with tox
-        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+        run: $GH_ACTIONS_PATH/setup_tox_github_action.sh ${{ runner.os }}
       - name: Build and install package
         run: |
           pushd $IBCDFO_PKG
-          # Build universal wheel for testing
           python -m build --wheel
           python -m pip install dist/ibcdfo-*-py3-none-any.whl
           popd
           python -m pip list
 
       # -- Run each tool individually
-      # The check_standards action already uses
+      # The check_python_standards action already uses
       # * check_flake8_compliance.sh and
       # * format_with_black.sh
       # so we don't test them here as well.
+      #
+      # We would like to have a MATLAB test block that runs test_ibcdfo.m.
+      # However, the MINQ unittests require manual user input, which is
+      # incompatible with running MATLAB in actions (TBC).
       - name: Use tools
         run: |
           export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
           echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-          # TODO: If we ask people to install BenDFO and to add it to
-          # PYTHONPATH, we shouldn't be asking them to copy across data from
-          # that clone.
           cp $BENDFO_DATA_PATH/dfo.dat .
           $TOOLS_PATH/test_ibcdfo_python_installation.py

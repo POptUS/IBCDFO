@@ -23,12 +23,12 @@ maintainers = [
 license       = "MIT"
 license-files = ["LICENSE"]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 # BenDFO is also required for testing but is not yet pip installable
 dependencies = [
-    "numpy>=1.16.5", "scipy>=1.6",  # Code
-    "ipdb",                         # Minq
-    "jax"                           # Testing
+    "numpy>=1.21.1", "scipy>=1.8.0",  # Code (See Issue #227 for version limits)
+    "ipdb",                           # Minq
+    "jax"                             # Testing
 ]
 
 keywords = ["ibcdfo"]
@@ -36,11 +36,11 @@ classifiers=[
     "Natural Language :: English",
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: POSIX :: Linux",
     "Intended Audience :: Science/Research",

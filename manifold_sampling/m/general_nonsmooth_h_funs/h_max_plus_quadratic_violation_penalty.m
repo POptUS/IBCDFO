@@ -1,9 +1,6 @@
-function [h, grads, Hashes] = max_sum_beta_plus_const_viol(z, H0)
-% This the outer h function required by manifold sampling.
-% If z \in R^p
-% It encodes the objective
-%    max_{i = 1,...,p1} z_i + alpha *sum_{i = p1+1}^{p} max(z_i, 0)^2
-%
+function [h, grads, Hashes] = h_max_plus_quadratic_violation_penalty(z, H0)
+% Please refer to the documentation for the Python version of this h function.
+
 % Hashes are output (and must be input) in the following fashion:
 %   Hash elements are strings of p integers.
 %     0 in position 1 <= i <= p1 means max_{i = 1,...,p1} z_i > z_i
@@ -28,13 +25,13 @@ if nargin == 1
 
     atol = h_activity_tol;
     rtol = h_activity_tol;
-    inds1 = find(abs(h1 - z(1:p1)) <= atol + rtol * abs(z(1:p1)));
 
+    inds1 = find(abs(h1 - z(1:p1)) <= atol + rtol * abs(z(1:p1)));
     inds2 = p1 + find(z(p1 + 1:end) >= -rtol);
 
     grads = zeros(p, length(inds1));
-
     Hashes = cell(1, length(inds1));
+
     for j = 1:length(inds1)
         hash = dec2bin(0, p);
         hash(inds1(j)) = '1';

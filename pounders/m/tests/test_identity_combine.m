@@ -28,8 +28,8 @@ function test_identity_combine()
     delta_0 = 0.1;
     nfs = 1;
 
-    hfun = @(F)F;
-    combinemodels = @identity_combine;
+    hfun = @h_identity;
+    combinemodels = @combine_identity;
 
     Ffun = @(x)calfun_wrapper_y(x, BenDFO, 'smooth');
     F_0 = Ffun(X_0);

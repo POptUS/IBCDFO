@@ -1,38 +1,36 @@
-name: Check Python Code Standard Adherence
+name: Python Code Standard Adherence
 env:
-  CLONE_PATH: ${{ github.workspace }}
-  TOOLS_PATH: ${{ github.workspace }}/tools
+  TOOLS_PATH:      ${{ github.workspace }}/tools
+  GH_ACTIONS_PATH: ${{ github.workspace }}/.github/workflows
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
+  # Prefer using the latest Python version supported by the package
   check_standards:
-    strategy:
-      matrix:
-        os:             [ubuntu-latest]
-        python-version: ["3.13"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       # -- General Setup Steps
-      # No need to clone minq
+      # No need to check standards in submodules
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
+        with:
+          submodules: false
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.14"
       - name: Setup Python with tox
-        run: $CLONE_PATH/.github/workflows/setup_tox_github_action.sh ${{ runner.os }}
+        run: $GH_ACTIONS_PATH/setup_tox_github_action.sh ${{ runner.os }}
 
       # -- Run scripts that run on full repository including packages
       # The scripts uses tox internally
       - name: Check coding standards
         run: |
           $TOOLS_PATH/check_flake8_compliance.sh
-          echo " "
           # Having black do reformatting in action results in no change to the
           # files in the repo and no errors are reported.  With this flag, we
           # print useful info and raise an error when changes need to be made.

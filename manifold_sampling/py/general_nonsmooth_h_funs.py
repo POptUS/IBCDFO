@@ -7,6 +7,12 @@ import jax.numpy as jnp
 import jaxnp_hash as jnph
 jax.config.update("jax_enable_x64", True)
 
+"""
+These functions are housed in the manifold sampling namespace because they
+aren't "general implementations" of h_funs. They have the specific
+interface/form needed for manifold-sampling-type methods.
+"""
+
 
 def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     if n is None:
@@ -20,9 +26,15 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     return inds, grads, Hashes
 
 
-def censored_L1_loss(z, H0=None, **kwargs):
+def h_censored_L1_loss(z, H0=None, **kwargs):
     """
     This is a generalized version of Womersley's censored L1 loss function.
+
+    .. todo::
+        * Either add in the equation or a reference to an article that describes
+          this.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
     """
 
     C = kwargs["C"]
@@ -93,10 +105,16 @@ def censored_L1_loss(z, H0=None, **kwargs):
         return h, grads
 
 
-def one_norm(z, H0=None):
-    # Evaluates
-    #   sum(abs(z_j))
+def h_one_norm(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling 1-norm
+    objective function
 
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \sum_{i = 1}^{\nd} \abs{z_i(\psp)}.
+    """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
@@ -157,10 +175,16 @@ def one_norm(z, H0=None):
         return h, grads
 
 
-def pw_maximum(z, H0=None):
-    # Evaluates the pointwise maximum function
-    #   max_j { z_j }
+def h_pw_maximum(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    maximum objective function
 
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
+    """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
@@ -193,10 +217,16 @@ def pw_maximum(z, H0=None):
         return h, grads
 
 
-def pw_maximum_squared(z, H0=None):
-    # Evaluates the pointwise maximum function
-    #   max_j { z_j^2 }
+def h_pw_maximum_squared(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    maximum objective function
 
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
+    """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
@@ -231,10 +261,23 @@ def pw_maximum_squared(z, H0=None):
         return h, grads
 
 
-def piecewise_quadratic(z, H0=None, **kwargs):
-    # Evaluates the piecewise quadratic function
-    #   max_j { || z - z_j ||_{Q_j}^2 + b_j }
+def h_piecewise_quadratic(z, H0=None, **kwargs):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling piecewise
+    quadratic objective function
 
+    .. math::
+
+        f(\psp; \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l)
+            & = \hfun\left(\zvec(\psp); \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l\right)\\
+            & = \max_{j\in\set{1, \cdots, l}}\set{\norm{\zvec(\psp) - \zvec_j}_{Q_j^2} + b_j}
+
+    .. todo::
+
+        * Please check if the above formula is correct.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
+    """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
@@ -280,10 +323,16 @@ def piecewise_quadratic(z, H0=None, **kwargs):
         return h, grads
 
 
-def pw_minimum(z, H0=None):
-    # Evaluates the pointwise minimum function
-    #   min_j { z_j }
+def h_pw_minimum(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    minimum objective function
 
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \min \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
+    """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
@@ -316,10 +365,16 @@ def pw_minimum(z, H0=None):
         return h, grads
 
 
-def pw_minimum_squared(z, H0=None):
-    # Evaluates the pointwise minimum function
-    #   min_j { z_j^2 }
+def h_pw_minimum_squared(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    minimum objective function
 
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \min \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
+    """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
@@ -353,10 +408,22 @@ def pw_minimum_squared(z, H0=None):
         return h, grads
 
 
-def quantile(z, H0=None):
-    # Evaluates the q^th quantile of the values
-    #  { z_j^2 }
+def h_quantile(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling
+    objective function determined by evaluating at each :math:`\psp` the
+    :math:`q^{\mathrm{th}}` quantile of
 
+    .. math::
+
+        \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}.
+
+    .. todo::
+
+        * The value of :math:`q` is not provided as an argument and appears to
+          be a hardcoded value.  True?  Update docs to be more specific?  How
+          many subsets were used to define the quantiles?
+    """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
@@ -394,46 +461,54 @@ def quantile(z, H0=None):
         return h, grads
 
 
-def max_gamma_over_KY(z, H0=None):
+def h_max_gamma_over_KY(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling objective
+    function
+
+    .. math::
+
+        f(\psp; KY_1, \cdots, KY_{11}) = \hfun\left(\zvec(\psp); KY_1, \cdots, KY_{11}\right)
+                = \max \left\{\frac{z_1(\psp)}{KY_1}, \cdots,
+                              \frac{z_{11}(\psp)}{KY_{11}}\right\},
+
+    where :math:`\psp = (\kappa, \Delta, \zeta)` are application-specific
+    parameters and the outputs
+
+    .. math::
+
+        z_j(\psp) = \gamma(\kappa, \Delta, \zeta, KY_j)
+
+    are computed from the application-specific model function :math:`\gamma`.
+    Presently, the :math:`KY` parameters are hardcoded to the uniform grid
+
+    .. math::
+
+        (KY_1, KY_2, \cdots, KY_{11}) = (0.1, 0.15, \cdots, 0.6).
     """
-    Computes h = max_j { z_j / KY_j }, where each z_j represents the output from
-    the application-specific function gamma(kappa, Delta, zeta, KY_j).
+    # Inputs
+    # ------
+    # z : array-like, shape (11,)
+    #     Values of gamma(...) evaluated at the 11 KY points.
+    # H0 : optional list of str
+    #     Hashes (indices as strings) of manifolds to evaluate specifically.
+    #     If None, returns active/near-active manifolds at z.
 
-    Notes
-    -----
-    - The symbols kappa, Delta, and zeta are domain parameters from
-      the physics/application model. They are *not* related to parameters
-      in the manifold sampling algorithm itself.
-    - The role of hfun in manifold sampling is simply to wrap this
-      application objective in the required (value, gradients, hashes)
-      interface. The actual Ffun corresponds to gamma(·).
+    # Outputs (H0 is None)
+    # --------------------
+    # h : float
+    #     The maximum value over j of z_j / KY_j.
+    # grads : ndarray, shape (11, l)
+    #     Columns are gradients of each active manifold (dh/dz_j = 1/KY_j).
+    # Hash : list[str], length l
+    #     String indices of active/near-active manifolds, matching grads columns.
 
-    Inputs
-    ------
-    z : array-like, shape (11,)
-        Values of gamma(...) evaluated at the 11 KY points.
-    H0 : optional list of str
-        Hashes (indices as strings) of manifolds to evaluate specifically.
-        If None, returns active/near-active manifolds at z.
-    KY : optional array-like, shape (11,)
-        The KY grid; defaults to [0.10, 0.15, ..., 0.60].
-
-    Outputs (H0 is None)
-    --------------------
-    h : float
-        The maximum value over j of z_j / KY_j.
-    grads : ndarray, shape (11, l)
-        Columns are gradients of each active manifold (dh/dz_j = 1/KY_j).
-    Hash : list[str], length l
-        String indices of active/near-active manifolds, matching grads columns.
-
-    Outputs (H0 provided)
-    ---------------------
-    h : ndarray, shape (l,)
-        Values z_j / KY_j for requested manifolds.
-    grads : ndarray, shape (11, l)
-        Gradient columns for requested manifolds.
-    """
+    # Outputs (H0 provided)
+    # ---------------------
+    # h : ndarray, shape (l,)
+    #     Values z_j / KY_j for requested manifolds.
+    # grads : ndarray, shape (11, l)
+    #     Gradient columns for requested manifolds.
 
     KY = np.linspace(0.10, 0.60, 11)  # Fixed KY grid: [0.10, 0.15, ..., 0.60] (11 values)
 
@@ -463,7 +538,7 @@ def max_gamma_over_KY(z, H0=None):
         return h, grads
 
 
-def max_gamma_over_KY_jax(z, H0=None):
+def h_max_gamma_over_KY_jax(z, H0=None):
     """
     Computes h = max_j { z_j / KY_j }, where each z_j represents the output from
     the application-specific function gamma(kappa, Delta, zeta, KY_j).
@@ -554,5 +629,99 @@ def max_gamma_over_KY_jax(z, H0=None):
             (h_one, Hash), grad_one = grad_jax_max_gamma_over_KY(z, KY, "replay", hash_thing)
             h[k] = h_one
             grads[:, k] = grad_one 
+
+def h_max_plus_quadratic_violation_penalty(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling objective
+    function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp), \cdots, z_{p1}(\psp)} +
+                  \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i(\psp), 0}^2
+
+    .. todo::
+        * p1 is not a parameter and appears to be hardcoded to m-1, which means
+          that the sum in the definition is unnecessary
+        * alpha is not a parameter and appears to be hardcoded to zero.  Mention
+          this in the docs?
+    """
+    # Behavior:
+    # - If H0 is None: returns (h, grads, Hashes)
+    #     * h is a scalar (0-d np.ndarray)
+    #     * grads is shape (p, n_active)
+    #     * Hashes is a list[str] of length n_active, each a '0'/'1' string of length p
+    # - If H0 is provided: returns (h, grads, None)
+    #     * h is shape (J,)
+    #     * grads is shape (p, J)
+
+    p = z.size
+    p1 = p - 1
+
+    alpha = 0.0
+    h_activity_tol = 1e-8
+
+    if H0 is None:
+        h1 = np.max(z[:p1])
+
+        # h2 = alpha * sum(max(z(p1+1:end), 0).^2); -> z[p1:]
+        h2 = float(alpha * np.sum(np.maximum(z[p1:], 0.0) ** 2))
+        h = h1 + h2
+
+        # Active indices for the max term:
+        atol = h_activity_tol
+        rtol = h_activity_tol
+
+        inds1 = np.where(np.abs(h1 - z[:p1]) <= atol + rtol * np.abs(z[:p1]))[0]
+        inds2 = p1 + np.where(z[p1:] >= -rtol)[0]
+
+        grads = np.zeros((p, inds1.size))
+        Hash = []
+
+        for j, idx in enumerate(inds1):
+            bits = ["0"] * p
+            bits[idx] = "1"
+            for ii in inds2:
+                bits[ii] = "1"
+            hash_str = "".join(bits)
+            Hash.append(hash_str)
+
+            grads[idx, j] = 1.0
+            grads[inds2, j] = alpha * 2.0 * z[inds2]
+
+        return h, grads, Hash
+
+    else:
+        # H0 provided: evaluate on given hashes
+        J = len(H0)
+        h = np.zeros(J, dtype=float)
+        grads = np.zeros((p, J), dtype=float)
+
+        for k, hk in enumerate(H0):
+            if len(hk) != p:
+                raise ValueError(f"Each hash must be a string of length p={p}; got {len(hk)}")
+
+            # max_ind = find(H0{k}(1:p1) == '1'); MATLAB -> hk[:p1]
+            max_inds = [i for i, ch in enumerate(hk[:p1]) if ch == "1"]
+            if len(max_inds) != 1:
+                raise AssertionError("I don't know what to do in this case")
+            max_ind = max_inds[0]
+
+            grads[max_ind, k] = 1.0
+            h1 = z[max_ind]
+
+            # const_viol_inds = p1 + find(H0{k}(p1 + 1:end) == '1');
+            cv_local = [i for i, ch in enumerate(hk[p1:]) if ch == "1"]
+            const_viol_inds = np.array([p1 + i for i in cv_local], dtype=int)
+
+            if const_viol_inds.size == 0:
+                h2 = 0.0
+            else:
+                grads[const_viol_inds, k] = alpha * 2.0 * z[const_viol_inds]
+                # h2 = alpha * sum(max(z(const_viol_inds), 0).^2);
+                h2 = float(alpha * np.sum(np.maximum(z[const_viol_inds], 0.0) ** 2))
+
+            h[k] = h1 + h2
 
         return h, grads

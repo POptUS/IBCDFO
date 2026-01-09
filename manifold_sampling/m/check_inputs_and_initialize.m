@@ -15,7 +15,6 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     fq_pars.Par(3) = 1e-3;  % [dbl] Pivot threshold for validity (1e-5)
     fq_pars.Par(4) = .001;  % [dbl] Pivot threshold for additional points (.001)
     fq_pars.Par(5) = 0;  % [log] Flag to find affine points in forward order (0)
-    % fq_pars.npmax = (n + 1) * (n + 2) / 2;     % [int] number of points in model building
     fq_pars.npmax = 2 * n + 1;     % [int] number of points in model building
 
     % Internal parameters/tolerances for manifold sampling
@@ -31,8 +30,6 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     tol.gamma_inc = 2;   % [dbl] >= 1 for increasing delta
     tol.hfun_test_mode = 1;   % [bool] Run some checks every time the hfun is called to see if it is implemented correctly.
     % kappa_mh = 0;    % [dbl] > 0 that bounds the component model Hessians
-
-    tol.gentype = 2;
 
     assert(nf_max >= n + 1, "nf_max is less than n+1, exiting");
 
