@@ -69,7 +69,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
         hfun = hfuns{1};
         nf_max = 100;
         if row == 1
-            if jj == 1 || jj == 7
+            if jj == 1 || jj == 6
                 nf_max = 400;  % Increasing nf_max for a few tests helps cover parts of manifold_sampling_primal
             end
         end
