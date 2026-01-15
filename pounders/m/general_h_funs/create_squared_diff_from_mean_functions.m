@@ -1,6 +1,9 @@
 function [hfun, combinemodels] = create_squared_diff_from_mean_functions(alpha)
     % Please refer to the documentation for the Python version of this
     % h function.
+    arguments
+        alpha {mustBeScalarOrEmpty, mustBeNonempty, mustBeReal, mustBeFinite}
+    end
 
     function [h] = h_squared_diff_from_mean(F, alpha)
         h = sum((F - 1 / length(F) * sum(F)).^2) - alpha * (1 / length(F) * sum(F))^2;
