@@ -12,10 +12,10 @@ from .general_h_funs import (
     combine_identity, h_identity,
     combine_leastsquares, h_leastsquares,
     combine_neg_leastsquares, h_neg_leastsquares,
-    combine_emittance, h_emittance,
-    combine_squared_diff_from_mean, h_squared_diff_from_mean
+    combine_emittance, h_emittance
 )
 # fmt: on
+from .create_squared_diff_from_mean_functions import create_squared_diff_from_mean_functions
 
 # -- Python unittest-based test framework
 # Used for automatic test discovery by main package
