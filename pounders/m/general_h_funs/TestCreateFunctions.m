@@ -10,9 +10,9 @@
 %     >> runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)
 %
 
-% TODO: If this is a good idea, then thest the combinemodel function in the
+% TODO: If this is a good idea, then test the combinemodel function in the
 % same way.
-classdef TestCreateSquaredDiffFromMeanFunctions < matlab.unittest.TestCase
+classdef TestCreateFunctions < matlab.unittest.TestCase
     methods (Test)
 
         function badArguments(testCase)
