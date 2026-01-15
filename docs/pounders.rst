@@ -103,6 +103,13 @@ for the |matlab| version of these functions, which are located in
 
 Parameterized :math:`\hfun` Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-**TODO** Write something here.
+|pounders| specifies parameterized :math:`\hfun` functions, which it can only
+use once users have chosen a single set of parameter values for formulating a
+specific :math:`\hfun` function and, therefore, a single related problem.  The
+following routines can be used to create a single ``hfun`` and ``combinemodels``
+matched pair for a single set of desired parameter values.  While these routines
+are presented through their integration into the Python package, the
+documentation is valid for the |matlab| version of these routines, which are
+located in ``pounders/m/general_h_funs``.
 
 .. autofunction:: ibcdfo.pounders.create_squared_diff_from_mean_functions
