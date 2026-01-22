@@ -6,7 +6,8 @@
 #       The BenDFO test functions used in this test do not have n = 4,
 #       so these tests are only for testing the algorithms and hfun definition
 #       rather than representing the true physics problem.
-import os
+import os, sys
+sys.path.append('./jaxnp_hash/')
 
 import ibcdfo
 
@@ -14,7 +15,8 @@ import ibcdfo
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
-from ibcdfo.manifold_sampling import h_max_gamma_over_KY as hfun
+
+hfun = ibcdfo.manifold_sampling.h_max_gamma_over_KY
 
 dfo = np.loadtxt("dfo.dat")
 
