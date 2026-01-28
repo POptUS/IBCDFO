@@ -6,6 +6,23 @@ from .phi2eval import phi2eval
 # from .flipFirstRow import flipFirstRow
 # from .flipSignQ import flipSignQ
 
+def _report_bad(name, A, row_map=None, X_full=None, max_show=8):
+    A = np.asarray(A)
+    bad = np.argwhere(~np.isfinite(A))
+    if bad.size == 0:
+        return
+    print(f"[formquad DBG] {name} has {bad.shape[0]} non-finite entries. Showing up to {max_show}.", flush=True)
+
+    for (i, j) in bad[:max_show]:
+        i = int(i); j = int(j)
+        src = int(row_map[i]) if row_map is not None else i
+        val = A[i, j] if A.ndim == 2 else A[i]
+        msg = f"[formquad DBG] {name}[{i},{j}] = {val}  (maps to original row {src})"
+        print(msg, flush=True)
+        if X_full is not None:
+            # show the corresponding point used to produce this residual row
+            print(f"[formquad DBG] X[{src},:] = {X_full[src, :]}", flush=True)
+
 
 def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     """
@@ -144,6 +161,8 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
             break
     F = F[Mind]
 
+    _report_bad("F", F, row_map=Mind, X_full=X)
+
     # Precompute L^T L and its Cholesky factorization once
     LTL = L.T @ L
     LTL_cf, LTL_lower = scipy.linalg.cho_factor(LTL, lower=False)
@@ -177,6 +196,8 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     else:
         # Normal case: solve for Omega_all from (L^T L) * Omega_all = Z^T * F
         J_all = Z.T @ F  # shape: (p, m), p = number of columns of Z
+
+        _report_bad("J_all", J_all)
 
         Omega_all = scipy.linalg.cho_solve(
             (LTL_cf, LTL_lower),
