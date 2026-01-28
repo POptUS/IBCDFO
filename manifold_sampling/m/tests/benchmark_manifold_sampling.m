@@ -11,7 +11,7 @@ function [] = benchmark_manifold_sampling()
 
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 oldpath = addpath(fullfile(here_path, '..'));
-addpath(fullfile(here_path, '..', 'h_examples'));
+addpath(fullfile(here_path, '..', 'general_nonsmooth_h_funs'));
 
 global C D Qs zs cs
 factor = 10;
@@ -58,11 +58,18 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     jj = 1;
-    for hfuns = {@censored_L1_loss, @max_plus_quadratic_violation_penalty, @piecewise_quadratic, @piecewise_quadratic_1, @pw_maximum,  @pw_maximum_squared, @pw_minimum, @pw_minimum_squared, @quantile, @one_norm}
+    hfuns_all = {@h_censored_L1_loss, ...
+                 @h_max_plus_quadratic_violation_penalty, ...
+                 @h_piecewise_quadratic, ...
+                 @h_pw_maximum, @h_pw_maximum_squared, ...
+                 @h_pw_minimum, @h_pw_minimum_squared, ...
+                 @h_quantile, ...
+                 @h_one_norm};
+    for hfuns = hfuns_all
         hfun = hfuns{1};
         nf_max = 100;
         if row == 1
-            if jj == 1 || jj == 7
+            if jj == 1 || jj == 6
                 nf_max = 400;  % Increasing nf_max for a few tests helps cover parts of manifold_sampling_primal
             end
         end

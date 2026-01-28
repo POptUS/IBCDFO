@@ -1,5 +1,5 @@
 import numpy as np
-from ibcdfo.pounders import checkinputss
+from ibcdfo.pounders import _checkinputss as checkinputss
 
 from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts
@@ -109,7 +109,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
-            D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
+            D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun)
             G_k = Gres @ D_k
             beta = np.maximum(0, f_bar - h[xkin])
 
@@ -153,7 +153,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 break
             else:
                 # Line 18: Check temporary activities after adding TRSP solution to X
-                __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, tol["gentype"], xkin, nf, delta, F, hfun)
+                __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
                 if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):

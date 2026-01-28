@@ -1,21 +1,21 @@
 |pounders|
 ==========
-
+General Description
+-------------------
 The Practical Optimization Using No Derivatives and Exploiting Recognized
-Structure method, better known as |pounders|, minimizes a sum of squares of
-blackbox (''zeroth-order'') functions, solving
+Structure method, better known as |pounders|, solves the optimization
+problem
 
 .. math::
-   \min_{\psp \in \R^{\np}} \left\{f(\psp)=\sum_{i=1}^{\nd} F_i(\psp)^2\right\}
+    \min_{\psp \in \R^{\np}} \hfun(\Ffun(\psp))
 
 subject to
 
 .. math::
-    Low_j \le \pspcomp{j} \le Upp_j, j=1,...,\np,
+    Low_j \leq \pspcomp{j} \le Upp_j, j=1,...,\np
 
-where 
-
-* where :math:`\Ffun` is the vector-valued, user-provided blackbox function,
+* where :math:`\Ffun` is a vector-valued, user-provided blackbox ("zeroth-order") function,
+* :math:`\hfun` is a smooth function mapping from :math:`\R^{\nd}` to :math:`\R`, 
 * :math:`Low` is a user-provided boundary constraint that permits values of
   :math:`-\infty` to specify that the problem is unconstrained for the
   associated parameter, and
@@ -23,16 +23,33 @@ where
   :math:`+\infty` to specify that the problem is unconstrained for the
   associated parameter.
 
-The algorithm will not evaluate :math:`\Ffun` outside of these bounds, but it is
+Originally, |pounders| was designed only to
+minimize a sum of squares of
+blackbox functions, that is, |pounders| solved
+
+.. math::
+   \min_{\psp \in \R^{\np}} \left\{f(\psp)=\sum_{i=1}^{\nd} \Ffuncomp{i}(\psp)^2\right\}
+
+subject to
+
+.. math::
+    Low_j \le \pspcomp{j} \le Upp_j, j=1,...,\np.
+
+As such, the current implementation of |pounders| generalizes the class of 
+functions to which |pounders| can be applied. 
+
+|pounders| will not evaluate :math:`\Ffun` outside of the provided bounds, but it is
 possible to take advantage of function values at infeasible :math:`\psp` if
 these are passed initially through ``(X_init,F_init)``.  In each iteration, the
 algorithm forms a set of quadratic models interpolating the functions in
 :math:`\Ffun` and minimizes an associated scalar-valued model within an
 infinity-norm trust region.
 
-Optionally, users can specify a custom outer-function :math:`\hfun` that, like
-:math:`f`, maps the elements of :math:`\Ffun` to a scalar value
-:math:`\hfun(\Ffun(\psp))` for minimization. Users must also provide a "combine
+If a user wishes to employ an outer function :math:`\hfun` other than a
+sum-of-squares, then the user must specify a custom outer-function :math:`\hfun`
+that maps the outputs of :math:`\Ffun` to a scalar value
+:math:`\hfun(\Ffun(\psp))` for minimization. 
+In that case, users must also provide a "combine
 models" function that |pounders| uses to map the linear and quadratic terms from
 the models of :math:`\Ffun` into a single quadratic model.
 
@@ -41,6 +58,8 @@ brief description can also be found in :cite:t:`UNEDF0_2010`.
 
 Programmatic Interface
 ----------------------
+Status Code
+^^^^^^^^^^^
 All |pounders| implementations return a termination criteria flag.  The
 interpretation of the value of the flag is identical across implementations
 and possible values are
@@ -62,8 +81,23 @@ to provide language-specific descriptions.
 
 Python
 ^^^^^^
-.. autofunction:: ibcdfo.pounders.pounders
+.. autofunction:: ibcdfo.run_pounders
+.. autofunction:: ibcdfo.run_pounders_concurrent
 
 |matlab|
 ^^^^^^^^
 .. mat:autofunction:: pounders.m.pounders
+
+:math:`\hfun` Functions
+^^^^^^^^^^^^^^^^^^^^^^^
+The following :math:`\hfun` functions are available for use with both the Python
+and |matlab| implementations of |pounders|.  While they are presented through
+their integration into the Python package, the documentation is valid for the
+|matlab| version of these functions, which are located in
+``pounders/m/general_h_funs``.
+
+.. autofunction:: ibcdfo.pounders.h_leastsquares
+.. autofunction:: ibcdfo.pounders.h_neg_leastsquares
+.. autofunction:: ibcdfo.pounders.h_identity
+.. autofunction:: ibcdfo.pounders.h_emittance
+.. autofunction:: ibcdfo.pounders.h_squared_diff_from_mean

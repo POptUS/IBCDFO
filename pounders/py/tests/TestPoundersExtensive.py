@@ -5,8 +5,8 @@ Unit test of compute function
 import os
 import unittest
 
-import ibcdfo.pounders as pdrs
-import ibcdfo.pounders.pounders_concurrent as conc
+import ibcdfo
+import functools
 import numpy as np
 import scipy as sp
 from calfun import calfun
@@ -71,24 +71,27 @@ class TestPounders(unittest.TestCase):
             for hfun_cases in range(1, 4):
                 Results = {}
                 if hfun_cases == 1:
-                    hfun = lambda F: np.sum(F**2)
-                    combinemodels = pdrs.leastsquares
+                    hfun = ibcdfo.pounders.h_leastsquares
+                    combinemodels = ibcdfo.pounders.combine_leastsquares
+                    hfun_name = combinemodels.__name__
                 elif hfun_cases == 2:
-                    alpha = 0  # If changed here, also needs to be adjusted in squared_diff_from_mean.py
-                    hfun = lambda F: np.sum((F - 1 / len(F) * np.sum(F)) ** 2) - alpha * (1 / len(F) * np.sum(F)) ** 2
-                    combinemodels = pdrs.squared_diff_from_mean
+                    ALPHA = 0.0
+                    hfun = functools.partial(ibcdfo.pounders.h_squared_diff_from_mean, alpha=ALPHA)
+                    combinemodels = functools.partial(ibcdfo.pounders.combine_squared_diff_from_mean, alpha=ALPHA)
+                    hfun_name = "combine_squared_diff_from_mean"
                 elif hfun_cases == 3:
                     if m != 3:  # Emittance is only defined for the case when m == 3
                         continue
-                    hfun = pdrs.emittance_h
-                    combinemodels = pdrs.emittance_combine
+                    hfun = ibcdfo.pounders.h_emittance
+                    combinemodels = ibcdfo.pounders.combine_emittance
+                    hfun_name = combinemodels.__name__
 
-                filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + combinemodels.__name__ + ".mat"
+                filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat"
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                X, F, hF, flag, xk_best = pdrs.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
-                Xc, Fc, hFc, flagc, xk_bestc = conc.pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                X, F, hF, flag, xk_best = ibcdfo.run_pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                Xc, Fc, hFc, flagc, xk_bestc = ibcdfo.run_pounders_concurrent(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
                 self.assertTrue(np.array_equal(X, Xc), f"Mismatch: ‖X−Xc‖={np.linalg.norm(X - Xc):.3e}")

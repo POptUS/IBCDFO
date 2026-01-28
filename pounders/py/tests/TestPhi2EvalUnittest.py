@@ -1,6 +1,6 @@
 import unittest
 
-import ibcdfo.pounders as pdrs
+from ibcdfo.pounders import _phi2eval as phi2eval
 import numpy as np
 
 
@@ -12,5 +12,5 @@ class TestPhi2EvalUnittest(unittest.TestCase):
         T[1, 3] = 0.5
         T[2, 5] = 0.5
 
-        P = pdrs.phi2eval(D)
+        P = phi2eval(D)
         self.assertTrue(np.all(P == T))

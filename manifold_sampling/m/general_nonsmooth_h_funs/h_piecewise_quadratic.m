@@ -1,8 +1,6 @@
-function [h, grads, Hash] = piecewise_quadratic(z, H0)
+function [h, grads, Hash] = h_piecewise_quadratic(z, H0)
+% Please refer to the documentation for the Python version of this h function.
 
-% Evaluates the piecewise quadratic function
-%   max_j { || z - z_j ||_{Q_j}^2 + b_j }
-%
 % Inputs:
 %  z:              [1 x p]   point where we are evaluating h
 %  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate

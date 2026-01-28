@@ -5,7 +5,7 @@ Unit test of compute function
 import unittest
 
 import numpy as np
-from ibcdfo.pounders.checkinputss import checkinputss
+from ibcdfo.pounders import _checkinputss as checkinputss
 
 
 class TestLotsOfFeatures(unittest.TestCase):

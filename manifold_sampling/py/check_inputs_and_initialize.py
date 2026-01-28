@@ -10,13 +10,13 @@ def check_inputs_and_initialize(x0, F0, nf_max):
 
     # Internal parameters/tolerances for formquad
 
-    fq_pars = {"Par": [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001, False], "npmax": (n + 1) * (n + 2) // 2}
+    fq_pars = {"Par": [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001, False], "npmax": 2 * n + 1}
 
     # Internal parameters/tolerances for manifold sampling
     tol = {
-        "maxdelta": 1,
-        "mindelta": 1e-8,
-        "gtol": 1e-8,
+        "maxdelta": 1e8,
+        "mindelta": 1e-13,
+        "gtol": 1e-13,
         "norm_g_change": 0.001,
         "kappa_d": 0.0001,
         "eta1": 0.01,
@@ -25,7 +25,6 @@ def check_inputs_and_initialize(x0, F0, nf_max):
         "gamma_dec": 0.5,
         "gamma_inc": 2,
         "hfun_test_mode": 1,
-        "gentype": 3,
     }
 
     # kappa_mh = 0;    # [dbl] > 0 that bounds the component model Hessians
