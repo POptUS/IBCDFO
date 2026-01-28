@@ -4,7 +4,7 @@ Unit test of simple functionality of pounders routine.
 
 import unittest
 
-import ibcdfo.pounders as pdrs
+import ibcdfo
 import numpy as np
 
 import time
@@ -51,7 +51,7 @@ class TestPounders(unittest.TestCase):
                 Ffun = vecFun
 
                 start_time = time.perf_counter()
-                [X, F, hF, flag, xk_in_out] = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))})
+                [X, F, hF, flag, xk_in_out] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))})
                 elapsed = time.perf_counter() - start_time
 
                 print(f"m = {m:5d}: runtime = {elapsed:.6f} seconds, flag = {flag}")

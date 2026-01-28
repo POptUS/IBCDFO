@@ -5,7 +5,7 @@ Unit test of compute function
 import os
 import unittest
 
-import ibcdfo.pounders as pdrs
+import ibcdfo
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
@@ -45,7 +45,7 @@ class TestPounders(unittest.TestCase):
             Opts = {"printf": printf, "spsolver": spsolver, "row": row}
             Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-            X, F, hF, flag, xk_best = pdrs.pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+            X, F, hF, flag, xk_best = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
             evals = F.shape[0]
 
