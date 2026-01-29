@@ -6,7 +6,6 @@ import os
 import unittest
 
 import ibcdfo
-import functools
 import numpy as np
 import scipy as sp
 from calfun import calfun
@@ -76,8 +75,7 @@ class TestPounders(unittest.TestCase):
                     hfun_name = combinemodels.__name__
                 elif hfun_cases == 2:
                     ALPHA = 0.0
-                    hfun = functools.partial(ibcdfo.pounders.h_squared_diff_from_mean, alpha=ALPHA)
-                    combinemodels = functools.partial(ibcdfo.pounders.combine_squared_diff_from_mean, alpha=ALPHA)
+                    hfun, combinemodels = ibcdfo.pounders.create_squared_diff_from_mean_functions(ALPHA)
                     hfun_name = "combine_squared_diff_from_mean"
                 elif hfun_cases == 3:
                     if m != 3:  # Emittance is only defined for the case when m == 3

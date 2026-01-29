@@ -65,8 +65,7 @@ for row = [7, 8]
                 combinemodels = @combine_leastsquares;
             elseif hfun_cases == 2
                 ALPHA = 0;
-                hfun = @(F) h_squared_diff_from_mean(F, ALPHA);
-                combinemodels = @(Cres, Gres, Hres) combine_squared_diff_from_mean(Cres, Gres, Hres, ALPHA);
+                [hfun, combinemodels] = create_squared_diff_from_mean_functions(ALPHA);
             elseif hfun_cases == 3
                 hfun = @h_neg_leastsquares;
                 combinemodels = @combine_neg_leastsquares;
