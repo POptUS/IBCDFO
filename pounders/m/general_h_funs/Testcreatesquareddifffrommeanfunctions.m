@@ -12,12 +12,12 @@
 
 classdef Testcreatesquareddifffrommeanfunctions < matlab.unittest.TestCase
     properties
-        n;
-        m;
-        F;
-        Cres;
-        Gres;
-        Hres;
+        n
+        m
+        F
+        Cres
+        Gres
+        Hres
     end
 
     methods (TestMethodSetup)
