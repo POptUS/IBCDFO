@@ -10,14 +10,18 @@
 %     >> runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)
 %
 
-classdef TestCreateSquaredDiffFromMeanFunctions < matlab.unittest.TestCase
+classdef Testcreatesquareddifffrommeanfunctions < matlab.unittest.TestCase
     properties
-        n, m;
+        n;
+        m;
         F;
-        Cres, Gres, Hres;
+        Cres;
+        Gres;
+        Hres;
     end
 
     methods (TestMethodSetup)
+
         function setup(testCase)
             % Test problem 1 setup
             %   - Here and in tests *_bar refers to the average of *
@@ -31,18 +35,19 @@ classdef TestCreateSquaredDiffFromMeanFunctions < matlab.unittest.TestCase
 
             testCase.Cres = testCase.F;
 
-            testCase.Gres = [[1.1 0.3 2.2],
+            testCase.Gres = [[1.1 0.3 2.2]
                              [2.2 0.3 1.4]];
             % G_bar = [1.2 1.3];
 
             testCase.Hres = zeros([testCase.n testCase.n testCase.m]);
-            testCase.Hres(:, :, 1) = [[ 1.2 -2.3],
-                                      [-2.3  3.4]];
-            testCase.Hres(:, :, 2) = [[-1.4  3.2],
-                                      [ 3.2 -2.1]];
-            testCase.Hres(:, :, 3) = [[3.5  1.8],
+            testCase.Hres(:, :, 1) = [[1.2 -2.3]
+                                      [-2.3 3.4]];
+            testCase.Hres(:, :, 2) = [[-1.4 3.2]
+                                      [3.2 -2.1]];
+            testCase.Hres(:, :, 3) = [[3.5 1.8]
                                       [1.8 -2.5]];
         end
+
     end
 
     methods (Test)
@@ -112,14 +117,14 @@ classdef TestCreateSquaredDiffFromMeanFunctions < matlab.unittest.TestCase
 
         function testFunctions(testCase)
             % Handworked intermediate results for test problem 1
-            H_bar = [[1.1  0.9],
+            H_bar = [[1.1 0.9]
                      [0.9 -0.4]];
-            H_JmGJmG = [[3.64 1.82],
+            H_JmGJmG = [[3.64 1.82]
                         [1.82 3.64]];
-            H_GG = [[2.88 3.12],
+            H_GG = [[2.88 3.12]
                     [3.12 3.38]];
-            H_FH = [[ 27.28 -18.26],
-                    [-18.26  10.34]];
+            H_FH = [[27.28 -18.26]
+                    [-18.26 10.34]];
 
             % Include
             % - Negative and positive
