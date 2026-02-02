@@ -33,6 +33,8 @@ def create_squared_diff_from_mean_functions(alpha):
 
     if not isinstance(alpha, numbers.Real):
         raise TypeError("alpha parameter must be floating point number")
+    elif not np.isfinite(alpha):
+        raise ValueError("alpha parameter must be finite real")
 
     # Both of these definitions assume that alpha is a variable in the local
     # scope of this function.  In this case, it's the function's argument.
