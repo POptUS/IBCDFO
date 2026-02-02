@@ -24,7 +24,7 @@ classdef Testcreatesquareddifffrommeanfunctions < matlab.unittest.TestCase
 
         function setup(testCase)
             % Test problem 1 setup
-            %   - Here and in tests *_bar refers to the average of *
+            %   - Here and in tests *_bar refers to an average of *
             testCase.n = 2;
             testCase.m = 3;
             testCase.F = [3.3; -1.1; 4.4];
@@ -63,10 +63,12 @@ classdef Testcreatesquareddifffrommeanfunctions < matlab.unittest.TestCase
                 'MATLAB:validators:mustBeScalarOrEmpty' ...
             );
 
-            testCase.verifyError( ...
-                @()create_squared_diff_from_mean_functions("hello"), ...
-                'MATLAB:validators:mustBeReal' ...
-            );
+            for bad = ["bad", 1j, 1.0 - 2.0*ij]
+                testCase.verifyError( ...
+                    @()create_squared_diff_from_mean_functions(bad), ...
+                    'MATLAB:validators:mustBeReal' ...
+                );
+            end
 
             for bad = [inf -inf nan]
                 testCase.verifyError( ...
@@ -80,7 +82,7 @@ classdef Testcreatesquareddifffrommeanfunctions < matlab.unittest.TestCase
             end
         end
 
-        function confirmImmutability(testCase)
+        function confirmImmutable(testCase)
             % Construct using variable declared in this scope & collect results
             alpha = 1.2;
             [hfun, combinemodels] = ...

@@ -12,6 +12,7 @@ from ibcdfo.pounders import create_squared_diff_from_mean_functions
 class TestCreateSquaredDiffFromMeanFunctions(unittest.TestCase):
     def setUp(self):
         # Test problem 1 setup
+        #   - Here and in tests *_bar refers to an average of *
         self.__n = 2
         self.__m = 3
         self.__F = np.array([3.3, -1.1, 4.4])
@@ -31,7 +32,7 @@ class TestCreateSquaredDiffFromMeanFunctions(unittest.TestCase):
         self.__Hres[:, :, 2] = np.array([[3.5, 1.8], [1.8, -2.5]])
 
     def testErrors(self):
-        for bad in [None, "", "bad", [1.1], (1.1,), {1.1}, {}]:
+        for bad in [None, "", "bad", [1.1], (1.1,), {1.1}, {}, 1j, 1.0-2.0*1j]:
             with self.assertRaises(TypeError):
                 create_squared_diff_from_mean_functions(bad)
 

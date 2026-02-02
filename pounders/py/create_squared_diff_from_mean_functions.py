@@ -39,8 +39,8 @@ def create_squared_diff_from_mean_functions(alpha):
     # Both of these definitions assume that alpha is a variable in the local
     # scope of this function.  In this case, it's the function's argument.
     def hfun(F):
-        F_avg = np.mean(F)
-        return np.sum((F - F_avg) ** 2) - alpha * F_avg**2
+        F_bar = np.average(F)
+        return np.sum((F - F_bar) ** 2) - alpha * F_bar**2
 
     def combinemodels(Cres, Gres, Hres):
         n, _, m = Hres.shape
@@ -64,6 +64,6 @@ def create_squared_diff_from_mean_functions(alpha):
 
         return G, H
 
-    # The value of the given actual alpha argument is fixed into the returned
+    # The value of the given actual alpha argument is fixed within the returned
     # functions only at this point.
     return hfun, combinemodels
