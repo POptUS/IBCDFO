@@ -32,7 +32,8 @@ class TestCreateSquaredDiffFromMeanFunctions(unittest.TestCase):
         self.__Hres[:, :, 2] = np.array([[3.5, 1.8], [1.8, -2.5]])
 
     def testErrors(self):
-        for bad in [None, "", "bad", [1.1], (1.1,), {1.1}, {}, 1j, 1.0-2.0*1j]:
+        bad_all = [None, "", "bad", [1.1], (1.1,), {1.1}, {}, 1j, 1.0 - 2.0 * 1j]
+        for bad in bad_all:
             with self.assertRaises(TypeError):
                 create_squared_diff_from_mean_functions(bad)
 
