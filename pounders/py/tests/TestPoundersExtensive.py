@@ -78,7 +78,7 @@ class TestPounders(unittest.TestCase):
                     hfun, combinemodels = ibcdfo.pounders.create_squared_diff_from_mean_functions(ALPHA)
                     hfun_name = "combine_squared_diff_from_mean"
                 elif hfun_cases == 3:
-                    if m != 3:  # Emittance is only defined for the case when m == 3
+                    if m != 3:  # Emittance is defined only for the case when m == 3
                         continue
                     hfun = ibcdfo.pounders.h_emittance
                     combinemodels = ibcdfo.pounders.combine_emittance

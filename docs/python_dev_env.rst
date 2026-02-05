@@ -33,12 +33,12 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
 
 * ``tox -e pounders``
 
-  * Execute the test suite for the |pounders| subpackage only using the code
+  * Execute the test suite for the |pounders| subpackage using only the code
     installed into Python
 
 * ``tox -e manifold_sampling``
 
-  * Execute the test suite for the Manifold Sampling subpackage only using the
+  * Execute the test suite for the Manifold Sampling subpackage using only the
     code installed into Python
 
 * ``tox -e report``

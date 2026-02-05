@@ -58,7 +58,7 @@ for row = 1:length(dfo)
             ALPHA = 0;
             [hfun, combinemodels] = create_squared_diff_from_mean_functions(ALPHA);
         elseif hfun_cases == 3
-            if m ~= 3 % Emittance is only defined for the case when m == 3
+            if m ~= 3 % Emittance is defined only for the case when m == 3
                 continue
             end
             hfun = @h_emittance;

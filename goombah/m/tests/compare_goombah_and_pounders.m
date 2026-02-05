@@ -56,7 +56,7 @@ for row = 1:length(dfo)
             combinemodels = @squared_diff_from_mean;
         elseif hfun_cases == 3
             error("Not implemented in GOOMBAH yet");
-            if m ~= 3 % Emittance is only defined for the case when m == 3
+            if m ~= 3 % Emittance is defined only for the case when m == 3
                 continue
             end
             hfun = @emittance_h;

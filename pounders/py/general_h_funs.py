@@ -59,7 +59,7 @@ def h_leastsquares(F):
         f(\psp) = \hfun\left(\Ffun(\psp)\right)
                 = \sum_{i = 1}^{\nd} \Ffuncomp{i}(\psp)^2,
 
-    which is the :math:`\hfun` function used be default.
+    which is the :math:`\hfun` function used by default.
 
     The ``combine_leastsquares`` function should also be passed to |pounders|
     when using this :math:`\hfun` function.
