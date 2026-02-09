@@ -23,8 +23,8 @@ subject to
   :math:`+\infty` to specify that the problem is unconstrained for the
   associated parameter.
 
-Originally, |pounders| was designed only to
-minimize a sum of squares of
+Originally, |pounders| was designed to
+minimize only "sum of squares" mappings of
 blackbox functions, that is, |pounders| solved
 
 .. math::
@@ -88,16 +88,28 @@ Python
 ^^^^^^^^
 .. mat:autofunction:: pounders.m.pounders
 
-:math:`\hfun` Functions
-^^^^^^^^^^^^^^^^^^^^^^^
-The following :math:`\hfun` functions are available for use with both the Python
-and |matlab| implementations of |pounders|.  While they are presented through
-their integration into the Python package, the documentation is valid for the
-|matlab| version of these functions, which are located in
+General :math:`\hfun` Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The following :math:`\hfun` functions are available for immediate use with both
+the Python and |matlab| implementations of |pounders|.  While they are presented
+through their integration into the Python package, the documentation is valid
+for the |matlab| version of these functions, which are located in
 ``pounders/m/general_h_funs``.
 
 .. autofunction:: ibcdfo.pounders.h_leastsquares
 .. autofunction:: ibcdfo.pounders.h_neg_leastsquares
 .. autofunction:: ibcdfo.pounders.h_identity
 .. autofunction:: ibcdfo.pounders.h_emittance
-.. autofunction:: ibcdfo.pounders.h_squared_diff_from_mean
+
+Parameterized :math:`\hfun` Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|pounders| specifies parameterized :math:`\hfun` functions, which it can use
+only once users have chosen a single set of parameter values for formulating a
+specific :math:`\hfun` function and, therefore, a single related problem.  The
+following routines can be used to create a single ``hfun`` and ``combinemodels``
+matched pair for a single set of desired parameter values.  While these routines
+are presented through their integration into the Python package, the
+documentation is valid for the |matlab| version of these routines, which are
+located in ``pounders/m/general_h_funs``.
+
+.. autofunction:: ibcdfo.pounders.create_squared_diff_from_mean_functions
