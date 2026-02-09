@@ -47,7 +47,7 @@ def create_squared_diff_from_mean_functions(alpha):
 
         m_sumF = np.mean(Cres)
         m_sumG = 1 / m * np.sum(Gres, axis=1)
-        sumH = np.sum(Hres, axis=2)
+        m_sumH = 1 / m * np.sum(Hres, axis=2)
 
         G = np.zeros(n)
         for i in range(m):
@@ -56,11 +56,11 @@ def create_squared_diff_from_mean_functions(alpha):
 
         H = np.zeros((n, n))
         for i in range(m):
-            H = H + (Cres[i] - m_sumF) * (Hres[:, :, i] + sumH) + np.outer(Gres[:, i] - m_sumG, Gres[:, i] - m_sumG)
+            H = H + (Cres[i] - m_sumF) * Hres[:, :, i] + np.outer(Gres[:, i] - m_sumG, Gres[:, i] - m_sumG)
 
         H = 2 * H
 
-        H = H - (2 * alpha / m) * m_sumF * sumH - (2 * alpha) * np.outer(m_sumG, m_sumG)
+        H = H - (2 * alpha) * (m_sumF * m_sumH + np.outer(m_sumG, m_sumG))
 
         return G, H
 
