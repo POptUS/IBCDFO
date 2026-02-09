@@ -1,6 +1,9 @@
 function [hfun, combinemodels] = create_squared_diff_from_mean_functions(alpha)
     % Please refer to the documentation for the Python version of this
     % h function.
+
+    % Have MATLAB automatically ensure that each actual alpha argument passed to
+    % this function is a finite, real scalar.
     arguments
         alpha {mustBeScalarOrEmpty, mustBeNonempty, mustBeReal, mustBeFinite}
     end
