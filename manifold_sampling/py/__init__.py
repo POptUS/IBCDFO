@@ -7,6 +7,7 @@ Common and useful h functions for use with the Manifold Sampling method
 from .general_nonsmooth_h_funs import (
     h_censored_L1_loss,
     h_max_gamma_over_KY,
+    h_max_gamma_over_KY_jax,
     h_max_plus_quadratic_violation_penalty,
     h_one_norm,
     h_pw_minimum,

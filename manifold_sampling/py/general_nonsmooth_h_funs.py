@@ -2,6 +2,11 @@ from itertools import product
 
 import numpy as np
 
+import jax
+import jax.numpy as jnp
+import jaxnp_hash as jnph
+jax.config.update("jax_enable_x64", True)
+
 """
 These functions are housed in the manifold sampling namespace because they
 aren't "general implementations" of h_funs. They have the specific
@@ -532,6 +537,98 @@ def h_max_gamma_over_KY(z, H0=None):
             grads[j, k] = grad_mag[j]
         return h, grads
 
+
+def h_max_gamma_over_KY_jax(z, H0=None):
+    """
+    Computes h = max_j { z_j / KY_j }, where each z_j represents the output from
+    the application-specific function gamma(kappa, Delta, zeta, KY_j).
+
+    Notes
+    -----
+    - The symbols kappa, Delta, and zeta are domain parameters from
+      the physics/application model. They are *not* related to parameters
+      in the manifold sampling algorithm itself.
+    - The role of hfun in manifold sampling is simply to wrap this
+      application objective in the required (value, gradients, hashes)
+      interface. The actual Ffun corresponds to gamma(·).
+
+    Inputs
+    ------
+    z : array-like, shape (11,)
+        Values of gamma(...) evaluated at the 11 KY points.
+    H0 : optional list of str
+        Hashes (indices as strings) of manifolds to evaluate specifically.
+        If None, returns active/near-active manifolds at z.
+    KY : optional array-like, shape (11,)
+        The KY grid; defaults to [0.10, 0.15, ..., 0.60].
+
+    Outputs (H0 is None)
+    --------------------
+    h : float
+        The maximum value over j of z_j / KY_j.
+    grads : ndarray, shape (11, l)
+        Columns are gradients of each active manifold (dh/dz_j = 1/KY_j).
+    Hash : list[str], length l
+        String indices of active/near-active manifolds, matching grads columns.
+
+    Outputs (H0 provided)
+    ---------------------
+    h : ndarray, shape (l,)
+        Values z_j / KY_j for requested manifolds.
+    grads : ndarray, shape (11, l)
+        Gradient columns for requested manifolds.
+    """
+
+    def jax_max_gamma_over_KY(z, KY, type_for_jan, hash_thing=None):
+
+        if hash_thing is None:
+            with jnph.hash_mode(type_for_jan, tol=1e-3) as h:
+                """An example function that has nearby branches."""
+                # Convert to HashTensors
+                hz = jnph.HashTensor(z)
+                hKY = jnph.HashTensor(KY)
+
+                vals = hz / hKY  # shape (11,)
+                result1 = jnph.max(vals) 
+
+            return result1.value, h
+
+        else:
+            with jnph.hash_mode(type_for_jan, replay_hash=hash_thing):
+                """An example function that has nearby branches."""
+                # Convert to HashTensors
+                hz = jnph.HashTensor(z)
+                hKY = jnph.HashTensor(KY)
+
+                vals = hz / hKY  # shape (11,)
+                result1 = jnph.max(vals) 
+
+
+            return result1.value, []
+
+    KY = np.linspace(0.10, 0.60, 11)  # Fixed KY grid: [0.10, 0.15, ..., 0.60] (11 values)
+    z = np.asarray(z, dtype=float).ravel()
+
+    grad_jax_max_gamma_over_KY = jax.value_and_grad(jax_max_gamma_over_KY, has_aux=True)
+
+    if H0 is None:
+        (h, Hash), grads = grad_jax_max_gamma_over_KY(z, KY, "record")
+        grads = np.zeros((len(z), len(Hash)), dtype=float)
+
+        for k, hash_thing in enumerate(Hash): 
+            (_, _), grad_one = grad_jax_max_gamma_over_KY(z, KY, "replay", hash_thing)
+            grads[:, k] = grad_one 
+
+        return h, grads, Hash
+    else:
+        J = len(H0)
+        h = np.zeros(J, dtype=float)
+        grads = np.zeros((len(z), J), dtype=float)
+
+        for k, hash_thing in enumerate(H0): 
+            (h_one, Hash), grad_one = grad_jax_max_gamma_over_KY(z, KY, "replay", hash_thing)
+            h[k] = h_one
+            grads[:, k] = grad_one 
 
 def h_max_plus_quadratic_violation_penalty(z, H0=None):
     r"""
