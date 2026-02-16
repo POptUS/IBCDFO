@@ -20,7 +20,7 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
 
         self.__hfun = create_censored_L1_loss_hfun(self.__C, self.__D)
 
-        self.__Z = np.ones(self.__C.shape[0])
+        self.__Z = 2.1 * np.arange(self.__C.shape[0])
         self.__hF, self.__grads, self.__Hash = self.__hfun(self.__Z)
         self.assertIsInstance(self.__hF, float)
         self.assertIsInstance(self.__grads, np.ndarray)
@@ -29,18 +29,18 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
 
         # Sanity check hash result/H0
         hF_H0, grads_H0 = self.__hfun(self.__Z, self.__Hash)
-        # TODO: Why doesn't this work?!
-        # self.assertEqual(hF_H0, self.__hF)
+        self.assertEqual(hF_H0, self.__hF)
         self.assertTrue(np.array_equal(grads_H0, self.__grads))
 
         # Good but different size for testing size incompatibilities
         self.__C_short = np.array([1.1, 2.2, -3.3])
         self.__D_short = np.array([3.3, -1.1, -2.2])
         M_short = len(self.__C_short)
+        self.assertNotEqual(len(self.__C_short), len(self.__C))
 
         hfun = create_censored_L1_loss_hfun(self.__C_short, self.__D_short)
 
-        Z_short = np.zeros(M_short)
+        Z_short = 2.1 * np.arange(self.__C_short.shape[0])
         hF, grads, Hash = hfun(Z_short)
         self.assertIsInstance(hF, float)
         self.assertIsInstance(grads, np.ndarray)
@@ -90,14 +90,17 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
         hF_2D, grads_2D, Hash_2D = hfun_2D(self.__Z)
         self.assertEqual(hF_2D, self.__hF)
         self.assertTrue(np.array_equal(grads_2D, self.__grads))
-        self.assertTrue(np.array_equal(Hash_2D, self.__Hash))
+        self.assertEqual(Hash_2D, self.__Hash)
 
         # but not actually >= 2D
-        bad = self.__C.copy().reshape(self.__SHAPE_2D)
+        C_bad = self.__C.copy().reshape(self.__SHAPE_2D)
+        D_bad = self.__D.copy().reshape(self.__SHAPE_2D)
         with self.assertRaises(ValueError):
-            create_censored_L1_loss_hfun(bad, self.__D)
+            create_censored_L1_loss_hfun(C_bad, self.__D)
         with self.assertRaises(ValueError):
-            create_censored_L1_loss_hfun(self.__C, bad)
+            create_censored_L1_loss_hfun(self.__C, D_bad)
+        with self.assertRaises(ValueError):
+            create_censored_L1_loss_hfun(C_bad, D_bad)
 
         # C & D must have the same effective shape
         self.assertEqual(self.__C.ndim, self.__D_short.ndim)
@@ -114,13 +117,13 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
         M = len(self.__C)
 
         # z must be numpy array
-        bad_all = [None, "bad", 1.1, [1.1, 2.2], (1.1, 2.2), {1.1, 2.2}]
+        bad_all = [None, "bad", 1.1, (1.1,), {1.1}, [1.1, 2.2], (1.1, 2.2), {1.1, 2.2}]
         for bad in bad_all:
             with self.assertRaises(AssertionError):
                 self.__hfun(bad)
 
         # z must be 1D
-        for bad in [np.array([[]]), np.zeros((M, 2))]:
+        for bad in [np.array([[]]), np.atleast_2d(self.__Z), np.zeros((M, 2))]:
             with self.assertRaises(AssertionError):
                 self.__hfun(bad)
 
@@ -131,12 +134,13 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
 
         # z must contain finite real values
         for bad_value in [np.nan, np.inf, -np.inf, 1j, 1.0 - 2.0 * 1j]:
-            bad = np.random.randn(M)
-            if isinstance(bad_value, complex):
-                bad = bad.astype(complex)
-            bad[0] = bad_value
-            with self.assertRaises(ValueError):
-                self.__hfun(bad)
+            for i in range(len(self.__Z)):
+                bad = self.__Z.copy()
+                if isinstance(bad_value, complex):
+                    bad = bad.astype(complex)
+                bad[i] = bad_value
+                with self.assertRaises(ValueError):
+                    self.__hfun(bad)
 
     def testConfirmReadonly(self):
         # NOTE: This test is only useful for developing and manually testing the
@@ -168,7 +172,7 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
         hF_2, grads_2, Hash_2 = hfun_2(self.__Z)
         self.assertNotEqual(hF_2, hF)
         self.assertFalse(np.array_equal(grads_2, grads))
-        self.assertFalse(np.array_equal(Hash_2, Hash))
+        self.assertNotEqual(Hash_2, Hash)
 
         D *= -4.1
         hfun_3 = create_censored_L1_loss_hfun(C, D)
@@ -177,12 +181,12 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
         self.assertNotEqual(hF_3, hF_2)
         self.assertFalse(np.array_equal(grads_3, grads))
         self.assertFalse(np.array_equal(grads_3, grads_2))
-        self.assertFalse(np.array_equal(Hash_3, Hash))
-        self.assertFalse(np.array_equal(Hash_3, Hash_2))
+        self.assertNotEqual(Hash_3, Hash)
+        self.assertNotEqual(Hash_3, Hash_2)
 
         # Confirm that changing the construction variable didn't alter the
         # original functions
         hF_new, grads_new, Hash_new = hfun(self.__Z)
         self.assertEqual(hF_new, hF)
         self.assertTrue(np.array_equal(grads_new, grads))
-        self.assertTrue(np.array_equal(Hash_new, Hash))
+        self.assertEqual(Hash_new, Hash)
