@@ -5,16 +5,21 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
     % Have MATLAB automatically ensure that each actual C,D arguments passed to
     % this function are 1D finite, real column vectors of the same length.
     arguments
-        C (:, 1) {mustBeReal, mustBeFinite, mustBeColumn, mustBeNonempty}
-        D (:, 1) {mustBeReal, mustBeFinite, mustBeColumn, mustBeNonempty}
+        C (:, 1) {mustBeReal, mustBeFinite, mustBeNonempty}
+        D (:, 1) {mustBeReal, mustBeFinite, mustBeNonempty}
     end
+
+    % IMPORTANT: Aside from ensuring that they are column vectors, don't alter C
+    % or D anywhere in this function.
+    C = C(:);
+    D = D(:);
 
     if length(C) ~= length(D)
         error("POptUS:IncompatibleSizes", ...
-              "C & D have incompatible sizes"); 
+              "C & D have incompatible sizes");
     elseif length(C) < 2
         error("POptUS:ArrayTooShort", ...
-              "C & D must have at least two elements"); 
+              "C & D must have at least two elements");
     end
 
     hfun = @h_censored_L1_loss;
@@ -33,22 +38,22 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
         %     3 in position j uses D(j) - z(j) ...
         %     4 in position j uses D(j) - C(j) ...
         %   ... in the calculation of h and grads.
-        
+
         % Get data from outside of this function
         global n_h hvals_mat
-        
+
         eqtol = 1e-8;
 
         p = length(C);
-        
+
         % Error check under the assumption that it is essentially only MSP,
         % which is under our control, calling this function.
         assert(isvector(z));
         if length(z) ~= p
-            error("POptUS:IncompatibleSizes", "z size imcompatible with C & D");
-        elseif any(~isreal(z)) 
+            error("POptUS:IncompatibleSizes", "z size incompatible with C & D");
+        elseif any(~isreal(z))
             error("POptUS:NonrealValues", "z contains non-real values");
-        elseif any(~isfinite(z)) 
+        elseif any(~isfinite(z))
             error("POptUS:NonfiniteValues", "z contains non-finite values");
         end
 
@@ -59,7 +64,7 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
             h = sum(abs(D - max(z, C)));
             g = cell(p, 1);
             H = cell(p, 1);
-        
+
             lg = zeros(p, 1);
             lH = zeros(p, 1);
             for i = 1:p
@@ -86,7 +91,7 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
                         g{i}(lg(i)) = {1};
                         lg(i) = lg(i) + 1;
                         g{i}(lg(i)) = {-1};
-        
+
                         H{i}(lH(i)) = {'1'};
                         lH(i) = lH(i) + 1;
                         H{i}(lH(i)) = {'3'};
@@ -100,24 +105,24 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
                     end
                 end
             end
-        
+
             grads = cell2mat(product_of_cells(g{:}))';
-        
+
             hashes_as_mat = cell2mat(product_of_cells(H{:}));
-        
+
             b = size(hashes_as_mat, 1);
             Hash = cell(1, b);
             for i = 1:b
                 Hash{i} = hashes_as_mat(i, :);
             end
-        
+
         elseif nargin == 2
             K = length(H0);
-        
+
             h = zeros(1, K);
             grads = zeros(p, K);
             vals = zeros(p, K);
-        
+
             for k = 1:K
                 for j = 1:p
                     switch H0{k}(j)
@@ -138,7 +143,7 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
                 h(k) = sum(vals(:, k));
             end
         end
-        
+
         if ~isempty(n_h)
             n_h = n_h + 1;
             hvals_mat(n_h, :) = h;
