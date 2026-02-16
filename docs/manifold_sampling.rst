@@ -51,24 +51,17 @@ Python
 ^^^^^^^^
 .. mat:autofunction:: manifold_sampling.m.manifold_sampling_primal
 
-:math:`\hfun` Functions
-^^^^^^^^^^^^^^^^^^^^^^^
-The following :math:`\hfun` functions are available for use with the Python
-implementation of Manifold Sampling.  With the potential exception of
-application-specific functions, these same functions are available for use with
-the |matlab| implementation in ``manifold_sampling/m/general_nonsmooth_h_funs``.
+General :math:`\hfun` Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The following :math:`\hfun` functions are available for immediate use with the
+Python implementation of Manifold Sampling.  With the potential exception of
+application-specific functions, these same functions are available for immediate
+use with the |matlab| implementation in ``manifold_sampling/m/general_nonsmooth_h_funs``.
 While they are presented here through their integration into the Python package,
-the documentation is generally valid for the |matlab| version of these
-functions as well.
-
-.. todo::
-
-    * Give example of how to use :math:`\hfun` functions that require the
-      specification of ``kwargs``?  See |pounders| h function docs for examples
-      of how to do this.
+the documentation is generally valid for the |matlab| version of these functions
+as well.  In |matlab| implementations, the ``H0`` argument is also optional.
 
 .. autofunction:: ibcdfo.manifold_sampling.h_one_norm
-.. autofunction:: ibcdfo.manifold_sampling.h_censored_L1_loss
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_minimum
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_minimum_squared
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_maximum
@@ -77,3 +70,16 @@ functions as well.
 .. autofunction:: ibcdfo.manifold_sampling.h_quantile
 .. autofunction:: ibcdfo.manifold_sampling.h_max_gamma_over_KY
 .. autofunction:: ibcdfo.manifold_sampling.h_max_plus_quadratic_violation_penalty
+
+Parameterized :math:`\hfun` Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Manifold Sampling specifies parameterized :math:`\hfun` functions, which it can
+only use once users have chosen a single set of parameter values for formulating
+a specific :math:`\hfun` function and, therefore, a single related problem.  The
+following routines can be used to create a single ``hfun`` for a single set of
+desired parameter values.  While these routines are presented through their
+integration into the Python package, the documentation is valid for the |matlab|
+version of these routines, which are located in
+``manifold_sampling/m/general_nonsmooth_h_funs``.
+
+.. autofunction:: ibcdfo.manifold_sampling.create_censored_L1_loss_hfun

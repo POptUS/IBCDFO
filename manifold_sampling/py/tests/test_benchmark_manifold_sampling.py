@@ -33,7 +33,6 @@ nf_max = 50
 
 hfuns = [
     ibcdfo.manifold_sampling.h_one_norm,
-    ibcdfo.manifold_sampling.h_censored_L1_loss,
     ibcdfo.manifold_sampling.h_pw_maximum_squared,
     ibcdfo.manifold_sampling.h_pw_maximum,
     ibcdfo.manifold_sampling.h_piecewise_quadratic,
@@ -41,6 +40,7 @@ hfuns = [
     ibcdfo.manifold_sampling.h_pw_minimum_squared,
     ibcdfo.manifold_sampling.h_pw_minimum,
     ibcdfo.manifold_sampling.h_max_plus_quadratic_violation_penalty,
+    ibcdfo.manifold_sampling.create_censored_L1_loss_hfun,
 ]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
@@ -55,10 +55,6 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
-    ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row] + 1) & (C_L1_loss[:, 1] == 1))
-    C = C_L1_loss[ind, 3 : m + 3]
-    D = D_L1_loss[ind, 3 : m + 3]
-
     # Individual for piecewise_quadratic h instance
     Qs = Qzb["Q_mat"][probs_to_solve[row], 0]
     zs = Qzb["z_mat"][probs_to_solve[row], 0]
@@ -70,7 +66,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
         if hfun.__name__ == "h_pw_maximum_squared" and nprob == 1:
             nf_max = 10000
-        elif hfun.__name__ == "h_censored_L1_loss" and nprob == 1:
+        elif hfun.__name__ == "create_censored_L1_loss_hfun" and nprob == 1:
             nf_max = 10000
         else:
             nf_max = 150
@@ -81,12 +77,14 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
                 return ibcdfo.manifold_sampling.h_piecewise_quadratic(z, H0, Qs=Qs, zs=zs, cs=cs)
 
             X, F, h, xkin, flag = ibcdfo.run_MSP(hfun_to_pass, Ffun, x0, LB, UB, nf_max, subprob_switch)
-        elif hfun.__name__ == "h_censored_L1_loss":
+        elif hfun.__name__ == "create_censored_L1_loss_hfun":
+            ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row] + 1) & (C_L1_loss[:, 1] == 1))
+            C = C_L1_loss[ind, 3 : m + 3]
+            D = D_L1_loss[ind, 3 : m + 3]
 
-            def hfun_to_pass(z, H0=None):
-                return ibcdfo.manifold_sampling.h_censored_L1_loss(z, H0, C=C, D=D)
+            hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun_to_pass, Ffun, x0, LB, UB, nf_max, subprob_switch)
+            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
         else:
             X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
 

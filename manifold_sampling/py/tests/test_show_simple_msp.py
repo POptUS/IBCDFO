@@ -23,7 +23,7 @@ probs_to_solve = [1]
 
 subprob_switch = "linprog"
 
-hfuns = [ibcdfo.manifold_sampling.h_one_norm, ibcdfo.manifold_sampling.h_censored_L1_loss]
+hfuns = [ibcdfo.manifold_sampling.h_one_norm, ibcdfo.manifold_sampling.create_censored_L1_loss_hfun]
 nfmax = 150
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
@@ -38,16 +38,12 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
-    ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row] + 1) & (C_L1_loss[:, 1] == 1))
-    C = C_L1_loss[ind, 3 : m + 3]
-    D = D_L1_loss[ind, 3 : m + 3]
-
     for i, hfun in enumerate(hfuns):
-        if hfun.__name__ == "h_censored_L1_loss":
+        if hfun.__name__ == "create_censored_L1_loss_hfun":
+            ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row] + 1) & (C_L1_loss[:, 1] == 1))
+            C = C_L1_loss[ind, 3 : m + 3]
+            D = D_L1_loss[ind, 3 : m + 3]
 
-            def hfun_to_pass(z, H0=None):
-                return ibcdfo.manifold_sampling.h_censored_L1_loss(z, H0, C=C, D=D)
+            hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun_to_pass, Ffun, x0, LB, UB, nfmax, subprob_switch)
-        else:
-            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+        X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
