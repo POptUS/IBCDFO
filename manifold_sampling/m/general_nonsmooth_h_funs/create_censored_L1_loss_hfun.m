@@ -3,7 +3,7 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
     % h function.
 
     % Have MATLAB automatically ensure that each actual C,D arguments passed to
-    % this function are 1D finite, real column vectors of the same length.
+    % this function are 1D finite, real vectors.
     arguments
         C (:, 1) {mustBeReal, mustBeFinite, mustBeNonempty}
         D (:, 1) {mustBeReal, mustBeFinite, mustBeNonempty}
@@ -15,11 +15,9 @@ function [hfun] = create_censored_L1_loss_hfun(C, D)
     D = D(:);
 
     if length(C) ~= length(D)
-        error("POptUS:IncompatibleSizes", ...
-              "C & D have incompatible sizes");
+        error("POptUS:IncompatibleSizes", "C & D have incompatible sizes");
     elseif length(C) < 2
-        error("POptUS:ArrayTooShort", ...
-              "C & D must have at least two elements");
+        error("POptUS:ArrayTooShort", "C & D must have at least two elements");
     end
 
     hfun = @h_censored_L1_loss;

@@ -20,12 +20,19 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
 
         self.__hfun = create_censored_L1_loss_hfun(self.__C, self.__D)
 
+        # The test values were not determined by hand and are, therefore, not
+        # known to be correct.  Rather, they were gathered from test output at
+        # some time and are used here to catch regressions and to confirm that
+        # the Python and MATLAB code are returning the same values for the same
+        # problems.
         self.__Z = 2.1 * np.arange(self.__C.shape[0])
         self.__hF, self.__grads, self.__Hash = self.__hfun(self.__Z)
-        self.assertIsInstance(self.__hF, float)
-        self.assertIsInstance(self.__grads, np.ndarray)
-        self.assertIsInstance(self.__Hash, list)
+        self.assertEqual(156.0, self.__hF)
+        expected = np.ones((M, 1))
+        expected[0] = 0
+        self.assertTrue(np.array_equal(self.__grads, expected))
         self.assertEqual(self.__grads.shape, (M, len(self.__Hash)))
+        self.assertEqual(self.__Hash, ["2111111111"])
 
         # Sanity check hash result/H0
         hF_H0, grads_H0 = self.__hfun(self.__Z, self.__Hash)
@@ -37,15 +44,18 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
         self.__D_short = np.array([3.3, -1.1, -2.2])
         M_short = len(self.__C_short)
         self.assertNotEqual(len(self.__C_short), len(self.__C))
+        self.assertNotEqual(len(self.__D_short), len(self.__D))
 
         hfun = create_censored_L1_loss_hfun(self.__C_short, self.__D_short)
 
-        Z_short = 2.1 * np.arange(self.__C_short.shape[0])
+        Z_short = 2.1 * np.arange(1, self.__C_short.shape[0] + 1)
         hF, grads, Hash = hfun(Z_short)
-        self.assertIsInstance(hF, float)
-        self.assertIsInstance(grads, np.ndarray)
-        self.assertIsInstance(Hash, list)
+        self.assertEqual(15.0, hF)
+        expected = np.ones((M_short, 1))
+        expected[0] = -1
+        self.assertTrue(np.array_equal(grads, expected))
         self.assertEqual(grads.shape, (M_short, len(Hash)))
+        self.assertEqual(Hash, ["311"])
 
         # Sanity check hash result/H0
         hF_H0, grads_H0 = hfun(Z_short, Hash)
@@ -103,13 +113,8 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
             create_censored_L1_loss_hfun(C_bad, D_bad)
 
         # C & D must have the same effective shape
-        self.assertEqual(self.__C.ndim, self.__D_short.ndim)
-        self.assertNotEqual(self.__C.shape, self.__D_short.shape)
         with self.assertRaises(ValueError):
             create_censored_L1_loss_hfun(self.__C, self.__D_short)
-
-        self.assertEqual(self.__C_short.ndim, self.__D.ndim)
-        self.assertNotEqual(self.__C_short.shape, self.__D.shape)
         with self.assertRaises(ValueError):
             create_censored_L1_loss_hfun(self.__C_short, self.__D)
 
@@ -184,7 +189,7 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
         self.assertNotEqual(Hash_3, Hash)
         self.assertNotEqual(Hash_3, Hash_2)
 
-        # Confirm that changing the construction variable didn't alter the
+        # Confirm that changing the construction variables didn't alter the
         # original functions
         hF_new, grads_new, Hash_new = hfun(self.__Z)
         self.assertEqual(hF_new, hF)
