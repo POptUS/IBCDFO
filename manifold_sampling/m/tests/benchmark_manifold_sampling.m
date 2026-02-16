@@ -13,7 +13,7 @@ function [] = benchmark_manifold_sampling()
 oldpath = addpath(fullfile(here_path, '..'));
 addpath(fullfile(here_path, '..', 'general_nonsmooth_h_funs'));
 
-global C D Qs zs cs
+global Qs zs cs
 factor = 10;
 
 subprob_switch = 'linprog';
@@ -50,6 +50,8 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     ind = find(C_L1_loss(:, 1) == row & C_L1_loss(:, 2) == 1);
     C = C_L1_loss(ind, 4:m + 3);
     D = D_L1_loss(ind, 4:m + 3);
+    h_censored_L1_loss = create_censored_L1_loss_hfun(C, D);
+
     Qs = Qzb.Q_mat{row, 1};
     zs = Qzb.z_mat{row, 1};
     cs = Qzb.b_mat{row, 1};
@@ -58,7 +60,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     jj = 1;
-    hfuns_all = {@h_censored_L1_loss, ...
+    hfuns_all = {h_censored_L1_loss, ...
                  @h_max_plus_quadratic_violation_penalty, ...
                  @h_piecewise_quadratic, ...
                  @h_pw_maximum, @h_pw_maximum_squared, ...
