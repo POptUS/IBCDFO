@@ -12,7 +12,7 @@
 %     >> runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)
 %
 
-classdef Testcreatecensoredl1losshfun < matlab.unittest.TestCase
+classdef TestCreateCensoredL1LossHfun < matlab.unittest.TestCase
     properties
         C
         D
