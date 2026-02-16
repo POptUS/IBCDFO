@@ -4,16 +4,15 @@
 % If you would like to run this from a different folder that includes these
 % tests as a subfolder, then from that folder execute
 %     >> runtests("IncludeSubfolders", true)
+% Other tests run during execution might require adding other folders to the
+% path.
 %
 % To execute the test suite with coverage enabled and to generate an HTML-format
 % coverage report, execute from /path/to/IBCDFO/pounders/m
 %     >> runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)
 %
-% TODO: We need to add the source folder to the path.  Should this go
-% elsewhere?
-%
 
-classdef TestcreatecensoredL1losshfun < matlab.unittest.TestCase
+classdef Testcreatecensoredl1losshfun < matlab.unittest.TestCase
     properties
         C
         D
@@ -24,11 +23,16 @@ classdef TestcreatecensoredL1losshfun < matlab.unittest.TestCase
         Hash
         C_short
         D_short
+        path_orig
     end
 
     methods (TestMethodSetup)
 
         function setup(testCase)
+            % tests need product_of_cells
+            [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+            testCase.path_orig = addpath(fullfile(here_path, '..'));
+
             % Confirm that we have good arguments for use in testing
             P = 10;
 
@@ -78,6 +82,14 @@ classdef TestcreatecensoredL1losshfun < matlab.unittest.TestCase
             [hF_H0, grads_H0] = hfun(Z_short, Hash);
             testCase.assertEqual(hF_H0, hF);
             testCase.assertTrue(isequal(grads_H0, grads));
+        end
+
+    end
+
+    methods (TestMethodTeardown)
+
+        function restorePath(testCase)
+            path(testCase.path_orig);
         end
 
     end
