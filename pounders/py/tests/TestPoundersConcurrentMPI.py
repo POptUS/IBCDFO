@@ -32,7 +32,7 @@ class TestPoundersMPI(unittest.TestCase):
     def test_benchmark_pounders_mpi(self):
         # Separate output locations for serial vs concurrent results
         out_root = "benchmark_results"
-        out_conc = os.path.join(out_root, "_concurrent")
+        out_conc = os.path.join(out_root, "concurrent")
 
         # Safe to do on all ranks
         os.makedirs(out_conc, exist_ok=True)
@@ -69,7 +69,7 @@ class TestPoundersMPI(unittest.TestCase):
             F_init = np.zeros((1, m))
             F_init[0] = Ffun_batch(X_0)
             xind = 0
-            delta = 0.3
+            delta = 0.1
             printf = 0 
 
             hfun = ibcdfo.pounders.h_leastsquares

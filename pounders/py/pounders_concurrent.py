@@ -82,6 +82,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     eta_1 = Options.get("eta1", 0.05)
     printf = Options.get("printf", 0)
     delta_inact = Options.get("delta_inact", 0.75)
+    batch = Options.get("batch")
 
     if "hfun" in Options:
         hfun = Options["hfun"]
@@ -139,7 +140,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
+        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
@@ -195,7 +196,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
             delta = np.maximum(g_tol, np.max(np.abs(X[xk_in])) * eps)
-            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
+            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
@@ -211,7 +212,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
-                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
+                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
@@ -236,8 +237,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         Xsp = Xsp.squeeze()
         step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
-        # 4. Evaluate the function at the new point
-        if (step_norm >= 0.01 * delta or valid) and not (mdec == 0 and not valid):
+        # 4. Evaluate the function at the new point (provided the model is
+        # valid, or the step is sufficiently large and mdec isn't zero)
+        if valid or (step_norm >= 0.01 * delta and mdec != 0):
             Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
 
             # Project if we're within machine precision
@@ -249,13 +251,18 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     Xsp[i] = Low[i]
                     print("eps project!")
 
-            if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]):
+            if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]) and delta < np.sqrt(eps):
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
                 return X, F, hF, flag, xk_in
 
             nf += 1
             X[nf] = Xsp
-            F[nf] = Ffun(X[nf])
+            if np.array_equiv(Xsp, X[xk_in]):
+                # We don't want to do the expensive F eval if Xsp is already in X
+                F[nf] = F[xk_in]
+            else:
+                F[nf] = Ffun(X[nf])
+
             if np.any(np.isnan(F[nf])):
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                 return X, F, hF, flag, xk_in
@@ -263,10 +270,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
             if mdec != 0:
                 rho = (hF[nf] - hF[xk_in]) / mdec
-            else:
+            else:  # Note: this conditional only occurs when model is valid
                 if hF[nf] == hF[xk_in]:
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
-                    return X, F, hF, flag, xk_in
+                    if delta < np.sqrt(eps):
+                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                        return X, F, hF, flag, xk_in
+                    else:
+                        rho = -np.inf
                 else:
                     rho = np.inf * np.sign(hF[nf] - hF[xk_in])
 
@@ -291,7 +301,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
-            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
+            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xk_in unchanged)
                 D = X[: nf + 1] - X[xk_in]
