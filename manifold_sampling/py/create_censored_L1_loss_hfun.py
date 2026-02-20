@@ -10,15 +10,15 @@ def create_censored_L1_loss_hfun(C, D):
     :cite:t:`womersley1986`.
 
     Given observed system outputs :math:`\zvec\in\R^m`, a per-component censoring
-    floor :math:`\cvec\in\R^m`, and target data :math:`\dvec\in\R^m`, this
+    floor :math:`\C\in\R^m`, and target data :math:`D\in\R^m`, this
     objective is
     \[
-        h(\zvec;\cvec,\dvec)
-        = \sum_{i=1}^{m} \left|\, D_i - \max(z_i, C_i)\,\right|.
+        h(\zvec;C\,D)
+        = \sum_{i=1}^{m} \left|\, D_i - \max(\zvec_i, C_i)\,\right|.
     \]
 
     This produces a one-sided (censored) discrepancy: components with
-    :math:`z_i < c_i` are treated as if the observation were :math:`c_i`, so the
+    :math:`z_i < C_i` are treated as if the observation were :math:`C_i`, so the
     loss does not continue to decrease by driving :math:`z_i` below the censoring
     floor. The reduces sensitivity to outliers, preventing any single component
     from dominating the measure of misfit.
