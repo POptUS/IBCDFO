@@ -5,15 +5,26 @@ import numpy as np
 
 def create_censored_L1_loss_hfun(C, D):
     r"""
+    Censored (one-sided) composite objective. 
     This is a generalized version of Womersley's censored L1 loss function
     :cite:t:`womersley1986`.
 
-    .. todo::
-        * Is it necessary to mention how it is generalized?  Can we write down a
-          final objective function here as we do for all other hfuns?
+    Given observed system outputs :math:`\zvec\in\R^m`, a per-component censoring
+    floor :math:`\cvec\in\R^m`, and target data :math:`\dvec\in\R^m`, this
+    objective is
+    \[
+        h(\zvec;\cvec,\dvec)
+        = \sum_{i=1}^{m} \left|\, D_i - \max(z_i, C_i)\,\right|.
+    \]
 
-    :param C: 1D numpy array of length :math:`m` that contains **TBD**
-    :param D: 1D numpy array of length :math:`m` that contains **TBD**
+    This produces a one-sided (censored) discrepancy: components with
+    :math:`z_i < c_i` are treated as if the observation were :math:`c_i`, so the
+    loss does not continue to decrease by driving :math:`z_i` below the censoring
+    floor. The reduces sensitivity to outliers, preventing any single component
+    from dominating the measure of misfit.
+
+    :param C: 1D numpy array of length :math:`m` containing the censoring values
+    :param D: 1D numpy array of length :math:`m` containing the target data
     :return: hfun constructed with the given :math:`C, D` that is compatible
         only with :math:`\zvec \in \R^m`
     """
