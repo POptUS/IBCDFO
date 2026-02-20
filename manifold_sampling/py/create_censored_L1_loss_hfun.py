@@ -14,7 +14,7 @@ def create_censored_L1_loss_hfun(C, D):
 
     .. math::
 
-        h(\zvec;\cvec,\dvec)
+        \hfun(\zvec;\cvec,\dvec)
         = \sum_{i=1}^{m} \left|\, d_i - \max(z_i, c_i)\,\right|.
 
     This produces a one-sided (censored) discrepancy: components with
