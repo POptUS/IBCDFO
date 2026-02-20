@@ -23,10 +23,8 @@ def create_censored_L1_loss_hfun(C, D):
     floor. This reduces sensitivity to outliers, preventing any single component
     from dominating the measure of misfit.
 
-    :param C: 1D numpy array of length :math:`m` that provides the censoring
-        values :math:`c_i`.
-    :param D: 1D numpy array of length :math:`m` that provides the target data
-        :math:`d_i`.
+    :param C: 1D numpy array that provides the censoring values :math:`c_i`.
+    :param D: 1D numpy array that provides the target data :math:`d_i`.
     :return: ``hfun`` constructed with the given :math:`c_i, d_i` that is
         compatible only with :math:`\zvec` arguments of the same length as ``C``
         and ``D``.
