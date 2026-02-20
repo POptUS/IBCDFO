@@ -52,18 +52,19 @@ classdef TestCreateCensoredL1LossHfun < matlab.unittest.TestCase
             testCase.assertEqual(156.0, testCase.hF);
             expected = ones([M 1]);
             expected(1) = 0;
-            testCase.assertTrue(isequal(testCase.grads, expected));
+            testCase.assertEqual(testCase.grads, expected);
             testCase.assertTrue(iscell(testCase.Hash));
             [tmp, n_hash] = size(testCase.Hash);
             testCase.assertEqual(tmp, 1);
-            testCase.assertEqual(size(testCase.grads), [M, n_hash]);
+            testCase.assertEqual(n_hash, 1);
+            testCase.assertEqual(size(testCase.grads), [M, 1]);
             expected = {'2111111111'};
-            testCase.assertTrue(isequal(testCase.Hash, expected));
+            testCase.assertEqual(testCase.Hash, expected);
 
             % Sanity check hash result/H0
             [hF_H0, grads_H0] = testCase.hfun(testCase.Z, testCase.Hash);
             testCase.assertEqual(hF_H0, testCase.hF);
-            testCase.assertTrue(isequal(grads_H0, testCase.grads));
+            testCase.assertEqual(grads_H0, testCase.grads);
 
             % Good but different size for testing size incompatibilities
             testCase.C_short = [1.1 2.2 -3.3];
@@ -82,18 +83,19 @@ classdef TestCreateCensoredL1LossHfun < matlab.unittest.TestCase
             testCase.assertEqual(15.0, hF);
             expected = ones([M_short 1]);
             expected(1) = -1;
-            testCase.assertTrue(isequal(grads, expected));
+            testCase.assertEqual(grads, expected);
             testCase.assertTrue(iscell(Hash));
             [tmp, n_hash] = size(Hash);
             testCase.assertEqual(tmp, 1);
-            testCase.assertEqual(size(grads), [M_short, n_hash]);
+            testCase.assertEqual(n_hash, 1);
+            testCase.assertEqual(size(grads), [M_short, 1]);
             expected = {'311'};
-            testCase.assertTrue(isequal(Hash, expected));
+            testCase.assertEqual(Hash, expected);
 
             % Sanity check hash result/H0
             [hF_H0, grads_H0] = hfun(Z_short, Hash);
             testCase.assertEqual(hF_H0, hF);
-            testCase.assertTrue(isequal(grads_H0, grads));
+            testCase.assertEqual(grads_H0, grads);
         end
 
     end
@@ -120,16 +122,16 @@ classdef TestCreateCensoredL1LossHfun < matlab.unittest.TestCase
             [hfun_c] = create_censored_L1_loss_hfun(C, testCase.D);
             [hF_c, grads_c, Hash_c] = hfun_c(testCase.Z);
             testCase.assertEqual(hF_c, testCase.hF);
-            testCase.assertTrue(isequal(grads_c, testCase.grads));
-            testCase.assertTrue(isequal(Hash_c, testCase.Hash));
+            testCase.assertEqual(grads_c, testCase.grads);
+            testCase.assertEqual(Hash_c, testCase.Hash);
 
             D = testCase.D(:);
             testCase.verifyTrue(iscolumn(D));
             [hfun_c] = create_censored_L1_loss_hfun(C, D);
             [hF_c, grads_c, Hash_c] = hfun_c(testCase.Z);
             testCase.assertEqual(hF_c, testCase.hF);
-            testCase.assertTrue(isequal(grads_c, testCase.grads));
-            testCase.assertTrue(isequal(Hash_c, testCase.Hash));
+            testCase.assertEqual(grads_c, testCase.grads);
+            testCase.assertEqual(Hash_c, testCase.Hash);
 
             % but not matrices
             C_2D = reshape(testCase.C, SHAPE_2D);
@@ -164,6 +166,14 @@ classdef TestCreateCensoredL1LossHfun < matlab.unittest.TestCase
 
             % C & D must have at least two elements
             testCase.verifyError( ...
+                @()create_censored_L1_loss_hfun([1.1], testCase.D), ...
+                'POptUS:IncompatibleSizes' ...
+            );
+            testCase.verifyError( ...
+                @()create_censored_L1_loss_hfun(testCase.C, [2.2]), ...
+                'POptUS:IncompatibleSizes' ...
+            );
+            testCase.verifyError( ...
                 @()create_censored_L1_loss_hfun([1.1], [2.2]), ...
                 'POptUS:ArrayTooShort' ...
             );
@@ -191,7 +201,7 @@ classdef TestCreateCensoredL1LossHfun < matlab.unittest.TestCase
                 );
             end
 
-            % C & D must be the same shape ...
+            % C & D must be the same length ...
             testCase.verifyError( ...
                 @()create_censored_L1_loss_hfun(testCase.C_short, testCase.D), ...
                 'POptUS:IncompatibleSizes' ...
@@ -262,26 +272,26 @@ classdef TestCreateCensoredL1LossHfun < matlab.unittest.TestCase
             [hfun_2] = create_censored_L1_loss_hfun(C, D);
             [hF_2, grads_2, Hash_2] = hfun_2(testCase.Z);
             testCase.assertNotEqual(hF_2, hF);
-            testCase.assertFalse(isequal(grads_2, grads));
-            testCase.assertFalse(isequal(Hash_2, Hash));
+            testCase.assertNotEqual(grads_2, grads);
+            testCase.assertNotEqual(Hash_2, Hash);
 
             D = -4.1 * D;
             [hfun_3] = create_censored_L1_loss_hfun(C, D);
             [hF_3, grads_3, Hash_3] = hfun_3(testCase.Z);
             testCase.assertNotEqual(hF_3, hF);
             testCase.assertNotEqual(hF_3, hF_2);
-            testCase.assertFalse(isequal(grads_3, grads));
-            testCase.assertFalse(isequal(grads_3, grads_2));
-            testCase.assertFalse(isequal(Hash_3, Hash));
-            testCase.assertFalse(isequal(Hash_3, Hash_2));
+            testCase.assertNotEqual(grads_3, grads);
+            testCase.assertNotEqual(grads_3, grads_2);
+            testCase.assertNotEqual(Hash_3, Hash);
+            testCase.assertNotEqual(Hash_3, Hash_2);
 
             % Confirm that changes to actual C, D arguments used to construct
             % hfun do not alter that function.  This check is motivated by
             % technical subtleties seen with Python.
             [hF_new, grads_new, Hash_new] = hfun(testCase.Z);
             testCase.assertEqual(hF_new, hF);
-            testCase.assertTrue(isequal(grads_new, grads));
-            testCase.assertTrue(isequal(Hash_new, Hash));
+            testCase.assertEqual(grads_new, grads);
+            testCase.assertEqual(Hash_new, Hash);
         end
 
     end
