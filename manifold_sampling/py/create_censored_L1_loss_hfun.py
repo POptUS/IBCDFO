@@ -5,7 +5,7 @@ import numpy as np
 
 def create_censored_L1_loss_hfun(C, D):
     r"""
-    Censored (one-sided) composite objective. 
+    Censored (one-sided) composite objective.
     This is a generalized version of Womersley's censored L1 loss function
     :cite:t:`womersley1986`.
 
