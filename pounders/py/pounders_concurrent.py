@@ -34,6 +34,24 @@ def _default_prior():
     return Prior
 
 
+def _rand_unit_rows(k, n):
+    R = np.random.randn(k, n)
+    R /= np.linalg.norm(R, axis=1, keepdims=True)
+    return R
+
+
+def _ensure_rows_with_random_unit(A, n_rows, n):
+    if n_rows > A.shape[0]:
+        A = np.vstack([A, _rand_unit_rows(n_rows - A.shape[0], n)])
+    return A
+
+
+def _overwrite_rows_with_random_unit(A, start, count, n):
+    if count > 0:
+        A[start : start + count, :] = _rand_unit_rows(count, n)
+    return A
+
+
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     r"""
     This version of |pounders| parallelizes the evaluation of ``Ffun`` across
@@ -155,17 +173,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 k_total = k_new + k_pad  # multiple of batch
 
                 # Ensure Mdir has at least k_total directions; if not, append random unit directions
-                if k_total > Mdir.shape[0]:
-                    k_extra = k_total - Mdir.shape[0]
-                    R = np.random.randn(k_extra, n)
-                    R /= np.linalg.norm(R, axis=1, keepdims=True)
-                    Mdir = np.vstack([Mdir, R])
+                Mdir = _ensure_rows_with_random_unit(Mdir, k_total, n)
 
                 # Fill padded rows with fresh random unit directions
-                if k_pad > 0:
-                    R = np.random.randn(k_pad, n)
-                    R /= np.linalg.norm(R, axis=1, keepdims=True)
-                    Mdir[k_new:k_new + k_pad, :] = R
+                Mdir = _overwrite_rows_with_random_unit(Mdir, k_new, k_pad, n)
 
                 # Absolute indices for the new evaluations
                 idx_new = (nf + 1) + np.arange(k_total, dtype=int)
@@ -238,17 +249,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     k_total = k_new + k_pad  # multiple of batch
 
                     # Ensure Mdir has >= k_total directions; append random unit directions if needed
-                    if k_total > Mdir.shape[0]:
-                        k_extra = k_total - Mdir.shape[0]
-                        R = np.random.randn(k_extra, n)
-                        R /= np.linalg.norm(R, axis=1, keepdims=True)
-                        Mdir = np.vstack([Mdir, R])
+                    Mdir = _ensure_rows_with_random_unit(Mdir, k_total, n)
 
                     # Overwrite padded rows with fresh random unit directions
-                    if k_pad > 0:
-                        R = np.random.randn(k_pad, n)
-                        R /= np.linalg.norm(R, axis=1, keepdims=True)
-                        Mdir[k_new:k_new + k_pad, :] = R
+                    Mdir = _overwrite_rows_with_random_unit(Mdir, k_new, k_pad, n)
 
                     # Absolute indices for ALL new points (including padding)
                     idx_new = (nf + 1) + np.arange(k_total, dtype=int)
@@ -463,11 +467,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                         Mdir_batch = Mdir_batch.reshape(1, -1)
 
                     # Pad if we somehow have fewer than k_new directions
-                    if Mdir_batch.shape[0] < k_new:
-                        k_extra = k_new - Mdir_batch.shape[0]
-                        R = np.random.randn(k_extra, n)
-                        R /= np.linalg.norm(R, axis=1, keepdims=True)
-                        Mdir_batch = np.vstack([Mdir_batch, R])
+                    Mdir_batch = _ensure_rows_with_random_unit(Mdir_batch, k_new, n)
 
                     # Absolute indices for this batch
                     idx_new = (nf + 1) + np.arange(k_new, dtype=int)
