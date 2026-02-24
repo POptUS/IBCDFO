@@ -53,8 +53,8 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             L = 4;
 
             % Create test data
-            testCase.Qs = reshape(1:(M*M*L), [M, M, L]);
-            testCase.zs = reshape(1:(M*L), [M, L]);
+            testCase.Qs = reshape(1:(M * M * L), [M, M, L]);
+            testCase.zs = reshape(1:(M * L), [M, L]);
             testCase.cs = 1:L;
             testCase.cs = testCase.cs(:);
 
@@ -91,9 +91,9 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             % Good but different size for testing size incompatibilities
             M_long = M + 1;
             L_long = L - 1;
-            testCase.Qs_long = reshape(1:(M_long*M_long*L_long), ...
+            testCase.Qs_long = reshape(1:(M_long * M_long * L_long), ...
                                        [M_long, M_long, L_long]);
-            testCase.zs_long = reshape(1:(M_long*L_long), ...
+            testCase.zs_long = reshape(1:(M_long * L_long), ...
                                        [M_long, L_long]);
             testCase.cs_long = 1:(L_long);
             testCase.cs_long = testCase.cs_long(:);
@@ -130,9 +130,11 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
         function restorePath(testCase)
             path(testCase.path_orig);
         end
+
     end
 
     methods (Test)
+
         function badArguments(testCase)
             M = size(testCase.zs, 1);
             L = size(testCase.zs, 2);
@@ -164,7 +166,7 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             testCase.assertEqual(Hash_c, testCase.Hash);
 
             % zs must be a matrix (not 3D)
-            zs_3D = reshape(testCase.zs, [M, 2, L/2]);
+            zs_3D = reshape(testCase.zs, [M, 2, L / 2]);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(testCase.Qs, zs_3D, testCase.cs), ...
                 'MATLAB:validation:IncompatibleSize' ...
@@ -256,43 +258,43 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             );
 
             % Test mismatched dimensions more explicitly
-            Qs_wrong = zeros(M+2, M, L);
+            Qs_wrong = zeros(M + 2, M, L);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(Qs_wrong, testCase.zs, testCase.cs), ...
                 'POptUS:IncompatibleSizes' ...
             );
 
-            Qs_wrong = zeros(M, M+1, L);
+            Qs_wrong = zeros(M, M + 1, L);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(Qs_wrong, testCase.zs, testCase.cs), ...
                 'POptUS:IncompatibleSizes' ...
             );
 
-            Qs_wrong = zeros(M, M, L+1);
+            Qs_wrong = zeros(M, M, L + 1);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(Qs_wrong, testCase.zs, testCase.cs), ...
                 'POptUS:IncompatibleSizes' ...
             );
 
-            zs_wrong = zeros(M+1, L);
+            zs_wrong = zeros(M + 1, L);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(testCase.Qs, zs_wrong, testCase.cs), ...
                 'POptUS:IncompatibleSizes' ...
             );
 
-            zs_wrong = zeros(M, L+1);
+            zs_wrong = zeros(M, L + 1);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(testCase.Qs, zs_wrong, testCase.cs), ...
                 'POptUS:IncompatibleSizes' ...
             );
 
-            cs_wrong = zeros(L+1, 1);
+            cs_wrong = zeros(L + 1, 1);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(testCase.Qs, testCase.zs, cs_wrong), ...
                 'POptUS:IncompatibleSizes' ...
             );
 
-            cs_wrong = zeros(1, L+1);
+            cs_wrong = zeros(1, L + 1);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(testCase.Qs, testCase.zs, cs_wrong), ...
                 'POptUS:IncompatibleSizes' ...
