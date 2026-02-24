@@ -12,11 +12,11 @@ from .general_nonsmooth_h_funs import (
     h_pw_minimum_squared,
     h_pw_maximum,
     h_pw_maximum_squared,
-    h_piecewise_quadratic,
     h_quantile
 )
 # fmt: on
 from .create_censored_L1_loss_hfun import create_censored_L1_loss_hfun
+from .create_piecewise_quadratic_hfun import create_piecewise_quadratic_hfun
 
 # -- Python unittest-based test framework
 # Used for automatic test discovery by main package

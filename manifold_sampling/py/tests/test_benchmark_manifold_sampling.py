@@ -35,12 +35,12 @@ hfuns = [
     ibcdfo.manifold_sampling.h_one_norm,
     ibcdfo.manifold_sampling.h_pw_maximum_squared,
     ibcdfo.manifold_sampling.h_pw_maximum,
-    ibcdfo.manifold_sampling.h_piecewise_quadratic,
     ibcdfo.manifold_sampling.h_quantile,
     ibcdfo.manifold_sampling.h_pw_minimum_squared,
     ibcdfo.manifold_sampling.h_pw_minimum,
     ibcdfo.manifold_sampling.h_max_plus_quadratic_violation_penalty,
     ibcdfo.manifold_sampling.create_censored_L1_loss_hfun,
+    ibcdfo.manifold_sampling.create_piecewise_quadratic_hfun,
 ]
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
@@ -55,11 +55,6 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
-    # Individual for piecewise_quadratic h instance
-    Qs = Qzb["Q_mat"][probs_to_solve[row], 0]
-    zs = Qzb["z_mat"][probs_to_solve[row], 0]
-    cs = Qzb["b_mat"][probs_to_solve[row], 0]
-
     for i, hfun in enumerate(hfuns):
 
         print("Running manifold sampling with hfun = " + hfun.__name__ + " and More-Wild problem number = " + str(int(nprob)))
@@ -71,12 +66,12 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         else:
             nf_max = 150
 
-        if hfun.__name__ == "h_piecewise_quadratic":
+        if hfun.__name__ == "create_piecewise_quadratic_hfun":
+            Qs = Qzb["Q_mat"][probs_to_solve[row], 0]
+            zs = Qzb["z_mat"][probs_to_solve[row], 0]
+            cs = Qzb["b_mat"][probs_to_solve[row], 0]
 
-            def hfun_to_pass(z, H0=None):
-                return ibcdfo.manifold_sampling.h_piecewise_quadratic(z, H0, Qs=Qs, zs=zs, cs=cs)
-
-            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun_to_pass, Ffun, x0, LB, UB, nf_max, subprob_switch)
+            hfun = ibcdfo.manifold_sampling.create_piecewise_quadratic_hfun(Qs, zs, cs)
         elif hfun.__name__ == "create_censored_L1_loss_hfun":
             ind = np.where((C_L1_loss[:, 0] == probs_to_solve[row] + 1) & (C_L1_loss[:, 1] == 1))
             C = C_L1_loss[ind, 3 : m + 3]
@@ -84,9 +79,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
-        else:
-            X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
+        X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"

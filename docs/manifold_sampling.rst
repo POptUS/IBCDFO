@@ -66,7 +66,6 @@ as well.  In |matlab| implementations, the ``H0`` argument is also optional.
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_minimum_squared
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_maximum
 .. autofunction:: ibcdfo.manifold_sampling.h_pw_maximum_squared
-.. autofunction:: ibcdfo.manifold_sampling.h_piecewise_quadratic
 .. autofunction:: ibcdfo.manifold_sampling.h_quantile
 .. autofunction:: ibcdfo.manifold_sampling.h_max_gamma_over_KY
 .. autofunction:: ibcdfo.manifold_sampling.h_max_plus_quadratic_violation_penalty
@@ -83,3 +82,4 @@ version of these routines, which are located in
 ``manifold_sampling/m/general_nonsmooth_h_funs``.
 
 .. autofunction:: ibcdfo.manifold_sampling.create_censored_L1_loss_hfun
+.. autofunction:: ibcdfo.manifold_sampling.create_piecewise_quadratic_hfun

@@ -177,68 +177,6 @@ def h_pw_maximum_squared(z, H0=None):
         return h, grads
 
 
-def h_piecewise_quadratic(z, H0=None, **kwargs):
-    r"""
-    :math:`\hfun` function for constructing the manifold sampling piecewise
-    quadratic objective function
-
-    .. math::
-
-        f(\psp; \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l)
-            & = \hfun\left(\zvec(\psp); \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l\right)\\
-            & = \max_{j\in\set{1, \cdots, l}}\set{\norm{\zvec(\psp) - \zvec_j}_{Q_j^2} + b_j}
-
-    .. todo::
-
-        * Please check if the above formula is correct.
-        * It looks like the ``kwargs`` are required.  Why not just add them as
-          regular named arguments?
-    """
-    # Inputs:
-    #  z:              [1 x p]   point where we are evaluating h
-    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
-
-    # Outputs:
-    #  h: [dbl]                       function value
-    #  grads: [p x l]                 gradients of each of the l quadratics active at z
-    #  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
-
-    # Hashes are output (and must be input) in the following fashion:
-    #   Hash{i} = 'j' if quadratic j is active at z (or H0{i} = 'j' if the
-    #   value/gradient of quadratic j at z is desired)
-
-    Qs = kwargs["Qs"]
-    zs = kwargs["zs"]
-    cs = np.squeeze(kwargs["cs"])
-
-    if H0 is None:
-        n, J = zs.shape
-        manifolds = np.zeros(J)
-        for j in range(J):
-            manifolds[j] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
-
-        h = np.max(manifolds)
-
-        inds, grads, Hash = _activities_and_inds(h, manifolds, n=n)
-
-        for j in range(len(inds)):
-            grads[:, j] = 2 * np.dot(Qs[:, :, inds[j]], (z - zs[:, inds[j]]))
-
-        return h, grads, Hash
-
-    else:
-        J = len(H0)
-        h = np.zeros(J)
-        grads = np.zeros((len(z), J))
-
-        for k in range(J):
-            j = int(H0[k])
-            h[k] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
-            grads[:, k] = 2 * np.dot(Qs[:, :, j], (z - zs[:, j]))
-
-        return h, grads
-
-
 def h_pw_minimum(z, H0=None):
     r"""
     :math:`\hfun` function for constructing the manifold sampling pointwise
