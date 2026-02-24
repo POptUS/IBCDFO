@@ -145,6 +145,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
@@ -166,10 +167,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     R /= np.linalg.norm(R, axis=1, keepdims=True)
                     Mdir[k_new:k_new + k_pad, :] = R
 
+                # Absolute indices in the arrays for the k_total new evaluations
                 idx_new = (nf + 1) + np.arange(k_total, dtype=int)
 
+                # Create trial points
                 X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_total, :]))
 
+                # Batched evaluation of F
                 for s in range(0, k_total, batch):
                     idx_batch = idx_new[s:s + batch]  # always length batch
                     F[idx_batch] = Ffun(X[idx_batch])
@@ -177,15 +181,17 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     if np.any(np.isnan(F[idx_batch])):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                         return X, F, hF, flag, xk_in
-                        k_new = int(min(n - mp, nf_max - (nf + 1)))  
 
-            for i in range(k_new):
-                nf += 1
-                hF[nf] = hfun(F[nf])
-                if printf:
-                    print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
-                D = Mdir[i, :]
-                Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
+                for i in range(k_total):
+                    nf += 1
+                    hF[nf] = hfun(F[nf])
+
+                    if printf:
+                        print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
+
+                    D = Mdir[i, :]
+                    Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
+
             if nf + 1 >= nf_max:
                 break
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
