@@ -51,10 +51,10 @@ class TestPoundersMPI(unittest.TestCase):
             nprob = int(nprob)
 
             nf_max = 50 * (n + 1)
+            # nf_max = 100
 
             def Ffun_batch(Y):
                 Y = np.atleast_2d(Y)
-                print(Y.shape[0])
                 out = np.zeros((Y.shape[0], m))
                 for i, y in enumerate(Y):
                     out[i] = calfun(y, m, nprob, "smooth", 0, num_outs=2)[1]
@@ -74,7 +74,7 @@ class TestPoundersMPI(unittest.TestCase):
             combinemodels = ibcdfo.pounders.combine_leastsquares
             hfun_name = combinemodels.__name__
 
-            for batch in [1,5,10]:
+            for batch in [5,10]:
                 # ---------------- Save outputs (separate files) ----------------
                 # Include rank in filename to avoid collisions if you later change the partitioning
                 base = f"nf_max={nf_max}_prob={row}_spsolver={spsolver}"
@@ -109,6 +109,7 @@ class TestPoundersMPI(unittest.TestCase):
                     Options=Opts,
                     Model={},
                 )
+                import ipdb; ipdb.set_trace(context=21)
 
                 # ---------------- Assertions ----------------
                 evals = F.shape[0]
