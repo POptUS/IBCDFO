@@ -82,8 +82,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     eta_1 = Options.get("eta1", 0.05)
     printf = Options.get("printf", 0)
     delta_inact = Options.get("delta_inact", 0.75)
-    batch = Options.get("batch")
+    batch = Options.get("batch", 1)
 
+    if batch <= 0:
+        raise ValueError(f"Batch size must be positive; got batch={batch}")
+
+    assert (nf_max % batch) == 0, f"Assumed nf_max is a multiple of batch, but nf_max={nf_max}, batch={batch}"
     if "hfun" in Options:
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
@@ -144,14 +148,36 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
-            idx_new = nf + 1 + np.arange(k_new)  # absolute indices of these points
+            if k_new > 0:
+                # Pad to next multiple of batch so every call has exactly batch points
+                k_pad = (-k_new) % batch
+                k_total = k_new + k_pad  # multiple of batch
 
-            X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
-            F[idx_new] = Ffun(X[idx_new])
+                # Ensure Mdir has at least k_total directions; if not, append random unit directions
+                if k_total > Mdir.shape[0]:
+                    k_extra = k_total - Mdir.shape[0]
+                    R = np.random.randn(k_extra, n)
+                    R /= np.linalg.norm(R, axis=1, keepdims=True)
+                    Mdir = np.vstack([Mdir, R])
 
-            if np.any(np.isnan(F[idx_new])):
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                return X, F, hF, flag, xk_in
+                # Overwrite padded rows with fresh random unit directions (so padding is random)
+                if k_pad > 0:
+                    R = np.random.randn(k_pad, n)
+                    R /= np.linalg.norm(R, axis=1, keepdims=True)
+                    Mdir[k_new:k_new + k_pad, :] = R
+
+                idx_new = (nf + 1) + np.arange(k_total, dtype=int)
+
+                X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_total, :]))
+
+                for s in range(0, k_total, batch):
+                    idx_batch = idx_new[s:s + batch]  # always length batch
+                    F[idx_batch] = Ffun(X[idx_batch])
+
+                    if np.any(np.isnan(F[idx_batch])):
+                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                        return X, F, hF, flag, xk_in
+                        k_new = int(min(n - mp, nf_max - (nf + 1)))  
 
             for i in range(k_new):
                 nf += 1

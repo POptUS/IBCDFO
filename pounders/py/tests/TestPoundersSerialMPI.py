@@ -17,10 +17,7 @@ from dfoxs import dfoxs
 try:
     from mpi4py import MPI
 except ImportError as e:
-    raise ImportError(
-        "mpi4py is required to run this test under MPI. "
-        "Install via `pip install mpi4py` (and ensure an MPI runtime is available)."
-    ) from e
+    raise ImportError("mpi4py is required to run this test under MPI. " "Install via `pip install mpi4py` (and ensure an MPI runtime is available).") from e
 
 
 COMM = MPI.COMM_WORLD
@@ -53,7 +50,7 @@ class TestPoundersMPI(unittest.TestCase):
             m = int(m)
             nprob = int(nprob)
 
-            nf_max = 100*(n+1)
+            nf_max = 50 * (n + 1)
 
             def Ffun_batch(Y):
                 Y = np.atleast_2d(Y)
@@ -70,7 +67,7 @@ class TestPoundersMPI(unittest.TestCase):
             F_init[0] = Ffun_batch(X_0)
             xind = 0
             delta = 0.1
-            printf = 0 
+            printf = 0
 
             hfun = ibcdfo.pounders.h_leastsquares
             combinemodels = ibcdfo.pounders.combine_leastsquares
@@ -115,28 +112,23 @@ class TestPoundersMPI(unittest.TestCase):
             self.assertNotEqual(flag, 1, f"[rank {RANK}] pounders failed. (flag={flag})")
             self.assertTrue(
                 hfun(F[0]) > hfun(F[xk_best]),
-                f"[rank {RANK}] No improvement found: "
-                f"hfun(F[0])={hfun(F[0])}, hfun(F[xk_best])={hfun(F[xk_best])}",
+                f"[rank {RANK}] No improvement found: " f"hfun(F[0])={hfun(F[0])}, hfun(F[xk_best])={hfun(F[xk_best])}",
             )
             self.assertTrue(
                 X.shape[0] <= nf_max + nfs,
-                f"[rank {RANK}] POUNDERs grew the size of X: X.shape[0]={X.shape[0]}, "
-                f"limit={nf_max + nfs}",
+                f"[rank {RANK}] POUNDERs grew the size of X: X.shape[0]={X.shape[0]}, " f"limit={nf_max + nfs}",
             )
 
             if flag == 0:
                 self.assertTrue(
                     evals <= nf_max + nfs,
-                    f"[rank {RANK}] POUNDERs evaluated more than nf_max evaluations: "
-                    f"evals={evals}, limit={nf_max + nfs}",
+                    f"[rank {RANK}] POUNDERs evaluated more than nf_max evaluations: " f"evals={evals}, limit={nf_max + nfs}",
                 )
             elif flag not in (-6, -4):
                 self.assertTrue(
                     evals == nf_max + nfs,
-                    f"[rank {RANK}] POUNDERs didn't use nf_max evaluations: "
-                    f"evals={evals}, expected={nf_max + nfs}, flag={flag}",
+                    f"[rank {RANK}] POUNDERs didn't use nf_max evaluations: " f"evals={evals}, expected={nf_max + nfs}, flag={flag}",
                 )
-
 
             Results_serial = {
                 f"pounders4py_serial_{row}": {
