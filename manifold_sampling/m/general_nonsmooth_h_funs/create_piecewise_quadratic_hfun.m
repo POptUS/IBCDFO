@@ -37,7 +37,7 @@ function [hfun] = create_piecewise_quadratic_hfun(Qs, zs, cs)
 
     function [h, grads, Hash] = h_piecewise_quadratic(z, H0)
         global h_activity_tol
-        
+
         if isempty(h_activity_tol)
             h_activity_tol = 0;
         end
