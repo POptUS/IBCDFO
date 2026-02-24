@@ -29,10 +29,11 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
         automatic checking of this requirement.
     :param zs: :math:`m \times l` numpy array that contains the :math:`\zvec_j
         \in \R^m` parameters
-    :param cs: 1D numpy array that specifies the :math:`c_j` parameters
+    :param cs: 1D numpy array of length :math:`l` that specifies the :math:`c_j`
+        parameter values
     :return: ``hfun`` constructed with the given :math:`Q_j, \zvec_j, c_j` that
-        is compatible only with :math:`\zvec` arguments of the same length as
-        ``cs``.
+        is compatible only with :math:`\zvec` arguments whose lengths are
+        compatible with the shapes of ``Qs`` and ``zs``.
     """
     # ----- CREATE LOCAL-SCOPE COPIES
     # This prevents the code here and in hfun from accidentally altering the
