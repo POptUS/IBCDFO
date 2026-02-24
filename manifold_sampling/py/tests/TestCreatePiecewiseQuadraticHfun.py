@@ -1,5 +1,20 @@
 """
 Unit test of create_piecewise_quadratic_hfun()
+
+Claude Sonnet 4.5 via Argo was used to generate a starting point for this test.
+It was provided with the current working versions of
+
+1. create_piecewise_quadratic_hfun.m, and
+2. create_censored_L1_loss_hfun.m,
+3. TestCreateCensoredL1LossHfun.m
+
+at that time and asked to build up this test of (1) so that it tests (1) in a
+way analogous to how (3) tests (2).
+
+That code was then reviewed, cleaned, and evolved with no further contributions
+or alterations by a generative AI tool.  Developers are, as expected, taking
+responsibility for the correctness of this content and its ability to test the
+related code.
 """
 
 import unittest
