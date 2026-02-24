@@ -161,19 +161,19 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     R /= np.linalg.norm(R, axis=1, keepdims=True)
                     Mdir = np.vstack([Mdir, R])
 
-                # Overwrite padded rows with fresh random unit directions (so padding is random)
+                # Fill padded rows with fresh random unit directions
                 if k_pad > 0:
                     R = np.random.randn(k_pad, n)
                     R /= np.linalg.norm(R, axis=1, keepdims=True)
                     Mdir[k_new:k_new + k_pad, :] = R
 
-                # Absolute indices in the arrays for the k_total new evaluations
+                # Absolute indices for the new evaluations
                 idx_new = (nf + 1) + np.arange(k_total, dtype=int)
 
-                # Create trial points
+                # New points, projected to bounds
                 X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_total, :]))
 
-                # Batched evaluation of F
+                # Evaluate F in fixed-size batches
                 for s in range(0, k_total, batch):
                     idx_batch = idx_new[s:s + batch]  # always length batch
                     F[idx_batch] = Ffun(X[idx_batch])
@@ -194,6 +194,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
             if nf + 1 >= nf_max:
                 break
+            # Rebuild quadratic model with the *expanded* interpolation set
             [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
             if mp < n:
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
@@ -231,16 +232,46 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
-                for i in range(min(n - mp, nf_max - (nf + 1))):
-                    nf += 1
-                    X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
-                    F[nf] = Ffun(X[nf])
-                    if np.any(np.isnan(F[nf])):
-                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                        return X, F, hF, flag, xk_in
-                    hF[nf] = hfun(F[nf])
-                    if printf:
-                        print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
+                k_new = int(min(n - mp, nf_max - (nf + 1)))
+                if k_new > 0:
+                    k_pad   = (-k_new) % batch
+                    k_total = k_new + k_pad  # multiple of batch
+
+                    # Ensure Mdir has >= k_total directions; append random unit directions if needed
+                    if k_total > Mdir.shape[0]:
+                        k_extra = k_total - Mdir.shape[0]
+                        R = np.random.randn(k_extra, n)
+                        R /= np.linalg.norm(R, axis=1, keepdims=True)
+                        Mdir = np.vstack([Mdir, R])
+
+                    # Overwrite padded rows with fresh random unit directions
+                    if k_pad > 0:
+                        R = np.random.randn(k_pad, n)
+                        R /= np.linalg.norm(R, axis=1, keepdims=True)
+                        Mdir[k_new:k_new + k_pad, :] = R
+
+                    # Absolute indices for ALL new points (including padding)
+                    idx_new = (nf + 1) + np.arange(k_total, dtype=int)
+
+                    # Build all new X points
+                    X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_total, :]))
+
+                    # Evaluate F in fixed-size batches
+                    for s in range(0, k_total, batch):
+                        idx_batch = idx_new[s:s + batch]  # always length batch
+                        F[idx_batch] = Ffun(X[idx_batch])
+
+                        if np.any(np.isnan(F[idx_batch])):
+                            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                            return X, F, hF, flag, xk_in
+
+                    # Now advance nf and compute hF / prints for all k_total points
+                    for i in range(k_total):
+                        nf += 1
+                        hF[nf] = hfun(F[nf])
+                        if printf:
+                            print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
+
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model

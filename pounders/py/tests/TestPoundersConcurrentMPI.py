@@ -54,6 +54,7 @@ class TestPoundersMPI(unittest.TestCase):
 
             def Ffun_batch(Y):
                 Y = np.atleast_2d(Y)
+                print(Y.shape[0])
                 out = np.zeros((Y.shape[0], m))
                 for i, y in enumerate(Y):
                     out[i] = calfun(y, m, nprob, "smooth", 0, num_outs=2)[1]
@@ -83,8 +84,6 @@ class TestPoundersMPI(unittest.TestCase):
                 if os.path.exists(fname_conc):
                     print(f"[rank {RANK}] Skipping row={row}, hfun={hfun_name} (files exist)")
                     continue
-
-                import ipdb; ipdb.set_trace(context=21)
 
                 Opts = {
                     "printf": printf,
