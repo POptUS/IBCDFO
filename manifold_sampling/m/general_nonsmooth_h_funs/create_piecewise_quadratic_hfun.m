@@ -5,7 +5,7 @@ function [hfun] = create_piecewise_quadratic_hfun(Qs, zs, cs)
     % this function are 1D finite, real column vectors of the same length.
     arguments
         Qs (:, :, :) {mustBeReal, mustBeFinite, mustBeNonempty}
-        zs (:, :)    {mustBeReal, mustBeFinite, mustBeNonempty, mustBeMatrix}
+        zs (:, :)    {mustBeReal, mustBeFinite, mustBeNonempty}
         cs (:, 1)    {mustBeReal, mustBeFinite, mustBeNonempty}
     end
 
