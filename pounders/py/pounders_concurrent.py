@@ -284,83 +284,137 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, 0)
                 return X, F, hF, flag, xk_in
 
-        # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
-        Lows = np.maximum(Low - X[xk_in], -delta * np.ones((np.shape(Low))))
-        Upps = np.minimum(Upp - X[xk_in], delta * np.ones((np.shape(Upp))))
-        if spsolver == 1:  # Stefan's crappy 10line solver
-            [Xsp, mdec] = bqmin(H, G, Lows, Upps)
-        elif spsolver == 2:  # Arnold Neumaier's minq5
-            [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-            if minq_err < 0:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
-                return X, F, hF, flag, xk_in
-        # elif spsolver == 3:  # Arnold Neumaier's minq8
-        #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-        #     assert minq_err >= 0, "Input error in minq"
-        Xsp = Xsp.squeeze()
-        step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
-        # 4. Evaluate the function at the new point (provided the model is
-        # valid, or the step is sufficiently large and mdec isn't zero)
-        if valid or (step_norm >= 0.01 * delta and mdec != 0):
-            Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
-
-            # Project if we're within machine precision
-            for i in range(n):  # This will need to be cleaned up eventually
-                if (Upp[i] - Xsp[i] < eps * abs(Upp[i])) and (Upp[i] > Xsp[i] and G[i] >= 0):
-                    Xsp[i] = Upp[i]
-                    print("eps project!")
-                elif (Xsp[i] - Low[i] < eps * abs(Low[i])) and (Low[i] < Xsp[i] and G[i] >= 0):
-                    Xsp[i] = Low[i]
-                    print("eps project!")
-
-            if mdec == 0 and valid and np.array_equiv(Xsp, X[xk_in]) and delta < np.sqrt(eps):
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
-                return X, F, hF, flag, xk_in
-
-            nf += 1
-            X[nf] = Xsp
-            if np.array_equiv(Xsp, X[xk_in]):
-                # We don't want to do the expensive F eval if Xsp is already in X
-                F[nf] = F[xk_in]
+        # 3. Solve a batch of TRSPs with the SAME (G,H) but radii: Delta, Delta/2, 2Delta, Delta/4, 4Delta, ...
+        # Build radii sequence
+        radii = np.empty(batch, dtype=float)
+        radii[0] = float(delta)
+        for k in range(1, batch):
+            j = (k + 1) // 2  # 1,1,2,2,3,3,...
+            if k % 2 == 1:
+                radii[k] = delta / (2.0 ** j)     # k=1 -> /2, k=3 -> /4, ...
             else:
-                F[nf] = Ffun(X[nf])
+                radii[k] = delta * (2.0 ** j)     # k=2 -> *2, k=4 -> *4, ...
 
-            if np.any(np.isnan(F[nf])):
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                return X, F, hF, flag, xk_in
-            hF[nf] = hfun(F[nf])
+        # Arrays for steps / predicted decreases
+        Xsp_steps = np.zeros((batch, n), dtype=float)
+        mdec_arr  = np.zeros(batch, dtype=float)
+        valid_step = np.zeros(batch, dtype=bool)
 
-            if mdec != 0:
-                rho = (hF[nf] - hF[xk_in]) / mdec
-            else:  # Note: this conditional only occurs when model is valid
-                if hF[nf] == hF[xk_in]:
-                    if delta < np.sqrt(eps):
-                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
-                        return X, F, hF, flag, xk_in
-                    else:
-                        rho = -np.inf
-                else:
-                    rho = np.inf * np.sign(hF[nf] - hF[xk_in])
+        # Solve TRSP for each radius
+        for k in range(batch):
+            delt_k = radii[k]
+            Lows = np.maximum(Low - X[xk_in], -delt_k * np.ones(np.shape(Low)))
+            Upps = np.minimum(Upp - X[xk_in],  delt_k * np.ones(np.shape(Upp)))
 
-            # 4a. Update the center
-            if (rho >= eta_1) or (rho > 0 and valid):
-                # Update model to reflect new center
-                Cres = F[xk_in]
-                xk_in = nf  # Change current center
-            # 4b. Update the trust-region radius:
-            if (rho >= eta_1) and (step_norm > delta_inact * delta):
-                delta = np.minimum(delta * gamma_inc, delta_max)
-            elif valid:
-                delta = delta * gamma_dec
-                if delta <= delta_min:
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -6)
+            if spsolver == 1:
+                Xsp_k, mdec_k = bqmin(H, G, Lows, Upps)
+            elif spsolver == 2:
+                Xsp_k, mdec_k, minq_err, _ = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
+                if minq_err < 0:
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
+                    return X, F, hF, flag, xk_in
+            else:
+                raise ValueError(f"Unsupported spsolver={spsolver}")
+
+
+            Xsp_k = Xsp_k.squeeze()
+            Xsp_steps[k, :] = Xsp_k
+            mdec_arr[k] = float(np.asarray(mdec_k).squeeze())
+
+            step_norm_k = np.linalg.norm(Xsp_k, np.inf) if n > 1 else np.abs(Xsp_k)
+            valid_step[k] = bool(valid or (step_norm_k >= 0.01 * delt_k and mdec_arr[k] != 0.0))
+
+            if not np.any(valid_step):
+                rho = -1  # Force yourself to do a model-improving point
+                if printf:
+                    print("Warning: skipping sp soln!-----------")
+            else:
+                # Evaluate ALL batch candidates (same model, different radii), regardless of which passed the gate
+                cand_idx = np.arange(batch, dtype=int)
+
+                # Form candidate points (Xsp is now a point, not a step)
+                Xcand = X[xk_in][None, :] + Xsp_steps[cand_idx, :]
+                Xcand = np.minimum(Upp, np.maximum(Low, Xcand))
+
+                # Project if we're within machine precision (apply per-candidate)
+                for ii in range(n):  # This will need to be cleaned up eventually
+                    upp_i = Upp[ii]
+                    low_i = Low[ii]
+                    for rr in range(batch):
+                        xval = Xcand[rr, ii]
+                        if (upp_i - xval < eps * abs(upp_i)) and (upp_i > xval and G[ii] >= 0):
+                            Xcand[rr, ii] = upp_i
+                            if printf:
+                                print("eps project!")
+                        elif (xval - low_i < eps * abs(low_i)) and (low_i < xval and G[ii] >= 0):
+                            Xcand[rr, ii] = low_i
+                            if printf:
+                                print("eps project!")
+
+                # Evaluate ALL batch candidates in ONE batch call to Ffun
+                idx_store = (nf + 1) + np.arange(batch, dtype=int)
+                X[idx_store] = Xcand
+                F[idx_store] = Ffun(X[idx_store])
+
+                if np.any(np.isnan(F[idx_store])):
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                     return X, F, hF, flag, xk_in
 
-        else:  # Don't evaluate f at Xsp
-            rho = -1  # Force yourself to do a model-improving point
-            if printf:
-                print("Warning: skipping sp soln!-----------")
+                # Compute hF for all candidates and advance nf (these points consume budget and stay in interpolation set)
+                for t in range(batch):
+                    nf += 1
+                    hF[nf] = hfun(F[nf])
+
+                # Compute rho for each evaluated candidate (aligned with original definition)
+                mdec_c = mdec_arr[cand_idx]
+                hf_c   = hF[idx_store]
+                hf0    = hF[xk_in]
+
+                rho_c = np.empty(batch, dtype=float)
+                for t in range(batch):
+                    if mdec_c[t] != 0.0:
+                        rho_c[t] = (hf_c[t] - hf0) / mdec_c[t]
+                    else:
+                        # mimic original branch (model valid implied for mdec==0 usage)
+                        if hf_c[t] == hf0:
+                            if delta < np.sqrt(eps):
+                                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                                return X, F, hF, flag, xk_in
+                            rho_c[t] = -np.inf
+                        else:
+                            rho_c[t] = np.inf * np.sign(hf_c[t] - hf0)
+
+                # Pick the best candidate (max rho). Ties broken by first occurrence.
+                best_t = int(np.argmax(rho_c))
+                # best_t = int(np.argmin(hf_c))
+                # best_t = int(np.nanargmin(h_c))
+                best_nf = int(idx_store[best_t])
+                best_k  = int(cand_idx[best_t])      # which radius/step index this was
+                best_rho = float(rho_c[best_t])
+                best_mdec = float(mdec_c[best_t])
+                best_step = X[best_nf] - X[xk_in]
+                best_step_norm = np.linalg.norm(best_step, np.inf) if n > 1 else np.abs(best_step)
+
+                # Original early-exit condition, applied to the chosen candidate
+                if (best_mdec == 0.0 and valid and np.array_equiv(X[best_nf], X[xk_in]) and delta < np.sqrt(eps)):
+                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -2)
+                    return X, F, hF, flag, xk_in
+
+                # 4a. Update the center based on chosen candidate
+                if (best_rho >= eta_1) or (best_rho > 0 and valid):
+                    Cres = F[xk_in]
+                    xk_in = best_nf
+
+                # 4b. Update trust-region radius based on chosen candidate's radius and step norm
+                delt_best = radii[best_k]
+                if (best_rho >= eta_1) and (best_step_norm > delta_inact * delt_best):
+                    delta = np.minimum(delt_best * gamma_inc, delta_max)
+                elif valid:
+                    delta = delt_best * gamma_dec
+                    if delta <= delta_min:
+                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -6)
+
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
@@ -380,44 +434,89 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
-                # Evaluate model-improving points to pick best one
-                # May eventually want to normalize Mdir first for infty norm
-                # Plus directions
-                [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-                for i in range(n - mp1):
-                    D = Mdir1[i, :]
-                    Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-                b = np.argmin(Res[: n - mp1, 0:1])
-                a1 = np.min(Res[: n - mp1, 0:1])
-                Xsp = Mdir1[b, :]
-                # Minus directions
-                [Mdir1, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-                for i in range(n - mp2):
-                    D = Mdir1[i, :]
-                    Res[i, 0] = D @ (G + 0.5 * H @ D.T)
-                b = np.argmin(Res[: n - mp2, 0:1])
-                a2 = np.min(Res[: n - mp2, 0:1])
-                if a2 < a1:
-                    Xsp = Mdir1[b, :]
-                nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
-                F[nf] = Ffun(X[nf])
-                if np.any(np.isnan(F[nf])):
-                    X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
-                    return X, F, hF, flag, xk_in
-                hF[nf] = hfun(F[nf])
-                if printf:
-                    print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
-                if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
-                    if printf:
-                        print("**improvement from model point****")
-                    # Update model to reflect new base point
-                    D = X[nf] - X[xk_in]
-                    xk_in = nf  # Change current center
-                    Cres = F[xk_in]
-                    # Don't actually use
-                    for j in range(m):
-                        Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
+
+                # evaluate ONE BATCH of model-improving points
+                remaining = int(nf_max - (nf + 1))
+                k_new = int(min(batch, remaining))  # try for one full batch; otherwise whatever is left
+
+                if k_new > 0:
+                    # Build candidate directions (plus and minus), score them by predicted model value,
+                    # then take the best k_new. If not enough, pad with random unit directions
+                    # (same padding style as your geometry code).
+                    cand_dirs = []
+
+                    # Plus directions
+                    [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+                    for i in range(n - mp1):
+                        Ddir = Mdir1[i, :]
+                        cand_dirs.append((Ddir @ (G + 0.5 * H @ Ddir.T), Ddir))
+
+                    # Minus directions
+                    [Mdir1m, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+                    for i in range(n - mp2):
+                        Ddir = Mdir1m[i, :]
+                        cand_dirs.append((Ddir @ (G + 0.5 * H @ Ddir.T), Ddir))
+
+                    cand_dirs.sort(key=lambda t: t[0])  # best predicted first
+                    Mdir_batch = np.array([d for (_, d) in cand_dirs[:k_new]], dtype=float)
+                    if Mdir_batch.ndim == 1:  # happens if k_new==1
+                        Mdir_batch = Mdir_batch.reshape(1, -1)
+
+                    # Pad if we somehow have fewer than k_new directions
+                    if Mdir_batch.shape[0] < k_new:
+                        k_extra = k_new - Mdir_batch.shape[0]
+                        R = np.random.randn(k_extra, n)
+                        R /= np.linalg.norm(R, axis=1, keepdims=True)
+                        Mdir_batch = np.vstack([Mdir_batch, R])
+
+                    # Absolute indices for this batch
+                    idx_new = (nf + 1) + np.arange(k_new, dtype=int)
+
+                    # New points, projected to bounds
+                    X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir_batch[:k_new, :]))
+
+                    # Evaluate F in ONE call (one batch)
+                    F[idx_new] = Ffun(X[idx_new])
+                    if np.any(np.isnan(F[idx_new])):
+                        X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
+                        return X, F, hF, flag, xk_in
+
+                    # Compute h, bump nf, and (optionally) update Res like your geometry code
+                    for t in range(k_new):
+                        nf += 1
+                        hF[nf] = hfun(F[nf])
+
+                        if printf:
+                            print("%4i   Model batch pt %11.5e\n" % (nf, hF[nf]))
+
+                        Ddir = Mdir_batch[t, :]
+                        Res[nf, :] = (F[nf, :] - Cres) - 0.5 * Ddir @ np.tensordot(Ddir.T, Hres, 1)
+
+                        # Re-check validity; if now valid, stop spending batch points
+                        [Mdir, mp, valid, _, _, _] = formquad(
+                            X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True
+                        )
+                        if valid:
+                            break
+
+                    # Pick best point among the points we actually evaluated in this batch by smallest h
+                    start = idx_new[0]
+                    stop = nf  # inclusive
+                    idx_eval = np.arange(start, stop + 1, dtype=int)
+                    best_idx = int(idx_eval[np.argmin(hF[idx_eval])])
+
+                    if hF[best_idx] < hF[xk_in]:  # improvement from model batch point
+                        if printf:
+                            print("**improvement from model batch point****")
+
+                        # Update model to reflect new base point
+                        D = X[best_idx] - X[xk_in]
+                        xk_in = best_idx  # Change current center
+                        Cres = F[xk_in]
+
+                        # Don't actually use
+                        for j in range(m):
+                            Gres[:, j] = Gres[:, j] + Hres[:, :, j] @ D.T
     if printf:
         print("Number of function evals exceeded")
     flag = ng
