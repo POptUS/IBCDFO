@@ -26,23 +26,38 @@ from ibcdfo.manifold_sampling import create_piecewise_quadratic_hfun
 
 class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
     def setUp(self):
+        EPS = np.finfo(float).eps
         M, L = (3, 4)
 
         # Confirm that we have good arguments for use in testing
-        Qs = np.arange(M * M * L).astype(float)
-        self.__Qs = Qs.reshape((M, M, L))
-        zs = np.arange(M * L).astype(float)
-        self.__zs = zs.reshape((M, L))
-        self.__cs = np.arange(L).astype(float)
+        #
+        # Use Fortran ordering so that this creates the same problem as defined
+        # in the MATLAB test suite.
+        Qs = np.arange(1, M * M * L + 1).astype(float)
+        self.__Qs = Qs.reshape((M, M, L), order="F")
+        zs = np.arange(1, M * L + 1).astype(float)
+        self.__zs = zs.reshape((M, L), order="F")
+        self.__cs = np.arange(1, L + 1).astype(float)
 
         self.__hfun = create_piecewise_quadratic_hfun(self.__Qs, self.__zs, self.__cs)
 
-        self.__Z = 1.1 * np.arange(self.__zs.shape[0])
+        # The test values were not determined by hand and are, therefore, not
+        # known to be correct.  Rather, they were gathered from test output at
+        # some time and are used here to catch regressions and to confirm that
+        # the Python and MATLAB code are returning the same values for the same
+        # problems.
+        self.__Z = 1.1 * np.arange(1, M + 1)
         hF, grads, Hash = self.__hfun(self.__Z)
-        self.assertIsInstance(hF, float)
-        self.assertIsInstance(grads, np.ndarray)
-        self.assertIsInstance(Hash, list)
-        self.assertEqual(grads.shape, (M, len(Hash)))
+        self.assertEqual(hF, 22285.6)
+        expected = np.array([-1635.6, -1688.4, -1741.2])
+        self.assertTrue(np.array_equal(np.squeeze(grads), expected))
+        self.assertEqual(len(Hash), 1)
+        self.assertEqual(grads.shape, (M, 1))
+        # In the MATLAB version of this test, the hash is "4".  This is due to
+        # the fact that for this problem the hash result is the index to the
+        # active quadratic piece and indices in MATLAB are 1-based instead of
+        # 0-based.
+        self.assertEqual(Hash, ["3"])
 
         # Sanity check hash result/H0
         hF_H0, grads_H0 = self.__hfun(self.__Z, Hash)
@@ -50,23 +65,31 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         self.assertTrue(np.array_equal(grads_H0, grads))
 
         # Good but different size for testing size incompatibilities
-        self.__Qs_big = np.ones((M, M, L + 1))
-        self.__zs_big = np.ones((M, L + 1))
-        self.__cs_big = np.ones(L + 1)
+        M_long = M + 1
+        L_long = L - 1
+        Qs = np.arange(1, M_long * M_long * L_long + 1).astype(float)
+        self.__Qs_long = Qs.reshape((M_long, M_long, L_long), order="F")
+        zs = np.arange(1, M_long * L_long + 1).astype(float)
+        self.__zs_long = zs.reshape((M_long, L_long), order="F")
+        self.__cs_long = np.arange(1, L_long + 1).astype(float)
 
-        hfun = create_piecewise_quadratic_hfun(self.__Qs_big, self.__zs_big, self.__cs_big)
+        hfun = create_piecewise_quadratic_hfun(self.__Qs_long, self.__zs_long, self.__cs_long)
 
-        Z_long = np.zeros(self.__zs_big.shape[0])
+        Z_long = 2.1 * np.arange(1, M_long + 1)
         hF, grads, Hash = hfun(Z_long)
-        self.assertIsInstance(hF, float)
-        self.assertIsInstance(grads, np.ndarray)
-        self.assertIsInstance(Hash, list)
-        self.assertEqual(grads.shape, (M, len(Hash)))
+        self.assertEqual(hF, 17286.0)
+        expected = np.array([-1594, -1636, -1678, -1720])
+        rel_diff = np.max(np.fabs(1.0 - np.squeeze(grads) / expected))
+        self.assertTrue(rel_diff <= 5.0 * EPS)
+        self.assertEqual(len(Hash), 1)
+        self.assertEqual(grads.shape, (M_long, 1))
+        # Similar to above comment, the hash here is one less than the result
+        # in the MATLAB version of this test.
+        self.assertEqual(Hash, ["2"])
 
         # Sanity check hash result/H0
         hF_H0, grads_H0 = hfun(Z_long, Hash)
-        # TODO: Why doesn't this work?!
-        # self.assertEqual(hF_H0, hF)
+        self.assertEqual(hF_H0, hF)
         self.assertTrue(np.array_equal(grads_H0, grads))
 
     def testErrors(self):
@@ -101,10 +124,20 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
 
         oversized = list(self.__Qs.shape) + [1]
         Qs_4Dish = self.__Qs.copy().reshape(oversized)
+        self.assertEqual(4, Qs_4Dish.ndim)
         create_piecewise_quadratic_hfun(Qs_4Dish, self.__zs, self.__cs)
 
         # zs must be effectively 2D
-        bad_all = [np.array([]), np.array([[]]), np.array(1.1), np.array([1.1]), self.__zs[:, 0], np.atleast_2d(self.__zs[:, 0]), np.stack((self.__zs, self.__zs), axis=2)]
+        bad_all = [
+            np.array([]),
+            np.array([[]]),
+            np.array(1.1),
+            np.array([1.1]),
+            np.array([[1.1]]),
+            self.__zs[:, 0],
+            np.atleast_2d(self.__zs[:, 0]),
+            np.stack((self.__zs, self.__zs), axis=2),
+        ]
         for bad in bad_all:
             with self.assertRaises(ValueError):
                 create_piecewise_quadratic_hfun(self.__Qs, bad, self.__cs)
@@ -124,26 +157,29 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
 
         # Finite reals please for Qs, zs, and cs
         for bad_value in [np.nan, np.inf, -np.inf, 1j, 1.0 - 2.0 * 1j]:
-            bad = self.__Qs.copy()
-            if isinstance(bad_value, complex):
-                bad = bad.astype(complex)
-            bad[0, 0, 0] = bad_value
-            with self.assertRaises(ValueError):
-                create_piecewise_quadratic_hfun(bad, self.__zs, self.__cs)
+            for k in range(L):
+                bad = self.__cs.copy()
+                if isinstance(bad_value, complex):
+                    bad = bad.astype(complex)
+                bad[k] = bad_value
+                with self.assertRaises(ValueError):
+                    create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
 
-            bad = self.__zs.copy()
-            if isinstance(bad_value, complex):
-                bad = bad.astype(complex)
-            bad[0, 0] = bad_value
-            with self.assertRaises(ValueError):
-                create_piecewise_quadratic_hfun(self.__Qs, bad, self.__cs)
+                for i in range(M):
+                    bad = self.__zs.copy()
+                    if isinstance(bad_value, complex):
+                        bad = bad.astype(complex)
+                    bad[i, k] = bad_value
+                    with self.assertRaises(ValueError):
+                        create_piecewise_quadratic_hfun(self.__Qs, bad, self.__cs)
 
-            bad = self.__cs.copy()
-            if isinstance(bad_value, complex):
-                bad = bad.astype(complex)
-            bad[0] = bad_value
-            with self.assertRaises(ValueError):
-                create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
+                    for j in range(M):
+                        bad = self.__Qs.copy()
+                        if isinstance(bad_value, complex):
+                            bad = bad.astype(complex)
+                        bad[i, j, k] = bad_value
+                        with self.assertRaises(ValueError):
+                            create_piecewise_quadratic_hfun(bad, self.__zs, self.__cs)
 
         # Qs, zs & cs must have compatible shapes
         # Qs must be square in first two dimensions
@@ -167,11 +203,11 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
 
         # Test incompatibility between different good arrays
         with self.assertRaises(ValueError):
-            create_piecewise_quadratic_hfun(self.__Qs_big, self.__zs, self.__cs)
+            create_piecewise_quadratic_hfun(self.__Qs_long, self.__zs, self.__cs)
         with self.assertRaises(ValueError):
-            create_piecewise_quadratic_hfun(self.__Qs, self.__zs_big, self.__cs)
+            create_piecewise_quadratic_hfun(self.__Qs, self.__zs_long, self.__cs)
         with self.assertRaises(ValueError):
-            create_piecewise_quadratic_hfun(self.__Qs, self.__zs, self.__cs_big)
+            create_piecewise_quadratic_hfun(self.__Qs, self.__zs, self.__cs_long)
 
     def testBadZArguments(self):
         M = self.__zs.shape[0]
@@ -183,7 +219,8 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
                 self.__hfun(bad)
 
         # z must be 1D
-        for bad in [np.array([[]]), np.stack((self.__Z, self.__Z), axis=1)]:
+        bad_all = [np.array([[]]), np.atleast_2d(self.__Z), np.stack((self.__Z, self.__Z), axis=1)]
+        for bad in bad_all:
             with self.assertRaises(AssertionError):
                 self.__hfun(bad)
 
@@ -194,12 +231,14 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
 
         # z must contain finite real values
         for bad_value in [np.nan, np.inf, -np.inf, 1j, 1.0 - 2.0 * 1j]:
-            bad = np.random.randn(M)
-            if isinstance(bad_value, complex):
-                bad = bad.astype(complex)
-            bad[0] = bad_value
-            with self.assertRaises(ValueError):
-                self.__hfun(bad)
+            bad_orig = np.random.randn(M)
+            for i in range(M):
+                bad = bad_orig.copy()
+                if isinstance(bad_value, complex):
+                    bad = bad.astype(complex)
+                bad[i] = bad_value
+                with self.assertRaises(ValueError):
+                    self.__hfun(bad)
 
     def testConfirmReadonly(self):
         # NOTE: This test is only useful for developing and manually testing the
@@ -236,7 +275,7 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         self.assertFalse(np.array_equal(grads_2, grads))
         self.assertFalse(np.array_equal(Hash_2, Hash))
 
-        zs *= -2.1
+        zs *= -1.1
         hfun_3 = create_piecewise_quadratic_hfun(Qs, zs, cs)
         hF_3, grads_3, Hash_3 = hfun_3(self.__Z)
         self.assertNotEqual(hF_3, hF)
@@ -246,12 +285,12 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         self.assertFalse(np.array_equal(Hash_3, Hash))
         # self.assertFalse(np.array_equal(Hash_3, Hash_2))
 
-        cs *= 1.5
+        cs *= -1.5
         hfun_4 = create_piecewise_quadratic_hfun(Qs, zs, cs)
         hF_4, grads_4, Hash_4 = hfun_4(self.__Z)
         self.assertNotEqual(hF_4, hF)
         self.assertNotEqual(hF_4, hF_2)
-        # self.assertNotEqual(hF_4, hF_3)
+        self.assertNotEqual(hF_4, hF_3)
         self.assertFalse(np.array_equal(grads_4, grads))
         self.assertFalse(np.array_equal(grads_4, grads_2))
         # self.assertFalse(np.array_equal(grads_4, grads_3))

@@ -81,6 +81,10 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             testCase.assertEqual(tmp, 1);
             testCase.assertEqual(n_hash, 1);
             testCase.assertEqual(size(testCase.grads), [M, 1]);
+            % In the Python version of this test, the hash is "3".  This is due
+            % to the fact that for this problem the hash result is the index to
+            % the active quadratic piece and indices in Python are 0-based
+            % instead of 1-based.
             testCase.assertEqual(testCase.Hash, {'4'});
 
             % Sanity check hash result/H0
@@ -115,6 +119,8 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             testCase.assertEqual(tmp, 1);
             testCase.assertEqual(n_hash, 1);
             testCase.assertEqual(size(grads), [M_long, 1]);
+            % Similar to above comment, the hash here is one more than the
+            % result in the Python version of this test.
             testCase.assertEqual(Hash, {'3'});
 
             % Sanity check hash result/H0
@@ -303,7 +309,6 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
 
         function badZArgument(testCase)
             M = size(testCase.zs, 1);
-            L = size(testCase.zs, 2);
 
             % Must be 1D
             for bad = ["bad", 1.1, 1j, []]
