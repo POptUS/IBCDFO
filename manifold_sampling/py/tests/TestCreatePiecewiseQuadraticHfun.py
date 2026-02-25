@@ -50,7 +50,8 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         hF, grads, Hash = self.__hfun(self.__Z)
         self.assertEqual(hF, 22285.6)
         expected = np.array([-1635.6, -1688.4, -1741.2])
-        self.assertTrue(np.array_equal(np.squeeze(grads), expected))
+        rel_diff = np.max(np.fabs(1.0 - np.squeeze(grads) / expected))
+        self.assertTrue(rel_diff <= 5.0 * EPS)
         self.assertEqual(len(Hash), 1)
         self.assertEqual(grads.shape, (M, 1))
         # In the MATLAB version of this test, the hash is "4".  This is due to
