@@ -23,12 +23,13 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
         * Please check if the above formula is correct.
 
     :param Qs: :math:`m \times m \times l` numpy array that contains the
-        :math:`Q_j \in \R^{m \times m}` parameters.  Note that at least one
-        :math:`Q_j` should be symmetric positive definite in order for the
-        associated optimization problem to formally well-defined.  There is no
-        automatic checking of this requirement.
+        :math:`Q_j \in \R^{m \times m}` parameter values.  Note that at least
+        one :math:`Q_j` should be symmetric positive definite in order for the
+        associated optimization problem to be formally well-defined.  There is
+        no error checking to confirm that given ``Qs`` arguments satisfy this
+        requirement.
     :param zs: :math:`m \times l` numpy array that contains the :math:`\zvec_j
-        \in \R^m` parameters
+        \in \R^m` parameter values
     :param cs: 1D numpy array of length :math:`l` that specifies the :math:`c_j`
         parameter values
     :return: ``hfun`` constructed with the given :math:`Q_j, \zvec_j, c_j` that
