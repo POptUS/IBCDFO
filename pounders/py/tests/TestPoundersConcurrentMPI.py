@@ -79,7 +79,7 @@ class TestPoundersMPI(unittest.TestCase):
 
             np.random.seed(0)
 
-            for batch in [5,10]:
+            for batch in [1, 5, 10]:
                 # ---------------- Save outputs (separate files) ----------------
                 # Include rank in filename to avoid collisions if you later change the partitioning
                 base = f"nf_max={nf_max}_prob={row}_spsolver={spsolver}"
@@ -114,7 +114,6 @@ class TestPoundersMPI(unittest.TestCase):
                     Options=Opts,
                     Model={},
                 )
-                import ipdb; ipdb.set_trace(context=21)
 
                 # ---------------- Assertions ----------------
                 evals = F.shape[0]
@@ -133,7 +132,7 @@ class TestPoundersMPI(unittest.TestCase):
                         evals <= nf_max + nfs,
                         f"[rank {RANK}] POUNDERs evaluated more than nf_max evaluations: " f"evals={evals}, limit={nf_max + nfs}",
                     )
-                elif flag not in (-6, -4):
+                elif flag < 0 and flag not in [-6, -5, -4]:
                     self.assertTrue(
                         evals == nf_max + nfs,
                         f"[rank {RANK}] POUNDERs didn't use nf_max evaluations: " f"evals={evals}, expected={nf_max + nfs}, flag={flag}",

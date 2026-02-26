@@ -166,11 +166,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
-            k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
+            remaining = int(min(nf_max - (nf + 1), X.shape[0] - (nf + 1)))
+            k_new = int(min(n - mp, remaining))  # new geometry points to send to Ffun (while respecting nfmax + storage)
             if k_new > 0:
-                remaining = int(nf_max - (nf + 1))
 
-                # Pad to next multiple of batch so every call has exactly batch points (but never exceed nf_max)
+                # Pad to next multiple of batch so every call has exactly batch points (but never exceed nf_max or storage)
                 k_pad = min(((-k_new) % batch), max(0, remaining - k_new))
                 k_total = k_new + k_pad
 
@@ -246,12 +246,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
-                k_new = int(min(n - mp, nf_max - (nf + 1)))
+                remaining = int(min(nf_max - (nf + 1), X.shape[0] - (nf + 1)))
+                k_new = int(min(n - mp, remaining))
                 if k_new > 0:
-                    remaining = int(nf_max - (nf + 1))
-
                     k_pad = min(((-k_new) % batch), max(0, remaining - k_new))
-                    k_total = k_new + k_pad  # multiple of batch (but never exceed nf_max)
+                    k_total = k_new + k_pad  # multiple of batch (but never exceed nf_max or storage)
 
                     # Ensure Mdir has >= k_total directions; append random unit directions if needed
                     Mdir = _ensure_rows_with_random_unit(Mdir, k_total, n)
@@ -294,7 +293,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 return X, F, hF, flag, xk_in
 
         # 3. Solve a batch of TRSPs with the SAME (G,H) but radii: Delta, Delta/2, 2Delta, Delta/4, 4Delta, ...
-        batch_eff = int(min(batch, nf_max - (nf + 1)))
+        batch_eff = int(min(batch, nf_max - (nf + 1), X.shape[0] - (nf + 1)))
+        if batch_eff <= 0:
+            if printf:
+                print("Number of function evals exceeded")
+            flag = ng
+            return X, F, hF, flag, xk_in
 
         # Build radii sequence
         radii = np.empty(batch_eff, dtype=float)
@@ -446,7 +450,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 G, H = combinemodels(Cres, Gres, Hres)
 
                 # evaluate ONE BATCH of model-improving points
-                remaining = int(nf_max - (nf + 1))
+                remaining = int(min(nf_max - (nf + 1), X.shape[0] - (nf + 1)))
                 k_new = int(min(batch, remaining))
 
                 cand_dirs = []
