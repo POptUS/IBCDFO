@@ -391,9 +391,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                         rho_c[t] = np.inf * np.sign(hf_c[t] - hf0)
 
             # Pick the best candidate (max rho). Ties broken by first occurrence.
-            best_t = int(np.argmax(rho_c))
+            # best_t = int(np.argmax(rho_c))
             # best_t = int(np.argmin(hf_c))
-            # best_t = int(np.nanargmin(h_c))
+            best_t = int(np.nanargmin(hf_c))
             best_nf = int(idx_store[best_t])
             best_k  = int(cand_idx[best_t])      # which radius/step index this was
             best_rho = float(rho_c[best_t])
