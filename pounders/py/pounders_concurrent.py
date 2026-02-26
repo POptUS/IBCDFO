@@ -168,9 +168,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
             if k_new > 0:
-                # Pad to next multiple of batch so every call has exactly batch points
-                k_pad = (-k_new) % batch
-                k_total = k_new + k_pad  # multiple of batch
+                remaining = int(nf_max - (nf + 1))
+
+                # Pad to next multiple of batch so every call has exactly batch points (but never exceed nf_max)
+                k_pad = min(((-k_new) % batch), max(0, remaining - k_new))
+                k_total = k_new + k_pad
 
                 # Ensure Mdir has at least k_total directions; if not, append random unit directions
                 Mdir = _ensure_rows_with_random_unit(Mdir, k_total, n)
@@ -184,9 +186,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 # New points, projected to bounds
                 X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_total, :]))
 
-                # Evaluate F in fixed-size batches
+                # Evaluate F in batches (last batch may be smaller near nf_max)
                 for s in range(0, k_total, batch):
-                    idx_batch = idx_new[s:s + batch]  # always length batch
+                    idx_batch = idx_new[s : min(s + batch, k_total)]
                     F[idx_batch] = Ffun(X[idx_batch])
 
                     if np.any(np.isnan(F[idx_batch])):
@@ -210,7 +212,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             if mp < n:
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
                 return X, F, hF, flag, xk_in
-
 
         #  1b. Update the quadratic model
         Cres = F[xk_in]
@@ -247,8 +248,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
                 k_new = int(min(n - mp, nf_max - (nf + 1)))
                 if k_new > 0:
-                    k_pad   = (-k_new) % batch
-                    k_total = k_new + k_pad  # multiple of batch
+                    remaining = int(nf_max - (nf + 1))
+
+                    k_pad = min(((-k_new) % batch), max(0, remaining - k_new))
+                    k_total = k_new + k_pad  # multiple of batch (but never exceed nf_max)
 
                     # Ensure Mdir has >= k_total directions; append random unit directions if needed
                     Mdir = _ensure_rows_with_random_unit(Mdir, k_total, n)
@@ -262,9 +265,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     # Build all new X points
                     X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_total, :]))
 
-                    # Evaluate F in fixed-size batches
+                    # Evaluate F in batches (last batch may be smaller near nf_max)
                     for s in range(0, k_total, batch):
-                        idx_batch = idx_new[s:s + batch]  # always length batch
+                        idx_batch = idx_new[s : min(s + batch, k_total)]
                         F[idx_batch] = Ffun(X[idx_batch])
 
                         if np.any(np.isnan(F[idx_batch])):
@@ -291,10 +294,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 return X, F, hF, flag, xk_in
 
         # 3. Solve a batch of TRSPs with the SAME (G,H) but radii: Delta, Delta/2, 2Delta, Delta/4, 4Delta, ...
+        batch_eff = int(min(batch, nf_max - (nf + 1)))
+
         # Build radii sequence
-        radii = np.empty(batch, dtype=float)
+        radii = np.empty(batch_eff, dtype=float)
         radii[0] = float(delta)
-        for k in range(1, batch):
+        for k in range(1, batch_eff):
             j = (k + 1) // 2  # 1,1,2,2,3,3,...
             if k % 2 == 1:
                 radii[k] = delta / (2.0 ** j)     # k=1 -> /2, k=3 -> /4, ...
@@ -302,12 +307,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 radii[k] = delta * (2.0 ** j)     # k=2 -> *2, k=4 -> *4, ...
 
         # Arrays for steps / predicted decreases
-        Xsp_steps = np.zeros((batch, n), dtype=float)
-        mdec_arr  = np.zeros(batch, dtype=float)
-        valid_step = np.zeros(batch, dtype=bool)
+        Xsp_steps = np.zeros((batch_eff, n), dtype=float)
+        mdec_arr  = np.zeros(batch_eff, dtype=float)
+        valid_step = np.zeros(batch_eff, dtype=bool)
 
         # Solve TRSP for each radius
-        for k in range(batch):
+        for k in range(batch_eff):
             delt_k = radii[k]
             Lows = np.maximum(Low - X[xk_in], -delt_k * np.ones(np.shape(Low)))
             Upps = np.minimum(Upp - X[xk_in],  delt_k * np.ones(np.shape(Upp)))
@@ -322,7 +327,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             else:
                 raise ValueError(f"Unsupported spsolver={spsolver}")
 
-
             Xsp_k = Xsp_k.squeeze()
             Xsp_steps[k, :] = Xsp_k
             mdec_arr[k] = float(np.asarray(mdec_k).squeeze())
@@ -336,7 +340,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 print("Warning: skipping sp soln!-----------")
         else:
             # Evaluate ALL batch candidates (same model, different radii), regardless of which passed the gate
-            cand_idx = np.arange(batch, dtype=int)
+            cand_idx = np.arange(batch_eff, dtype=int)
 
             # Form candidate points (Xsp is now a point, not a step)
             Xcand = X[xk_in][None, :] + Xsp_steps[cand_idx, :]
@@ -346,7 +350,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             for ii in range(n):  # This will need to be cleaned up eventually
                 upp_i = Upp[ii]
                 low_i = Low[ii]
-                for rr in range(batch):
+                for rr in range(batch_eff):
                     xval = Xcand[rr, ii]
                     if (upp_i - xval < eps * abs(upp_i)) and (upp_i > xval and G[ii] >= 0):
                         Xcand[rr, ii] = upp_i
@@ -358,7 +362,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                             print("eps project!")
 
             # Evaluate ALL batch candidates in ONE batch call to Ffun
-            idx_store = (nf + 1) + np.arange(batch, dtype=int)
+            idx_store = (nf + 1) + np.arange(batch_eff, dtype=int)
             X[idx_store] = Xcand
             F[idx_store] = Ffun(X[idx_store])
 
@@ -367,7 +371,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 return X, F, hF, flag, xk_in
 
             # Compute hF for all candidates and advance nf (these points consume budget and stay in interpolation set)
-            for t in range(batch):
+            for t in range(batch_eff):
                 nf += 1
                 hF[nf] = hfun(F[nf])
 
@@ -376,8 +380,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             hf_c   = hF[idx_store]
             hf0    = hF[xk_in]
 
-            rho_c = np.empty(batch, dtype=float)
-            for t in range(batch):
+            rho_c = np.empty(batch_eff, dtype=float)
+            for t in range(batch_eff):
                 if mdec_c[t] != 0.0:
                     rho_c[t] = (hf_c[t] - hf0) / mdec_c[t]
                 else:
@@ -443,7 +447,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
                 # evaluate ONE BATCH of model-improving points
                 remaining = int(nf_max - (nf + 1))
-                k_new = batch
+                k_new = int(min(batch, remaining))
 
                 cand_dirs = []
 
