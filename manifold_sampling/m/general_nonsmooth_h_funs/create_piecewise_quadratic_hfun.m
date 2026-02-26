@@ -1,26 +1,13 @@
 function [hfun] = create_piecewise_quadratic_hfun(Qs, zs, cs)
     % Please refer to the documentation for the Python version of this h function.
 
-    % Have MATLAB automatically ensure that each actual C,D arguments passed to
-    % this function are 1D finite, real column vectors of the same length.
+    % Have MATLAB automatically ensure that actual Qs, zs, and cs arguments
+    % passed to this function are valid, finite, real arrays.
     arguments
         Qs (:, :, :) {mustBeReal, mustBeFinite, mustBeNonempty}
         zs (:, :)    {mustBeReal, mustBeFinite, mustBeNonempty}
         cs (:, 1)    {mustBeReal, mustBeFinite, mustBeNonempty}
     end
-
-    % Inputs:
-    %  z:              [1 x p]   point where we are evaluating h
-    %  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
-
-    % Outputs:
-    %  h: [dbl]                       function value
-    %  grads: [p x l]                 gradients of each of the l quadratics active at z
-    %  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
-
-    % Hashes are output (and must be input) in the following fashion:
-    %   Hash{i} = 'j' if quadratic j is active at z (or H0{i} = 'j' if the
-    %   value/gradient of quadratic j at z is desired)
 
     % IMPORTANT: Aside from ensuring that cs is a column vector, don't alter
     % Qs, zs, or cs anywhere in this function.
@@ -32,10 +19,24 @@ function [hfun] = create_piecewise_quadratic_hfun(Qs, zs, cs)
     elseif size(cs) ~= J
         error("POptUS:IncompatibleSizes", "zs & cs sizes incompatible");
     end
+    assert(J > 1);
 
     hfun = @h_piecewise_quadratic;
 
     function [h, grads, Hash] = h_piecewise_quadratic(z, H0)
+        % Inputs:
+        %  z:              [1 x p]   point where we are evaluating h
+        %  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
+
+        % Outputs:
+        %  h: [dbl]                       function value
+        %  grads: [p x l]                 gradients of each of the l quadratics active at z
+        %  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
+
+        % Hashes are output (and must be input) in the following fashion:
+        %   Hash{i} = 'j' if quadratic j is active at z (or H0{i} = 'j' if the
+        %   value/gradient of quadratic j at z is desired)
+
         global h_activity_tol
 
         if isempty(h_activity_tol)
