@@ -121,13 +121,6 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
             with self.assertRaises(ValueError):
                 create_piecewise_quadratic_hfun(bad, self.__zs, self.__cs)
 
-        # with l>=2
-        bad = np.atleast_3d(self.__Qs[:, :, 0])
-        self.assertTrue(bad.ndim == 3)
-        self.assertEqual(1, bad.shape[2])
-        with self.assertRaises(ValueError):
-            create_piecewise_quadratic_hfun(bad, self.__zs, self.__cs)
-
         # zs must be 2D
         bad_all = [
             np.array([]),
@@ -218,6 +211,22 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
             create_piecewise_quadratic_hfun(self.__Qs, self.__zs_long, self.__cs)
         with self.assertRaises(ValueError):
             create_piecewise_quadratic_hfun(self.__Qs, self.__zs, self.__cs_long)
+
+        # Confirm that l must be >= 2
+        Qs_bad = np.atleast_3d(self.__Qs[:, :, 0])
+        zs_bad = np.atleast_2d(self.__zs[:, 0]).T
+        cs_bad = np.atleast_1d(self.__cs[0])
+        # Confirm that they are mutually compatible so that error is just due to
+        # l=1.
+        self.assertTrue(Qs_bad.ndim == 3)
+        self.assertEqual(Qs_bad.shape[0], Qs_bad.shape[1])
+        self.assertEqual(1, Qs_bad.shape[2])
+        self.assertTrue(zs_bad.ndim == 2)
+        self.assertEqual(zs_bad.shape[0], Qs_bad.shape[0])
+        self.assertEqual(1, zs_bad.shape[1])
+        self.assertEqual(1, len(cs_bad))
+        with self.assertRaises(ValueError):
+            create_piecewise_quadratic_hfun(Qs_bad, zs_bad, cs_bad)
 
     def testBadZArguments(self):
         M = self.__zs.shape[0]
