@@ -47,23 +47,23 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         # the Python and MATLAB code are returning the same values for the same
         # problems.
         self.__Z = 1.1 * np.arange(1, M + 1)
-        hF, grads, Hash = self.__hfun(self.__Z)
-        self.assertEqual(hF, 22285.6)
+        self.__hF, self.__grads, self.__Hash = self.__hfun(self.__Z)
+        self.assertEqual(self.__hF, 22285.6)
         expected = np.array([-1635.6, -1688.4, -1741.2])
-        rel_diff = np.max(np.fabs(1.0 - np.squeeze(grads) / expected))
+        rel_diff = np.max(np.fabs(1.0 - np.squeeze(self.__grads) / expected))
         self.assertTrue(rel_diff <= 5.0 * EPS)
-        self.assertEqual(len(Hash), 1)
-        self.assertEqual(grads.shape, (M, 1))
+        self.assertEqual(len(self.__Hash), 1)
+        self.assertEqual(self.__grads.shape, (M, 1))
         # In the MATLAB version of this test, the hash is "4".  This is due to
         # the fact that for this problem the hash result is the index to the
         # active quadratic piece and indices in MATLAB are 1-based instead of
         # 0-based.
-        self.assertEqual(Hash, ["3"])
+        self.assertEqual(self.__Hash, ["3"])
 
         # Sanity check hash result/H0
-        hF_H0, grads_H0 = self.__hfun(self.__Z, Hash)
-        self.assertEqual(hF_H0, hF)
-        self.assertTrue(np.array_equal(grads_H0, grads))
+        hF_H0, grads_H0 = self.__hfun(self.__Z, self.__Hash)
+        self.assertEqual(hF_H0, self.__hF)
+        self.assertTrue(np.array_equal(grads_H0, self.__grads))
 
         # Good but different size for testing size incompatibilities
         M_long = M + 1
@@ -106,55 +106,64 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
             with self.assertRaises(TypeError):
                 create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
 
-        # Qs must be effectively 3D
+        # Qs must be 3D ...
         bad_all = [
             np.array([]),
             np.array([[]]),
-            np.array([[[]]]),
             np.array(1.1),
             np.array([1.1]),
             np.array([[1.1]]),
-            np.array([[[1.1]]]),
             self.__Qs[:, :, 0],
-            np.atleast_3d(self.__Qs[:, :, 0]),
             np.stack((self.__Qs, self.__Qs), axis=3),
         ]
         for bad in bad_all:
+            self.assertTrue(bad.ndim != 3)
             with self.assertRaises(ValueError):
                 create_piecewise_quadratic_hfun(bad, self.__zs, self.__cs)
 
-        oversized = list(self.__Qs.shape) + [1]
-        Qs_4Dish = self.__Qs.copy().reshape(oversized)
-        self.assertEqual(4, Qs_4Dish.ndim)
-        create_piecewise_quadratic_hfun(Qs_4Dish, self.__zs, self.__cs)
+        # with l>=2
+        bad = np.atleast_3d(self.__Qs[:, :, 0])
+        self.assertTrue(bad.ndim == 3)
+        self.assertEqual(1, bad.shape[2])
+        with self.assertRaises(ValueError):
+            create_piecewise_quadratic_hfun(bad, self.__zs, self.__cs)
 
-        # zs must be effectively 2D
+        # zs must be 2D
         bad_all = [
             np.array([]),
-            np.array([[]]),
             np.array(1.1),
             np.array([1.1]),
-            np.array([[1.1]]),
             self.__zs[:, 0],
-            np.atleast_2d(self.__zs[:, 0]),
             np.stack((self.__zs, self.__zs), axis=2),
+            np.atleast_3d(self.__zs.copy()),
         ]
         for bad in bad_all:
+            self.assertTrue(bad.ndim != 2)
             with self.assertRaises(ValueError):
                 create_piecewise_quadratic_hfun(self.__Qs, bad, self.__cs)
 
-        zs_3Dish = np.atleast_3d(self.__zs.copy())
-        self.assertEqual(3, zs_3Dish.ndim)
-        create_piecewise_quadratic_hfun(self.__Qs, zs_3Dish, self.__cs)
-
-        # cs must be genuinely 1D
+        # cs must be effectively 1D (i.e., allow for 2D row/column vectors)
         for bad in [np.array([]), np.stack((self.__cs, self.__cs), axis=1)]:
             with self.assertRaises(ValueError):
                 create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
 
-        cs_2Dish = np.atleast_2d(self.__cs.copy())
-        self.assertEqual(2, cs_2Dish.ndim)
-        create_piecewise_quadratic_hfun(self.__Qs, self.__zs, cs_2Dish)
+        cs_row = np.atleast_2d(self.__cs.copy()).T
+        self.assertEqual(2, cs_row.ndim)
+        self.assertNotEqual(1, cs_row.shape[0])
+        hfun_r = create_piecewise_quadratic_hfun(self.__Qs, self.__zs, cs_row)
+        hF_r, grads_r, Hash_r = hfun_r(self.__Z)
+        self.assertEqual(hF_r, self.__hF)
+        self.assertTrue(np.array_equal(grads_r, self.__grads))
+        self.assertEqual(Hash_r, self.__Hash)
+
+        cs_column = cs_row.T
+        self.assertEqual(2, cs_column.ndim)
+        self.assertNotEqual(1, cs_column.shape[1])
+        hfun_c = create_piecewise_quadratic_hfun(self.__Qs, self.__zs, cs_column)
+        hF_c, grads_c, Hash_c = hfun_c(self.__Z)
+        self.assertEqual(hF_c, self.__hF)
+        self.assertTrue(np.array_equal(grads_c, self.__grads))
+        self.assertEqual(Hash_c, self.__Hash)
 
         # Finite reals please for Qs, zs, and cs
         for bad_value in [np.nan, np.inf, -np.inf, 1j, 1.0 - 2.0 * 1j]:

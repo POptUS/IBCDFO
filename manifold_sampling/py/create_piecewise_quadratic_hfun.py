@@ -44,14 +44,16 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
     # this function.
     if not isinstance(Qs, np.ndarray):
         raise TypeError("Qs is not a numpy array")
-    Qs = np.atleast_3d(np.squeeze(Qs.copy()))
+    Qs = Qs.copy()
 
     if not isinstance(zs, np.ndarray):
         raise TypeError("zs is not a numpy array")
-    zs = np.atleast_2d(np.squeeze(zs.copy()))
+    zs = zs.copy()
 
     if not isinstance(cs, np.ndarray):
         raise TypeError("cs is not a numpy array")
+    # Allow for 1D array or 2D column/row vectors, including single-element
+    # arrays.
     cs = np.atleast_1d(np.squeeze(cs.copy()))
 
     # ----- ERROR CHECK ARGUMENTS
@@ -59,6 +61,8 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
         raise ValueError("Qs is not a 3D numpy array")
     elif Qs.shape[0] != Qs.shape[1]:
         raise ValueError("Qs must be 3D numpy array with the first two dimensions equal")
+    elif Qs.shape[2] <= 1:
+        raise ValueError("Qs, zs, and cs must specify at least two quadratics (l>1)")
     elif not all(np.isfinite(Qs.flatten())):
         raise ValueError("Qs contains non-finite elements")
     elif not all(np.isreal(Qs.flatten())):
