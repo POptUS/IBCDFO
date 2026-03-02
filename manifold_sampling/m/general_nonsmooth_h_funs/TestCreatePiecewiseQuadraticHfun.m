@@ -90,7 +90,7 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             % Sanity check hash result/H0
             [hF_H0, grads_H0] = testCase.hfun(testCase.Z, testCase.Hash);
             testCase.assertEqual(hF_H0, testCase.hF);
-            testCase.assertTrue(isequal(grads_H0, testCase.grads));
+            testCase.assertEqual(grads_H0, testCase.grads);
 
             % Good but different size for testing size incompatibilities
             M_long = M + 1;
@@ -126,7 +126,7 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             % Sanity check hash result/H0
             [hF_H0, grads_H0] = hfun(Z_long, Hash);
             testCase.assertEqual(hF_H0, hF);
-            testCase.assertTrue(isequal(grads_H0, grads));
+            testCase.assertEqual(grads_H0, grads);
         end
 
     end
@@ -301,7 +301,7 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             );
 
             % Test mismatched dimensions more explicitly
-            Qs_wrong = zeros(M + 2, M, L);
+            Qs_wrong = zeros(M + 1, M, L);
             testCase.verifyError( ...
                 @()create_piecewise_quadratic_hfun(Qs_wrong, testCase.zs, testCase.cs), ...
                 'POptUS:IncompatibleSizes' ...
@@ -392,6 +392,9 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
         end
 
         function confirmImmutable(testCase)
+            % This test case is motivated by technical subtleties seen with
+            % Python.
+
             % Construct using variable declared in this scope & collect results
             Qs = testCase.Qs;
             zs = testCase.zs;
@@ -399,16 +402,22 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             [hfun] = create_piecewise_quadratic_hfun(Qs, zs, cs);
             [hF, grads, Hash] = hfun(testCase.Z);
 
-            % Alter same construction variable & confirm that it yields
-            % different results
+            % Alter same Qs variable and confirm different result
             Qs = -2.3 * Qs;
             [hfun_2] = create_piecewise_quadratic_hfun(Qs, zs, cs);
             [hF_2, grads_2, Hash_2] = hfun_2(testCase.Z);
             testCase.assertNotEqual(hF_2, hF);
-            testCase.assertFalse(isequal(grads_2, grads));
+            testCase.assertNotEqual(grads_2, grads);
             testCase.assertNotEqual(Hash_2, Hash);
 
-            zs = -1.1 * zs;
+            % Confirm that changing Qs didn't alter the original function
+            [hF_new, grads_new, Hash_new] = hfun(testCase.Z);
+            testCase.assertEqual(hF_new, hF);
+            testCase.assertEqual(grads_new, grads);
+            testCase.assertEqual(Hash_new, Hash);
+
+            % Alter same zs variable and confirm different result
+            zs(:, 1) = -1.1 * zs(:, 1);
             [hfun_3] = create_piecewise_quadratic_hfun(Qs, zs, cs);
             [hF_3, grads_3, Hash_3] = hfun_3(testCase.Z);
             testCase.assertNotEqual(hF_3, hF);
@@ -416,28 +425,30 @@ classdef TestCreatePiecewiseQuadraticHfun < matlab.unittest.TestCase
             testCase.assertNotEqual(grads_3, grads);
             testCase.assertNotEqual(grads_3, grads_2);
             testCase.assertNotEqual(Hash_3, Hash);
-            % testCase.assertNotEqual(Hash_3, Hash_2);
+            testCase.assertNotEqual(Hash_3, Hash_2);
 
-            cs = -1.5 * cs;
+            % Confirm that changing zs didn't alter the original function
+            [hF_new, grads_new, Hash_new] = hfun(testCase.Z);
+            testCase.assertEqual(hF_new, hF);
+            testCase.assertEqual(grads_new, grads);
+            testCase.assertEqual(Hash_new, Hash);
+
+            % Alter same cs variable and confirm different result
+            cs(1) = 500.6 + cs(1);
             [hfun_4] = create_piecewise_quadratic_hfun(Qs, zs, cs);
             [hF_4, grads_4, Hash_4] = hfun_4(testCase.Z);
             testCase.assertNotEqual(hF_4, hF);
-            testCase.assertNotEqual(hF_4, hF_2);
             testCase.assertNotEqual(hF_4, hF_3);
             testCase.assertNotEqual(grads_4, grads);
-            testCase.assertNotEqual(grads_4, grads_2);
-            % testCase.assertNotEqual(grads_4, grads_3);
+            testCase.assertNotEqual(grads_4, grads_3);
             testCase.assertNotEqual(Hash_4, Hash);
-            % testCase.assertNotEqual(Hash_4, Hash_2);
-            % testCase.assertNotEqual(Hash_4, Hash_3);
+            testCase.assertNotEqual(Hash_4, Hash_3);
 
-            % Confirm that changes to actual arguments used to construct
-            % hfun do not alter that function. This check is motivated by
-            % technical subtleties seen with Python.
+            % Confirm that changing cs didn't alter the original function
             [hF_new, grads_new, Hash_new] = hfun(testCase.Z);
             testCase.assertEqual(hF_new, hF);
-            testCase.assertTrue(isequal(grads_new, grads));
-            testCase.assertTrue(isequal(Hash_new, Hash));
+            testCase.assertEqual(grads_new, grads);
+            testCase.assertEqual(Hash_new, Hash);
         end
 
     end
