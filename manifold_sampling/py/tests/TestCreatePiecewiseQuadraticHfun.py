@@ -4,9 +4,9 @@ Unit test of create_piecewise_quadratic_hfun()
 Claude Sonnet 4.5 via Argo was used to generate a starting point for this test.
 It was provided with the current working versions of
 
-1. create_piecewise_quadratic_hfun.m, and
-2. create_censored_L1_loss_hfun.m,
-3. TestCreateCensoredL1LossHfun.m
+1. create_piecewise_quadratic_hfun.py, and
+2. create_censored_L1_loss_hfun.py,
+3. TestCreateCensoredL1LossHfun.py
 
 at that time and asked to build up this test of (1) so that it tests (1) in a
 way analogous to how (3) tests (2).
@@ -105,6 +105,13 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
                 create_piecewise_quadratic_hfun(self.__Qs, bad, self.__cs)
             with self.assertRaises(TypeError):
                 create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
+        with self.assertRaises(TypeError):
+            create_piecewise_quadratic_hfun(self.__Qs.tolist(), self.__zs, self.__cs)
+        with self.assertRaises(TypeError):
+            create_piecewise_quadratic_hfun(self.__Qs, self.__zs.tolist(), self.__cs)
+        for bad in [list(self.__cs), tuple(self.__cs), set(self.__cs)]:
+            with self.assertRaises(TypeError):
+                create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
 
         # Qs must be 3D ...
         bad_all = [
@@ -136,9 +143,9 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
                 create_piecewise_quadratic_hfun(self.__Qs, bad, self.__cs)
 
         # cs must be effectively 1D (i.e., allow for 2D row/column vectors)
-        for bad in [np.array([]), np.stack((self.__cs, self.__cs), axis=1)]:
-            with self.assertRaises(ValueError):
-                create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
+        bad = np.stack((self.__cs, self.__cs), axis=1)
+        with self.assertRaises(ValueError):
+            create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
 
         cs_row = np.atleast_2d(self.__cs.copy()).T
         self.assertEqual(2, cs_row.ndim)
@@ -285,8 +292,7 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         hfun = create_piecewise_quadratic_hfun(Qs, zs, cs)
         hF, grads, Hash = hfun(self.__Z)
 
-        # Alter same construction variables & confirm that they yield different
-        # results
+        # Alter same Qs variable and confirm different result
         Qs *= -2.3
         hfun_2 = create_piecewise_quadratic_hfun(Qs, zs, cs)
         hF_2, grads_2, Hash_2 = hfun_2(self.__Z)
@@ -294,7 +300,14 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         self.assertFalse(np.array_equal(grads_2, grads))
         self.assertFalse(np.array_equal(Hash_2, Hash))
 
-        zs *= -1.1
+        # Confirm that changing Qs didn't alter the original function
+        hF_new, grads_new, Hash_new = hfun(self.__Z)
+        self.assertEqual(hF_new, hF)
+        self.assertTrue(np.array_equal(grads_new, grads))
+        self.assertTrue(np.array_equal(Hash_new, Hash))
+
+        # Alter same zs variable and confirm different result
+        zs[:, 0] *= -1.1
         hfun_3 = create_piecewise_quadratic_hfun(Qs, zs, cs)
         hF_3, grads_3, Hash_3 = hfun_3(self.__Z)
         self.assertNotEqual(hF_3, hF)
@@ -302,23 +315,26 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         self.assertFalse(np.array_equal(grads_3, grads))
         self.assertFalse(np.array_equal(grads_3, grads_2))
         self.assertFalse(np.array_equal(Hash_3, Hash))
-        # self.assertFalse(np.array_equal(Hash_3, Hash_2))
+        self.assertFalse(np.array_equal(Hash_3, Hash_2))
 
-        cs *= -1.5
+        # Confirm that changing zs didn't alter the original function
+        hF_new, grads_new, Hash_new = hfun(self.__Z)
+        self.assertEqual(hF_new, hF)
+        self.assertTrue(np.array_equal(grads_new, grads))
+        self.assertTrue(np.array_equal(Hash_new, Hash))
+
+        # Alter same cs variable and confirm different result
+        cs[0] += 500.6
         hfun_4 = create_piecewise_quadratic_hfun(Qs, zs, cs)
         hF_4, grads_4, Hash_4 = hfun_4(self.__Z)
         self.assertNotEqual(hF_4, hF)
-        self.assertNotEqual(hF_4, hF_2)
         self.assertNotEqual(hF_4, hF_3)
         self.assertFalse(np.array_equal(grads_4, grads))
-        self.assertFalse(np.array_equal(grads_4, grads_2))
-        # self.assertFalse(np.array_equal(grads_4, grads_3))
+        self.assertFalse(np.array_equal(grads_4, grads_3))
         self.assertFalse(np.array_equal(Hash_4, Hash))
-        # self.assertFalse(np.array_equal(Hash_4, Hash_2))
-        # self.assertFalse(np.array_equal(Hash_4, Hash_3))
+        self.assertFalse(np.array_equal(Hash_4, Hash_3))
 
-        # Confirm that changing the construction variables didn't alter the
-        # original function
+        # Confirm that changing cs didn't alter the original function
         hF_new, grads_new, Hash_new = hfun(self.__Z)
         self.assertEqual(hF_new, hF)
         self.assertTrue(np.array_equal(grads_new, grads))
