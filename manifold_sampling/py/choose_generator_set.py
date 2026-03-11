@@ -27,7 +27,7 @@ def choose_generator_set(X, Hash, xkin, nf, delta, F, hfun):
     delta1 = delta * (1 + 1e-8)
     delta2 = min(1, delta) ** 2 * (1 + 1e-8)
 
-    act_blocks = [Act_Z_k] # Build this and just do one call to unique
+    act_blocks = [Act_Z_k]  # Build this and just do one call to unique
     for i, XkDi in enumerate(XkDist):
         if XkDi <= delta1:
             Act_tmp = Hash[i]
