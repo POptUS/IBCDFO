@@ -20,6 +20,13 @@ to maintain your clone up-to-date, run
     git pull --recurse-submodules
 
 which not only updates the |ibcdfo| content but also updates all submodules.
+Similarly, when changing to a different branch, consider running
+
+.. code:: console
+
+    git switch <branch> --recurse-submodules
+
+to have git setup all submodules to the target commits valid for that branch.
 
 Python Installation
 -------------------
