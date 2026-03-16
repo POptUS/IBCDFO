@@ -147,19 +147,19 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
         with self.assertRaises(ValueError):
             create_piecewise_quadratic_hfun(self.__Qs, self.__zs, bad)
 
-        cs_row = np.atleast_2d(self.__cs.copy()).T
-        self.assertEqual(2, cs_row.ndim)
-        self.assertNotEqual(1, cs_row.shape[0])
-        hfun_r = create_piecewise_quadratic_hfun(self.__Qs, self.__zs, cs_row)
+        cs_column = np.atleast_2d(self.__cs.copy()).T
+        self.assertEqual(2, cs_column.ndim)
+        self.assertNotEqual(1, cs_column.shape[0])
+        hfun_r = create_piecewise_quadratic_hfun(self.__Qs, self.__zs, cs_column)
         hF_r, grads_r, Hash_r = hfun_r(self.__Z)
         self.assertEqual(hF_r, self.__hF)
         self.assertTrue(np.array_equal(grads_r, self.__grads))
         self.assertEqual(Hash_r, self.__Hash)
 
-        cs_column = cs_row.T
-        self.assertEqual(2, cs_column.ndim)
-        self.assertNotEqual(1, cs_column.shape[1])
-        hfun_c = create_piecewise_quadratic_hfun(self.__Qs, self.__zs, cs_column)
+        cs_row = cs_column.T
+        self.assertEqual(2, cs_row.ndim)
+        self.assertNotEqual(1, cs_row.shape[1])
+        hfun_c = create_piecewise_quadratic_hfun(self.__Qs, self.__zs, cs_row)
         hF_c, grads_c, Hash_c = hfun_c(self.__Z)
         self.assertEqual(hF_c, self.__hF)
         self.assertTrue(np.array_equal(grads_c, self.__grads))
