@@ -17,7 +17,7 @@ jobs:
   test_ibcdfo:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-15-intel]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26, macos-26-intel]
         matlab-release: ["R2021a", "latest"]
         exclude:
           # Failing with a possible issue outside IBCDFO (Issue #157)
@@ -27,12 +27,12 @@ jobs:
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: IBCDFO
         submodules: recursive
     - name: Checkout BenDFO repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: POptUS/BenDFO
         path: BenDFO

@@ -16,11 +16,11 @@ jobs:
       # -- General Setup Steps
       # No need to check standards in submodules
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
       - name: Setup Python with tox

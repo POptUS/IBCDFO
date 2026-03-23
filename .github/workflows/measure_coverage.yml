@@ -31,16 +31,16 @@ jobs:
       # -- General Setup Steps
       # This action requires minq
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
       - name: Setup Python with tox
@@ -61,7 +61,7 @@ jobs:
 
       # -- Publish as artifact for users and subsequent jobs
       - name: Archive Python coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: python-coverage-results
           path: |
@@ -76,11 +76,11 @@ jobs:
     steps:
       # -- General Setup Steps
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: POptUS/BenDFO
           path: BenDFO
@@ -112,7 +112,7 @@ jobs:
 
       # -- Publish as artifact for users and subsequent jobs
       - name: Archive MATLAB coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: matlab-coverage-results
           path: |
@@ -127,24 +127,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: false
 
       - name: Access Python coverage reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: python-coverage-results
           path: ${{ env.CLONE_PATH }}
 
       - name: Access MATLAB coverage reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: matlab-coverage-results
           path: ${{ env.CLONE_PATH }}
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |

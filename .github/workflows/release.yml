@@ -46,12 +46,12 @@ jobs:
       #
       # Submodule content is not needed to build distributions.
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
       - name: Construct sdist and wheel
@@ -66,7 +66,7 @@ jobs:
           python -m build
           popd
       - name: Archive both distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ibcdfo-release-candidate
           path: |
@@ -84,27 +84,27 @@ jobs:
         # TODO: Strange failures on macos-15-intel prevent its use (Issue 235).
         # This means that this action is **not** running any mac tests using
         # Intel chips.
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       # Install MINQ at commit specified in current submodule setting rather
       # than installing as clone of actual MINQ repo.
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Obtain release candidate
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ibcdfo-release-candidate
           path: ${{ env.CLONE_PATH }}
@@ -131,27 +131,27 @@ jobs:
         # TODO: Strange failures on macos-15-intel prevent its use (Issue 235).
         # This means that this action is **not** running any mac tests using
         # Intel chips.
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
       # Install MINQ at commit specified in current submodule setting rather
       # than installing as clone of actual MINQ repo.
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Obtain release candidate
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ibcdfo-release-candidate
           path: ${{ env.CLONE_PATH }}
