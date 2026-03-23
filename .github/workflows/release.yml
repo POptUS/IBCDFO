@@ -19,7 +19,7 @@ env:
   CLONE_PATH:       ${{ github.workspace }}
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
+  MINQ5_PY_PATH:    ${{ github.workspace }}/MINQ_nosub/py/minq5
   IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
   DIST_PATH:        ${{ github.workspace }}/ibcdfo_pypkg/dist
 
@@ -88,12 +88,15 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
-      # Install MINQ at commit specified in current submodule setting rather
-      # than installing as clone of actual MINQ repo.
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v6
         with:
-          submodules: recursive
+          submodules: false
+      - name: Checkout MINQ repository
+        uses: actions/checkout@v6
+        with:
+          repository: POptUS/MINQ
+          path: MINQ_nosub
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:
@@ -140,7 +143,12 @@ jobs:
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v6
         with:
-          submodules: recursive
+          submodules: false
+      - name: Checkout MINQ repository
+        uses: actions/checkout@v6
+        with:
+          repository: POptUS/MINQ
+          path: MINQ_nosub
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:

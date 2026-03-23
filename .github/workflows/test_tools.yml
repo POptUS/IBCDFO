@@ -5,7 +5,7 @@ env:
   IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
   BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
-  MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
+  MINQ5_PY_PATH:    ${{ github.workspace }}/MINQ_nosub/py/minq5
 on:
   push:
     branches: [main]
@@ -22,7 +22,12 @@ jobs:
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v6
         with:
-          submodules: recursive
+          submodules: false
+      - name: Checkout MINQ repository
+        uses: actions/checkout@v6
+        with:
+          repository: POptUS/MINQ
+          path: MINQ_nosub
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:

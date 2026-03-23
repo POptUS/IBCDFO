@@ -24,7 +24,7 @@ def get_minq_installation():
     # This must be the full git commit hash
     VALID_MINQ_HASH = "7749b83645ea21e303a94e1200542f7028499bb8"
 
-    GIT_HASH_CMD = ['git', 'rev-parse', 'HEAD']
+    GIT_HASH_CMD = ["git", "rev-parse", "HEAD"]
     CLONE_STATE_CMD = ["git", "diff-index", "--quiet", "HEAD", "--"]
     CLEAN_GIT_CLONE = 0
     DIRTY_GIT_CLONE = 1
@@ -42,6 +42,7 @@ def get_minq_installation():
     # This is presently acceptable since MINQ5 is the only version in Python.
     try:
         import minqsw
+
         minq_path = Path(minqsw.__file__).resolve().parents[2]
     except ModuleNotFoundError:
         sys.exit(
