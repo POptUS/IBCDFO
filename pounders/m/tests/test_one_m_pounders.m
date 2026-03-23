@@ -1,6 +1,6 @@
 % This tests the ability of the MATLAB pounders to solve a one-residual
 % problem. The benefit of pounders comes from its handling of the separate
-% residuals, and combinging them using the known form of an outer function.
+% residuals, and combining them using the known form of an outer function.
 % So this is not how pounders is intended to be used, but can be a comparison
 % method.
 

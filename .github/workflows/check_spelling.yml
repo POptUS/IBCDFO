@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: false
     - name: Spell Check Repo
-      uses: crate-ci/typos@v1.38.1
+      uses: crate-ci/typos@v1.44.0
       with:
         config: ${{ env.TYPOS_CFG }}

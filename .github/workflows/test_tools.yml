@@ -20,16 +20,16 @@ jobs:
       # -- General Setup Steps
       # This action requires minq
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
       - name: Setup Python with tox

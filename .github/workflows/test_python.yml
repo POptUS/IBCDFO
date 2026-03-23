@@ -20,27 +20,27 @@ jobs:
       # python-versions must be maintained consistent with associated
       # pyproject.toml and tox.ini configuration.
       #
-      # TODO: Strange failures on macos-15-intel prevent its use (Issue 235).
-      # This means that this action is **not** running any mac tests using Intel
-      # chips.
+      # TODO: Strange failures on macos-15-intel and macos-26-intel prevent its
+      # use (Issue 235).  This means that this action is **not** running any mac
+      # tests using Intel chips.
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
     # -- General Setup Steps
     # This action requires minq
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Checkout BenDFO repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: POptUS/BenDFO
         path: BenDFO
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup Python with tox
