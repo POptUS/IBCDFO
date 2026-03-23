@@ -16,9 +16,9 @@ jobs:
       # python-versions must be maintained consistent with associated
       # pyproject.toml and tox.ini configuration.
       #
-      # TODO: Strange failures on macos-15-intel prevent its use (Issue 235).
-      # This means that this action is **not** running any mac tests using Intel
-      # chips.
+      # TODO: Strange failures on macos-15-intel and macos-26-intel prevent its
+      # use (Issue 235).  This means that this action is **not** running any mac
+      # tests using Intel chips.
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
     runs-on: ${{ matrix.os }}
