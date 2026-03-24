@@ -4,7 +4,7 @@ env:
   GH_ACTIONS_PATH: ${{ github.workspace }}/.github/workflows
   IBCDFO_PKG:      ${{ github.workspace }}/ibcdfo_pypkg
   BENDFO_PY_PATH:  ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:   ${{ github.workspace }}/MINQ_nosub/py/minq5
+  MINQ5_PY_PATH:   ${{ github.workspace }}/MINQ/py/minq5
 on:
   # This action is used only to run a significant but smallish set of test
   # setups on feature branches.
@@ -31,13 +31,11 @@ jobs:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v6
-      with:
-        submodules: false
     - name: Checkout MINQ repository
       uses: actions/checkout@v6
       with:
         repository: POptUS/MINQ
-        path: MINQ_nosub
+        path: MINQ
     - name: Checkout BenDFO repository
       uses: actions/checkout@v6
       with:

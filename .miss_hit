@@ -1,5 +1,5 @@
 project_root
-exclude_dir: "minq"
+exclude_dir:
 enable: true
 line_length: 220
 file_length: 1500

@@ -19,11 +19,8 @@ jobs:
       image: texlive/texlive:latest
     steps:
     ##-- General Setup Steps
-    # Submodule contents are not used to build User or Developer Guides
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v6
-      with:
-        submodules: false
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
