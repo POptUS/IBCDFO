@@ -33,8 +33,8 @@ function [is_valid] = check_minq_installation(minq_version)
     [minq_path, ~, ~] = fileparts(function_path);
     % This lovely functionality was only introduced in 2023b, so we don't use
     % it for now.
-    %minq_repo = gitrepo(minq_path);
-    %git_hash = minq_repo.LastCommit.ID;
+    % minq_repo = gitrepo(minq_path);
+    % git_hash = minq_repo.LastCommit.ID;
 
     cwd_original = cd(minq_path);
     [status, git_hash] = system("git rev-parse HEAD");
