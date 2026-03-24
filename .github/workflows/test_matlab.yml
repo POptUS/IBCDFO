@@ -14,6 +14,23 @@ on:
     branches: [main]
 
 jobs:
+  # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
+  # Load this eagerly so that it is available for immediate use in all
+  # subsequent jobs.
+  load_minq_sha:
+    outputs:
+        minq_sha: ${{ steps.load_sha.outputs.minq_sha }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v6
+    - name: Load Official MINQ SHA
+      id: load_sha 
+      run: |
+        MINQ_SHA=$(cat REQUIRED_MINQ_COMMIT)
+        echo "The valid MINQ commit hash is $MINQ_SHA"
+        echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
+
   # Rather than runs tests on a full matrix of test suites, we accept running
   # only on the oldest and latest versions available.
   test_ibcdfo:
@@ -26,6 +43,9 @@ jobs:
           - os: macos-14
             matlab-release: "R2023b"
     runs-on: ${{ matrix.os }}
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
@@ -37,6 +57,7 @@ jobs:
       with:
         repository: POptUS/MINQ
         path: MINQ
+        ref: ${{ env.MINQ_SHA }}
     - name: Checkout BenDFO repository
       uses: actions/checkout@v6
       with:

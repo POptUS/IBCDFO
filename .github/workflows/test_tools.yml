@@ -13,9 +13,29 @@ on:
     branches: [main]
 
 jobs:
+  # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
+  # Load this eagerly so that it is available for immediate use in all
+  # subsequent jobs.
+  load_minq_sha:
+    outputs:
+        minq_sha: ${{ steps.load_sha.outputs.minq_sha }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v6
+    - name: Load Official MINQ SHA
+      id: load_sha 
+      run: |
+        MINQ_SHA=$(cat REQUIRED_MINQ_COMMIT)
+        echo "The valid MINQ commit hash is $MINQ_SHA"
+        echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
+
   # Prefer using the latest Python version supported by the package
   test_tools:
     runs-on: ubuntu-latest
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
       # -- General Setup Steps
       # This action requires minq
@@ -26,6 +46,7 @@ jobs:
         with:
           repository: POptUS/MINQ
           path: MINQ
+          ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:
