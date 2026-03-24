@@ -1,6 +1,8 @@
 # ----- IBCDFO FULL TESTING OF LOCAL CLONE WITHOUT COVERAGE
 name: Test IBCDFO MATLAB Code
 env:
+  MINQ5_M_PATH:     ${{ github.workspace }}/MINQ_nosub/m/minq5
+  MINQ8_M_PATH:     ${{ github.workspace }}/MINQ_nosub/m/minq8
   BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   POUNDERS_M_PATH:  ${{ github.workspace }}/IBCDFO/pounders/m
@@ -30,7 +32,12 @@ jobs:
       uses: actions/checkout@v6
       with:
         path: IBCDFO
-        submodules: recursive
+        submodules: false
+    - name: Checkout MINQ repository
+      uses: actions/checkout@v6
+      with:
+        repository: POptUS/MINQ
+        path: MINQ_nosub
     - name: Checkout BenDFO repository
       uses: actions/checkout@v6
       with:
@@ -47,6 +54,8 @@ jobs:
       uses: matlab-actions/run-command@v2
       with:
         command: >
+            addpath("${{ env.MINQ5_M_PATH }}"),
+            addpath("${{ env.MINQ8_M_PATH }}"),
             addpath("${{ env.BENDFO_M_PATH }}"),
             addpath("${{ env.BENDFO_DATA_PATH }}"),
             cd ${{ env.POUNDERS_M_PATH }},
