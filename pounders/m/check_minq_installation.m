@@ -31,10 +31,20 @@ function [is_valid] = check_minq_installation(minq_version)
         error(sprintf("Invalid MINQ version %d", minq_version));
     end
     [minq_path, ~, ~] = fileparts(function_path);
-    minq_repo = gitrepo(minq_path);
+    % This lovely functionality was only introduced in 2023b, so we don't use
+    % it for now.
+    %minq_repo = gitrepo(minq_path);
+    %git_hash = minq_repo.LastCommit.ID;
+
+    cwd_original = cd(minq_path);
+    [status, git_hash] = system("git rev-parse HEAD");
+    cd(cwd_original);
+
+    git_hash = strip(git_hash);
+    assert(status == 0);
 
     % ----- CONFIRM DESIRED VERSION
-    if minq_repo.LastCommit.ID ~= VALID_MINQ_HASH
+    if git_hash ~= VALID_MINQ_HASH
         error(sprintf("Please set MINQ clone to commit %s", VALID_MINQ_HASH));
     end
 end
