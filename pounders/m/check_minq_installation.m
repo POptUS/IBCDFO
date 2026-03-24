@@ -13,7 +13,7 @@ function [is_valid] = check_minq_installation(minq_version)
     % ----- HARDCODED VALUES
     % We need the valid MINQ commit to be stored so that it is available
     % repository-wide since this information should be valid, in fact, for all
-    % methods in the package regardless of langauge implementation.
+    % methods in the package and regardless of implementation language.
     %
     % We also need, for instance, for actions to be able to load the commit
     % hash so that they can always checkout the correct MINQ commit even when
@@ -21,7 +21,7 @@ function [is_valid] = check_minq_installation(minq_version)
     % change the hash in one place and all aspects of our infrastructure adapt
     % as needed automatically.
     %
-    % Therefore, we load the MINQ commit hash has dynamically from that file.
+    % Therefore, we load the MINQ commit hash here dynamically from that file.
     [HERE_PATH, ~, ~] = fileparts(mfilename('fullpath'));
     MINQ_VERSION_FILE = fullfile(HERE_PATH, '..', '..', 'REQUIRED_MINQ_COMMIT');
     COMMIT_INFO = readlines(MINQ_VERSION_FILE);

@@ -21,8 +21,24 @@ def get_minq_installation():
           with this package
     """
     # ----- HARDCODED VALUES
-    # This must be the full git commit hash
-    VALID_MINQ_HASH = "7749b83645ea21e303a94e1200542f7028499bb8"
+    # We need the valid MINQ commit to be stored so that it is available
+    # repository-wide since this information should be valid, in fact, for all
+    # methods in the package and regardless of implementation language.
+    #
+    # We also need, for instance, for actions to be able to load the commit
+    # hash so that they can always checkout the correct MINQ commit even when
+    # developers are in the process of moving to a new version of MINQ - we
+    # change the hash in one place and all aspects of our infrastructure adapt
+    # as needed automatically.
+    #
+    # Therefore, we load the MINQ commit hash here dynamically from that file.
+    PKG_ROOT = Path(__file__).resolve().parent
+    MINQ_COMMIT_FILE = PKG_ROOT.joinpath("PkgData", "REQUIRED_MINQ_COMMIT")
+    with open(MINQ_COMMIT_FILE, "r") as fptr:
+        COMMIT_INFO = [line.strip() for line in fptr.readlines() if line != ""]
+    assert len(COMMIT_INFO) == 1
+    VALID_MINQ_HASH = COMMIT_INFO[0]
+    assert len(VALID_MINQ_HASH) == 40
 
     GIT_HASH_CMD = ["git", "rev-parse", "HEAD"]
     CLONE_STATE_CMD = ["git", "diff-index", "--quiet", "HEAD", "--"]
