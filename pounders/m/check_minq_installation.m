@@ -11,8 +11,26 @@ function [is_valid] = check_minq_installation(minq_version)
     %                  valid MINQ8 installation.
 
     % ----- HARDCODED VALUES
-    % This must be the full git commit hash
-    VALID_MINQ_HASH = "7749b83645ea21e303a94e1200542f7028499bb8";
+    % We need the valid MINQ commit to be stored so that it is available
+    % repository-wide since this information should be valid, in fact, for all
+    % methods in the package regardless of langauge implementation.
+    %
+    % We also need, for instance, for actions to be able to load the commit
+    % hash so that they can always checkout the correct MINQ commit even when
+    % developers are in the process of moving to a new version of MINQ - we
+    % change the hash in one place and all aspects of our infrastructure adapt
+    % as needed automatically.
+    %
+    % Therefore, we load the MINQ commit hash has dynamically from that file.
+    [HERE_PATH, ~, ~] = fileparts(mfilename('fullpath'));
+    MINQ_VERSION_FILE = fullfile(HERE_PATH, '..', '..', 'REQUIRED_MINQ_COMMIT');
+    COMMIT_INFO = readlines(MINQ_VERSION_FILE);
+    assert(length(COMMIT_INFO) >= 1);
+    for i = 2:length(COMMIT_INFO)
+        assert(COMMIT_INFO(i) == "");
+    end
+    VALID_MINQ_HASH = COMMIT_INFO(1);
+    assert(strlength(VALID_MINQ_HASH) == 40);
 
     % ----- FIND MINQ CLONE INSTALLATION
     % Users are required to add the specific folder containing their target
