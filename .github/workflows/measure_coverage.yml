@@ -25,10 +25,30 @@ on:
     branches: [main]
 
 jobs:
+  # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
+  # Load this eagerly so that it is available for immediate use in all
+  # subsequent jobs.
+  load_minq_sha:
+    outputs:
+        minq_sha: ${{ steps.load_sha.outputs.minq_sha }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v6
+    - name: Load Official MINQ SHA
+      id: load_sha 
+      run: |
+        MINQ_SHA=$(cat REQUIRED_MINQ_COMMIT)
+        echo "The valid MINQ commit hash is $MINQ_SHA"
+        echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
+
   # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
   # Prefer using the latest Python version supported by the package
   coverage_py:
     runs-on: ubuntu-latest
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
       # -- General Setup Steps
       - name: Checkout IBCDFO repository
@@ -38,6 +58,7 @@ jobs:
         with:
           repository: POptUS/MINQ
           path: MINQ
+          ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:
@@ -77,6 +98,9 @@ jobs:
   # Prefer using the latest MATLAB version available
   coverage_m:
     runs-on: ubuntu-latest
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
       # -- General Setup Steps
       - name: Checkout IBCDFO repository
@@ -86,6 +110,7 @@ jobs:
         with:
           repository: POptUS/MINQ
           path: MINQ
+          ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:
