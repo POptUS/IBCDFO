@@ -2,6 +2,7 @@ name: Measure Code Coverage
 env:
   CLONE_PATH:               ${{ github.workspace }}
   GH_ACTIONS_PATH:          ${{ github.workspace }}/.github/workflows
+  MINQ_COMMIT_FILE:         ${{ github.workspace }}/REQUIRED_MINQ_COMMIT
   IBCDFO_PKG:               ${{ github.workspace }}/ibcdfo_pypkg
   MINQ5_M_PATH:             ${{ github.workspace }}/MINQ/m/minq5
   MINQ8_M_PATH:             ${{ github.workspace }}/MINQ/m/minq8
@@ -38,7 +39,7 @@ jobs:
     - name: Load Official MINQ SHA
       id: load_sha 
       run: |
-        MINQ_SHA=$(cat REQUIRED_MINQ_COMMIT)
+        MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
         echo "The valid MINQ commit hash is $MINQ_SHA"
         echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
 

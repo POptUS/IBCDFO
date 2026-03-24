@@ -1,10 +1,11 @@
 # ----- IBCDFO FULL TESTING OF INSTALLED PACKAGE WITHOUT COVERAGE
 name: Test IBCDFO Python Package
 env:
-  GH_ACTIONS_PATH: ${{ github.workspace }}/.github/workflows
-  IBCDFO_PKG:      ${{ github.workspace }}/ibcdfo_pypkg
-  BENDFO_PY_PATH:  ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:   ${{ github.workspace }}/MINQ/py/minq5
+  GH_ACTIONS_PATH:  ${{ github.workspace }}/.github/workflows
+  MINQ_COMMIT_FILE: ${{ github.workspace }}/REQUIRED_MINQ_COMMIT
+  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
+  BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
+  MINQ5_PY_PATH:    ${{ github.workspace }}/MINQ/py/minq5
 on:
   # This action is used only to run a significant but smallish set of test
   # setups on feature branches.
@@ -28,7 +29,7 @@ jobs:
     - name: Load Official MINQ SHA
       id: load_sha 
       run: |
-        MINQ_SHA=$(cat REQUIRED_MINQ_COMMIT)
+        MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
         echo "The valid MINQ commit hash is $MINQ_SHA"
         echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
 

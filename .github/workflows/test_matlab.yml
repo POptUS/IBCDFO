@@ -1,6 +1,7 @@
 # ----- IBCDFO FULL TESTING OF LOCAL CLONE WITHOUT COVERAGE
 name: Test IBCDFO MATLAB Code
 env:
+  MINQ_COMMIT_FILE: ${{ github.workspace }}/REQUIRED_MINQ_COMMIT
   MINQ5_M_PATH:     ${{ github.workspace }}/MINQ/m/minq5
   MINQ8_M_PATH:     ${{ github.workspace }}/MINQ/m/minq8
   BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
@@ -27,7 +28,7 @@ jobs:
     - name: Load Official MINQ SHA
       id: load_sha 
       run: |
-        MINQ_SHA=$(cat REQUIRED_MINQ_COMMIT)
+        MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
         echo "The valid MINQ commit hash is $MINQ_SHA"
         echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
 
