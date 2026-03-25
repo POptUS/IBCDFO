@@ -6,7 +6,8 @@ build:
     python: "3.13"
   jobs:
     post_install:
-      - ls $READTHEDOCS_REPOSITORY_PATH
+      - cd $READTHEDOCS_REPOSITORY_PATH 
+      - git clone https://github.com/POptUS/MINQ.git
       - export PYTHONPATH=$READTHEDOCS_REPOSITORY_PATH/MINQ/py/minq5
 
 sphinx:
