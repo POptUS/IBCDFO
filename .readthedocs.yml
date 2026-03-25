@@ -4,6 +4,10 @@ build:
   os: "ubuntu-24.04"
   tools:
     python: "3.13"
+  jobs:
+    post_install:
+      - ls $READTHEDOCS_REPOSITORY_PATH
+      - export PYTHONPATH=$READTHEDOCS_REPOSITORY_PATH/MINQ/py/minq5
 
 sphinx:
     configuration: docs/conf.py
@@ -20,7 +24,3 @@ python:
       - method: pip
         path: ibcdfo_pypkg
 
-jobs:
-  post_install:
-    - ls $READTHEDOCS_REPOSITORY_PATH
-    - export PYTHONPATH=$READTHEDOCS_REPOSITORY_PATH/MINQ/py/minq5
