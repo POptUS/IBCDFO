@@ -31,10 +31,6 @@ on:
   #
   # Significant but simpler testing is done on feature branches using the
   # test_python action.
-  # TODO: Remove this setting after updating and verifying all changes made to
-  # this action in this branch.
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
   release:
