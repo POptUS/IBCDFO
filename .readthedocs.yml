@@ -19,3 +19,8 @@ python:
       - requirements: docs/requirements.txt
       - method: pip
         path: ibcdfo_pypkg
+
+jobs:
+  post_install:
+    - ls $READTHEDOCS_REPOSITORY_PATH
+    - export PYTHONPATH=$READTHEDOCS_REPOSITORY_PATH/MINQ/py/minq5
