@@ -1,7 +1,8 @@
 name: Build Guides
 env:
-  IBCDFO_PKG: ${{ github.workspace }}/ibcdfo_pypkg
-  DOCS_PATH:  ${{ github.workspace }}/docs
+  GH_ACTIONS_PATH:  ${{ github.workspace }}/.github/workflows
+  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
+  DOCS_PATH:        ${{ github.workspace }}/docs
 on:
   push:
     branches: [main]
