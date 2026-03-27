@@ -144,9 +144,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # choose your spsolver
     if spsolver == 2:
-        required_minq_hash, minq_installation = get_minq_installation()
+        required_minq_SHA, minq_installation = get_minq_installation()
         if not minq_installation["is_valid"]:
-            sys.exit(f"Please set MINQ clone to git commit {required_minq_hash}")
+            sys.exit(f"Please set MINQ clone to git commit {required_minq_SHA}")
         from minqsw import minqsw
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
