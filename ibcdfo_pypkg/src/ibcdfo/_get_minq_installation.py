@@ -62,8 +62,8 @@ def get_minq_installation():
         minq_path = Path(minqsw.__file__).resolve().parents[2]
     except ModuleNotFoundError:
         sys.exit(
-            "Ensure a Python implementation of MINQ is available. For example, "
-            "clone https://github.com/POptUS/MINQ and add /path/to/MINQ/py/minq5 "
+            "Ensure a Python implementation of MINQ is available by cloning "
+            "https://github.com/POptUS/MINQ and adding /path/to/MINQ/py/minq5 "
             "to your PYTHONPATH environment variable"
         )
 
