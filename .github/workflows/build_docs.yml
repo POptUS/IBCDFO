@@ -1,7 +1,6 @@
 name: Build Guides
 env:
   IBCDFO_PKG: ${{ github.workspace }}/ibcdfo_pypkg
-  PY_VENV:    ${{ github.workspace }}/ibcdfo_venv
   DOCS_PATH:  ${{ github.workspace }}/docs
 on:
   push:
@@ -10,13 +9,33 @@ on:
     branches: [main]
 
 jobs:
+  # Get user/group of runner account so that subsequent jobs can run containers
+  # using that account rather than root.  Based on discussions in:
+  #                https://github.com/actions/runner/issues/691
+  configure:
+     runs-on: ubuntu-latest
+     outputs:
+       uid_gid: ${{ steps.get_user.outputs.uid_gid }}
+     steps:
+       - id: get_user
+         run: |
+            MY_UID=$(id -u)
+            MY_GID=$(id -g)
+            echo "User = $(id -u -n) ($MY_UID)"
+            echo "Group = $(id -g -n) ($MY_GID)"
+            echo "uid_gid=$MY_UID:$MY_GID" >> "$GITHUB_OUTPUT"
+
   # Prefer using the latest Python version supported by the package
   build_sphinx:
     # Prefer LaTeX installation by official image over manual installation to
     # get more consistent and quick setup times.
     runs-on: ubuntu-latest
+    needs: configure
+    env:
+      UID_GID: ${{ needs.configure.outputs.uid_gid }}
     container:
       image: texlive/texlive:latest
+      options: --user ${{ needs.configure.outputs.uid_gid }}
     steps:
     ##-- General Setup Steps
     - name: Checkout IBCDFO repository
@@ -27,19 +46,13 @@ jobs:
         python-version: 3.14
     - name: Setup Python with tox
       run: |
-        # As a consequence of using a container, we need to setup Python cleanly
-        # in dedicated venv to avoid breaking default Python installation.
-        python -m venv $PY_VENV
-        . $PY_VENV/bin/activate
-        python -m pip install --upgrade pip
-        python -m pip install tox
+        echo "UID/GID from configure = $UID_GID"
+        echo "UID/GID actual         = $(id -u):$(id -g)"
+        $GH_ACTIONS_PATH/setup_tox_github_action.sh ${{ runner.os }}
     - name: Build Sphinx docs
       run: |
-        . $PY_VENV/bin/activate
-        pip list
-        which tox
+        # TODO: Local PDF builds failing at present (Issue 243).
         cd $IBCDFO_PKG
-        # TODO: Local PDF builds failing at present.
         tox -r -e html
 
     - name: Archive IBCDFO docs
