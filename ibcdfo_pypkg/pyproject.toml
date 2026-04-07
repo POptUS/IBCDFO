@@ -67,4 +67,5 @@ where      = ["src"]
 namespaces = true
 
 [tool.setuptools.package-data]
+"ibcdfo.PkgData" = ["REQUIRED_MINQ_COMMIT"]
 "ibcdfo.pounders.tests.benchmark_results" = ["*.txt"]

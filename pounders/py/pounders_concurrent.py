@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 
+from .._get_minq_installation import get_minq_installation
 from .bmpts import bmpts
 from .bqmin import bqmin
 from .checkinputss import checkinputss
@@ -92,11 +93,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # choose your spsolver
     if spsolver == 2:
-        try:
-            from minqsw import minqsw
-        except ModuleNotFoundError as e:
-            print(e)
-            sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
+        required_minq_SHA, minq_installation = get_minq_installation()
+        if not minq_installation["is_valid"]:
+            sys.exit(f"Please set MINQ clone to git commit {required_minq_SHA}")
+        from minqsw import minqsw
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
