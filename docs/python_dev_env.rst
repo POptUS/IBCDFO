@@ -56,14 +56,14 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
 * ``tox -e check``
 
   * Run several checks on the code to report possible issues.  The code in the
-    package satisifies |ibcdfo| coding standards if this and the ``format`` task
+    package satisfies |ibcdfo| coding standards if this and the ``format`` task
     are both passing.
 
 * ``tox -e format``
 
   * **NOTE: This will potentially alter Python code in your local clone.**
   * Automatically reformat Python code in the package based on the ``black``
-    tool's criteria.  The code in the package satisifies |ibcdfo| coding
+    tool's criteria.  The code in the package satisfies |ibcdfo| coding
     standards after applying this and if the ``check`` task is still passing.
 
 * ``tox -e format_safe``
