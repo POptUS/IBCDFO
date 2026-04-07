@@ -1,3 +1,5 @@
+.. _getting_started:
+
 Getting Started
 ===============
 .. _BenDFO: https://github.com/POptUS/BenDFO

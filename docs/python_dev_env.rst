@@ -17,33 +17,35 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
 
 * ``tox -e coverage``
 
-  * Execute the full test suite for the package and save coverage results to the
-    coverage file
+  * Execute the full test suite for the package and save coverage results to a
+    coverage file.
   * The ``COVERAGE_FILE`` environment variable can optionally be set to define
     the name of the file that coverage results will be written to.  By default,
     results are written to ``.coverage_ibcdfo``.
-  * The test runs the package code in the local clone rather than code installed
-    into Python so that coverage results accessed through web services such as
-    CodeCov are clean and straightforward
+  * The test runs the package's code as installed in the local clone so that
+    coverage results accessed through web services such as CodeCov are clean and
+    straightforward.  This mimics an editable or developer installation of the
+    package.
 
 * ``tox -e nocoverage``
 
   * Execute the full test suite for the package using the code installed into
-    Python
+    a Python virtual environment.  This mimics standard installation from a
+    package distribution such as a wheel.
 
 * ``tox -e pounders``
 
-  * Execute the test suite for the |pounders| subpackage using only the code
-    installed into Python
+  * Execute the test suite for the |pounders| subpackage using the code
+    installed into a Python virtual environment.
 
 * ``tox -e manifold_sampling``
 
-  * Execute the test suite for the Manifold Sampling subpackage using only the
-    code installed into Python
+  * Execute the test suite for the Manifold Sampling subpackage using the
+    code installed into a Python virtual environment.
 
 * ``tox -e report``
 
-  * It is intended that this be run after or with ``coverage``
+  * It is intended that this be run after or with ``coverage``.
   * Display a code coverage report for the package's full test suite and
     generate XML and HTML versions of the report.
   * The ``COVERAGE_XML_FILE`` and ``COVERAGE_HTML_FILE`` environment variables
@@ -53,13 +55,16 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
 
 * ``tox -e check``
 
-  * Run several checks on the code to report possible issues
+  * Run several checks on the code to report possible issues.  The code in the
+    package satisifies |ibcdfo| coding standards if this and the ``format`` task
+    are both passing.
 
 * ``tox -e format``
 
   * **NOTE: This will potentially alter Python code in your local clone.**
   * Automatically reformat Python code in the package based on the ``black``
-    tool's criteria.
+    tool's criteria.  The code in the package satisifies |ibcdfo| coding
+    standards after applying this and if the ``check`` task is still passing.
 
 * ``tox -e format_safe``
 
@@ -68,9 +73,9 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
 
 * ``tox -e html``
 
-  * Generate and render |ibcdfo|'s documentation locally in HTML
+  * Generate and render |ibcdfo|'s documentation locally in HTML format.
   * Documentation is built from the code in the local clone rather than code
-    installed into Python to support quick, interactive documentation work
+    installed into Python to support quick, interactive documentation work.
 
 ..
     * ``tox -e pdf``
@@ -89,7 +94,7 @@ situation.
 
 Direct use of |tox| venvs
 -------------------------
-Developers are free to use the virtual environments created and managed
+Developers are free to use the virtual environments (venvs) created and managed
 automatically by |tox|.  The venvs created for executing the ``coverage`` and
 ``html`` tasks, for instance, can be especially useful since |ibcdfo| is
 installed in editable mode for these tasks, which facilitates interactive
@@ -111,9 +116,11 @@ and subsequently run the full test suite in the venv with
 
     $ python -m unittest ibcdfo
 
-A user could then alter |pounders| code or its ``TestPoundersSimple`` test and
-rerun just that test in the venv with
+A user could then, for example, alter |pounders| code or its
+``TestPoundersSimple`` test and rerun just that test in the venv with
 
 .. code:: console
 
     $ python -m unittest ibcdfo.pounders.tests.TestPoundersSimple
+
+to check the effect.

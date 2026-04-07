@@ -6,15 +6,26 @@ Add New Subpackage to |ibcdfo|
 .. _pyproject.toml: https://github.com/poptus/IBCDFO/blob/main/ibcdfo_pypkg/pyproject.toml
 .. _load_tests.py: https://github.com/poptus/IBCDFO/blob/main/ibcdfo_pypkg/src/ibcdfo/load_tests.py
 
+Prior to initiating this work, please discuss this process with the |poptus|
+development team to coordinate upfront the successful review and integration of
+the subpackage including how and when it will be included in subsequent
+releases.
+
+Working in a dedicated feature branch based off of the latest commit in ``main``:
+
 * Add new subpackage to the root of the repo in accord with the |poptus|
   repository requirements
+* Study license and copyright information provided in the |ibcdfo| repository,
+  determine license to be used for distributing the new subpackage, and specify
+  license information correctly in repository
 * Add in the new subpackage implementation as symlinks in the correct
   ibcdfo_pypkg_ subdirectory
 * Update load_tests.py_ in the main package so that it builds a suite that
   includes the tests of the subpackage
 * Adapt pyproject.toml_
 
-  * Update or expand all requirements as needed
+  * Update authors list if necessary
+  * Update or expand all requirements as needed including supported versions
   * Add test and package data in new subpackage to setuptools ``package-data``
     section (if any)
   * Update all other metadata as needed
@@ -34,3 +45,6 @@ Add New Subpackage to |ibcdfo|
 * Update the README.md_ file if necessary
 * Update and add content for subpackage in User and Developer Guides
 * Add examples to the Jupyter book if necessary
+
+After the feature branch is merged into ``main`` |via| a PR with review, confirm
+that all GitHub CI actions are passing successfully on the merge commit.
