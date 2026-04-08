@@ -1,9 +1,10 @@
 name: Test Oldest Versions
 env:
-  GH_ACTIONS_PATH: ${{ github.workspace }}/.github/workflows
-  IBCDFO_PKG:      ${{ github.workspace }}/ibcdfo_pypkg
-  BENDFO_PY_PATH:  ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:   ${{ github.workspace }}/minq/py/minq5
+  GH_ACTIONS_PATH:  ${{ github.workspace }}/.github/workflows
+  MINQ_COMMIT_FILE: ${{ github.workspace }}/REQUIRED_MINQ_COMMIT
+  IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
+  BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
+  MINQ5_PY_PATH:    ${{ github.workspace }}/MINQ/py/minq5
 on:
   push:
     branches: [main]
@@ -11,6 +12,23 @@ on:
     branches: [main]
 
 jobs:
+  # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
+  # Load this eagerly so that it is available for immediate use in all
+  # subsequent jobs.
+  load_minq_sha:
+    outputs:
+        minq_sha: ${{ steps.load_sha.outputs.minq_sha }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v6
+    - name: Load Official MINQ SHA
+      id: load_sha 
+      run: |
+        MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
+        echo "The valid MINQ commit hash is $MINQ_SHA"
+        echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
+
   test_ibcdfo:
     strategy:
       # python-versions must be maintained consistent with associated
@@ -22,12 +40,18 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
     runs-on: ${{ matrix.os }}
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
-    # This action requires minq
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v6
+    - name: Checkout MINQ repository
+      uses: actions/checkout@v6
       with:
-        submodules: recursive
+        repository: POptUS/MINQ
+        path: MINQ
+        ref: ${{ env.MINQ_SHA }}
     - name: Checkout BenDFO repository
       uses: actions/checkout@v6
       with:

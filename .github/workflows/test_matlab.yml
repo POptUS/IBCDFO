@@ -1,6 +1,9 @@
 # ----- IBCDFO FULL TESTING OF LOCAL CLONE WITHOUT COVERAGE
 name: Test IBCDFO MATLAB Code
 env:
+  MINQ_COMMIT_FILE: ${{ github.workspace }}/REQUIRED_MINQ_COMMIT
+  MINQ5_M_PATH:     ${{ github.workspace }}/MINQ/m/minq5
+  MINQ8_M_PATH:     ${{ github.workspace }}/MINQ/m/minq8
   BENDFO_M_PATH:    ${{ github.workspace }}/BenDFO/m
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   POUNDERS_M_PATH:  ${{ github.workspace }}/IBCDFO/pounders/m
@@ -12,6 +15,23 @@ on:
     branches: [main]
 
 jobs:
+  # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
+  # Load this eagerly so that it is available for immediate use in all
+  # subsequent jobs.
+  load_minq_sha:
+    outputs:
+        minq_sha: ${{ steps.load_sha.outputs.minq_sha }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v6
+    - name: Load Official MINQ SHA
+      id: load_sha 
+      run: |
+        MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
+        echo "The valid MINQ commit hash is $MINQ_SHA"
+        echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
+
   # Rather than runs tests on a full matrix of test suites, we accept running
   # only on the oldest and latest versions available.
   test_ibcdfo:
@@ -24,13 +44,21 @@ jobs:
           - os: macos-14
             matlab-release: "R2023b"
     runs-on: ${{ matrix.os }}
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v6
       with:
         path: IBCDFO
-        submodules: recursive
+    - name: Checkout MINQ repository
+      uses: actions/checkout@v6
+      with:
+        repository: POptUS/MINQ
+        path: MINQ
+        ref: ${{ env.MINQ_SHA }}
     - name: Checkout BenDFO repository
       uses: actions/checkout@v6
       with:
@@ -47,6 +75,8 @@ jobs:
       uses: matlab-actions/run-command@v2
       with:
         command: >
+            addpath("${{ env.MINQ5_M_PATH }}"),
+            addpath("${{ env.MINQ8_M_PATH }}"),
             addpath("${{ env.BENDFO_M_PATH }}"),
             addpath("${{ env.BENDFO_DATA_PATH }}"),
             cd ${{ env.POUNDERS_M_PATH }},

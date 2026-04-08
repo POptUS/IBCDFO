@@ -30,5 +30,5 @@ echo " "
 python --version
 tox --version
 echo " "
-pip list
+python -m pip list
 echo " "

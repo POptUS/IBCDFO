@@ -1,3 +1,6 @@
 [tool.black]
 line-length = 200
 target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
+# This tool wants ludicrously long lines, which is in conflict with the goals
+# enforced by flake8.
+extend-exclude = "src/ibcdfo/_get_minq_installation.py"

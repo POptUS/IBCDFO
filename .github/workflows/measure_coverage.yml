@@ -2,13 +2,16 @@ name: Measure Code Coverage
 env:
   CLONE_PATH:               ${{ github.workspace }}
   GH_ACTIONS_PATH:          ${{ github.workspace }}/.github/workflows
+  MINQ_COMMIT_FILE:         ${{ github.workspace }}/REQUIRED_MINQ_COMMIT
   IBCDFO_PKG:               ${{ github.workspace }}/ibcdfo_pypkg
+  MINQ5_M_PATH:             ${{ github.workspace }}/MINQ/m/minq5
+  MINQ8_M_PATH:             ${{ github.workspace }}/MINQ/m/minq8
   BENDFO_M_PATH:            ${{ github.workspace }}/BenDFO/m
   BENDFO_DATA_PATH:         ${{ github.workspace }}/BenDFO/data
   POUNDERS_M_PATH:          ${{ github.workspace }}/pounders/m
   MSAMP_M_PATH:             ${{ github.workspace }}/manifold_sampling/m
   BENDFO_PY_PATH:           ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:            ${{ github.workspace }}/minq/py/minq5
+  MINQ5_PY_PATH:            ${{ github.workspace }}/MINQ/py/minq5
   PY_COV_FILE:              coverage_ibcdfo
   PY_COV_XML_FILE:          cobertura_ibcdfo_py.xml
   PY_COV_HTML_FILE:         htmlcov_ibcdfo_py
@@ -23,17 +26,40 @@ on:
     branches: [main]
 
 jobs:
+  # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
+  # Load this eagerly so that it is available for immediate use in all
+  # subsequent jobs.
+  load_minq_sha:
+    outputs:
+        minq_sha: ${{ steps.load_sha.outputs.minq_sha }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v6
+    - name: Load Official MINQ SHA
+      id: load_sha 
+      run: |
+        MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
+        echo "The valid MINQ commit hash is $MINQ_SHA"
+        echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
+
   # ----- MEASURE COVERAGE ACROSS ALL PYTHON PACKAGES
   # Prefer using the latest Python version supported by the package
   coverage_py:
     runs-on: ubuntu-latest
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
       # -- General Setup Steps
-      # This action requires minq
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v6
+      - name: Checkout MINQ repository
+        uses: actions/checkout@v6
         with:
-          submodules: recursive
+          repository: POptUS/MINQ
+          path: MINQ
+          ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:
@@ -73,12 +99,19 @@ jobs:
   # Prefer using the latest MATLAB version available
   coverage_m:
     runs-on: ubuntu-latest
+    needs: load_minq_sha
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     steps:
       # -- General Setup Steps
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v6
+      - name: Checkout MINQ repository
+        uses: actions/checkout@v6
         with:
-          submodules: recursive
+          repository: POptUS/MINQ
+          path: MINQ
+          ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
         uses: actions/checkout@v6
         with:
@@ -96,6 +129,8 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: >
+              addpath("${{ env.MINQ5_M_PATH }}"),
+              addpath("${{ env.MINQ8_M_PATH }}"),
               addpath("${{ env.BENDFO_M_PATH }}"),
               addpath("${{ env.BENDFO_DATA_PATH }}"),
               cd ${{ env.POUNDERS_M_PATH }},
@@ -128,8 +163,6 @@ jobs:
     steps:
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v6
-        with:
-          submodules: false
 
       - name: Access Python coverage reports
         uses: actions/download-artifact@v8
@@ -144,7 +177,7 @@ jobs:
           path: ${{ env.CLONE_PATH }}
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |

@@ -162,13 +162,9 @@ printf = Options.printf;
 delta_inact = Options.delta_inact;
 
 if spsolver == 2 % Arnold Neumaier's minq5
-    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
-    minq_path = fullfile(here_path, '..', '..', 'minq');
-    addpath(fullfile(minq_path, 'm', 'minq5'));
+    check_minq_installation(5);
 elseif spsolver == 3 % Arnold Neumaier's minq8
-    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
-    minq_path = fullfile(here_path, '..', '..', 'minq');
-    addpath(fullfile(minq_path, 'm', 'minq8'));
+    check_minq_installation(8);
 end
 
 % 0. Check inputs

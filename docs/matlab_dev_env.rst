@@ -1,11 +1,9 @@
 |matlab| Developer Environment
 ==============================
 Developers will typically work in the local clone setup as suggested for users
-in the :ref:`getting_started` section of the User Guide.  This includes ensuring
-that the |minq| submodule is up-to-date.
-
-Setting up and running general testing on the full |matlab| contents should also
-be done as detailed in the User Guide, which includes ensuring that |bendfo| is
+in the :ref:`getting_started` section of the User Guide.  Setting up and running
+general testing on the full |matlab| contents should also be done as detailed in
+the :ref:`getting_started` section, which includes ensuring that |bendfo| is
 up-to-date.
 
 Full Code Coverage
