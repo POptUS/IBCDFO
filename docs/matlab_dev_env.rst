@@ -25,13 +25,13 @@ to the |matlab| path.
 
 To test the method without measuring coverage,
 
-   1. change to the ``<method>/m/tests`` directory
+   1. change to the ``<method>/m/tests`` directory,
    2. open |matlab|, and
    3. execute ``runtests`` from the prompt.
 
 To test with coverage enabled,
 
-   1. change to the ``<method>/m`` directory
+   1. change to the ``<method>/m`` directory,
    2. open |matlab|, and
    3. execute ``runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)``
 
