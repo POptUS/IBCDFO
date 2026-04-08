@@ -47,9 +47,6 @@ specify the default values of optional arguments since Sphinx is able to
 identify this information in the code and include it appropriately in the
 rendered documentation.
 
-.. todo::
-    What about |matlab|?
-
 The guides can be rendered locally in HTML format using |tox|
 
 .. code:: console
