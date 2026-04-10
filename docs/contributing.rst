@@ -1,7 +1,7 @@
 Contributing
 ============
 
-.. todo::
+.. note::
     Since all development is presently done internally, we have not yet
     determined an official process for verifying and accepting external
     contributions.  For now, please contact the development team directly to
@@ -47,7 +47,7 @@ affirmation of the following:
 Git workflow
 ------------
 
-.. todo::
+.. note::
     We are presently working informally with a variant of the GitLab workflow.
     Please contact the development team for more information.  This section will
     be written once the workflow is finalized.
