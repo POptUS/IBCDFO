@@ -2,19 +2,19 @@ Contributing
 ============
 
 .. note::
-    Since all development is presently done internally, we have not yet
-    determined an official process for verifying and accepting external
-    contributions.  For now, please contact the development team directly to
+    Since all development is currently done internally, we have not yet
+    established an official process for verifying and accepting external
+    contributions. For now, please contact the development team directly to
     initiate such collaborations.
 
 Developer's Certificate
 -----------------------
 .. _LICENSE: https://github.com/poptus/IBCDFO/blob/main/LICENSE
 
-|ibcdfo| is distributed under a default MIT license (see LICENSE_), with
+|ibcdfo| is distributed under the default MIT license (see LICENSE_), with
 exceptions noted in any top-level directory that contains a separate license
-file.  The act of submitting a pull request or patch will be understood as an
-affirmation of the following:
+file. Submitting a pull request or patch is understood as an affirmation of the
+following:
 
 .. code-block:: none
 
@@ -35,7 +35,7 @@ affirmation of the following:
       in the file; or
 
   (c) The contribution was provided directly to me by some other
-      person who certified (a), (b) or (c) and I have not modified
+      person who certified (a), (b), or (c), and I have not modified
       it.
 
   (d) I understand and agree that this project and the contribution
@@ -48,6 +48,6 @@ Git workflow
 ------------
 
 .. note::
-    We are presently working informally with a variant of the GitLab workflow.
-    Please contact the development team for more information.  This section will
-    be written once the workflow is finalized.
+    We are currently working informally with a variant of the GitLab workflow.
+    Please contact the development team for more information. This section will
+    be updated once the workflow is finalized.
