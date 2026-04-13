@@ -74,7 +74,7 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``
 
 ..
     * ``tox -e pdf``
-    
+
       * Generate and render |ibcdfo|'s documentation locally as a PDF file
       * Documentation is built from the code in the local clone rather than code
         installed into Python.

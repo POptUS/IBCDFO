@@ -56,7 +56,7 @@ The guides can be rendered locally in HTML format using |tox|
 
     $ cd /path/to/IBCDFO/ibcdfo_pypkg
     $ tox -e html
- 
+
 with the rendered output available at ``docs/build_html/index.html``.  The
 configuration for that task in ``tox.ini`` can be used as a guide for working
 with this documentation outside of |tox|.
