@@ -1,11 +1,11 @@
 Contributing
 ============
 
-.. todo::
-
-    Determine official process for verifying and accepting external
-    contributions as we advance toward an official release.  For now, please
-    contact the development team directly to initiate such collaborations.
+.. note::
+    Since all development is currently done internally, we have not yet
+    established an official process for verifying and accepting external
+    contributions. For now, please contact the development team directly to
+    initiate such collaborations.
 
 Developer's Certificate
 -----------------------
@@ -47,5 +47,7 @@ affirmation of the following:
 Git workflow
 ------------
 
-.. todo::
-    Write this
+.. note::
+    We are currently working informally with a variant of the GitLab workflow.
+    Please contact the development team for more information. This section will
+    be updated once the workflow is finalized.

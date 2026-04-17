@@ -1,3 +1,5 @@
+.. _getting_started:
+
 Getting Started
 ===============
 .. _MINQ: https://github.com/POptUS/minq

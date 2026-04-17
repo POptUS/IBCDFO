@@ -1,15 +1,16 @@
 |matlab| Developer Environment
 ==============================
 Developers will typically work in the local clone setup as suggested for users
-in the User Guide.  Setting up and running general testing on the full |matlab|
-contents should also be done as detailed in the User Guide, which includes
-ensuring that |bendfo| is up-to-date.
+in the :ref:`getting_started` section of the User Guide.  Setting up and running
+general testing on the full |matlab| contents should also be done as detailed in
+the :ref:`getting_started` section, which includes ensuring that |bendfo| is
+up-to-date.
 
 Full Code Coverage
 ------------------
-The script ``test_ibcdfo.m`` runs the full test suite with coverage enabled.
-The test output indicates where the HTML-format code coverage report can be
-found.
+The testing procedure provided in the :ref:`getting_started` section runs the
+full test suite with coverage enabled.  The test output indicates where the
+HTML-format code coverage report can be found.
 
 Low-level Testing
 -----------------
@@ -24,13 +25,13 @@ to the |matlab| path.
 
 To test the method without measuring coverage,
 
-   1. change to the ``<method>/m/tests`` directory
+   1. change to the ``<method>/m/tests`` directory,
    2. open |matlab|, and
    3. execute ``runtests`` from the prompt.
 
 To test with coverage enabled,
 
-   1. change to the ``<method>/m`` directory
+   1. change to the ``<method>/m`` directory,
    2. open |matlab|, and
    3. execute ``runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd)``
 
