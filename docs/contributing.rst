@@ -11,10 +11,10 @@ Developer's Certificate
 -----------------------
 .. _LICENSE: https://github.com/poptus/IBCDFO/blob/main/LICENSE
 
-|ibcdfo| is distributed under the default MIT license (see LICENSE_), with
+|ibcdfo| is distributed under a default MIT license (see LICENSE_), with
 exceptions noted in any top-level directory that contains a separate license
-file. Submitting a pull request or patch is understood as an affirmation of the
-following:
+file.  The act of submitting a pull request or patch will be understood as an
+affirmation of the following:
 
 .. code-block:: none
 
@@ -35,7 +35,7 @@ following:
       in the file; or
 
   (c) The contribution was provided directly to me by some other
-      person who certified (a), (b), or (c), and I have not modified
+      person who certified (a), (b) or (c) and I have not modified
       it.
 
   (d) I understand and agree that this project and the contribution

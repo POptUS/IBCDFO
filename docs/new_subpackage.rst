@@ -45,5 +45,5 @@ Working in a dedicated feature branch based on the latest commit in ``main``:
 * Update and add content for the subpackage in the User and Developer Guides
 * Add examples to the Jupyter book if necessary
 
-After the feature branch is merged into ``main`` via a PR with review, confirm
+After the feature branch is merged into ``main`` |via| a PR with review, confirm
 that all GitHub CI actions are passing successfully on the merge commit.

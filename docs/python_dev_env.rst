@@ -21,30 +21,32 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``:
   * The ``COVERAGE_FILE`` environment variable can optionally be set to define
     the output file name. By default, results are written to
     ``.coverage_ibcdfo``.
-  * Tests run against the package as installed in the local clone, ensuring that
-    coverage results (e.g., for CodeCov) are clean and straightforward. This
-    mimics an editable (developer) installation.
+  * Tests run the package's code as it exists in the developer's local clone
+    so that coverage results accessed through web services such as CodeCov are
+    clean and straightforward.  This mimics an editable (developer)
+    installation.
 
 * ``tox -e nocoverage``
 
   * Execute the full test suite using the code installed into a Python virtual
-    environment. This mimics a standard installation from a package
+    environment by |tox|. This mimics a standard installation from a package
     distribution (e.g., a wheel).
 
 * ``tox -e pounders``
 
-  * Execute the test suite for the |pounders| subpackage using the installed
-    package in a virtual environment.
+  * Execute the test suite for the |pounders| subpackage using the code
+    installed into a Python virtual environment by |tox|.
 
 * ``tox -e manifold_sampling``
 
   * Execute the test suite for the Manifold Sampling subpackage using the
-    installed package in a virtual environment.
+    code installed into a Python virtual environment by |tox|.
 
 * ``tox -e report``
 
-  * Intended to be run after (or alongside) ``coverage``.
-  * Display a coverage report and generate XML and HTML outputs.
+  * Intended to be run after or with ``coverage``.
+  * Display a coverage report for the package's full test suite and generate
+    XML- and HTML-format reports.
   * The ``COVERAGE_XML_FILE`` and ``COVERAGE_HTML_FILE`` environment variables
     can optionally be set to define output file names. Defaults are
     ``cobertura_ibcdfo.xml`` and ``htmlcov_ibcdfo``.
@@ -57,9 +59,9 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``:
 * ``tox -e format``
 
   * **NOTE: This may modify Python code in your local clone.**
-  * Automatically reformat code using the ``black`` tool. The codebase satisfies
-    |ibcdfo| coding standards after applying this task, provided ``check`` still
-    passes.
+  * Automatically reformat code in the package using the ``black`` tool. The
+    codebase satisfies |ibcdfo| coding standards after applying this task and if
+    the ``check`` task is still passing.
 
 * ``tox -e format_safe``
 
@@ -84,7 +86,7 @@ Additionally, you can run multiple tasks together, such as
 ``tox -e report,coverage``.
 
 Each task can be run as either ``tox -e <task>`` or ``tox -r -e <task>``.
-Developers are responsible for choosing the appropriate option for their
+Developers are responsible for determining which is correct for their current
 situation.
 
 Direct use of |tox| venvs
@@ -95,7 +97,7 @@ managed by |tox|. For example, the venvs created for the ``coverage`` and
 editable mode, facilitating interactive development and testing.
 
 To run the full test suite during an interactive debugging session, developers
-can create a clean ``coverage`` venv and activate it:
+can create a clean ``coverage`` venv and activate it with
 
 .. code:: console
 
@@ -103,14 +105,14 @@ can create a clean ``coverage`` venv and activate it:
     $ tox -r -e coverage
     $ . ./.tox/coverage/bin/activate
 
-Then run the full test suite:
+and subsequently run the full test suite in the venv with
 
 .. code:: console
 
     $ python -m unittest ibcdfo
 
-For example, after modifying |pounders| code or the
-``TestPoundersSimple`` test, a developer can rerun just that test:
+A user could then, for example, alter |pounders| code or its
+``TestPoundersSimple`` test and rerun just that test in the venv with
 
 .. code:: console
 
