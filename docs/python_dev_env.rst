@@ -30,7 +30,7 @@ The following commands can be run from ``/path/to/IBCDFO/ibcdfo_pypkg``:
 
   * Execute the full test suite using the code installed into a Python virtual
     environment by |tox|. This mimics a standard installation from a package
-    distribution (e.g., a wheel).
+    distribution (|eg| a wheel).
 
 * ``tox -e pounders``
 
