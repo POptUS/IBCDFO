@@ -15,7 +15,7 @@ subject to
     Low_j \leq \pspcomp{j} \le Upp_j, j=1,...,\np
 
 * where :math:`\Ffun` is a vector-valued, user-provided blackbox ("zeroth-order") function,
-* :math:`\hfun` is a smooth function mapping from :math:`\R^{\nd}` to :math:`\R`, 
+* :math:`\hfun` is a smooth function mapping from :math:`\R^{\nd}` to :math:`\R`,
 * :math:`Low` is a user-provided boundary constraint that permits values of
   :math:`-\infty` to specify that the problem is unconstrained for the
   associated parameter, and
@@ -35,8 +35,8 @@ subject to
 .. math::
     Low_j \le \pspcomp{j} \le Upp_j, j=1,...,\np.
 
-As such, the current implementation of |pounders| generalizes the class of 
-functions to which |pounders| can be applied. 
+As such, the current implementation of |pounders| generalizes the class of
+functions to which |pounders| can be applied.
 
 |pounders| will not evaluate :math:`\Ffun` outside of the provided bounds, but it is
 possible to take advantage of function values at infeasible :math:`\psp` if
@@ -48,7 +48,7 @@ infinity-norm trust region.
 If a user wishes to employ an outer function :math:`\hfun` other than a
 sum-of-squares, then the user must specify a custom outer-function :math:`\hfun`
 that maps the outputs of :math:`\Ffun` to a scalar value
-:math:`\hfun(\Ffun(\psp))` for minimization. 
+:math:`\hfun(\Ffun(\psp))` for minimization.
 In that case, users must also provide a "combine
 models" function that |pounders| uses to map the linear and quadratic terms from
 the models of :math:`\Ffun` into a single quadratic model.

@@ -36,7 +36,7 @@ required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
 ## Support
 
-To 
+To
 
 * report potential problems with IBCDFO,
 * propose a change, or
@@ -74,5 +74,3 @@ Developer Guide.
     year   = {2024},
   }
 ```
-
-

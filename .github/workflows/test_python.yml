@@ -27,7 +27,7 @@ jobs:
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v6
     - name: Load Official MINQ SHA
-      id: load_sha 
+      id: load_sha
       run: |
         MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
         echo "The valid MINQ commit hash is $MINQ_SHA"
