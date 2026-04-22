@@ -63,8 +63,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           optimization. Note that if **Prior** is nonempty, this will override
           the previously specified **X_0**.
 
-        :param Options: ``dict`` of method options.  Set to ``None`` to use default
-        values.
+    :param Options: ``dict`` of method options.  Set to ``None`` to use default
+    values.
 
         * **printf** (default is 0)
 
