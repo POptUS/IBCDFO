@@ -52,8 +52,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     :param Low:     :math:`\np` element `numpy` array of lower bounds
     :param Upp:     :math:`\np` element `numpy` array of upper bounds
     :param Prior:   ``dict`` describing  past evaluations of ``Ffun``.  Set to ``None``
-        to run optimization assuming no past evaluations.
-        A nonempty **Prior** must contain entries:  
+        to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
         * **nfs** - Number of past function evaluations
         * **X_init** - :math:`\mathrm{nfs} \times \np` `numpy` array of points
           :math:`\psp_k`
@@ -63,7 +62,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           corresponds to the point and value to use as initial point for
           optimization. Note that if **Prior** is nonempty, this will override
           the previously specified **X_0**.  
-
     :param Options: ``dict`` of method options.  Set to ``None`` to use default
         values.
 
