@@ -37,34 +37,32 @@ def _default_prior():
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     r"""
-    Run a |pounders| run on the optimization problem specified by the given
+    Run |pounders| on the optimization problem specified by the given
     arguments.
 
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
         element numpy array for given :math:`\psp`
     :param X_0:     :math:`\np` element numpy array that specifies the initial
         point
-    :param n:       Dimension (number of continuous variables)
+    :param n:       Dimension (number of real-valued input variables)
     :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
     :param g_tol:   Tolerance for the 2-norm of the model gradient
     :param delta_0: Positive initial trust region radius
-    :param m:       Number of components returned from ``Ffun``
-    :param Low:     :math:`\np` element numpy array of lower bounds
-    :param Upp:     :math:`\np` element numpy array of upper bounds
-    :param Prior:   ``dict`` of past evaluations of ``Ffun``.  Set to ``None``
-        to run optimization assuming no past evaluations.  Otherwise arguments
-        must be provided for all dictionary entries?  **What if a user wants to
-        provide just values outside feasible region but not use any as the
-        initial point?**
-
+    :param m:       Dimension of output of ``Ffun`` (number of component functions)
+    :param Low:     :math:`\np` element `numpy` array of lower bounds
+    :param Upp:     :math:`\np` element `numpy` array of upper bounds
+    :param Prior:   ``dict`` describing  past evaluations of ``Ffun``.  Set to ``None``
+        to run optimization assuming no past evaluations.
+	A nonempty **Prior** must contain entries:  
         * **nfs** - Number of past function evaluations
-        * **X_init** - :math:`\mathrm{nfs} \times \np` numpy array of points
+        * **X_init** - :math:`\mathrm{nfs} \times \np` `numpy` array of points
           :math:`\psp_k`
-        * **F_init** - :math:`\mathrm{nfs} \times \nd` numpy array of values
-          :math:`\Ffun(\psp_k)` obtained with ``Ffun``
+        * **F_init** - :math:`\mathrm{nfs} \times \nd` `numpy` array of values
+          :math:`\Ffun(\psp_k)` computed with ``Ffun``
         * **xk_in** -  Zero-based index into ``X_init`` and ``F_init`` that
           corresponds to the point and value to use as initial point for
-          optimization.  **IS X_0 IGNORED IN THIS CASE?**
+          optimization. Note that if **Prior** is nonempty, this will override
+	  the previously specified **X_0**.  
 
     :param Options: ``dict`` of method options.  Set to ``None`` to use default
         values.
@@ -75,7 +73,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             * 1 - Debugging level of output to screen
             * 2 - More verbose screen output
 
-        * **spsolver** - Trust-region subproblem solver flag (default is 2)
+        * **spsolver** - Trust-region subproblem solver flag (default is 2, not recommended to change)
         * **hfun** - Outer function :math:`\hfun` that maps given
           :math:`\Ffun(\psp)` to scalars for minimization (default is
           sum-of-squares that yields :math:`f`)
@@ -88,19 +86,19 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **np_max** -  Maximum number of interpolation points (:math:`>\np+1`)
           (default is :math:`2\np+1`)
-        * **Par** - Five element ``list`` for ``formquad`` (default is **???**)
+        * **Par** - Five element ``list`` for ``formquad`` (default $`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`$
 
     :return:
-        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` numpy array containing
+        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` `numpy` array containing
           locations of evaluated points in the order in which they were
           evaluated
-        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` numpy array containing
+        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` `numpy` array containing
           the function values at ``X`` with matching ordering
         * **hF** - :math:`\mathrm{nf\_max+nfs}\times 1` Composed values
-          ``hfun(Ffun)`` for evaluated points in ``X``
+          ``hfun(Ffun(x))`` for evaluated points ``x`` in ``X``
         * **flag** - Termination criteria flag (See general |pounders| documentation)
         * **xk_in** - Zero-based index of point in ``X`` representing
-          approximate minimizer.  **EXPLAIN HOW THIS WAS DETERMINED?**
+          incumbent at time of termination (approximate local minimizer if `flag=0`)
     """
     if Options is None:
         Options = {}
