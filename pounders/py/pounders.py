@@ -86,7 +86,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **np_max** -  Maximum number of interpolation points (:math:`>\np+1`)
           (default is :math:`2\np+1`)
-        * **Par** - Five element ``list`` for ``formquad`` (default $`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`$
+        * **Par** - Five element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
 
     :return:
         * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` `numpy` array containing
