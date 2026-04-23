@@ -20,7 +20,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     Run manifold sampling for the composite nonsmooth optimization problem
 
     :param hfun:
-        Function implementing :math:`h`. Supports two calling modes.
+        Function implementing :math:`\hfun`. Supports two calling modes.
 
         **Mode 1**::
 
@@ -28,10 +28,10 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
 
         where:
 
-        * ``z`` is a length-``p`` array
-        * ``hval`` is the scalar value :math:`h(z)`
-        * ``grads`` is a ``(p, l)`` array whose columns are gradients of the
-          active selection functions at ``z``
+        * ``z`` is a length-:math:`\nd` array
+        * ``hval`` is the scalar value :math:`\hfun(\zvec)`
+        * ``grads`` is a :math:`(\nd, l)` array whose columns are gradients of the
+          active selection functions at :math:`\zvec`
         * ``hashes`` is a list of identifiers for those active manifolds
 
         **Mode 2**::
@@ -40,10 +40,10 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
 
         where ``hashes`` specifies manifolds to evaluate, ``vals[i]`` is the
         value of the corresponding selection function, and column ``i`` of
-        ``grads`` is its gradient at ``z``.
+        ``grads`` is its gradient at :math:`\zvec`.
 
-    :param Ffun: Function returning :math:`F(x)` as a length-``p`` array
-        for a given length-``n`` array ``x``.
+    :param Ffun: Function returning :math:`\Ffun(\psp)` as a length-:math:`\nd`
+        array for a given length-:math:`\np` array ``x``.
 
     :param x0: Initial point (length :math:`\np` array).
 
@@ -60,8 +60,8 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
         Tuple ``(X, F, h, xkin, flag)`` where
 
         * ``X`` -- array of evaluated points in evaluation order
-        * ``F`` -- array with rows ``F(X[i])``
-        * ``h`` -- array with ``h[i] = h(F(X[i]))``
+        * ``F`` -- array with rows :math:`\Ffun(X[i])`
+        * ``h`` -- array with :math:`h[i] = \hfun(\Ffun(X[i]))`
         * ``xkin`` -- zero-based index in ``X`` of the final trust-region center
         * ``flag`` -- termination code
 
