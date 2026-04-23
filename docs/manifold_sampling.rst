@@ -14,7 +14,7 @@ where:
 * :math:`\Ffun:\R^{\np} \rightarrow \R^{\nd}` is a black-box vector-valued
   function (e.g., a simulation output or a vector of residuals), and
 * :math:`\hfun:\R^{\nd} \rightarrow \R` is a nonsmooth function, expressible
-  as a _continuous selection_. Examples of continuous selections include
+  as a continuous selection. Examples of continuous selections include
   piecewise linear functions, piecewise quadratic functions or functions formed from max, min
   or absolute value operations.
 
