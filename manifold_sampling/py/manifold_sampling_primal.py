@@ -17,48 +17,60 @@ eng = []
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     r"""
-    Run manifold sampling on the optimization problem specified by the given
-    arguments.
+    Run manifold sampling for the composite nonsmooth optimization problem
 
-    .. todo::
-        Does $h_i$ refer to a partial derivative?
+    :param hfun:
+        Function implementing :math:`h`. Supports two calling modes.
 
-    :param hfun: Function that, given an :math:`\np` element numpy array
-        :math:`\zvec`, returns
+        **Mode 1**::
 
-        * the value :math:`h(\zvec)`
-        * :math:`\np \times l` numpy array that contains gradients for all
-          :math:`l` limiting gradients at :math:`\zvec`
-        * ``list`` of :math:`l` hashes for each manifold active at :math:`\zvec`
+            hval, grads, hashes = hfun(z)
 
-        Given point :math:`\zvec` and :math:`l` hashes :math:`H`, returns
+        where:
 
-        * An :math:`l` element numpy array that contains the values
-          :math:`h_i(\zvec)` for each hash in :math:`H`
-        * A :math:`p \times l` numpy array that contains the gradients of
-          :math:`h_i(\zvec)` for each hash in :math:`H`
+        * ``z`` is a length-``p`` array
+        * ``hval`` is the scalar value :math:`h(z)`
+        * ``grads`` is a ``(p, l)`` array whose columns are gradients of the
+          active selection functions at ``z``
+        * ``hashes`` is a list of identifiers for those active manifolds
 
-    :param Ffun: Function that returns the value :math:`\Ffun(\psp)` of the
-        blackbox simulation as an :math:`\nd` element numpy array for given
-        :math:`\psp`
-    :param x0: :math:`\np` element numpy array that specifies the starting point
-    :param L: :math:`\np` element numpy array of lower bounds
-    :param U: :math:`\np` element numpy array of upper bounds
-    :param nf_max: Maximum number of function evaluations
-    :param subprob_switch: **???**
+        **Mode 2**::
+
+            vals, grads = hfun(z, hashes)
+
+        where ``hashes`` specifies manifolds to evaluate, ``vals[i]`` is the
+        value of the corresponding selection function, and column ``i`` of
+        ``grads`` is its gradient at ``z``.
+
+    :param Ffun: Function returning :math:`F(x)` as a length-``p`` array
+        for a given length-``n`` array ``x``.
+
+    :param x0: Initial point (length :math:`\np` array).
+
+    :param L: Lower bounds for ``x`` (length :math:`\np` array).
+
+    :param U: Upper bounds for ``x`` (length :math:`\np` array).
+
+    :param nf_max: Maximum number of evaluations of ``Ffun``.
+
+    :param subprob_switch:
+        Selects the trust-region subproblem solver/variant used internally.
 
     :return:
-        * **X** - :math:`\mathrm{nf\_max} \times \np` numpy array containing the
-            points evaluated in the order in which they were evaluated
-        * **F** - :math:`\mathrm{nf\_max} \times \nd` numpy array containing the
-          blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
-          with matching ordering
-        * **h**: :math:`\mathrm{nf\_max}` numpy array containing the values
-          :math:`\hfun(\Ffun(\psp))` for all points in ``X`` with matching
-          ordering.
-        * **xkin**: Current trust region center.  **ZERO-BASED INDEX INTO
-          X?**
-        * **flag**: Termination criteria flag (See general documentation)
+        Tuple ``(X, F, h, xkin, flag)`` where
+
+        * ``X`` -- array of evaluated points in evaluation order
+        * ``F`` -- array with rows ``F(X[i])``
+        * ``h`` -- array with ``h[i] = h(F(X[i]))``
+        * ``xkin`` -- zero-based index in ``X`` of the final trust-region center
+        * ``flag`` -- termination code
+
+    Termination codes:
+
+    * ``flag > 0``: successful termination (stationarity measure returned)
+    * ``flag == 0``: evaluation budget reached
+    * ``flag == -1``: model construction failure
+    * ``flag == -2``: trust-region subproblem failure
     """
     # Some other values
     #  n:       [int]     Dimension of the domain of F (deduced from x0)
