@@ -39,8 +39,8 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             vals, grads = hfun(z, hashes)
 
         where the list ``hashes`` specifies which manifolds to evaluate, ``vals[i]`` is the
-        value of the ``i``th corresponding selection, and column ``i`` of
-        ``grads`` is the gradient of the ``i``th selection at :math:`\zvec`.
+        value of the ``i`` th corresponding selection, and column ``i`` of
+        ``grads`` is the gradient of the ``i`` th selection at :math:`\zvec`.
 
     :param Ffun: Function returning :math:`\Ffun(\psp)` as a length-:math:`\nd`
         array for a given length-:math:`\np` array ``x``.
