@@ -27,7 +27,7 @@ so that accurate trust-region surrogate models can be constructed. However,
 in practice, these assumptions do not need to be explicitly checked and
 derivatives of :math:`\Ffun` certainly need not be available.
 
-The composite structure :math:`hfun(\Ffun(\psp))` arises naturally in robust regression, minimax design,
+The composite structure :math:`\hfun(\Ffun(\psp))` arises naturally in robust regression, minimax design,
 simulation-based calibration, and optimization with embedded nonsmooth merit
 functions.
 
@@ -53,23 +53,17 @@ All Manifold Sampling implementations return a termination criteria flag. The
 interpretation of the value of the flag is identical across implementations and
 possible values are
 
-  ``flag > 0``
-      Successful termination. The returned value is the final stationarity
-      measure (:math:`\chi_k`).
-
-  ``0``
-      ``nf_max`` function evaluations were performed (the budget was exhausted).
-
-  ``-1``
-      Model construction failed (an empty or invalid local model was constructed).
-
-  ``-2``
-      Trust-region subproblem failed, likely due to an unbounded or poorly
-      scaled affine-envelope subproblem.
+* > 0 - successful termination; the value of the flag is the final
+  stationarity measure (:math:`\chi_k`)
+* 0 - the budget of ``nf_max`` function evaluations was exhausted.
+* -1 - model construction failed (an empty or invalid local model
+  was constructed)
+* -2 - trust-region subproblem failed, likely due to an unbounded
+  or poorly scaled affine-envelope subproblem
 
 The programmatic interface is generally maintained identically across all
 implementations. Nevertheless, we provide the interface for each implementation
-to supply language-specific descriptions.
+to provide language-specific descriptions.
 
 Python
 ^^^^^^
