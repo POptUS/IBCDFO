@@ -12,31 +12,33 @@ nonsmooth optimization problems of the form
 where:
 
 * :math:`\Ffun:\R^{\np} \rightarrow \R^{\nd}` is a black-box vector-valued
-  simulation or residual function, and
-* :math:`\hfun:\R^{\nd} \rightarrow \R` is a nonsmooth outer function,
-  typically piecewise linear, piecewise quadratic, or formed from max, min,
-  absolute value, or selection operations.
+  function (e.g., a simulation output or a vector of residuals), and
+* :math:`\hfun:\R^{\nd} \rightarrow \R` is a nonsmooth function, expressible
+  as a _continuous selection_. Examples of continuous selections include
+  piecewise linear functions, piecewise quadratic functions or functions formed from max, min
+  or absolute value operations.
 
 In the programmatic interface, the input to ``hfun`` is often denoted
 :math:`\zvec`, representing the intermediate vector
 :math:`\zvec = \Ffun(\psp)`.
 
-Typical applications assume that :math:`\Ffun` is continuous and locally smooth
-enough that accurate trust-region surrogate models can be constructed, although
-derivatives of :math:`\Ffun` need not be available.
+Analyses assume that :math:`\Ffun` is continuous and locally sufficiently smooth
+so that accurate trust-region surrogate models can be constructed. However,
+in practice, these assumptions do not need to be explicitly checked and
+derivatives of :math:`\Ffun` certainly need not be available.
 
-This structure arises naturally in robust regression, minimax design,
+The composite structure :math:`hfun(\Ffun(\psp))` arises naturally in robust regression, minimax design,
 simulation-based calibration, and optimization with embedded nonsmooth merit
 functions.
 
-The method builds local surrogate models for components of :math:`\Ffun` and
+Manifold Sampling builds local surrogate models for components of :math:`\Ffun` and
 exploits the piecewise structure of :math:`\hfun` by identifying locally active
-manifolds: smooth pieces :math:`\hfun` that are
-active near the current iterate. At each iteration, a trust-region subproblem is
-solved on a model of the currently relevant manifolds, producing a step that
+manifolds, that is, smooth pieces :math:`\hfun` that are
+active near the current incumbent. At each iteration, a trust-region subproblem is
+solved on a model derived in part from the currently active manifolds, producing a step that
 balances local improvement and model accuracy.
 
-Unlike generic nonsmooth methods, manifold sampling leverages the composite
+Unlike generic nonsmooth methods, manifold sampling deliberately leverages the composite
 structure :math:`\hfun(\Ffun(\psp))`, which can significantly improve practical
 performance when evaluations of :math:`\Ffun` are expensive.
 
@@ -53,14 +55,13 @@ possible values are
 
   ``flag > 0``
       Successful termination. The returned value is the final stationarity
-      measure (:math:`\chi_k`), indicating the trust-region radius fell
-      below the minimum threshold.
+      measure (:math:`\chi_k`). 
 
   ``0``
-      ``nf_max`` function evaluations were performed.
+      ``nf_max`` function evaluations were performed (the budget was exhausted). 
 
   ``-1``
-      Model construction failed (empty or invalid local model).
+      Model construction failed (an empty or invalid local model was constructed).
 
   ``-2``
       Trust-region subproblem failed, likely due to an unbounded or poorly
