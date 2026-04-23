@@ -402,11 +402,19 @@ def h_max_plus_quadratic_violation_penalty(z, H0=None):
                 = \max \set{z_1(\psp), \cdots, z_{p1}(\psp)} +
                   \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i(\psp), 0}^2
 
-    .. todo::
-        * p1 is not a parameter and appears to be hardcoded to m-1, which means
-          that the sum in the definition is unnecessary
-        * alpha is not a parameter and appears to be hardcoded to zero.  Mention
-          this in the docs?
+    where :math:`\zvec(\psp) = (z_1(\psp), \cdots, z_p(\psp))` is an
+    application-specific residual or feature vector. Presently,
+    :math:`p1 = p-1` and :math:`\alpha = 0` are hardcoded, so in the current
+    implementation reduces to
+
+    .. math::
+
+        f(\psp) = \max \left\{ z_1(\psp), \cdots, z_{p-1}(\psp) \right\}.
+
+    The final component :math:`z_p(\psp)` is kept to
+    reflect the original max-plus-violation-penalty structure, even though its
+    contribution is currently zeroed by the hardcoded choice
+    :math:`\alpha = 0`.
     """
     # Behavior:
     # - If H0 is None: returns (h, grads, Hashes)

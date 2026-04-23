@@ -55,10 +55,10 @@ possible values are
 
   ``flag > 0``
       Successful termination. The returned value is the final stationarity
-      measure (:math:`\chi_k`). 
+      measure (:math:`\chi_k`).
 
   ``0``
-      ``nf_max`` function evaluations were performed (the budget was exhausted). 
+      ``nf_max`` function evaluations were performed (the budget was exhausted).
 
   ``-1``
       Model construction failed (an empty or invalid local model was constructed).

@@ -23,7 +23,7 @@ function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, 
 % :param L: :math:`1 \times \np` vector of lower bounds
 % :param U: :math:`1 \times \np` vector of upper bounds
 % :param nf_max: [int] Maximum number of function evaluations
-% :param subprob_switch: Selects the trust-region subproblem solver used internally. 
+% :param subprob_switch: Selects the trust-region subproblem solver used internally.
 %
 % :return:
 %      * **X** - :math:`\mathrm{nf\_max} \times \np` matrix containing the

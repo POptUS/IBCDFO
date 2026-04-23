@@ -47,7 +47,7 @@ infinity-norm trust region.
 
 If a user wishes to employ an outer function :math:`\hfun` other than a
 sum-of-squares, then the user must specify a custom outer-function :math:`\hfun`
-that maps vectors in :math:`\R^{\nd}` to a scalar value. 
+that maps vectors in :math:`\R^{\nd}` to a scalar value.
 In that case, users must also provide a "combine
 models" function that |pounders| uses to map the linear and quadratic terms from
 the quadratic models of :math:`\Ffun` into a single quadratic model.
@@ -55,25 +55,25 @@ the quadratic models of :math:`\Ffun` into a single quadratic model.
 For more detailed information please refer to :cite:t:`POUNDERS_TAO_2017`.  A
 brief description can also be found in :cite:t:`UNEDF0_2010`.
 
-We provide two implementations of |pounders|, namely, `pounders` and `pounders_concurrent`. 
+We provide two implementations of |pounders|, namely, `pounders` and `pounders_concurrent`.
 
 Programmatic Interface
 ----------------------
 Status Code
 ^^^^^^^^^^^
 Both |pounders| implementations return a termination criteria flag.  The
-interpretation of the value of the flag is identical across both implementations and is defined by: 
+interpretation of the value of the flag is identical across both implementations and is defined by:
 
 * 0 - normal termination because norm of :math:`\gradf(\psp)` at final
   :math:`\psp` satisfied user-provided gradient tolerance,
 * > 0 - the budget specified in `nf_max` was reached; the value of the flag is the 2-norm of
   :math:`\gradf` at final :math:`\psp`
 * -1 - input was fatally incorrect (error message shown)
-* -2 - a valid model produced ``X[nf] == X[xk_in]`` or ``(mdec == 0, hF[nf] == hF[xk_in])`` 
-  (this indicates that the TRSP solver failed to find decrease in the model)  
+* -2 - a valid model produced ``X[nf] == X[xk_in]`` or ``(mdec == 0, hF[nf] == hF[xk_in])``
+  (this indicates that the TRSP solver failed to find decrease in the model)
 * -3 - a ``NaN`` was encountered
 * -4 - error in trust-region subproblem solver
-* -5 - an attempt at model improvement failed 
+* -5 - an attempt at model improvement failed
 * -6 - the trust-region radius `delta` has shrunk to`delta_min`, and the model is valid
 
 The programmatic interface is generally maintained identical between both
