@@ -5,10 +5,10 @@ import numpy as np
 
 def create_censored_L1_loss_hfun(C, D):
     r"""
-    Censored (one-sided) composite objective.  This is a generalized version of
+    A generalized version of
     Womersley's censored :math:`\ell_1` loss function :cite:t:`womersley1986`.
 
-    Given observed system outputs :math:`\zvec\in\R^m`, a per-component censoring
+    Given observed outputs :math:`\zvec\in\R^m`, a per-component censoring
     floor :math:`\cvec\in\R^m`, and target data :math:`\dvec\in\R^m`, this
     objective is
 
