@@ -23,7 +23,7 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
 
 def h_one_norm(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling 1-norm
+    :math:`\hfun` function for constructing the 1-norm
     objective function
 
     .. math::
@@ -92,7 +92,7 @@ def h_one_norm(z, H0=None):
 
 def h_pw_maximum(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     maximum objective function
 
     .. math::
@@ -134,7 +134,7 @@ def h_pw_maximum(z, H0=None):
 
 def h_pw_maximum_squared(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     maximum objective function
 
     .. math::
@@ -178,7 +178,7 @@ def h_pw_maximum_squared(z, H0=None):
 
 def h_pw_minimum(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     minimum objective function
 
     .. math::
@@ -220,7 +220,7 @@ def h_pw_minimum(z, H0=None):
 
 def h_pw_minimum_squared(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     minimum objective function
 
     .. math::
@@ -273,7 +273,7 @@ def h_quantile(z, H0=None):
     Note that this example has hard-coded the value :math:`q=1`, which corresponds to
     returning the minimum value of the above set. You must alter this function for other
     quantiles by changing the value of :math:`q` to an integer between 1 and :math:`\nd`,
-    inclusive.
+    inclusive. Note this functionality is the same asprovided by `h_pw_minimum_squared`.
 
     """
     # Inputs:
