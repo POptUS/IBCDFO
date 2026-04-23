@@ -273,7 +273,7 @@ def h_quantile(z, H0=None):
     Note that this example has hard-coded the value :math:`q=1`, which corresponds to
     returning the minimum value of the above set. You must alter this function for other
     quantiles by changing the value of :math:`q` to an integer between 1 and :math:`\nd`,
-    inclusive. Note this functionality is the same asprovided by `h_pw_minimum_squared`.
+    inclusive. Note this functionality is the same as provided by `h_pw_minimum_squared`.
 
     """
     # Inputs:
