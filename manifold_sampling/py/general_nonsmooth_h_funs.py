@@ -405,7 +405,7 @@ def h_max_plus_quadratic_violation_penalty(z, H0=None):
 
     where :math:`\zvec(\psp) = (z_1(\psp), \cdots, z_p(\psp))` is an
     application-specific residual or feature vector. Presently,
-    :math:`p_1 = p-1` and :math:`\alpha = 0` are hardcoded, so in the current
+    :math:`p1 = p-1` and :math:`\alpha = 0` are hardcoded, so in the current
     implementation reduces to
 
     .. math::
