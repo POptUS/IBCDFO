@@ -44,7 +44,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         element numpy array for given :math:`\psp`
     :param X_0:     :math:`\np` element numpy array that specifies the initial
         point
-    :param n:       Dimension (number of real-valued input variables)
+    :param n:       Dimension (number of continuous, real-valued input variables)
     :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
     :param g_tol:   Tolerance for the 2-norm of the model gradient
     :param delta_0: Positive initial trust region radius
@@ -97,7 +97,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           ``hfun(Ffun(x))`` for evaluated points ``x`` in ``X``
         * **flag** - Termination criteria flag (See general |pounders| documentation)
         * **xk_in** - Zero-based index of point in ``X`` representing
-          incumbent at time of termination (approximate local minimizer if `flag=0`)
+          incumbent at termination (approximate local minimizer if `flag=0`)
     """
     if Options is None:
         Options = {}

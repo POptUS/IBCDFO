@@ -9,7 +9,7 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %     :math:`1 \times \nd` vector for given :math:`\psp`
 % :param X_0:     [dbl] :math:`1 \times \np` vector that specifies the initial
 %     point
-% :param n:       [int] Dimension (number of real-valued input variables)
+% :param n:       [int] Dimension (number of continuous, real-valued input variables)
 % :param nf_max:  [int] Maximum number of function evaluations (:math:`> \np+1`)
 % :param g_tol:   [dbl] Tolerance for the 2-norm of the model gradient
 % :param delta_0: [dbl] Positive initial trust region radius
