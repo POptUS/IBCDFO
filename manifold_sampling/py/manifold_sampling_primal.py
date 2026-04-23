@@ -17,7 +17,7 @@ eng = []
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     r"""
-    Run manifold sampling for the composite nonsmooth optimization problem
+    Run manifold sampling to solve the composite nonsmooth optimization problem.
 
     :param hfun:
         Function implementing :math:`\hfun`. Supports two calling modes.
@@ -31,16 +31,16 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
         * ``z`` is a length-:math:`\nd` array
         * ``hval`` is the scalar value :math:`\hfun(\zvec)`
         * ``grads`` is a :math:`(\nd, l)` array whose columns are gradients of the
-          active selection functions at :math:`\zvec`
-        * ``hashes`` is a list of identifiers for those active manifolds
+          :math:`l` active selection functions at :math:`\zvec`
+        * ``hashes`` is a list of identifiers for those :math:`l` active manifolds
 
         **Mode 2**::
 
             vals, grads = hfun(z, hashes)
 
-        where ``hashes`` specifies manifolds to evaluate, ``vals[i]`` is the
-        value of the corresponding selection function, and column ``i`` of
-        ``grads`` is its gradient at :math:`\zvec`.
+        where the list ``hashes`` specifies which manifolds to evaluate, ``vals[i]`` is the
+        value of the ``i``th corresponding selection, and column ``i`` of
+        ``grads`` is the gradient of the ``i``th selection at :math:`\zvec`.
 
     :param Ffun: Function returning :math:`\Ffun(\psp)` as a length-:math:`\nd`
         array for a given length-:math:`\np` array ``x``.
@@ -65,12 +65,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
         * ``xkin`` -- zero-based index in ``X`` of the final trust-region center
         * ``flag`` -- termination code
 
-    Termination codes:
-
-    * ``flag > 0``: successful termination (stationarity measure returned)
-    * ``flag == 0``: evaluation budget reached
-    * ``flag == -1``: model construction failure
-    * ``flag == -2``: trust-region subproblem failure
+    See User Guide for interpretation of flag values.
     """
     # Some other values
     #  n:       [int]     Dimension of the domain of F (deduced from x0)
