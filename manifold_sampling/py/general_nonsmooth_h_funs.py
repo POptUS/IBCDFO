@@ -264,19 +264,18 @@ def h_pw_minimum_squared(z, H0=None):
 
 def h_quantile(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling
-    objective function determined by evaluating at each :math:`\psp` the
+    :math:`\hfun` function whose value is determined by returning at each :math:`z` the
     :math:`q^{\mathrm{th}}` quantile of
 
     .. math::
 
-        \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}.
+        \set{z_1^2, \cdots, z_{\nd}^2}.
 
-    .. todo::
+    Note that this example has hard-coded the value :math:`q=1`, which corresponds to
+    returning the minimum value of the above set. You must alter this function for other
+    quantiles by changing the value of :math:`q` to an integer between 1 and :math:`\nd`,
+    inclusive. 
 
-        * The value of :math:`q` is not provided as an argument and appears to
-          be a hardcoded value.  True?  Update docs to be more specific?  How
-          many subsets were used to define the quantiles?
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
