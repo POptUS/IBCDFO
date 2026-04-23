@@ -315,7 +315,7 @@ def h_quantile(z, H0=None):
 
 def h_max_gamma_over_KY(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling objective
+    :math:`\hfun` function for constructing the objective
     function
 
     .. math::
@@ -392,7 +392,7 @@ def h_max_gamma_over_KY(z, H0=None):
 
 def h_max_plus_quadratic_violation_penalty(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling objective
+    :math:`\hfun` function for constructing the objective
     function
 
     .. math::
