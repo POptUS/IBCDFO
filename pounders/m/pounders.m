@@ -17,7 +17,7 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 % :param Low:     [dbl] :math:`1 \times \np` vector of lower bounds
 % :param Upp:     [dbl] :math:`1 \times \np` vector of upper bounds
 % :param Prior:   ``struct`` of past evaluations of ``Ffun``.  If no past evaluations,
-%     then either do not set Prior, or else provide an empty struct. 
+%     then either do not set Prior, or else provide an empty struct.
 %     Otherwise, arguments must be provided for all dictionary
 %     entries:
 %
@@ -29,9 +29,9 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %       * **xk_in** -  One-based index into ``X_init`` and ``F_init`` that
 %         corresponds to the point and value to use as initial point for
 %         optimization. Note that if nonempty **Prior** is specified, then
-%         **X_0** from previous argument will be ignored. 
+%         **X_0** from previous argument will be ignored.
 %
-% :param Options: ``struct`` of method options. To use default values, either do not 
+% :param Options: ``struct`` of method options. To use default values, either do not
 %     provide or else set an empty `struct`.
 %
 %       * **printf** (default is 0)
