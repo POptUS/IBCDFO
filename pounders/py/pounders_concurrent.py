@@ -37,19 +37,25 @@ def _default_prior():
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     r"""
-    This version of |pounders| parallelizes the evaluation of ``Ffun`` across
-    all model-building points, which can lead to significantly smaller walltimes
-    for many problems.  This is especially true for ``Ffun`` models with large
-    input dimension :math:`\np`.
+    This version of |pounders| calls ``Ffun`` with batches of model-building
+    points.  In particular, when new geometry points are needed, |pounders|
+    constructs the corresponding rows of ``X`` and calls
+
+    .. code-block:: python
+
+        Ffun(X[idx_new])
+
+    rather than calling ``Ffun`` separately for each row of ``X``.
+
+    Any parallelism/concurrency must be implemented inside ``Ffun`` rather than
+    inside |pounders|.  Users who want concurrent evaluation of model-building
+    points should provide an ``Ffun`` that accepts a two-dimensional array of
+    points, evaluates those points concurrently, and returns the corresponding
+    rows of ``F`` for all input points in the same order they were provided.
 
     Otherwise, this implementation and its interface are identical to those of
     the standard |pounders| implementation.  Please refer to
     :py:func:`ibcdfo.run_pounders` for more information.
-
-    .. todo::
-
-        * Mention what parallelization technique is used and what
-          responsibilities are placed on users to enable/facilitate this?
     """
     if Options is None:
         Options = {}
