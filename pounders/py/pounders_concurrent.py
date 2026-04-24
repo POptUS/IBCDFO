@@ -49,15 +49,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     Any parallelism/concurrency must be implemented inside ``Ffun`` rather than
     inside |pounders|.  Users who want concurrent evaluation of model-building
-    points should provide an ``Ffun`` that accepts, instead of a
-    one-dimensional array 'x', a two-dimensional array of points 'X[idx_new]'
-    such that ``np.shape(X[idx_new]) = [batch_size, n]``, where each of the
-    ``batch_size`` many rows of 'X' correspond to a row in ``X[idx_new]``. The
-    user-provided implementation of ``Ffun`` should then evaluate all
-    ``batch_size`` many points concurrently, and must return an array ``F``
-    such that ``np.shape(F) = [batch_size, m]``, and each of the ``batch_size``
-    many rows of ``F`` correspond to the evaluation of ``Ffun`` at the
-    corresponding row of ``X[idx_new]``.
+    points should provide an ``Ffun`` that accepts a batch of points
+    ``X[idx_new]`` with shape ``(batch_size, n)``, where each row is one point
+    to evaluate.  The user-provided ``Ffun`` should evaluate these
+    ``batch_size`` points with whatever degree of concurrency is available and
+    return an array with shape ``(batch_size, m)``, whose rows contain the
+    corresponding ``Ffun`` outputs in the same order as the input points.
 
     Otherwise, this implementation and its interface are identical to those of
     the standard |pounders| implementation.  Please refer to
