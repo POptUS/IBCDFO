@@ -10,16 +10,15 @@ import numpy as np
 
 def h_identity(F):
     r"""
-    :math:`\hfun` function that allows users to use |pounders| for the special
-    case that their :math:`\Ffun: \R^{\np} \to \R` is already an objective
-    function or
+    Identity :math:`\hfun` function for using |pounders| when the objective is
+    not composite; that is, when :math:`\Ffun: \R^{\np} \to \R` is scalar-valued and
 
     .. math::
 
         f(\psp) = \hfun\left(\Ffun(\psp)\right) = \Ffun(\psp).
 
-    The ``combine_identity`` function should also be passed to |pounders| when
-    using this :math:`\hfun` function.
+    When using this :math:`\hfun` function, the ``combine_identity`` function
+    should also be passed to |pounders|.
     """
     return np.squeeze(F)
 
@@ -30,7 +29,7 @@ def combine_identity(Cres, Gres, Hres):
 
 def h_neg_leastsquares(F):
     r"""
-    :math:`\hfun` function for constructing the |pounders| negative
+    :math:`\hfun` function for constructing the negative
     least-squares objective function
 
     .. math::
@@ -51,7 +50,7 @@ def combine_neg_leastsquares(Cres, Gres, Hres):
 
 def h_leastsquares(F):
     r"""
-    :math:`\hfun` function for constructing the standard |pounders|
+    :math:`\hfun` function for constructing the standard
     least-squares objective function
 
     .. math::
@@ -93,7 +92,7 @@ def combine_emittance(Cres, Gres, Hres):
 
 def h_emittance(F):
     r"""
-    :math:`\hfun` function for constructing the |pounders| emittance objective
+    :math:`\hfun` function for constructing the emittance objective
     function
 
     .. math::

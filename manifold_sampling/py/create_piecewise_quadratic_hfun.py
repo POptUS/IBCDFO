@@ -18,14 +18,10 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
     This family of :math:`h` functions is included in the package as an example
     and might not be useful for constructing practical optimization problems.
 
-    .. todo::
-
-        * Please check if the above formula is correct.
-
     :param Qs: :math:`m \times m \times l` numpy array that contains the
         :math:`Q_j \in \R^{m \times m}` parameter values.  Note that at least
         one :math:`Q_j` should be symmetric positive definite in order for the
-        associated optimization problem to be formally well-defined.  There is
+        associated optimization problem to be well-defined.  There is
         no error checking to confirm that given ``Qs`` arguments satisfy this
         requirement.
     :param zs: :math:`m \times l` numpy array that contains the :math:`\zvec_j

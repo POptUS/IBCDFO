@@ -23,13 +23,12 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
 
 def h_one_norm(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling 1-norm
+    :math:`\hfun` function for constructing the 1-norm
     objective function
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp)\right)
-                = \sum_{i = 1}^{\nd} \abs{z_i(\psp)}.
+        \hfun\left(\zvec\right) = \sum_{i = 1}^{\nd} \abs{z_i}.
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -93,13 +92,13 @@ def h_one_norm(z, H0=None):
 
 def h_pw_maximum(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     maximum objective function
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp)\right)
-                = \max \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
+                  \hfun\left(\zvec\right)
+                = \max \set{z_1, \cdots, z_{\nd}}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -135,13 +134,13 @@ def h_pw_maximum(z, H0=None):
 
 def h_pw_maximum_squared(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     maximum objective function
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp)\right)
-                = \max \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
+                  \hfun\left(\zvec\right)
+                = \max \set{z_1^2, \cdots, z_{\nd}^2}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -179,13 +178,13 @@ def h_pw_maximum_squared(z, H0=None):
 
 def h_pw_minimum(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     minimum objective function
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp)\right)
-                = \min \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
+                  \hfun\left(\zvec\right)
+                = \min \set{z_1, \cdots, z_{\nd}}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -221,13 +220,13 @@ def h_pw_minimum(z, H0=None):
 
 def h_pw_minimum_squared(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling pointwise
+    :math:`\hfun` function for constructing the pointwise
     minimum objective function
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp)\right)
-                = \min \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
+                  \hfun\left(\zvec\right)
+                = \min \set{z_1^2, \cdots, z_{\nd}^2}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -264,19 +263,18 @@ def h_pw_minimum_squared(z, H0=None):
 
 def h_quantile(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling
-    objective function determined by evaluating at each :math:`\psp` the
+    :math:`\hfun` function whose value is determined by returning at each :math:`z` the
     :math:`q^{\mathrm{th}}` quantile of
 
     .. math::
 
-        \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}.
+        \set{z_1^2, \cdots, z_{\nd}^2}.
 
-    .. todo::
+    Note that this example has hard-coded the value :math:`q=1`, which corresponds to
+    returning the minimum value of the above set. You must alter this function for other
+    quantiles by changing the value of :math:`q` to an integer between 1 and :math:`\nd`,
+    inclusive. Note this functionality is the same as provided by `h_pw_minimum_squared`.
 
-        * The value of :math:`q` is not provided as an argument and appears to
-          be a hardcoded value.  True?  Update docs to be more specific?  How
-          many subsets were used to define the quantiles?
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -317,21 +315,21 @@ def h_quantile(z, H0=None):
 
 def h_max_gamma_over_KY(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling objective
+    :math:`\hfun` function for constructing the objective
     function
 
     .. math::
 
-        f(\psp; KY_1, \cdots, KY_{11}) = \hfun\left(\zvec(\psp); KY_1, \cdots, KY_{11}\right)
-                = \max \left\{\frac{z_1(\psp)}{KY_1}, \cdots,
-                              \frac{z_{11}(\psp)}{KY_{11}}\right\},
+        f(\psp; KY_1, \cdots, KY_{11}) = \hfun\left(\zvec; KY_1, \cdots, KY_{11}\right)
+                = \max \left\{\frac{z_1}{KY_1}, \cdots,
+                              \frac{z_{11}}{KY_{11}}\right\},
 
     where :math:`\psp = (\kappa, \Delta, \zeta)` are application-specific
     parameters and the outputs
 
     .. math::
 
-        z_j(\psp) = \gamma(\kappa, \Delta, \zeta, KY_j)
+        z_j = \gamma(\kappa, \Delta, \zeta, KY_j)
 
     are computed from the application-specific model function :math:`\gamma`.
     Presently, the :math:`KY` parameters are hardcoded to the uniform grid
@@ -394,20 +392,28 @@ def h_max_gamma_over_KY(z, H0=None):
 
 def h_max_plus_quadratic_violation_penalty(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the manifold sampling objective
+    :math:`\hfun` function for constructing the objective
     function
 
     .. math::
 
-        f(\psp) = \hfun\left(\zvec(\psp)\right)
-                = \max \set{z_1(\psp), \cdots, z_{p1}(\psp)} +
-                  \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i(\psp), 0}^2
+          \hfun\left(\zvec\right)
+                = \max \set{z_1, \cdots, z_{p1}} +
+                  \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i, 0}^2
 
-    .. todo::
-        * p1 is not a parameter and appears to be hardcoded to m-1, which means
-          that the sum in the definition is unnecessary
-        * alpha is not a parameter and appears to be hardcoded to zero.  Mention
-          this in the docs?
+    where :math:`\zvec = (z_1, \cdots, z_p)` is an
+    application-specific residual or feature vector. Presently,
+    :math:`p1 = p-1` and :math:`\alpha = 0` are hardcoded, so in the current
+    implementation reduces to
+
+    .. math::
+
+          \max \left\{ z_1, \cdots, z_{p-1} \right\}.
+
+    The final component :math:`z_p` is kept to
+    reflect the original max-plus-violation-penalty structure, even though its
+    contribution is currently zeroed by the hardcoded choice
+    :math:`\alpha = 0`.
     """
     # Behavior:
     # - If H0 is None: returns (h, grads, Hashes)

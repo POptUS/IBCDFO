@@ -184,4 +184,6 @@ jobs:
             ${{ env.CLONE_PATH }}/${{ env.POUNDERS_M_COV_XML_FILE }},
             ${{ env.CLONE_PATH }}/${{ env.MSAMP_M_COV_XML_FILE }},
             ${{ env.CLONE_PATH }}/${{ env.PY_COV_XML_FILE }}
+          disable_search: true
+          verbose: true
           fail_ci_if_error: true
