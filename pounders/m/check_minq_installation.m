@@ -64,6 +64,10 @@ function check_minq_installation(minq_version)
 
     % ----- CONFIRM DESIRED VERSION
     if git_sha ~= VALID_MINQ_SHA
-        error(sprintf("Please set MINQ clone to commit %s", VALID_MINQ_SHA));
+        msg = sprintf(['Please set MINQ clone to commit %s\n' ...
+                       'See User Guide (https://ibcdfo.readthedocs.io) ' ...
+                       'for more information and instructions.'], ...
+                       VALID_MINQ_SHA);
+        error(msg);
     end
 end

@@ -43,6 +43,9 @@ jobs:
           # Failing with a possible issue outside IBCDFO (Issue #157)
           - os: macos-14
             matlab-release: "R2023b"
+          # Cannot load MATLAB R2026a (Issue #278)
+          - os: macos-26-intel
+            matlab-release: "latest"
     runs-on: ${{ matrix.os }}
     needs: load_minq_sha
     env:
@@ -65,14 +68,14 @@ jobs:
         repository: POptUS/BenDFO
         path: BenDFO
     - name: Set up MATLAB ${{ matrix.matlab-release }}
-      uses: matlab-actions/setup-matlab@v2
+      uses: matlab-actions/setup-matlab@v3
       with:
         release: ${{ matrix.matlab-release }}
         products: Optimization_Toolbox
 
     # -- Test Execution Step
     - name: Test POUNDERS
-      uses: matlab-actions/run-command@v2
+      uses: matlab-actions/run-command@v3
       with:
         command: >
             addpath("${{ env.MINQ5_M_PATH }}"),
@@ -84,7 +87,7 @@ jobs:
             assertSuccess(results);
 
     - name: Test Manifold Sampling
-      uses: matlab-actions/run-command@v2
+      uses: matlab-actions/run-command@v3
       with:
         command: >
             addpath("${{ env.BENDFO_M_PATH }}"),

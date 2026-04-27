@@ -118,7 +118,7 @@ jobs:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v2
+        uses: matlab-actions/setup-matlab@v3
         with:
           release: "latest"
           products: Optimization_Toolbox
@@ -126,7 +126,7 @@ jobs:
       # -- Test Execution Step
       # This requires R2023b or higher
       - name: Generate code coverage report for MATLAB code
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@v3
         with:
           command: >
               addpath("${{ env.MINQ5_M_PATH }}"),
