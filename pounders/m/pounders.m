@@ -9,17 +9,17 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %     :math:`1 \times \nd` vector for given :math:`\psp`
 % :param X_0:     [dbl] :math:`1 \times \np` vector that specifies the initial
 %     point
-% :param n:       [int] Dimension (number of continuous variables)
+% :param n:       [int] Dimension (number of continuous, real-valued input variables)
 % :param nf_max:  [int] Maximum number of function evaluations (:math:`> \np+1`)
 % :param g_tol:   [dbl] Tolerance for the 2-norm of the model gradient
 % :param delta_0: [dbl] Positive initial trust region radius
-% :param m:       [int] Number of components returned from ``Ffun``
+% :param m:       [int] Dimension of output of ``Ffun`` (number of component functions)
 % :param Low:     [dbl] :math:`1 \times \np` vector of lower bounds
 % :param Upp:     [dbl] :math:`1 \times \np` vector of upper bounds
-% :param Prior:   ``struct`` of past evaluations of ``Ffun``.  Do not provide or
-%     set to an empty ``struct`` to run optimization assuming no past
-%     evaluations.  **Otherwise arguments must be provided for all dictionary
-%     entries?**
+% :param Prior:   ``struct`` of past evaluations of ``Ffun``.  If no past evaluations,
+%     then either do not set Prior, or else provide an empty struct.
+%     Otherwise, arguments must be provided for all dictionary
+%     entries:
 %
 %       * **nfs** - Number of past function evaluations
 %       * **X_init** - :math:`\mathrm{nfs} \times \np` matrix of points
@@ -28,10 +28,11 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %         :math:`\Ffun(\psp_k)` obtained with ``Ffun``
 %       * **xk_in** -  One-based index into ``X_init`` and ``F_init`` that
 %         corresponds to the point and value to use as initial point for
-%         optimization.  **IS X_0 IGNORED IN THIS CASE?**
+%         optimization. Note that if nonempty **Prior** is specified, then
+%         **X_0** from previous argument will be ignored.
 %
-% :param Options: ``struct`` of method options.  Do not provide or set to an
-%     empty `struct` to use default values.
+% :param Options: ``struct`` of method options. To use default values, either do not
+%     provide or else set an empty `struct`.
 %
 %       * **printf** (default is 0)
 %
@@ -53,7 +54,7 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %       * **np_max** -  Maximum number of interpolation points (:math:`>\np+1`)
 %         (default is :math:`2\np+1`)
 %       * **Par** - :math:`1 \times 5` vector for ``formquad``
-%         (default is **???**)
+%         (default is :math:`[\sqrt{n},\max\{\sqrt{n},10\},10^{-3},10^{-3},0]`)
 %
 % :return:
 %      * **X**     [dbl] :math:`\mathrm{nf\_max+nfs}\times \np` matrix containing
@@ -62,9 +63,9 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %      * **F**     [dbl] :math:`\mathrm{nf\_max+nfs}\times \nd` matrix containing
 %        the function values at ``X`` with matching ordering
 %      * **hF**    [dbl] :math:`\mathrm{nf\_max+nfs}\times 1` matrix containing
-%        composed values ``hfun(Ffun)`` for evaluated points in ``X``
+%        composed values ``hfun(Ffun(x))`` for evaluated points ``x`` in ``X``
 %      * **flag**  [dbl] Termination criteria flag (See general |pounders| documentation)
-%      * **xk_in** [int] One-based index of point in ``X`` representing approximate minimizer
+%      * **xk_in** [int] One-based index of point in ``X`` representing final incumbent
 
 % Casting to integers here prevents rare issues with non-integer arguments for
 % reshape on some GH Action instances.  See issue 237 for more details.
@@ -162,7 +163,7 @@ printf = Options.printf;
 delta_inact = Options.delta_inact;
 
 if spsolver == 2 % Arnold Neumaier's minq5
-    check_minq_installation(5);
+%    check_minq_installation(5);
 elseif spsolver == 3 % Arnold Neumaier's minq8
     check_minq_installation(8);
 end

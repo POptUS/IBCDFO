@@ -14,7 +14,7 @@ subject to
 .. math::
     Low_j \leq \pspcomp{j} \le Upp_j, j=1,...,\np
 
-* where :math:`\Ffun` is a vector-valued, user-provided blackbox ("zeroth-order") function,
+* where :math:`\Ffun` is a vector-valued, user-provided blackbox ("zeroth-order") function from :math:`\R^{\np}` to :math:`\R^{\nd}`,
 * :math:`\hfun` is a smooth function mapping from :math:`\R^{\nd}` to :math:`\R`,
 * :math:`Low` is a user-provided boundary constraint that permits values of
   :math:`-\infty` to specify that the problem is unconstrained for the
@@ -38,44 +38,45 @@ subject to
 As such, the current implementation of |pounders| generalizes the class of
 functions to which |pounders| can be applied.
 
-|pounders| will not evaluate :math:`\Ffun` outside of the provided bounds, but it is
+|pounders| will never attempt to evaluate :math:`\Ffun` outside of the provided bounds, but it is
 possible to take advantage of function values at infeasible :math:`\psp` if
-these are passed initially through ``(X_init,F_init)``.  In each iteration, the
-algorithm forms a set of quadratic models interpolating the functions in
-:math:`\Ffun` and minimizes an associated scalar-valued model within an
+these are passed initially through the ``(X_init,F_init)`` entries of ``Prior``.  In each iteration,
+|pounders| forms a set of quadratic models interpolating each of the :math:`\np` functions in
+:math:`\Ffun` and minimizes a derived scalar-valued model of :math:`f` within an
 infinity-norm trust region.
 
 If a user wishes to employ an outer function :math:`\hfun` other than a
 sum-of-squares, then the user must specify a custom outer-function :math:`\hfun`
-that maps the outputs of :math:`\Ffun` to a scalar value
-:math:`\hfun(\Ffun(\psp))` for minimization.
+that maps vectors in :math:`\R^{\nd}` to a scalar value.
 In that case, users must also provide a "combine
 models" function that |pounders| uses to map the linear and quadratic terms from
-the models of :math:`\Ffun` into a single quadratic model.
+the quadratic models of :math:`\Ffun` into a single quadratic model.
 
 For more detailed information please refer to :cite:t:`POUNDERS_TAO_2017`.  A
 brief description can also be found in :cite:t:`UNEDF0_2010`.
+
+We provide two implementations of |pounders|, namely, `pounders` and `pounders_concurrent`.
 
 Programmatic Interface
 ----------------------
 Status Code
 ^^^^^^^^^^^
-All |pounders| implementations return a termination criteria flag.  The
-interpretation of the value of the flag is identical across implementations
-and possible values are
+Both |pounders| implementations return a termination criteria flag.  The
+interpretation of the value of the flag is identical across both implementations and is defined by:
 
 * 0 - normal termination because norm of :math:`\gradf(\psp)` at final
   :math:`\psp` satisfied user-provided gradient tolerance,
-* > 0 - exceeded the maximum number evals and the value is the 2-norm of
+* > 0 - the budget specified in `nf_max` was reached; the value of the flag is the 2-norm of
   :math:`\gradf` at final :math:`\psp`
 * -1 - input was fatally incorrect (error message shown)
 * -2 - a valid model produced ``X[nf] == X[xk_in]`` or ``(mdec == 0, hF[nf] == hF[xk_in])``
+  (this indicates that the TRSP solver failed to find decrease in the model)
 * -3 - a ``NaN`` was encountered
-* -4 - error in TRSP Solver
-* -5 - unable to get model improvement with current parameters
-* -6 - delta has reached delta_min with a valid model
+* -4 - error in trust-region subproblem solver
+* -5 - an attempt at model improvement failed
+* -6 - the trust-region radius `delta` has shrunk to`delta_min`, and the model is valid
 
-The programmatic interface is generally maintained identical between all
+The programmatic interface is generally maintained identical between both
 implementations.  Nevertheless, we provide the interface for each implementation
 to provide language-specific descriptions.
 
@@ -103,13 +104,13 @@ for the |matlab| version of these functions, which are located in
 
 Parameterized :math:`\hfun` Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-|pounders| specifies parameterized :math:`\hfun` functions, which it can use
+|pounders| permits parameterized :math:`\hfun` functions, which it can use
 only once users have chosen a single set of parameter values for formulating a
-specific :math:`\hfun` function and, therefore, a single related problem.  The
-following routines can be used to create a single ``hfun`` and ``combinemodels``
-matched pair for a single set of desired parameter values.  While these routines
-are presented through their integration into the Python package, the
-documentation is valid for the |matlab| version of these routines, which are
+specific :math:`\hfun` function and, therefore, a single related problem.  As an example, the
+following routine can be used to create a single ``hfun`` and ``combinemodels``
+matched pair for a single set of desired parameter values.  While this routine
+is presented through its integration into the Python package, the
+documentation is valid for the |matlab| version of these routines, which is
 located in ``pounders/m/general_h_funs``.
 
 .. autofunction:: ibcdfo.pounders.create_squared_diff_from_mean_functions

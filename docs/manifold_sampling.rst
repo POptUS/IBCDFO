@@ -1,46 +1,68 @@
 Manifold Sampling
 =================
 
-.. todo::
-
-    * Does this method assume certain characteristics of :math:`\Ffun`?
-    * The notation here is in terms of composing :math:`\hfun` and :math:`\Ffun`,
-      which matches the notation in |pounders|.  However, manifold sampling
-      inline docs mention that hfuns work with :math:`\zvec`.  Reconcile
-      notation.
-    * I suspect that a general discussion of manifolds and h functions would be
-      useful here.  An upfront discussion might also allow for significant
-      simplification of the inline documentation of ``run_MSP`` and the ``h_*``
-      functions.
-
 General Description
 -------------------
-The Manifold Sampling method solves the problem
+Manifold Sampling is a derivative-free trust-region method for solving composite
+nonsmooth optimization problems of the form
 
 .. math::
     \min_{\psp \in \R^{\np}} \hfun(\Ffun(\psp))
 
-where :math:`\Ffun` is a blackbox function mapping from :math:`\R^{\np}` to
-:math:`\R^{\nd}`, and :math:`\hfun` is a nonsmooth function mapping from
-:math:`\R^{\nd}` to :math:`\R`.
+where:
 
-More details can be found in :cite:t:`MSP_2024`, :cite:t:`MSP_2021`,
-:cite:t:`MSP_2018`, and :cite:t:`MSP_2016`.
+* :math:`\Ffun:\R^{\np} \rightarrow \R^{\nd}` is a black-box vector-valued
+  function (e.g., a simulation output or a vector of residuals), and
+* :math:`\hfun:\R^{\nd} \rightarrow \R` is a nonsmooth function, expressible
+  as a continuous selection. Examples of continuous selections include
+  piecewise linear functions, piecewise quadratic functions or functions formed from max, min
+  or absolute value operations.
+
+In the programmatic interface, the input to ``hfun`` is often denoted
+:math:`\zvec`, representing the intermediate vector
+:math:`\zvec = \Ffun(\psp)`.
+
+Analyses assume that :math:`\Ffun` is continuous and locally sufficiently smooth
+so that accurate trust-region surrogate models can be constructed. However,
+in practice, these assumptions do not need to be explicitly checked and
+derivatives of :math:`\Ffun` certainly need not be available.
+
+The composite structure :math:`\hfun(\Ffun(\psp))` arises naturally in robust regression, minimax design,
+simulation-based calibration, and optimization with embedded nonsmooth merit
+functions.
+
+Manifold Sampling builds local surrogate models for components of :math:`\Ffun` and
+exploits the piecewise structure of :math:`\hfun` by identifying locally active
+manifolds, that is, smooth pieces :math:`\hfun` that are
+active near the current incumbent. At each iteration, a trust-region subproblem is
+solved on a model derived in part from the currently active manifolds, producing a step that
+balances local improvement and model accuracy.
+
+Unlike generic nonsmooth methods, manifold sampling deliberately leverages the composite
+structure :math:`\hfun(\Ffun(\psp))`, which can significantly improve practical
+performance when evaluations of :math:`\Ffun` are expensive.
+
+For algorithmic details, see :cite:t:`MSP_2016`, :cite:t:`MSP_2018`,
+:cite:t:`MSP_2021`, and :cite:t:`MSP_2024`.
 
 Programmatic Interface
 ----------------------
 Status Code
 ^^^^^^^^^^^
-All Manifold Sampling implementations return a termination criteria flag.  The
+All Manifold Sampling implementations return a termination criteria flag. The
 interpretation of the value of the flag is identical across implementations and
 possible values are
 
-    * norm of final model gradient if optimization was successful
-    * -1 - Terminated in error
-    * 0 - ``nf_max`` function evaluations were performed
+* > 0 - successful termination; the value of the flag is the final
+  stationarity measure (:math:`\chi_k`)
+* 0 - the budget of ``nf_max`` function evaluations was exhausted.
+* -1 - model construction failed (an empty or invalid local model
+  was constructed)
+* -2 - trust-region subproblem failed, likely due to an unbounded
+  or poorly scaled affine-envelope subproblem
 
-The programmatic interface is generally maintained identical between all
-implementations.  Nevertheless, we provide the interface for each implementation
+The programmatic interface is generally maintained identically across all
+implementations. Nevertheless, we provide the interface for each implementation
 to provide language-specific descriptions.
 
 Python
@@ -72,9 +94,9 @@ as well.  In |matlab| implementations, the ``H0`` argument is also optional.
 
 Parameterized :math:`\hfun` Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Manifold Sampling specifies parameterized :math:`\hfun` functions, which it can
-only use once users have chosen a single set of parameter values for formulating
-a specific :math:`\hfun` function and, therefore, a single related problem.  The
+Manifold Sampling permits parameterized :math:`\hfun` functions, which it can
+use only once users have chosen a single set of parameter values for formulating
+a specific :math:`\hfun` function and, therefore, a single related problem.  As an example, the
 following routines can be used to create a single ``hfun`` for a single set of
 desired parameter values.  While these routines are presented through their
 integration into the Python package, the documentation is valid for the |matlab|
