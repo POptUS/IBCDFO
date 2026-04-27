@@ -1,6 +1,3 @@
-**NOTE: The `main` branch is currently in a state of transition (Issue #173)
-and should not presently be used.  Instead, please consider using `main-v0`**
-
 # IBCDFO
 
 Interpolation-Based Composite Derivative-Free Optimization.  Part of [POptUS: Practical Optimization Using Structure](https://github.com/POptUS).
@@ -67,10 +64,12 @@ Developer Guide.
 ## Cite IBCDFO
 
 ```
-  @misc{ibcdfo,
-    author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
-    title  = {Interpolation-Based Composite Derivative-Free Optimization},
-    url    = {https://github.com/POptUS/IBCDFO},
-    year   = {2024},
-  }
+@techreport{ibcdfo,
+  author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
+  title  = {Interpolation-Based Composite Derivative-Free Optimization},
+  url    = {https://github.com/POptUS/IBCDFO},
+  number = {Version 0.1.0},
+  year   = {2026},
+  doi    = {10.11578/dc.20240627.2}
+}
 ```
