@@ -38,11 +38,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26, macos-26-intel]
-        matlab-release: ["R2022a", "latest"]
+        matlab-release: ["R2023b", "latest"]
         exclude:
-          # Failing with a possible issue outside IBCDFO (Issue #157)
-          - os: macos-14
-            matlab-release: "R2023b"
           # Cannot load MATLAB R2026a (Issue #278)
           - os: macos-26-intel
             matlab-release: "latest"
