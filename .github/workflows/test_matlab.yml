@@ -43,6 +43,9 @@ jobs:
           # Failing with a possible issue outside IBCDFO (Issue #157)
           - os: macos-14
             matlab-release: "R2023b"
+          # Cannot load MATLAB R2026a (Issue #278)
+          - os: macos-26-intel
+            matlab-release: "R2026a"
     runs-on: ${{ matrix.os }}
     needs: load_minq_sha
     env:
