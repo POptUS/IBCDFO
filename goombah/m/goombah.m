@@ -2,7 +2,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, s
     % Execute a |goombah| run on the optimization problem specified by the given
     % arguments.
     %
-    %  :parm hfun:     [func handle] Evaluates :math:`\hfun`, returning the
+    %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
     %       scalar function value and :math:`k \times \nd` subgradients for all
     %       :math:`k` limiting gradients at the point given.
     %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
