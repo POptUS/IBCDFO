@@ -57,6 +57,7 @@ Cite |ibcdfo|
    get_started
    pounders
    manifold_sampling
+   goombah
    bibliography
 
 .. toctree::

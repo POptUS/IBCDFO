@@ -1,29 +1,24 @@
-% This code solves the problem
-%     minimize h(F(x))
-% where x is an [n by 1] vector, F is a blackbox function mapping from R^n to
-% R^p, and h is a nonsmooth function mapping from R^p to R.
-%
-%
-% Inputs:
-%  hfun:    [func handle] Evaluates h, returning the [scalar] function
-%                         value and [k x m] subgradients for all k limiting
-%                         gradients at the point given.
-%  Ffun:    [func handle] Evaluates F, the black box simulation, returning
-%                         a [1 x m] vector.
-%  nf_max:   [int]         Maximum number of function evaluations.
-%  x0:      [1 x n dbl]   Starting point.
-%  L:       [1 x n dbl]   Lower bounds.
-%  U:       [1 x n dbl]   Upper bounds.
-%  GAMS_options:
-%  subprob_switch:
-%
-% Outputs:
-%   X:      [nf_max x n]   Points evaluated
-%   F:      [nf_max x p]   Their simulation values
-%   h:      [nf_max x 1]   The values h(F(x))
-%   xkin:   [int]         Current trust region center
-
 function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, subprob_switch)
+    % Execute a |goombah| run on the optimization problem specified by the given
+    % arguments.
+    %
+    %  :parm hfun:     [func handle] Evaluates :math:`\hfun`, returning the
+    %       scalar function value and :math:`k \times \nd` subgradients for all
+    %       :math:`k` limiting gradients at the point given.
+    %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
+    %       simulation, returning a :math:`1 \times \nd` vector.
+    %  :param nf_max:  [int] Maximum number of function evaluations.
+    %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
+    %  :param L:       [:math:`1 \times \np` dbl] Lower bounds.
+    %  :param U:       [:math:`1 \times \np` dbl] Upper bounds.
+    %  :param GAMS_options:
+    %  :param subprob_switch:
+    %
+    %  :return:
+    %       * **X**    [:math:`\mathrm{nf\_max} \times \np`] Points evaluated
+    %       * **F**    [:math:`\mathrm{nf\_max} \times \nd`] Their simulation values
+    %       * **h**    [:math:`\mathrm{nf\_max} \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
+    %       * **xkin** [int] Current trust region center
 
     % Deduce p from evaluating Ffun at x0
     try
