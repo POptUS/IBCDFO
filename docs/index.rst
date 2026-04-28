@@ -40,11 +40,13 @@ Cite |ibcdfo|
 
 .. code-block:: console
 
-  @misc{ibcdfo,
+  @techreport{ibcdfo,
     author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
     title  = {Interpolation-Based Composite Derivative-Free Optimization},
     url    = {https://github.com/POptUS/IBCDFO},
-    year   = {2024},
+    number = {Version 0.1.0},
+    year   = {2026},
+    doi    = {10.11578/dc.20240627.2}
   }
 
 .. toctree::
