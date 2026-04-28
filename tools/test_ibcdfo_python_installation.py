@@ -65,8 +65,10 @@ def main():
     print("Name: {}".format(pkg.metadata["Name"]))
     print("Version: {}".format(pkg.metadata["Version"]))
     print("Summary: {}".format(pkg.metadata["Summary"]))
-    print("Homepage: {}".format(pkg.metadata["Home-page"]))
-    print("License: {}".format(pkg.metadata["License"]))
+    print("Package webpages:")
+    for url in pkg.metadata.get_all("Project-URL"):
+        print(f"\t{url}")
+    print("License: {}".format(pkg.metadata["License-Expression"]))
     print("Python requirements: {}".format(pkg.metadata["Requires-Python"]))
     print("Package dependencies:")
     for dependence in pkg.metadata.get_all("Requires-Dist"):
