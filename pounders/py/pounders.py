@@ -8,6 +8,7 @@ from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 from .solve_trsp import solve_trsp
 
+
 def _default_model_par_values(n):
     par = np.zeros(5)
     par[0] = np.sqrt(n)
@@ -134,8 +135,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
     else:
-        from .general_h_funs import h_leastsquares as hfun
         from .general_h_funs import combine_leastsquares as combinemodels
+        from .general_h_funs import h_leastsquares as hfun
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
