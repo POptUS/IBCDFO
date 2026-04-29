@@ -1,5 +1,3 @@
-import sys
-
 import numpy as np
 
 from .bmpts import bmpts

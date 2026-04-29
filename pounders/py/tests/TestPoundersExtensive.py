@@ -7,12 +7,14 @@ import unittest
 
 import ibcdfo
 import numpy as np
+
 # import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
 
 try:
     from mpi4py import MPI
+
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     commsize = comm.Get_size()
@@ -20,6 +22,7 @@ except ImportError:
     comm = None
     rank = 0
     commsize = 1
+
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
