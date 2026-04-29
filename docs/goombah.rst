@@ -42,10 +42,6 @@ allows GOOMBAH to retain the convergence properties of manifold sampling
 while taking more ambitious steps exploiting :math:`\hfun`
 whenever they are demonstrably useful.
 
-Two Matlab variants are provided. ``goombah`` includes recourse to the
-manifold-sampling procedure when needed, while ``goombah_wo_msp`` omits this
-fallback and instead proceeds using only GOOMBAH logic.
-
 The Matlab implementation includes calls to GAMS for solving GOOMBAH
 subproblems for particular examples of :math:`\hfun`. 
 However, performance in the examples may depend on licensed
