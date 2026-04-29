@@ -1,6 +1,5 @@
 function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, subprob_switch)
-    % Execute a |goombah| run on the optimization problem specified by the given
-    % arguments.
+    % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
     %       scalar function value and :math:`k \times \nd` subgradients for all
