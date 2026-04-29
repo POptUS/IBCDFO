@@ -13,7 +13,7 @@ possibly nonsmooth function mapping from :math:`\R^{\nd}` to :math:`\R`.
 
 GOOMBAH stands for *Glassbox Optimization Of a Model of a Blackbox in a
 Hypersphere*. At each iteration, GOOMBAH constructs a local model
-:math:`\Mfun` of the blackbox mapping :math:`\Ffun` and attempts to solve the
+:math:`\Mfun` of the blackbox mapping :math:`\Ffun` and approximately solves the
 trust-region subproblem
 
 .. math::
@@ -34,18 +34,22 @@ individual solves can take minutes or hours. Thus, users should ensure that
 the time spent solving the trust-region subproblem is commensurate with the
 cost of evaluating :math:`\Ffun`.
 
-To preserve robustness, GOOMBAH may revert to a rigorous manifold-sampling
+To preserve robustness, GOOMBAH will revert to a manifold-sampling
 iteration whenever the proposed trust-region subproblem solution does not
-produce sufficient objective decrease. This fallback allows GOOMBAH to retain
-the convergence properties of manifold sampling while still exploiting more
-ambitious model-based steps when they are useful.
+produce sufficient objective decrease. This fallback to manifold sampling,
+a method that iteratively only identifies a local descent step,
+allows GOOMBAH to retain the convergence properties of manifold sampling 
+while exploiting more ambitious steps exploiting :math:`\hfun`
+whenever they are demonstrably useful.
 
 Two Matlab variants are provided. ``goombah`` includes recourse to the
 manifold-sampling procedure when needed, while ``goombah_wo_msp`` omits this
 fallback and instead proceeds using only GOOMBAH logic.
 
 The Matlab implementation includes calls to GAMS for solving GOOMBAH
-subproblems. However, performance in the examples may depend on licensed
+subproblems for particular examples of :math:`\hfun`. 
+
+However, performance in the examples may depend on licensed
 optimization software, such as BARON, for solving these trust-region
 subproblems effectively.
 
