@@ -63,9 +63,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
         * ``F`` -- array with rows :math:`\Ffun(X[i])`
         * ``h`` -- array with :math:`h[i] = \hfun(\Ffun(X[i]))`
         * ``xkin`` -- zero-based index in ``X`` of the final trust-region center
-        * ``flag`` -- termination code
-
-    See User Guide for interpretation of flag values.
+        * ``flag`` -- termination code (See general documentation)
     """
     # Some other values
     #  n:       [int]     Dimension of the domain of F (deduced from x0)
