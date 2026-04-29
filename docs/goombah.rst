@@ -36,10 +36,10 @@ cost of evaluating :math:`\Ffun`.
 
 To preserve robustness, GOOMBAH reverts to a manifold-sampling
 iteration whenever the proposed trust-region subproblem solution does not
-produce sufficient objective decrease. This fallback to manifold sampling,
-which identifies only a local descent step,
+produce sufficient objective decrease. This fallback to manifold sampling
+(which identifies only a local descent step)
 allows GOOMBAH to retain the convergence properties of manifold sampling 
-while exploiting more ambitious steps exploiting :math:`\hfun`
+while taking more ambitious steps exploiting :math:`\hfun`
 whenever they are demonstrably useful.
 
 Two Matlab variants are provided. ``goombah`` includes recourse to the
