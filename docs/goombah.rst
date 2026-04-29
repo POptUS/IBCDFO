@@ -34,10 +34,10 @@ individual solves can take minutes or hours. Thus, users should ensure that
 the time spent solving the trust-region subproblem is commensurate with the
 cost of evaluating :math:`\Ffun`.
 
-To preserve robustness, GOOMBAH will revert to a manifold-sampling
+To preserve robustness, GOOMBAH reverts to a manifold-sampling
 iteration whenever the proposed trust-region subproblem solution does not
 produce sufficient objective decrease. This fallback to manifold sampling,
-a method that iteratively only identifies a local descent step,
+which identifies only a local descent step,
 allows GOOMBAH to retain the convergence properties of manifold sampling 
 while exploiting more ambitious steps exploiting :math:`\hfun`
 whenever they are demonstrably useful.
@@ -48,7 +48,6 @@ fallback and instead proceeds using only GOOMBAH logic.
 
 The Matlab implementation includes calls to GAMS for solving GOOMBAH
 subproblems for particular examples of :math:`\hfun`. 
-
 However, performance in the examples may depend on licensed
 optimization software, such as BARON, for solving these trust-region
 subproblems effectively.
