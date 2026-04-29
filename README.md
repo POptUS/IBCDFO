@@ -26,7 +26,7 @@ All code included in IBCDFO is open source, with the particular form of license 
 subdirectories.  If such a subdirectory does not contain a LICENSE file, then it is automatically licensed
 as described in the otherwise encompassing IBCDFO [LICENSE](/LICENSE).
 
-Copyright (c) 2023, The Regents of the University of California,
+Copyright (c) 2023-2026, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory and UChicago Argonne
 LLC through Argonne National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy).  All rights reserved.
