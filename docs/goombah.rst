@@ -38,12 +38,12 @@ To preserve robustness, GOOMBAH reverts to a manifold-sampling
 iteration whenever the proposed trust-region subproblem solution does not
 produce sufficient objective decrease. This fallback to manifold sampling
 (which identifies only a local descent step)
-allows GOOMBAH to retain the convergence properties of manifold sampling 
+allows GOOMBAH to retain the convergence properties of manifold sampling
 while taking more ambitious steps exploiting :math:`\hfun`
 whenever they are demonstrably useful.
 
 The Matlab implementation includes calls to GAMS for solving GOOMBAH
-subproblems for particular examples of :math:`\hfun`. 
+subproblems for particular examples of :math:`\hfun`.
 However, performance in the examples may depend on licensed
 optimization software, such as BARON, for solving these trust-region
 subproblems effectively.
