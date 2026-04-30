@@ -1,6 +1,5 @@
-Manifold Sampling
-=================
-
+|manifold_sampling|
+===================
 General Description
 -------------------
 Manifold Sampling is a derivative-free trust-region method for solving composite

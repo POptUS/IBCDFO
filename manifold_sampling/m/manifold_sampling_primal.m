@@ -1,5 +1,5 @@
 function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch)
-% Run manifold sampling on the composite nonsmooth optimization problem.
+% Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
 % :param hfun: Handle to function that, given a :math:`\np \times 1` point
 %     :math:`\zvec`, returns

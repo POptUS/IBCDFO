@@ -10,7 +10,7 @@ _ROOT_PATH = Path(__file__).parents[1].resolve()
 # In accord with version specifications for the contents of this repository, we
 # link the documentation's version to the Python package's version.
 project = 'IBCDFO'
-copyright = "2023, The Regents of the University of California, " \
+copyright = "2023-2026, The Regents of the University of California, " \
     "through Lawrence Berkeley National Laboratory and UChicago Argonne " \
     "LLC through Argonne National Laboratory (subject to receipt of any " \
     "required approvals from the U.S. Dept. of Energy).  All rights reserved"

@@ -60,7 +60,7 @@ class TestPounders(unittest.TestCase):
         def vecFun(x):
             """
             Input:
-                x is a numpy array (column / row vector)
+                x is a NumPy array (column / row vector)
             Output:
                 x + x^2 as a row vector
             """
