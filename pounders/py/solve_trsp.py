@@ -12,11 +12,7 @@ def _get_minqsw():
     required_minq_SHA, minq_installation = get_minq_installation()
 
     if not minq_installation["is_valid"]:
-        msg = (
-            f"Please set MINQ clone to git commit {required_minq_SHA}.\n"
-            "See User Guide (https://ibcdfo.readthedocs.io) for more "
-            "information and instructions."
-        )
+        msg = f"Please set MINQ clone to git commit {required_minq_SHA}.\nSee User Guide (https://ibcdfo.readthedocs.io) for more information and instructions."
         sys.exit(msg)
 
     from minqsw import minqsw
