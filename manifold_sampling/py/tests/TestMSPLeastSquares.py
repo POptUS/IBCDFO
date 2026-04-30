@@ -1,12 +1,11 @@
-import ibcdfo
 import unittest
 
+import ibcdfo
 import numpy as np
 
 # BenDFO
 from calfun import calfun
 from dfoxs import dfoxs
-
 from ibcdfo.manifold_sampling.tests.general_smooth_h_funs import h_leastsquares
 
 

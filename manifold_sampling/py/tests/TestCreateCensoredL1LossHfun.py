@@ -5,7 +5,6 @@ Unit test of create_censored_L1_loss_hfun()
 import unittest
 
 import numpy as np
-
 from ibcdfo.manifold_sampling import create_censored_L1_loss_hfun
 
 

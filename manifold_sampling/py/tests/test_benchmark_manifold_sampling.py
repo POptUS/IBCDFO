@@ -2,12 +2,12 @@
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 import os
 
+import ibcdfo
 import numpy as np
 import scipy as sp
 import scipy.io as sio
 from calfun import calfun
 from dfoxs import dfoxs
-import ibcdfo
 
 if not os.path.exists("msp_benchmark_results"):
     os.makedirs("msp_benchmark_results")

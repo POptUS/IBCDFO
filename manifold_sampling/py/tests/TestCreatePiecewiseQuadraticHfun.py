@@ -20,7 +20,6 @@ related code.
 import unittest
 
 import numpy as np
-
 from ibcdfo.manifold_sampling import create_piecewise_quadratic_hfun
 
 
