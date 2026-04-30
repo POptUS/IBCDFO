@@ -63,7 +63,7 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
         self.assertTrue(np.array_equal(grads_H0, grads))
 
     def testErrors(self):
-        # C & D must be numpy arrays ...
+        # C & D must be NumPy arrays ...
         bad_all = [None, "bad", 1.1, [1.1], (1.1,), {1.1}, [1.1, 2.2], (1.1, 2.2), {1.1, 2.2}]
         for bad in bad_all:
             with self.assertRaises(TypeError):
@@ -121,7 +121,7 @@ class TestCreateCensoredL1LossHfun(unittest.TestCase):
     def testBadZArguments(self):
         M = len(self.__C)
 
-        # z must be numpy array
+        # z must be NumPy array
         bad_all = [None, "bad", 1.1, (1.1,), {1.1}, [1.1, 2.2], (1.1, 2.2), {1.1, 2.2}]
         for bad in bad_all:
             with self.assertRaises(AssertionError):
