@@ -26,10 +26,6 @@ except ImportError:
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        commsize = comm.Get_size()
-
         if not os.path.exists("benchmark_results"):
             os.makedirs("benchmark_results")
 
