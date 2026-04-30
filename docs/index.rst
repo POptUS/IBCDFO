@@ -7,7 +7,7 @@
 This documentation provides information for using the set of Interpolation-Based
 optimization methods for Composite Derivative-Free Optimization, which are
 collectively referred to as |ibcdfo| and are part of POptUS_: Practical
-Optimization Using Structure. IBCDFO is collection of interpolation-based
+Optimization Using Structure. IBCDFO is a collection of interpolation-based
 methods for solving structured, composite derivative-free optimization problems.
 
 All code included in |ibcdfo| is open source, with the particular form of
