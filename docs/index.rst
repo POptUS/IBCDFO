@@ -4,13 +4,14 @@
 .. _license: https://github.com/poptus/IBCDFO/blob/main/LICENSE
 .. _Issue: https://github.com/POptUS/IBCDFO/issues
 
-This document provides information for using the set of Interpolation-Based
+This documentation provides information for using the set of Interpolation-Based
 optimization methods for Composite Derivative-Free Optimization, which are
 collectively referred to as |ibcdfo| and are part of POptUS_: Practical
-Optimization Using Structure.
+Optimization Using Structure. IBCDFO is collection of interpolation-based
+methods for solving structured, composite derivative-free optimization problems.
 
 All code included in |ibcdfo| is open source, with the particular form of
-license contained in the top-level subdirectories.  If such a subdirectory does
+license contained in the top-level subdirectories. If such a subdirectory does
 not contain a LICENSE file, then it is automatically licensed as described in
 the otherwise encompassing IBCDFO license_.
 
