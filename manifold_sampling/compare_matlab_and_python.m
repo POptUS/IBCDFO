@@ -28,7 +28,7 @@ countpy = 0;
 for row = rows
     for col = cols
         countpy = countpy + 1';
-        P{countpy} = P1.(['MSP_' int2str(row) '_' int2str(col-1)]);
+        P{countpy} = P1.(['MSP_' int2str(row) '_' int2str(col - 1)]);
     end
 end
 
