@@ -11,22 +11,21 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
 
     .. math::
 
-        f(\psp; Q_1, \cdots, Q_l, \zvec_1, \cdots, \zvec_l, c_1, \cdots, c_l)
-            & = \hfun\left(\zvec(\psp); Q_1, \cdots, Q_l, \zvec_1, \cdots, \zvec_l, c_1, \cdots, c_l\right)\\
-            & = \max_{j\in\set{1, \cdots, l}}\set{\norm{\zvec(\psp) - \zvec_j}^2_{Q_j} + c_j}.
+        \hfun\left(\zvec; Q_1, \cdots, Q_l, \zvec_1, \cdots, \zvec_l, c_1, \cdots, c_l\right)
+            = \max_{j\in\set{1, \cdots, l}}\set{\norm{\zvec - \zvec_j}^2_{Q_j} + c_j}.
 
     This family of :math:`h` functions is included in the package as an example
     and might not be useful for constructing practical optimization problems.
 
-    :param Qs: :math:`m \times m \times l` numpy array that contains the
+    :param Qs: :math:`m \times m \times l` NumPy array that contains the
         :math:`Q_j \in \R^{m \times m}` parameter values.  Note that at least
         one :math:`Q_j` should be symmetric positive definite in order for the
         associated optimization problem to be well-defined.  There is
         no error checking to confirm that given ``Qs`` arguments satisfy this
         requirement.
-    :param zs: :math:`m \times l` numpy array that contains the :math:`\zvec_j
+    :param zs: :math:`m \times l` NumPy array that contains the :math:`\zvec_j
         \in \R^m` parameter values
-    :param cs: 1D numpy array of length :math:`l` that specifies the :math:`c_j`
+    :param cs: 1D NumPy array of length :math:`l` that specifies the :math:`c_j`
         parameter values
     :return: ``hfun`` constructed with the given :math:`Q_j, \zvec_j, c_j` that
         is compatible only with :math:`\zvec` arguments whose lengths are
@@ -39,24 +38,24 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
     # IMPORTANT: Aside from making copies don't alter Qs, zs, cs anywhere in
     # this function.
     if not isinstance(Qs, np.ndarray):
-        raise TypeError("Qs is not a numpy array")
+        raise TypeError("Qs is not a NumPy array")
     Qs = Qs.copy()
 
     if not isinstance(zs, np.ndarray):
-        raise TypeError("zs is not a numpy array")
+        raise TypeError("zs is not a NumPy array")
     zs = zs.copy()
 
     if not isinstance(cs, np.ndarray):
-        raise TypeError("cs is not a numpy array")
+        raise TypeError("cs is not a NumPy array")
     # Allow for 1D array or 2D column/row vectors, including single-element
     # arrays.
     cs = np.atleast_1d(np.squeeze(cs.copy()))
 
     # ----- ERROR CHECK ARGUMENTS
     if Qs.ndim != 3:
-        raise ValueError("Qs is not a 3D numpy array")
+        raise ValueError("Qs is not a 3D NumPy array")
     elif Qs.shape[0] != Qs.shape[1]:
-        raise ValueError("Qs must be 3D numpy array with the first two dimensions equal")
+        raise ValueError("Qs must be 3D NumPy array with the first two dimensions equal")
     elif Qs.shape[2] <= 1:
         raise ValueError("Qs, zs, and cs must specify at least two quadratics (l>1)")
     elif not all(np.isfinite(Qs.flatten())):
@@ -65,7 +64,7 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
         raise ValueError("Qs contains elements that aren't reals")
 
     if zs.ndim != 2:
-        raise ValueError("zs is not a 2D numpy array")
+        raise ValueError("zs is not a 2D NumPy array")
     elif (zs.shape[0] != Qs.shape[0]) or (zs.shape[1] != Qs.shape[2]):
         raise ValueError("Qs and zs have incompatible shapes")
     elif not all(np.isfinite(zs.flatten())):
@@ -74,7 +73,7 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
         raise ValueError("zs contains elements that aren't reals")
 
     if cs.ndim != 1:
-        raise ValueError("cs is not a 1D numpy array")
+        raise ValueError("cs is not a 1D NumPy array")
     elif len(cs) != Qs.shape[2]:
         raise ValueError("Qs and cs have incompatible shapes")
     elif not all(np.isfinite(cs)):

@@ -1,7 +1,7 @@
 import unittest
 
-from ibcdfo.pounders import _phi2eval as phi2eval
 import numpy as np
+from ibcdfo.pounders import _phi2eval as phi2eval
 
 
 class TestPhi2EvalUnittest(unittest.TestCase):

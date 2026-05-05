@@ -20,7 +20,6 @@ related code.
 import unittest
 
 import numpy as np
-
 from ibcdfo.manifold_sampling import create_piecewise_quadratic_hfun
 
 
@@ -96,7 +95,7 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
     def testErrors(self):
         M, L = self.__zs.shape
 
-        # Qs, zs & cs must be numpy arrays ...
+        # Qs, zs & cs must be NumPy arrays ...
         bad_all = [None, "bad", 1.1, [1.1], (1.1,), {1.1}]
         for bad in bad_all:
             with self.assertRaises(TypeError):
@@ -238,7 +237,7 @@ class TestCreatePiecewiseQuadraticHfun(unittest.TestCase):
     def testBadZArguments(self):
         M = self.__zs.shape[0]
 
-        # z must be numpy array
+        # z must be NumPy array
         bad_all = [None, "bad", 1.1, list(self.__Z), tuple(self.__Z), set(self.__Z)]
         for bad in bad_all:
             with self.assertRaises(AssertionError):

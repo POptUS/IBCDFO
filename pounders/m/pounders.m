@@ -2,8 +2,7 @@
 % Stefan Wild and Jorge More', Argonne National Laboratory.
 
 function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model)
-% Run a |pounders| run on the optimization problem specified by the given
-% arguments.
+% Run |pounders| on the optimization problem specified by the given arguments.
 %
 % :param Ffun:    Handle to function that returns :math:`\Ffun(\psp)` as
 %     :math:`1 \times \nd` vector for given :math:`\psp`
@@ -40,7 +39,7 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %           * 1 - Debugging level of output to screen
 %           * 2 - More verbose screen output
 %
-%       * **spsolver** - Trust-region subproblem solver flag (default is 2)
+%       * **spsolver** - Trust-region subproblem solver flag (default is 2, not recommended to change)
 %       * **hfun** - Outer function :math:`\hfun` that maps given
 %         :math:`\Ffun(\psp)` to scalars for minimization (default is
 %         sum-of-squares that yields :math:`f`.)

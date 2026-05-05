@@ -52,7 +52,7 @@ classifiers=[
 
 [project.urls]
 Repository    = "https://github.com/POptUS/IBCDFO"
-Documentation = "https://github.com/POptUS/IBCDFO"
+Documentation = "https://ibcdfo.readthedocs.io"
 Issues        = "https://github.com/POptUS/IBCDFO/issues"
 
 # Manual, fine control of data file inclusion in package.  Since we are using
@@ -69,3 +69,6 @@ namespaces = true
 [tool.setuptools.package-data]
 "ibcdfo.PkgData" = ["REQUIRED_MINQ_COMMIT"]
 "ibcdfo.pounders.tests.benchmark_results" = ["*.txt"]
+
+[tool.setuptools_scm]
+root = ".."

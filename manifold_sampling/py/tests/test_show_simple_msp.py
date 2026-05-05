@@ -2,10 +2,10 @@
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 import os
 
+import ibcdfo
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
-import ibcdfo
 
 if not os.path.exists("mpc_test_files_smaller_Q"):
     os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")

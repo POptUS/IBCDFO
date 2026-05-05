@@ -23,8 +23,8 @@ def create_censored_L1_loss_hfun(C, D):
     floor. This reduces sensitivity to outliers, preventing any single component
     from dominating the measure of misfit.
 
-    :param C: 1D numpy array that provides the censoring values :math:`c_i`.
-    :param D: 1D numpy array that provides the target data :math:`d_i`.
+    :param C: 1D NumPy array that provides the censoring values :math:`c_i`.
+    :param D: 1D NumPy array that provides the target data :math:`d_i`.
     :return: ``hfun`` constructed with the given :math:`c_i, d_i` that is
         compatible only with :math:`\zvec` arguments of the same length as ``C``
         and ``D``.
@@ -36,11 +36,11 @@ def create_censored_L1_loss_hfun(C, D):
     # IMPORTANT: Aside from making copies don't alter C or D anywhere in this
     # function.
     if not isinstance(C, np.ndarray):
-        raise TypeError("C is not a numpy array")
+        raise TypeError("C is not a NumPy array")
     C = np.atleast_1d(np.squeeze(C.copy()))
 
     if not isinstance(D, np.ndarray):
-        raise TypeError("D is not a numpy array")
+        raise TypeError("D is not a NumPy array")
     D = np.atleast_1d(np.squeeze(D.copy()))
 
     # ----- ERROR CHECK ARGUMENTS

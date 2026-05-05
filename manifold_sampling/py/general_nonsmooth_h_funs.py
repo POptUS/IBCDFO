@@ -320,19 +320,20 @@ def h_max_gamma_over_KY(z, H0=None):
 
     .. math::
 
-        f(\psp; KY_1, \cdots, KY_{11}) = \hfun\left(\zvec; KY_1, \cdots, KY_{11}\right)
+        \hfun\left(\zvec; KY_1, \cdots, KY_{11}\right)
                 = \max \left\{\frac{z_1}{KY_1}, \cdots,
                               \frac{z_{11}}{KY_{11}}\right\},
 
-    where :math:`\psp = (\kappa, \Delta, \zeta)` are application-specific
-    parameters and the outputs
+    where the components
 
     .. math::
 
         z_j = \gamma(\kappa, \Delta, \zeta, KY_j)
 
-    are computed from the application-specific model function :math:`\gamma`.
-    Presently, the :math:`KY` parameters are hardcoded to the uniform grid
+    are computed from the application-specific model function :math:`\gamma`
+    based on application-specific parameters :math:`\psp = (\kappa, \Delta,
+    \zeta)`.  Presently, the :math:`KY` parameters are hardcoded to the uniform
+    grid
 
     .. math::
 

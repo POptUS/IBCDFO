@@ -38,22 +38,22 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     arguments.
 
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
-        element numpy array for given :math:`\psp`
-    :param X_0:     :math:`\np` element numpy array that specifies the initial
+        element NumPy array for given :math:`\psp`
+    :param X_0:     :math:`\np` element NumPy array that specifies the initial
         point
     :param n:       Dimension (number of continuous, real-valued input variables)
     :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
     :param g_tol:   Tolerance for the 2-norm of the model gradient
     :param delta_0: Positive initial trust region radius
     :param m:       Dimension of output of ``Ffun`` (number of component functions)
-    :param Low:     :math:`\np` element `numpy` array of lower bounds
-    :param Upp:     :math:`\np` element `numpy` array of upper bounds
+    :param Low:     :math:`\np` element NumPy array of lower bounds
+    :param Upp:     :math:`\np` element NumPy array of upper bounds
     :param Prior:   ``dict`` describing  past evaluations of ``Ffun``.  Set to ``None`` to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
 
         * **nfs** - Number of past function evaluations
-        * **X_init** - :math:`\mathrm{nfs} \times \np` `numpy` array of points
+        * **X_init** - :math:`\mathrm{nfs} \times \np` NumPy array of points
           :math:`\psp_k`
-        * **F_init** - :math:`\mathrm{nfs} \times \nd` `numpy` array of values
+        * **F_init** - :math:`\mathrm{nfs} \times \nd` NumPy array of values
           :math:`\Ffun(\psp_k)` computed with ``Ffun``
         * **xk_in** -  Zero-based index into ``X_init`` and ``F_init`` that
           corresponds to the point and value to use as initial point for
@@ -85,10 +85,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         * **Par** - Five element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
 
     :return:
-        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` `numpy` array containing
+        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` NumPy array containing
           locations of evaluated points in the order in which they were
           evaluated
-        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` `numpy` array containing
+        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` NumPy array containing
           the function values at ``X`` with matching ordering
         * **hF** - :math:`\mathrm{nf\_max+nfs}\times 1` Composed values
           ``hfun(Ffun(x))`` for evaluated points ``x`` in ``X``

@@ -5,7 +5,6 @@ Unit test of create_squared_diff_from_mean_functions()
 import unittest
 
 import numpy as np
-
 from ibcdfo.pounders import create_squared_diff_from_mean_functions
 
 
