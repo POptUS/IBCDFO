@@ -7,8 +7,7 @@ import unittest
 
 import ibcdfo
 import numpy as np
-
-# import scipy as sp
+import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
 
@@ -106,23 +105,15 @@ class TestPounders(unittest.TestCase):
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
-                run_key = "pounders4py_" + str(row) + "_" + str(hfun_cases)
-
-                Results[run_key] = {}
-                Results[run_key]["alg"] = "pounders4py"
-                Results[run_key]["problem"] = "problem " + str(row) + " from More/Wild"
-                Results[run_key]["F"] = F
-                Results[run_key]["hF"] = hF
-                Results[run_key]["X"] = X
-                Results[run_key]["flag"] = flag
-                Results[run_key]["xk_best"] = xk_best
-
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not
                 #                      # correctly redefine calfun_wrapper
 
-                # sp.io.savemat(filename, Results)
-
-                npz_filename = filename.replace(".mat", ".npz")
-                np.savez(npz_filename, **Results[run_key])
+                sp.io.savemat(filename, Results)
