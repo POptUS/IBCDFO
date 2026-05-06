@@ -12,17 +12,6 @@ import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
 
-try:
-    from mpi4py import MPI
-
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    commsize = comm.Get_size()
-except ImportError:
-    comm = None
-    rank = 0
-    commsize = 1
-
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
@@ -36,9 +25,6 @@ class TestPounders(unittest.TestCase):
         factor = 10
 
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
-            if row % commsize != rank:
-                continue
-
             if row == 0:
                 nf_max = 500  # Testing delta_min stopping on first problem
             else:
