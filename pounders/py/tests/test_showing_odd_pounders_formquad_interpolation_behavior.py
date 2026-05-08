@@ -20,7 +20,8 @@ nf_max = 1000
 g_tol = 1e-13
 combinemodels = ibcdfo.pounders.combine_identity
 hfun = ibcdfo.pounders.h_identity
-Opts = {"printf": 1, "spsolver": ibcdfo.pounders.create_trsp_solver(1), "hfun": hfun, "combinemodels": combinemodels}
+crappy_trsp = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.CRAPPY_TRSP)
+Opts = {"printf": 1, "spsolver": crappy_trsp, "hfun": hfun, "combinemodels": combinemodels}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
     n = int(n)
@@ -34,22 +35,12 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
     X_0 = dfoxs(n, nprob, int(10**factor_power))
     Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
     Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
-    nfs = 1
-    F_init = np.zeros((1, 1))
-    F_init[0] = Ffun(X_0)
-    xind = 0
     delta = 0.1
 
-    Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-
-    Results = {}
-
-    Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
-
-    [X, F, hF, flag, xk_best] = ibcdfo.pounders.run_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={})
+    [X, F, hF, flag, xk_best] = ibcdfo.pounders.run_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Options=Opts)
 
     evals = F.shape[0]
 
     assert flag != 1, "pounders failed"
     assert hfun(F[0]) > hfun(F[xk_best]), "No improvement found"
-    assert X.shape[0] <= nf_max + nfs, "POUNDERs grew the size of X"
+    assert X.shape[0] <= nf_max + 1, "POUNDERs grew the size of X"

@@ -2,7 +2,7 @@ from .create_trsp_solver import create_trsp_solver
 from .pounders import pounders
 
 
-def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp):
+def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=None):
     r"""
     Run |pounders| on the optimization problem specified by the given
     arguments.
@@ -18,6 +18,15 @@ def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp):
     :param m:       Dimension of output of ``Ffun`` (number of component functions)
     :param Low:     :math:`\np` element NumPy array of lower bounds
     :param Upp:     :math:`\np` element NumPy array of upper bounds
+    :param Options: ``dict`` of method options.  Set to ``None`` to use default
+        values.
+
+        * **hfun** - Outer function :math:`\hfun` that maps given
+          :math:`\Ffun(\psp)` to scalars for minimization (default is
+          sum-of-squares that yields :math:`f`)
+        * **combinemodels** - Function that maps the linear and quadratic terms
+          from the models of :math:`\Ffun` into a single quadratic model
+          (default is ordinary least squares)
 
     :return:
         * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` NumPy array containing
@@ -43,6 +52,9 @@ def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp):
     # ----- CHOOSE DEFAULT VALUES ON-BEHALF OF USERS
     # All non-power users should use the MINQ5 TRSP, which implies that all
     # other choices of TRSP solver require the use of the low-level interface.
+    if Options is None:
+        Options = {}
+    assert "spsolver" not in Options
     Options = {"spsolver": create_trsp_solver(SPSOLVER_MINQ5)}
 
     # ----- OPTIMIZE!

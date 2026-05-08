@@ -56,7 +56,7 @@ for call in range(2):
             "combinemodels": combinemodels_jax,  # using structure
         }
 
-    [_, _, hF[call], flag, _] = ibcdfo.pounders.run_expert_mode(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+    [_, _, hF[call], flag, _] = ibcdfo.run_pounders(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
     assert flag == 0, "Didn't reach critical point"
 
 

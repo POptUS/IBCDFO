@@ -20,6 +20,9 @@ def both_expert_mode(*args, **kwargs):
     return ibcdfo.pounders.run_expert_mode(*args, **kwargs)
 
 class TestPounders(unittest.TestCase):
+    def setUp(self):
+        self.__crappy = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.CRAPPY_TRSP)
+
     def test_failing_objective(self):
         def failing_objective(x, nan_freq=0.1):
             fvec = x
@@ -123,17 +126,17 @@ class TestPounders(unittest.TestCase):
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
-        Opts = {"spsolver": ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.CRAPPY_TRSP), "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
         Ffun = lambda x: np.sum(x**2)
-        Opts = {"spsolver": ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.CRAPPY_TRSP), "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels}
         [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -2, f"This test should terminate because mdec == 0.  (flag={flag})")
 
-        Opts = {"spsolver": ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.CRAPPY_TRSP), "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
         [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
@@ -153,7 +156,7 @@ class TestPounders(unittest.TestCase):
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
 
-        Opts = {"spsolver": ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.CRAPPY_TRSP), "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
 
         F_init = Ffun(X_0.T)
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": 1, "xk_in": 0}
