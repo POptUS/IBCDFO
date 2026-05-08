@@ -20,7 +20,7 @@ nf_max = 1000
 g_tol = 1e-13
 combinemodels = ibcdfo.pounders.combine_identity
 hfun = ibcdfo.pounders.h_identity
-Opts = {"printf": 1, "spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+Opts = {"printf": 1, "spsolver": ibcdfo.pounders.create_trsp_solver(1), "hfun": hfun, "combinemodels": combinemodels}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
     n = int(n)
@@ -46,7 +46,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
 
     Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-    [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={})
+    [X, F, hF, flag, xk_best] = ibcdfo.pounders.run_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
     evals = F.shape[0]
 

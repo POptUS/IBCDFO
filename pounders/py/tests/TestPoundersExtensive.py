@@ -19,7 +19,7 @@ class TestPounders(unittest.TestCase):
 
         dfo = np.loadtxt("dfo.dat")
 
-        spsolver = 2
+        spsolver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.MINQ5_TRSP)
         g_tol = 1e-13
         factor = 10
 
@@ -88,7 +88,8 @@ class TestPounders(unittest.TestCase):
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
-                X, F, hF, flag, xk_best = ibcdfo.run_pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
+                # TODO: Is Prior really necessary?  This should likely use ibcdfo.run_pounders eventually.
+                X, F, hF, flag, xk_best = ibcdfo.pounders.run_expert_mode(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
                 Xc, Fc, hFc, flagc, xk_bestc = ibcdfo.run_pounders_concurrent(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
 
                 self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
