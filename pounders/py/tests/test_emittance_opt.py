@@ -31,12 +31,10 @@ m = 3  # The number of outputs from the beamline simulation. Should be 3 for emi
 g_tol = 1e-8  # Stopping tolerance
 delta_0 = 0.1  # Initial trust-region radius
 
-Options = {}
-Options["hfun"] = hfun
-Options["combinemodels"] = combinemodels
+Objective = {"hfun": hfun, "combinemodels": combinemodels}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options)
+[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Objective=Objective)
 
 assert flag >= 0, "pounders crashed"
 

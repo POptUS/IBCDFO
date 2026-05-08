@@ -43,7 +43,7 @@ for call in range(2):
         # Call pounders with m=1 building models of hfun(Ffun(x)) directly (not using structure)
         Ffun_to_use = lambda gamma: Ffun(gamma, True)
         m = 1  # not using structure
-        Opts = {
+        Objective = {
             "hfun": ibcdfo.pounders.h_identity,  # not using structure
             "combinemodels": ibcdfo.pounders.combine_identity,  # not using structure
         }
@@ -51,12 +51,12 @@ for call in range(2):
         # Calls pounders to combine models of Ffun components using the derivatives of hfun (obtained by jax)
         Ffun_to_use = lambda gamma: Ffun(gamma, False)
         m = 3 * n  # using structure
-        Opts = {
+        Objective = {
             "hfun": hfun,  # using structure
             "combinemodels": combinemodels_jax,  # using structure
         }
 
-    [_, _, hF[call], flag, _] = ibcdfo.run_pounders(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+    [_, _, hF[call], flag, _] = ibcdfo.run_pounders(Ffun_to_use, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Objective=Objective)
     assert flag == 0, "Didn't reach critical point"
 
 

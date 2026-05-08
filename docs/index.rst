@@ -64,6 +64,13 @@ Cite |ibcdfo|
 .. toctree::
    :numbered:
    :maxdepth: 1
+   :caption: Advanced Users:
+
+   advanced_pounders
+
+.. toctree::
+   :numbered:
+   :maxdepth: 1
    :caption: Developer Guide:
 
    contributing

@@ -14,19 +14,25 @@ def create_trsp_solver(spsolver):
     subproblem
 
     .. math::
-        \min_{\svec \in \R^{\np}}  G^T * \svec + 0.5 * \svec^T * H * \svec
+        \min_{\svec \in \R^{\np}}  G^T \svec + \frac{1}{2}\svec^T H \svec
 
     such that
 
     .. math::
-        Lows_j \leq s_j \le Upps_j, j=1,...,\np
+        Low_j \leq s_j \le Upp_j, j=1,...,\np
 
     for all components :math:`s_j` of :math:`\svec`.
 
     :param spsolver:
         * ``ibcdfo.pounders.CRAPPY_TRSP`` - Stefan's crappy 10line solver
         * ``ibcdfo.pounders.MINQ5_TRSP`` - Arnold Neumaier's minq5 solver
-    :return: Python function with the interface XYZ.
+    :return: Python function with the interface
+
+        .. code:: python
+
+            Xsp, mdec, flag = solve_trsp(H, G, Low, Upp)
+
+        where ...
     """
     if spsolver == CRAPPY_TRSP:
         def __bqmin_wrapper(H, G, Lows, Upps):
