@@ -104,7 +104,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # TODO: Since this is the low-level interface, should we allow for
     # power-users to not specify this?  Should we force their call to include an
-    # explict choice?
+    # explicit choice?
     if solve_trsp is None:
         solve_trsp = create_trsp_solver(MINQ5_TRSP)
     assert callable(solve_trsp)

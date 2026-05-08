@@ -35,6 +35,7 @@ def create_trsp_solver(spsolver):
         where ...
     """
     if spsolver == CRAPPY_TRSP:
+
         def __bqmin_wrapper(H, G, Lows, Upps):
             Xsp, mdec = bqmin(H, G, Lows, Upps)
             return Xsp, mdec, 0

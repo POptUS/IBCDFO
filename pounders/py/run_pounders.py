@@ -41,7 +41,7 @@ def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Objective=No
     """
     # High-level interface that 99% of users should use.  Because of this, users
     # should call it as ibcdfo.run_pounders.
-    # 
+    #
     # The low-level routine should only be called by power-users as
     # ibcdfo.pounders.run_expert_mode.
 
