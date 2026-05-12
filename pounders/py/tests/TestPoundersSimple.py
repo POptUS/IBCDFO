@@ -12,8 +12,9 @@ import numpy as np
 # and pounders_concurrent without having to duplicate every
 # call in this regression test.
 def both_pounders(*args, **kwargs):
-    # TODO: Add in high-level concurrent interface.
-    return ibcdfo.run_pounders(*args, **kwargs)
+    assert "concurrent" not in kwargs
+    ibcdfo.run_pounders(*args, concurrent=True, **kwargs)
+    return ibcdfo.run_pounders(*args, concurrent=False, **kwargs)
 
 
 def both_expert_mode(*args, **kwargs):

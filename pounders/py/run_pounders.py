@@ -1,8 +1,9 @@
 from .create_trsp_solver import create_trsp_solver
 from .pounders import pounders
+from .pounders_concurrent import pounders as pounders_concurrent
 
 
-def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Objective=None):
+def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, objective=None, concurrent=False):
     r"""
     Run |pounders| on the optimization problem specified by the given
     arguments.
@@ -18,7 +19,7 @@ def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Objective=No
     :param m:       Dimension of output of ``Ffun`` (number of component functions)
     :param Low:     :math:`\np` element NumPy array of lower bounds
     :param Upp:     :math:`\np` element NumPy array of upper bounds
-    :param Objective: ``dict`` that defines objective function :math:`f` to use.
+    :param objective: ``dict`` that defines objective function :math:`f` to use.
         Set to ``None`` to use the default
         :py:func:`ibcdfo.pounders.h_leastsquares` objective function.
 
@@ -26,6 +27,8 @@ def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Objective=No
           :math:`\Ffun(\psp)` to scalars for minimization
         * **combinemodels** - Function that maps the linear and quadratic terms
           from the models of :math:`\Ffun` into a single quadratic model
+    :param concurrent: Set to True if ``Ffun`` is parallelized and you would
+        like |pounders| to make use of that potential performance increase.
 
     :return:
         * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` NumPy array containing
@@ -51,10 +54,13 @@ def run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Objective=No
     # ----- CHOOSE DEFAULT VALUES ON-BEHALF OF USERS
     # All non-power users should use the MINQ5 TRSP, which implies that all
     # other choices of TRSP solver require the use of the low-level interface.
-    if Objective is None:
-        Objective = {}
-    assert "spsolver" not in Objective
-    Objective["spsolver"] = create_trsp_solver(SPSOLVER_MINQ5)
+    if objective is None:
+        objective = {}
+    assert "spsolver" not in objective
+    objective["spsolver"] = create_trsp_solver(SPSOLVER_MINQ5)
 
     # ----- OPTIMIZE!
-    return pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Objective)
+    if concurrent:
+        return pounders_concurrent(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=objective)
+
+    return pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=objective)
