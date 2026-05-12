@@ -2,7 +2,7 @@ function [solver] = create_trsp_solver(spsolver)
     %
     % :param spsolver:
 
-    % ----- HARCODED VALUES
+    % ----- HARDCODED VALUES
     TRSP_BQMIN = 1;
     TRSP_MINQ5 = 2;
     TRSP_MINQ8 = 3;
