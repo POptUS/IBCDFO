@@ -117,10 +117,7 @@ class TestPounders(unittest.TestCase):
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
-                Results = {
-                    "alg": "POUNDERS", "problem": "problem " + str(row) + " from More/Wild",
-                    "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best
-                }
+                Results = {"alg": "POUNDERS", "problem": "problem " + str(row) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not
