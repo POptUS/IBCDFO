@@ -36,7 +36,6 @@ function test_identity_combine()
     xk_in = 1;
 
     printf = 1;
-    spsolver = 1;
 
     Prior.xk_in = xk_in;
     Prior.X_0 = X_0;
@@ -45,7 +44,7 @@ function test_identity_combine()
 
     Options.hfun = hfun;
     Options.combinemodels = combinemodels;
-    Options.spsolver = spsolver;
+    Options.spsolver = create_trsp_solver(1);
     Options.printf = printf;
 
     Model.np_max = np_max;

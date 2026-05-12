@@ -21,7 +21,6 @@ else
     solved = zeros(53, 3);
 end
 
-spsolver = 2; % TRSP Solver
 nf_max = 100;
 g_tol = 1e-13;
 factor = 10;
@@ -67,7 +66,7 @@ for row = 1:length(dfo)
         end
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
+        filename = ['./benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_hfun=' func2str(combinemodels) '.mat'];
 
         Options.hfun = hfun;
         Options.combinemodels = combinemodels;
