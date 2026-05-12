@@ -3,6 +3,7 @@ Unit test of compute function
 """
 
 import os
+import shutil
 import unittest
 
 import ibcdfo
@@ -11,15 +12,24 @@ import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
 
+from pathlib import Path
+
 
 class TestPounders(unittest.TestCase):
+    def setUp(self):
+        self.__dir = Path.cwd().joinpath("benchmark_results")
+        if self.__dir.is_file():
+            os.remove(self.__dir)
+        elif self.__dir.is_dir():
+            shutil.rmtree(self.__dir)
+        os.mkdir(self.__dir)
+
     def test_benchmark_pounders(self):
-        if not os.path.exists("benchmark_results"):
-            os.makedirs("benchmark_results")
 
         dfo = np.loadtxt("dfo.dat")
 
-        spsolver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.MINQ5_TRSP)
+        spsolver = ibcdfo.pounders.MINQ5_TRSP
+        solve_trsp = ibcdfo.pounders.create_trsp_solver(spsolver)
         g_tol = 1e-13
         factor = 10
 
@@ -68,24 +78,25 @@ class TestPounders(unittest.TestCase):
             else:
                 printf = False
             for hfun_cases in range(1, 4):
-                Results = {}
                 if hfun_cases == 1:
                     hfun = ibcdfo.pounders.h_leastsquares
                     combinemodels = ibcdfo.pounders.combine_leastsquares
-                    hfun_name = combinemodels.__name__
+                    hfun_name = hfun.__name__
                 elif hfun_cases == 2:
                     ALPHA = 0.0
                     hfun, combinemodels = ibcdfo.pounders.create_squared_diff_from_mean_functions(ALPHA)
-                    hfun_name = "combine_squared_diff_from_mean"
+                    hfun_name = "h_squared_diff_from_mean"
                 elif hfun_cases == 3:
                     if m != 3:  # Emittance is defined only for the case when m == 3
                         continue
                     hfun = ibcdfo.pounders.h_emittance
                     combinemodels = ibcdfo.pounders.combine_emittance
-                    hfun_name = combinemodels.__name__
+                    hfun_name = hfun.__name__
+                assert hfun_name.startswith("h_")
+                hfun_name = hfun_name.lstrip("h_")
 
-                filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat"
-                Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
+                filename = self.__dir.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
+                Opts = {"printf": printf, "spsolver": solve_trsp, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
                 # TODO: Is Prior really necessary?  This should likely use ibcdfo.run_pounders eventually.
@@ -106,12 +117,10 @@ class TestPounders(unittest.TestCase):
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
+                Results = {
+                    "alg": "POUNDERS", "problem": "problem " + str(row) + " from More/Wild",
+                    "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best
+                }
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not
