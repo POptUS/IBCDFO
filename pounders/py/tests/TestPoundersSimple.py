@@ -35,7 +35,6 @@ class TestPounders(unittest.TestCase):
 
             return fvec
 
-        spsolver = 1
         nf_max = 1000
         g_tol = 1e-13
         n = 3

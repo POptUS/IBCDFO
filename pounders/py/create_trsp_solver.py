@@ -1,5 +1,4 @@
 import sys
-import functools
 
 import numpy as np
 
