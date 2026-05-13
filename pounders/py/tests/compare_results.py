@@ -4,6 +4,9 @@ import numpy as np
 
 
 def _load_results_py_v1(filename):
+    """
+    POUNDERS/Python v1 format established at commit 1e5bc98f
+    """
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X"}
 
     contents = scipy.io.loadmat(filename)
@@ -37,6 +40,13 @@ def _load_results_py_v1(filename):
     assert all(np.isfinite(X.flatten()))
 
     return algorithm, problem, X, Fvec, H
+
+
+def _load_results_m_v1(filename):
+    """
+    POUNDERS/MATLAB v1 format established at commit 360d6e29
+    """
+    raise NotImplementedError("Pending task")
 
 
 def compare_results(filename_benchmark, filename_result):
