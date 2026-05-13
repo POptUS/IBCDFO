@@ -54,9 +54,11 @@ for row = 1:length(dfo)
         if hfun_cases == 1
             hfun = @h_leastsquares;
             combinemodels = @combine_leastsquares;
+            hfun_name = func2str(hfun);
         elseif hfun_cases == 2
             ALPHA = 0;
             [hfun, combinemodels] = create_squared_diff_from_mean_functions(ALPHA);
+            hfun_name = 'h_squared_diff_from_mean';
         elseif hfun_cases == 3
             if m ~= 3 % Emittance is defined only for the case when m == 3
                 continue
@@ -64,10 +66,13 @@ for row = 1:length(dfo)
             hfun = @h_emittance;
             combinemodels = @combine_emittance;
             printf = 2; % Just to test this feature
+            hfun_name = func2str(hfun);
         end
+        assert(startsWith(hfun_name, "h_"));
+        hfun_name = strip(strip(hfun_name, "left", 'h'), "left", '_');
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
+        filename = ['./benchmark_results/pounders_nf_max=' int2str(nf_max) '_prob=' int2str(row) '_spsolver=' int2str(spsolver) '_hfun=' hfun_name '.mat'];
 
         Options.hfun = hfun;
         Options.combinemodels = combinemodels;
