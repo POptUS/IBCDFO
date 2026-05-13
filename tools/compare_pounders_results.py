@@ -15,9 +15,9 @@ def main():
     SUCCESS = 0
     FAILURE = 1
 
-    RED = "\033[0;91;1m"   # Bright Red/bold
+    RED = "\033[0;91;1m"  # Bright Red/bold
     BLUE = "\033[0;34;1m"  # Blue/bold
-    NC = "\033[0m"         # No Color/Not bold
+    NC = "\033[0m"  # No Color/Not bold
 
     # ----- SPECIFY COMMAND LINE USAGE
     DESCRIPTION = "Compare new POUNDERS results against benchmarks"
@@ -29,7 +29,7 @@ def main():
     )
     parser.add_argument("reference", nargs=1, type=str, help=REFERENCE_HELP)
     parser.add_argument("new", nargs=1, type=str, help=NEW_HELP)
-    parser.add_argument("--debug", "-d", action='store_true', help=DEBUG_HELP)
+    parser.add_argument("--debug", "-d", action="store_true", help=DEBUG_HELP)
 
     # ----- GET COMMAND LINE ARGUMENTS
     args = parser.parse_args()
