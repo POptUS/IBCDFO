@@ -7,11 +7,27 @@ def compare_results(filename_benchmark, filename_result):
     """
     Insist on bitwise identical for now.  Tolerances can be added in later if
     they are deemed necessary.
+
+    .. todo::
+        * Allow for users to specify nonzero tolerances if the use case arises.
+        * Allow for checking Python and MATLAB results on a set of problems on
+          which we expect all optimizations to find the same local minimizer.
+          This would require nonzero tolerances.
     """
     # ----- HARDCODED VALUES
+    RED = "\033[0;91;1m"   # Bright Red/bold
+    BLUE = "\033[0;34;1m"  # Blue/bold
+    NC = "\033[0m"         # No Color/Not bold
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
 
+    # ----- CONSISTENT CLEAN LOGGING OF ERRORS
+    def error(msg):
+        print(f"{RED}FAIL{NC}\n\t{msg}")
+
     # ----- LOAD FULL RESULTS & CONFIRM SAME PROBLEM
+    assert filename_benchmark.name == filename_result.name
+    print(f"{filename_benchmark.stem} ... ", end="")
+
     ref = scipy.io.loadmat(filename_benchmark)
     new = scipy.io.loadmat(filename_result)
 
@@ -23,36 +39,36 @@ def compare_results(filename_benchmark, filename_result):
     ref_alg = np.squeeze(ref["alg"])
     new_alg = np.squeeze(new["alg"])
     if ref_alg != "POUNDERS":
-        print(f"ERROR: Invalid algorithm name ({ref_alg}) for benchmark")
+        error(f"Invalid algorithm name ({ref_alg}) for benchmark")
         return False
     elif new_alg != ref_alg:
-        msg = "ERROR: Benchmark and new result used different algorithms ({} != {})"
-        print(msg.format(ref_alg, new_alg))
+        msg = "Benchmark and new result used different algorithms ({} != {})"
+        error(msg.format(ref_alg, new_alg))
         return False
 
     ref_problem = str(np.squeeze(ref["problem"]))
     if (not ref_problem.startswith("problem")) or (not ref_problem.endswith("from More/Wild")):
-        print(f"ERROR: Invalid problem spec ({ref_problem}) for benchmark")
+        error(f"Invalid problem spec ({ref_problem}) for benchmark")
         return False
     try:
         ref_problem = int(ref_problem.lstrip("problem").rstrip("from More/Wild"))
     except Exception:
-        print(f"ERROR: Invalid problem spec ({ref_problem}) for benchmark")
+        error(f"Invalid problem spec ({ref_problem}) for benchmark")
         return False
 
     new_problem = str(np.squeeze(new["problem"]))
     if (not new_problem.startswith("problem")) or (not new_problem.endswith("from More/Wild")):
-        print(f"ERROR: Invalid problem spec ({new_problem}) for new result")
+        error(f"Invalid problem spec ({new_problem}) for new result")
         return False
     try:
         new_problem = int(new_problem.lstrip("problem").rstrip("from More/Wild"))
     except Exception:
-        print(f"ERROR: Invalid problem spec ({new_problem}) for new result")
+        error(f"Invalid problem spec ({new_problem}) for new result")
         return False
 
     if new_problem != ref_problem:
-        msg = "ERROR: Benchmark and new result used different problems ({} != {})"
-        print(msg.format(ref_problem, new_problem))
+        msg = "Benchmark and new result used different problems ({} != {})"
+        error(msg.format(ref_problem, new_problem))
         return False
 
     # ----- LOAD BENCHMARK RESULTS & SANITY CHECK
@@ -90,32 +106,32 @@ def compare_results(filename_benchmark, filename_result):
     # ----- COMPARE NEW RESULTS AGAINST BENCHMARK
     H_new = np.squeeze(new["H"])
     if H_new.shape != H_ref.shape:
-        msg = "ERROR: H arrays have different shapes ({} != {})"
-        print(msg.format(H_ref.shape, H_new.shape))
+        msg = "H arrays have different shapes ({} != {})"
+        error(msg.format(H_ref.shape, H_new.shape))
         return False
     if any(H_new != H_ref):
         max_abs_diff = np.max(np.fabs(H_new - H_ref))
-        print(f"ERROR: H absolute differences as large as {max_abs_diff}")
+        error(f"H absolute differences as large as {max_abs_diff}")
         return False
 
     F_new = np.squeeze(new["Fvec"])
     if F_new.shape != F_ref.shape:
-        msg = "ERROR: Fvec arrays have different shapes ({} != {})"
-        print(msg.format(F_ref.shape, F_new.shape))
+        msg = "Fvec arrays have different shapes ({} != {})"
+        error(msg.format(F_ref.shape, F_new.shape))
         return False
     if any(F_new.flatten() != F_ref.flatten()):
         max_abs_diff = np.max(np.fabs(F_new.flatten() - F_ref.flatten()))
-        print(f"ERROR: Fvec absolute differences as large as {max_abs_diff}")
+        error(f"Fvec absolute differences as large as {max_abs_diff}")
         return False
 
     X_new = np.squeeze(new["X"])
     if X_new.shape != X_ref.shape:
-        msg = "ERROR: X arrays have different shapes ({} != {})"
-        print(msg.format(X_ref.shape, X_new.shape))
+        msg = "X arrays have different shapes ({} != {})"
+        error(msg.format(X_ref.shape, X_new.shape))
         return False
     if any(X_new.flatten() != X_ref.flatten()):
         max_abs_diff = np.max(np.fabs(X_new.flatten() - X_ref.flatten()))
-        print(f"ERROR: X absolute differences as large as {max_abs_diff}")
+        error(f"X absolute differences as large as {max_abs_diff}")
         return False
 
     new_flag = np.squeeze(new["flag"])
@@ -123,7 +139,7 @@ def compare_results(filename_benchmark, filename_result):
     new_flag = float(new_flag)
     if new_flag != ref_flag:
         max_abs_diff = np.fabs(new_flag - ref_flag)
-        print(f"ERROR: Flag absolute difference = {max_abs_diff}")
+        error(f"Flag absolute difference = {max_abs_diff}")
         return False
 
     new_x_best = np.squeeze(new["xk_best"])
@@ -131,8 +147,9 @@ def compare_results(filename_benchmark, filename_result):
     assert new_x_best - np.floor(new_x_best) == 0.0
     new_x_best = int(new_x_best)
     if new_x_best != ref_x_best:
-        msg = "ERROR: Different xk_best integers ({} != {})"
-        print(msg.format(ref_x_best, new_x_best))
+        msg = "Different xk_best integers ({} != {})"
+        error(msg.format(ref_x_best, new_x_best))
         return False
 
+    print(f"{BLUE}PASS{NC}")
     return True

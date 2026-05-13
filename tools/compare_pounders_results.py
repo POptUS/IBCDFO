@@ -15,6 +15,10 @@ def main():
     SUCCESS = 0
     FAILURE = 1
 
+    RED = "\033[0;91;1m"   # Bright Red/bold
+    BLUE = "\033[0;34;1m"  # Blue/bold
+    NC = "\033[0m"         # No Color/Not bold
+
     # ----- SPECIFY COMMAND LINE USAGE
     DESCRIPTION = "Compare new POUNDERS results against benchmarks"
     REFERENCE_HELP = "Path to folder containing benchmarks"
@@ -44,25 +48,42 @@ def main():
     benchmarks = [fname.name for fname in ref_path.glob("*.mat")]
     results = [fname.name for fname in new_path.glob("*.mat")]
 
-    # ----- COMPARE RESULTS
-    result_not_found = False
+    print()
+    print("POUNDERS Regression Testing")
+    print("-" * 80)
+    print(f"Benchmarks\t{ref_path}")
+    print(f"New Results\t{new_path}")
+    print()
 
-    # Allow for the new results to have results that we don't have benchmarks
-    # for.  A missing new result is considered a failure.
-    for filename in benchmarks:
-        if filename not in results:
-            result_not_found = True
-            print(f"ERROR: Did not find new result {filename}")
+    # ----- COMPARE RESULTS
+    # Allow for the benchmarks to have results that we don't have new results
+    # for.  A missing benchmark is considered a failure.
+    n_tests = 0
+    n_skip = 0
+    n_failed = 0
+    for filename in results:
+        if filename not in benchmarks:
+            print(f"{filename} ... {RED}SKIP{NC}")
+            n_skip += 1
+            continue
 
         ref_fname = ref_path.joinpath(filename)
         new_fname = new_path.joinpath(filename)
 
         if not compare_results(ref_fname, new_fname):
-            return FAILURE
+            n_failed += 1
+        n_tests += 1
 
-    if result_not_found:
+    print()
+    print(f"N Failed\t\t{n_failed}")
+    print(f"N Skipped\t\t{n_skip}")
+    print(f"N Total Tests\t\t{n_tests}")
+
+    if (n_skip != 0) or (n_failed != 0):
+        print(f"\n{RED}FAILURE{NC}\n")
         return FAILURE
 
+    print(f"\n{BLUE}SUCCESS{NC}\n")
     return SUCCESS
 
 
