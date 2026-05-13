@@ -3,6 +3,7 @@ Unit test of compute function
 """
 
 import os
+import shutil
 import unittest
 
 import ibcdfo
@@ -16,18 +17,12 @@ from pathlib import Path
 
 class TestPounders(unittest.TestCase):
     def setUp(self):
-        # This folder contains provenance information that is under version
-        # control.  Therefore, we should not delete this folder or those files.
-        #
-        # However, remove all previous results to ensure a clean start.
-        #
-        # Note that we don't delete these results once the test terminates so
-        # that users can access them to establish baselines or for regression
-        # testing.
-        self.__dir = Path.cwd().joinpath("benchmark_results")
-        self.assertTrue(self.__dir.is_dir())
-        for mat in self.__dir.glob("*.mat"):
-            os.remove(mat)
+        self.__dir = Path.cwd().joinpath("TestPoundersExtensive_results")
+        if self.__dir.is_file():
+            os.remove(self.__dir)
+        elif self.__dir.is_dir():
+            shutil.rmtree(self.__dir)
+        os.mkdir(self.__dir)
 
     def test_benchmark_pounders(self):
 
