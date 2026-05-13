@@ -15,9 +15,9 @@ def compare_results(filename_benchmark, filename_result):
           This would require nonzero tolerances.
     """
     # ----- HARDCODED VALUES
-    RED = "\033[0;91;1m"   # Bright Red/bold
+    RED = "\033[0;91;1m"  # Bright Red/bold
     BLUE = "\033[0;34;1m"  # Blue/bold
-    NC = "\033[0m"         # No Color/Not bold
+    NC = "\033[0m"  # No Color/Not bold
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
 
     # ----- CONSISTENT CLEAN LOGGING OF ERRORS
@@ -104,6 +104,10 @@ def compare_results(filename_benchmark, filename_result):
     ref_x_best = int(ref_x_best)
 
     # ----- COMPARE NEW RESULTS AGAINST BENCHMARK
+    # Don't fail immediately if values are different so that when can provide
+    # users with all such differences in one go.
+    msgs = []
+
     H_new = np.squeeze(new["H"])
     if H_new.shape != H_ref.shape:
         msg = "H arrays have different shapes ({} != {})"
@@ -111,8 +115,7 @@ def compare_results(filename_benchmark, filename_result):
         return False
     if any(H_new != H_ref):
         max_abs_diff = np.max(np.fabs(H_new - H_ref))
-        error(f"H absolute differences as large as {max_abs_diff}")
-        return False
+        msgs += [f"H absolute differences as large as {max_abs_diff}"]
 
     F_new = np.squeeze(new["Fvec"])
     if F_new.shape != F_ref.shape:
@@ -121,8 +124,7 @@ def compare_results(filename_benchmark, filename_result):
         return False
     if any(F_new.flatten() != F_ref.flatten()):
         max_abs_diff = np.max(np.fabs(F_new.flatten() - F_ref.flatten()))
-        error(f"Fvec absolute differences as large as {max_abs_diff}")
-        return False
+        msgs += [f"Fvec absolute differences as large as {max_abs_diff}"]
 
     X_new = np.squeeze(new["X"])
     if X_new.shape != X_ref.shape:
@@ -131,24 +133,24 @@ def compare_results(filename_benchmark, filename_result):
         return False
     if any(X_new.flatten() != X_ref.flatten()):
         max_abs_diff = np.max(np.fabs(X_new.flatten() - X_ref.flatten()))
-        error(f"X absolute differences as large as {max_abs_diff}")
-        return False
+        msgs += [f"X absolute differences as large as {max_abs_diff}"]
 
     new_flag = np.squeeze(new["flag"])
     assert new_flag.ndim == 0
     new_flag = float(new_flag)
     if new_flag != ref_flag:
         max_abs_diff = np.fabs(new_flag - ref_flag)
-        error(f"Flag absolute difference = {max_abs_diff}")
-        return False
+        msgs += [f"Flag absolute difference = {max_abs_diff}"]
 
     new_x_best = np.squeeze(new["xk_best"])
     assert new_x_best.ndim == 0
     assert new_x_best - np.floor(new_x_best) == 0.0
     new_x_best = int(new_x_best)
     if new_x_best != ref_x_best:
-        msg = "Different xk_best integers ({} != {})"
-        error(msg.format(ref_x_best, new_x_best))
+        msgs += [f"Different xk_best integers ({ref_x_best} != {new_x_best})"]
+
+    if msgs:
+        error("\n\t".join(msgs))
         return False
 
     print(f"{BLUE}PASS{NC}")
