@@ -20,13 +20,41 @@ def compare_results(filename_benchmark, filename_result):
     assert set(ref_keys) == EXPECTED_KEYS
     assert set(ref_keys) == set(new_keys)
 
-    if ref["alg"] != new["alg"]:
-        msg = "ERROR: {} and {} used different algorithms ({} != {})"
-        print(msg.format(filename_benchmark, filename_result, ref["alg"], new["alg"]))
+    ref_alg = np.squeeze(ref["alg"])
+    new_alg = np.squeeze(new["alg"])
+    if ref_alg != "POUNDERS":
+        print(f"ERROR: Invalid algorithm name ({ref_alg}) for benchmark")
         return False
-    if ref["problem"] != new["problem"]:
-        msg = "ERROR: {} and {} used different problems ({} != {})"
-        print(msg.format(filename_benchmark, filename_result, ref["problem"], new["problem"]))
+    elif new_alg != ref_alg:
+        msg = "ERROR: Benchmark and new result used different algorithms ({} != {})"
+        print(msg.format(ref_alg, new_alg))
+        return False
+
+    ref_problem = str(np.squeeze(ref["problem"]))
+    if (not ref_problem.startswith("problem")) or \
+            (not ref_problem.endswith("from More/Wild")):
+        print(f"ERROR: Invalid problem spec ({ref_problem}) for benchmark")
+        return False
+    try:
+        ref_problem = int(ref_problem.lstrip("problem").rstrip("from More/Wild"))
+    except Exception:
+        print(f"ERROR: Invalid problem spec ({ref_problem}) for benchmark")
+        return False
+
+    new_problem = str(np.squeeze(new["problem"]))
+    if (not new_problem.startswith("problem")) or \
+            (not new_problem.endswith("from More/Wild")):
+        print(f"ERROR: Invalid problem spec ({new_problem}) for new result")
+        return False
+    try:
+        new_problem = int(new_problem.lstrip("problem").rstrip("from More/Wild"))
+    except Exception:
+        print(f"ERROR: Invalid problem spec ({new_problem}) for new result")
+        return False
+
+    if new_problem != ref_problem:
+        msg = "ERROR: Benchmark and new result used different problems ({} != {})"
+        print(msg.format(ref_problem, new_problem))
         return False
 
     # ----- LOAD BENCHMARK RESULTS & SANITY CHECK
