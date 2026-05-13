@@ -31,8 +31,7 @@ def compare_results(filename_benchmark, filename_result):
         return False
 
     ref_problem = str(np.squeeze(ref["problem"]))
-    if (not ref_problem.startswith("problem")) or \
-            (not ref_problem.endswith("from More/Wild")):
+    if (not ref_problem.startswith("problem")) or (not ref_problem.endswith("from More/Wild")):
         print(f"ERROR: Invalid problem spec ({ref_problem}) for benchmark")
         return False
     try:
@@ -42,8 +41,7 @@ def compare_results(filename_benchmark, filename_result):
         return False
 
     new_problem = str(np.squeeze(new["problem"]))
-    if (not new_problem.startswith("problem")) or \
-            (not new_problem.endswith("from More/Wild")):
+    if (not new_problem.startswith("problem")) or (not new_problem.endswith("from More/Wild")):
         print(f"ERROR: Invalid problem spec ({new_problem}) for new result")
         return False
     try:
