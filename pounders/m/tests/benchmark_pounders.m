@@ -105,7 +105,7 @@ for row = 1:length(dfo)
         % Save results to .mat file with identical format to benchmark results
         % generated with Python implementation.  This includes writing results
         % with an identical filenaming scheme.
-        alg = 'POUNDERS';
+        alg = 'POUNDERS_M';
         problem = ['problem ' num2str(row) ' from More/Wild'];
         Fvec = F;
         H = hF;

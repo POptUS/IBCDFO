@@ -38,7 +38,7 @@ def compare_results(filename_benchmark, filename_result):
 
     ref_alg = np.squeeze(ref["alg"])
     new_alg = np.squeeze(new["alg"])
-    if ref_alg != "POUNDERS":
+    if ref_alg not in ["POUNDERS_Py", "POUNDERS_M"]:
         error(f"Invalid algorithm name ({ref_alg}) for benchmark")
         return False
     elif new_alg != ref_alg:
