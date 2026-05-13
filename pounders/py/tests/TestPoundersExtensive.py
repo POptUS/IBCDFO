@@ -117,10 +117,13 @@ class TestPounders(unittest.TestCase):
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
+                # Write results to .mat file using the same format as used by
+                # the MATLAB implementation.  We prefer the .mat format since
+                # Python can write that format as well.  This includes using
+                # the same filenaming scheme.
                 Results = {"alg": "POUNDERS", "problem": "problem " + str(row) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not
                 #                      # correctly redefine calfun_wrapper
-
                 sp.io.savemat(filename, Results)
