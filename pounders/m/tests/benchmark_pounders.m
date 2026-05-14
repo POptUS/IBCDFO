@@ -12,11 +12,29 @@ function [] = benchmark_pounders()
 oldpath = addpath(fullfile(here_path, '..'));
 addpath(fullfile(here_path, '..', 'general_h_funs'));
 
+% Ensure that results folder does not contain any preexisting benchmark
+% results.
+%
+% This code should **not** destroy this folder or its contents so that users
+% can manually inspect the results and potentially use them as baselines for
+% regression testing.  Ideally no other test cases in the IBCDFO test suite
+% will create or delete folders with this name.
+result_path = fullfile(pwd, 'TempPoundersBenchmarkResults');
+if isfile(result_path)
+    delete(result_path);
+    mkdir(result_path);
+elseif isdir(result_path)
+    delete(fullfile(result_path, '*.mat'));
+else
+    mkdir(result_path);
+end
+solved_txt = fullfile(result_path, 'solved.txt');
+
 load dfo.dat;
 
 ensure_still_solve_problems = 0;
 if ensure_still_solve_problems
-    solved = load('./benchmark_results/solved.txt'); % A 0-1 matrix with 1 when problem was previously solved.
+    solved = load(solved_txt); % A 0-1 matrix with 1 when problem was previously solved.
 else
     solved = zeros(53, 3);
 end
@@ -72,7 +90,8 @@ for row = 1:length(dfo)
         hfun_name = strip(strip(hfun_name, "left", 'h'), "left", '_');
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/pounders_nf_max=' int2str(nf_max) '_prob=' int2str(row) '_spsolver=' int2str(spsolver) '_hfun=' hfun_name '.mat'];
+        filename = ['pounders_nf_max=' int2str(nf_max) '_prob=' int2str(row) '_spsolver=' int2str(spsolver) '_hfun=' hfun_name '.mat'];
+        filename = fullfile(result_path, filename);
 
         Options.hfun = hfun;
         Options.combinemodels = combinemodels;
@@ -113,7 +132,7 @@ for row = 1:length(dfo)
     end
 end
 if ~ensure_still_solve_problems
-    writematrix(solved, './benchmark_results/solved.txt');
+    writematrix(solved, solved_txt);
 end
 
 path(oldpath);
