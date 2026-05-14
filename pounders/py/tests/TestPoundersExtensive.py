@@ -16,15 +16,20 @@ from pathlib import Path
 
 
 class TestPounders(unittest.TestCase):
-    def setUp(self):
-        self.__dir = Path.cwd().joinpath("TestPoundersExtensive_results")
-        if self.__dir.is_file():
-            os.remove(self.__dir)
-        elif self.__dir.is_dir():
-            shutil.rmtree(self.__dir)
-        os.mkdir(self.__dir)
-
     def test_benchmark_pounders(self):
+        # Always start with an empty temporary folder whose name indicates to
+        # users that it might be overwritten at any time.
+        #
+        # This class should **not** destroy this folder or its contents so that
+        # users can manually inspect the results and potentially use them as
+        # baselines for regression testing.  Ideally no other test cases in the
+        # IBCDFO test suite will create or delete folders with this name.
+        RESULT_PATH = Path.cwd().joinpath("TempPoundersBenchmarkResults")
+        if RESULT_PATH.is_file():
+            os.remove(RESULT_PATH)
+        elif RESULT_PATH.is_dir():
+            shutil.rmtree(RESULT_PATH)
+        os.mkdir(RESULT_PATH)
 
         dfo = np.loadtxt("dfo.dat")
 
@@ -95,7 +100,7 @@ class TestPounders(unittest.TestCase):
                 assert hfun_name.startswith("h_")
                 hfun_name = hfun_name.lstrip("h_")
 
-                filename = self.__dir.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
+                filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
