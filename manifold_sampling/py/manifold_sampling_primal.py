@@ -86,7 +86,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     finally:
         pass
 
-    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nf_max)
+    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
     flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nf_max, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
     if flag == -1:
         print("MSP: Error with inputs. Exiting.")
@@ -102,6 +102,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     H_mm = np.zeros((n, n))
 
     while nf + 1 < nf_max and delta > tol["mindelta"]:
+        if printf:
+            print("MSP: nf: %4d; fval: %8e; delta: %8.3e; chi: %8.3e;" % (nf, np.squeeze(h[xkin]), delta, chi_k))
+
         bar_delta = delta
 
         # Line 3: manifold sampling while loop
@@ -180,8 +183,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             # Line 21: iteration is unsuccessful; shrink Delta
             delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
-        if printf:
-            print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, np.squeeze(h[xkin]), chi_k, delta))
 
     if nf + 1 >= nf_max:
         return prepare_outputs_before_return(X, F, h, nf, xkin, 0)
