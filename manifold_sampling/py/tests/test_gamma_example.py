@@ -18,7 +18,6 @@ Results = {}
 probs_to_solve = [16, 33]
 
 subprob_switch = "linprog"
-
 nfmax = 150
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
@@ -35,18 +34,18 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
     X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
-    combinemodels = pdrs.identity_combine
+    # --- Run pounders without using the structure ---
+    combinemodels = ibcdfo.pounders.combine_identity
 
     def unstructured_obj(x):
         maxout = hfun(Ffun(x))
-        return np.squeeze(maxout[0])
+        return np.squeeze(maxout[0])  # only the function value
 
     identity_hfun = lambda F: np.squeeze(F)
 
-    nf_max = 200
     g_tol = 10**-13
     delta = 0.1
 
-    Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels}
+    Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels, "printf": True}
 
-    X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
+    X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nfmax, g_tol, delta, 1, LB, UB, Options=Opts)

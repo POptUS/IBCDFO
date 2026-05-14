@@ -11,12 +11,12 @@ sys.path.append('./jaxnp_hash/')
 
 import ibcdfo
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
 
-hfun = ibcdfo.manifold_sampling.h_max_gamma_over_KY
+from jan_example import h_max_gamma_over_KY_jax as hfun
 
 dfo = np.loadtxt("dfo.dat")
 
@@ -44,46 +44,46 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
 
     # --- Run pounders without using the structure ---
-    identity_hfun = ibcdfo.pounders.h_identity
     combinemodels = ibcdfo.pounders.combine_identity
 
     def unstructured_obj(x):
         maxout = hfun(Ffun(x))
         return np.squeeze(maxout[0])  # only the function value
 
-    nf_max = 200
+    identity_hfun = lambda F: np.squeeze(F)
+
     g_tol = 10**-13
     delta = 0.1
 
     Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels}
 
-    X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
+    X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nfmax, g_tol, delta, 1, LB, UB, Options=Opts)
 
-    # # --- Plotting ---
-    # plt.figure(figsize=(10, 4))
+    # --- Plotting ---
+    plt.figure(figsize=(10, 4))
 
-    # # Raw values
-    # plt.subplot(1, 2, 1)
-    # plt.plot(h_pounders, label="pounders (raw)")
-    # plt.plot(h_msp, label="msp (raw)")
-    # plt.xlabel("Iteration / evaluation")
-    # plt.ylabel("h values")
-    # plt.title(f"Raw h values (prob {int(nprob)})")
-    # plt.legend()
+    # Raw values
+    plt.subplot(1, 2, 1)
+    plt.plot(h_pounders, label="pounders (raw)")
+    plt.plot(h_msp, label="msp (raw)")
+    plt.xlabel("Iteration / evaluation")
+    plt.ylabel("h values")
+    plt.title(f"Raw h values (prob {int(nprob)})")
+    plt.legend()
 
-    # # Cumulative minima
-    # plt.subplot(1, 2, 2)
-    # plt.plot(np.minimum.accumulate(h_pounders), label="pounders (cummin)")
-    # plt.plot(np.minimum.accumulate(h_msp), label="msp (cummin)")
-    # plt.xlabel("Iteration / evaluation")
-    # plt.ylabel("Best-so-far h values")
-    # plt.title(f"Cumulative min h values (prob {int(nprob)})")
-    # plt.legend()
+    # Cumulative minima
+    plt.subplot(1, 2, 2)
+    plt.plot(np.minimum.accumulate(h_pounders), label="pounders (cummin)")
+    plt.plot(np.minimum.accumulate(h_msp), label="msp (cummin)")
+    plt.xlabel("Iteration / evaluation")
+    plt.ylabel("Best-so-far h values")
+    plt.title(f"Cumulative min h values (prob {int(nprob)})")
+    plt.legend()
 
-    # plt.tight_layout()
+    plt.tight_layout()
 
-    # # Save to file
-    # fname = os.path.join("plots", f"prob{int(nprob)}.png")
-    # plt.savefig(fname, dpi=200)
-    # plt.close()
-    # print(f"Saved plot for problem {int(nprob)} to {fname}")
+    # Save to file
+    fname = os.path.join("plots", f"prob{int(nprob)}.png")
+    plt.savefig(fname, dpi=200)
+    plt.close()
+    print(f"Saved plot for problem {int(nprob)} to {fname}")
