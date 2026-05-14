@@ -17,7 +17,8 @@ def choose_generator_set(X, Hash, xkin, nf, delta, F, hfun):
             h_i, _ = hfun(F[xkin], Act_tmp)
             if h_i[0] <= hxkin[0] or XkDi <= delta2:
                 if i != xkin:
-                    Act_Z_k = np.unique(np.concatenate((Act_Z_k, Act_tmp)), axis=0)
+                    # Act_Z_k = np.unique(np.concatenate((Act_Z_k, Act_tmp)), axis=0)
+                    Act_Z_k = Act_Z_k.union(Act_tmp)
 
     # Act_Z_k = np.asarray(Act_Z_k)
     f_k, D_k = hfun(F[xkin], Act_Z_k)

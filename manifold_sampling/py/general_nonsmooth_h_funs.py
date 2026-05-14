@@ -630,6 +630,8 @@ def h_max_gamma_over_KY_jax(z, H0=None):
             h[k] = h_one
             grads[:, k] = grad_one 
 
+        return h, grads
+
 def h_max_plus_quadratic_violation_penalty(z, H0=None):
     r"""
     :math:`\hfun` function for constructing the manifold sampling objective
