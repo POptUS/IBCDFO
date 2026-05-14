@@ -1,0 +1,729 @@
+from itertools import product
+
+import numpy as np
+
+import jax
+import jax.numpy as jnp
+import jaxnp_hash as jnph
+jax.config.update("jax_enable_x64", True)
+
+"""
+These functions are housed in the manifold sampling namespace because they
+aren't "general implementations" of h_funs. They have the specific
+interface/form needed for manifold-sampling-type methods.
+"""
+
+
+def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
+    if n is None:
+        n = len(z)
+
+    inds = np.where(np.abs(h - z) <= atol + rtol * np.abs(z))[0]
+
+    grads = np.zeros((n, len(inds)))
+    Hashes = [str(ind) for ind in inds]
+
+    return inds, grads, Hashes
+
+
+def h_censored_L1_loss(z, H0=None, **kwargs):
+    """
+    This is a generalized version of Womersley's censored L1 loss function.
+
+    .. todo::
+        * Either add in the equation or a reference to an article that describes
+          this.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
+    """
+
+    C = kwargs["C"]
+    D = kwargs["D"]
+
+    eqtol = 1e-8
+
+    # Ensure column vector and collect dimensions
+    z = np.asarray(z).flatten()
+    C = np.asarray(C).flatten()
+    D = np.asarray(D).flatten()
+    p = len(C)
+
+    if H0 is None:
+        h = np.sum(np.abs(D - np.maximum(z, C)))
+        g = [[] for _ in range(p)]
+        H = [[] for _ in range(p)]
+
+        for i in range(p):
+            if z[i] <= C[i] or abs(z[i] - C[i]) < eqtol * max(abs(z[i]), abs(C[i])) or abs(z[i] - C[i]) < eqtol:
+                if C[i] >= D[i]:
+                    g[i].append(0)
+                    H[i].append("2")
+                if C[i] <= D[i]:
+                    g[i].append(0)
+                    H[i].append("4")
+            if z[i] >= C[i] or abs(z[i] - C[i]) < eqtol * max(abs(z[i]), abs(C[i])) or abs(z[i] - C[i]) < eqtol:
+                if (max(z[i], C[i]) == D[i]) or (abs(max(z[i], C[i]) - D[i]) < eqtol * max(abs(max(z[i], C[i])), abs(D[i]))) or (abs(max(z[i], C[i]) - D[i]) < eqtol):
+                    g[i].append(1)
+                    g[i].append(-1)
+                    H[i].append("1")
+                    H[i].append("3")
+                else:
+                    g[i].append(np.sign(z[i] - D[i]))
+                    if D[i] >= z[i]:
+                        H[i].append("3")
+                    else:
+                        H[i].append("1")
+
+        grads = np.array(list(product(*g))).T
+
+        Hash = ["".join(t) for t in product(*H)]
+
+        return h, grads, Hash
+    else:
+        K = len(H0)
+
+        h = np.zeros(K)
+        grads = np.zeros((p, K))
+        vals = np.zeros((p, K))
+
+        for k in range(K):
+            for j in range(p):
+                if H0[k][j] == "1":
+                    vals[j, k] = -(D[j] - z[j])
+                    grads[j, k] = 1
+                elif H0[k][j] == "2":
+                    vals[j, k] = -(D[j] - C[j])
+                    grads[j, k] = 0
+                elif H0[k][j] == "3":
+                    vals[j, k] = D[j] - z[j]
+                    grads[j, k] = -1
+                elif H0[k][j] == "4":
+                    vals[j, k] = D[j] - C[j]
+                    grads[j, k] = 0
+            h[k] = np.sum(vals[:, k])
+
+        return h, grads
+
+
+def h_one_norm(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling 1-norm
+    objective function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \sum_{i = 1}^{\nd} \abs{z_i(\psp)}.
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l manifolds active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+
+    if H0 is None:
+        h = np.sum(np.abs(z))
+
+        tol = 1e-8
+
+        grad_lists = [None] * len(z)
+        Hash_lists = [None] * len(z)
+
+        for i, element in enumerate(z):
+            if element < -tol:
+                grad_lists[i] = [-1]
+                Hash_lists[i] = ["-"]
+            elif element > tol:
+                grad_lists[i] = [1]
+                Hash_lists[i] = ["+"]
+            else:
+                # Technically, we should return [1,-1] for the grad entry and
+                # ['-','+'] for the Hash, but that causes issues for large dim(z)
+                # because we get 2^dim(z) grads.... but they don't matter
+                # really for the convex hull calculation
+                grad_lists[i] = [0]
+                Hash_lists[i] = ["0"]
+
+        all_grad_perms = product(*grad_lists)
+
+        grads = np.array(list(all_grad_perms)).T
+        Hash = ["".join(t) for t in product(*Hash_lists)]
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.ones((len(z), J))
+
+        for k in range(J):
+            ztemp = np.copy(z)
+            for j in range(len(z)):
+                if H0[k][j] == "-":
+                    grads[j, k] = -1
+                    ztemp[j] *= -1
+                elif H0[k][j] == "0":
+                    grads[j, k] = 0
+                    if ztemp[j] < 0:
+                        ztemp[j] *= -1
+
+            h[k] = np.sum(ztemp)
+
+        return h, grads
+
+
+def h_pw_maximum(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    maximum objective function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l manifolds active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+
+    if H0 is None:
+        h = np.max(z)
+
+        inds, grads, Hash = _activities_and_inds(h, z)
+
+        for j in range(len(inds)):
+            grads[inds[j], j] = 1
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = z[j]
+            grads[j, k] = 1
+
+        return h, grads
+
+
+def h_pw_maximum_squared(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    maximum objective function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l manifolds active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+
+    if H0 is None:
+        z2 = z**2
+        i1 = np.argmax(z2)
+        h = z[i1] ** 2
+
+        inds, grads, Hash = _activities_and_inds(h, z2)
+
+        for j in range(len(inds)):
+            grads[inds[j], j] = 2 * z[inds[j]]
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = z[j] ** 2
+            grads[j, k] = 2 * z[j]
+
+        return h, grads
+
+
+def h_piecewise_quadratic(z, H0=None, **kwargs):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling piecewise
+    quadratic objective function
+
+    .. math::
+
+        f(\psp; \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l)
+            & = \hfun\left(\zvec(\psp); \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l\right)\\
+            & = \max_{j\in\set{1, \cdots, l}}\set{\norm{\zvec(\psp) - \zvec_j}_{Q_j^2} + b_j}
+
+    .. todo::
+
+        * Please check if the above formula is correct.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l quadratics active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
+
+    # Hashes are output (and must be input) in the following fashion:
+    #   Hash{i} = 'j' if quadratic j is active at z (or H0{i} = 'j' if the
+    #   value/gradient of quadratic j at z is desired)
+
+    Qs = kwargs["Qs"]
+    zs = kwargs["zs"]
+    cs = np.squeeze(kwargs["cs"])
+
+    if H0 is None:
+        n, J = zs.shape
+        manifolds = np.zeros(J)
+        for j in range(J):
+            manifolds[j] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
+
+        h = np.max(manifolds)
+
+        inds, grads, Hash = _activities_and_inds(h, manifolds, n=n)
+
+        for j in range(len(inds)):
+            grads[:, j] = 2 * np.dot(Qs[:, :, inds[j]], (z - zs[:, inds[j]]))
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
+            grads[:, k] = 2 * np.dot(Qs[:, :, j], (z - zs[:, j]))
+
+        return h, grads
+
+
+def h_pw_minimum(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    minimum objective function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \min \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l manifolds active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+
+    if H0 is None:
+        h = np.min(z)
+
+        inds, grads, Hash = _activities_and_inds(h, z)
+
+        for j in range(len(inds)):
+            grads[inds[j], j] = 1
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = z[j]
+            grads[j, k] = 1
+
+        return h, grads
+
+
+def h_pw_minimum_squared(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling pointwise
+    minimum objective function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \min \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l manifolds active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l manifolds active at z (in the same order as the elements of grads)
+
+    if H0 is None:
+        z2 = z**2
+        h = np.min(z2)
+
+        inds, grads, Hash = _activities_and_inds(h, z2)
+
+        for j in range(len(inds)):
+            grads[inds[j], j] = 2 * z[inds[j]]
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = z[j] ** 2
+            grads[j, k] = 2 * z[j]
+
+        return h, grads
+
+
+def h_quantile(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling
+    objective function determined by evaluating at each :math:`\psp` the
+    :math:`q^{\mathrm{th}}` quantile of
+
+    .. math::
+
+        \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}.
+
+    .. todo::
+
+        * The value of :math:`q` is not provided as an argument and appears to
+          be a hardcoded value.  True?  Update docs to be more specific?  How
+          many subsets were used to define the quantiles?
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l quadratics active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
+
+    q = 1
+
+    z2 = z**2
+    sorted_inds = np.argsort(z2)
+    z2_sort = z2[sorted_inds]
+    z_sort = z[sorted_inds]
+
+    if H0 is None:
+        h = z2_sort[q]
+        inds, grads, Hash = _activities_and_inds(h, z2_sort)
+
+        for j in range(len(inds)):
+            grads[inds[j], j] = 2 * z_sort[inds[j]]
+
+        return h, grads, Hash
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = z2_sort[j]
+            grads[j, k] = 2 * z_sort[j]
+
+        return h, grads
+
+
+def h_max_gamma_over_KY(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling objective
+    function
+
+    .. math::
+
+        f(\psp; KY_1, \cdots, KY_{11}) = \hfun\left(\zvec(\psp); KY_1, \cdots, KY_{11}\right)
+                = \max \left\{\frac{z_1(\psp)}{KY_1}, \cdots,
+                              \frac{z_{11}(\psp)}{KY_{11}}\right\},
+
+    where :math:`\psp = (\kappa, \Delta, \zeta)` are application-specific
+    parameters and the outputs
+
+    .. math::
+
+        z_j(\psp) = \gamma(\kappa, \Delta, \zeta, KY_j)
+
+    are computed from the application-specific model function :math:`\gamma`.
+    Presently, the :math:`KY` parameters are hardcoded to the uniform grid
+
+    .. math::
+
+        (KY_1, KY_2, \cdots, KY_{11}) = (0.1, 0.15, \cdots, 0.6).
+    """
+    # Inputs
+    # ------
+    # z : array-like, shape (11,)
+    #     Values of gamma(...) evaluated at the 11 KY points.
+    # H0 : optional list of str
+    #     Hashes (indices as strings) of manifolds to evaluate specifically.
+    #     If None, returns active/near-active manifolds at z.
+
+    # Outputs (H0 is None)
+    # --------------------
+    # h : float
+    #     The maximum value over j of z_j / KY_j.
+    # grads : ndarray, shape (11, l)
+    #     Columns are gradients of each active manifold (dh/dz_j = 1/KY_j).
+    # Hash : list[str], length l
+    #     String indices of active/near-active manifolds, matching grads columns.
+
+    # Outputs (H0 provided)
+    # ---------------------
+    # h : ndarray, shape (l,)
+    #     Values z_j / KY_j for requested manifolds.
+    # grads : ndarray, shape (11, l)
+    #     Gradient columns for requested manifolds.
+
+    KY = np.linspace(0.10, 0.60, 11)  # Fixed KY grid: [0.10, 0.15, ..., 0.60] (11 values)
+
+    z = np.asarray(z, dtype=float).ravel()
+    assert z.size == 11, f"Expected 11 values in z (got {z.size})."
+    assert KY.size == 11, f"Expected 11 KY values (got {KY.size})."
+
+    # Per-manifold values and gradient magnitudes
+    vals = z / KY  # shape (11,)
+    grad_mag = 1.0 / KY  # dh/dz_j for active j
+
+    if H0 is None:
+        h = float(np.max(vals))
+        inds, grads, Hash = _activities_and_inds(h, vals, n=len(z))
+        for j in range(len(inds)):
+            grads[inds[j], j] = grad_mag[inds[j]]
+        return h, grads, Hash
+    else:
+        H0 = list(H0)
+        J = len(H0)
+        h = np.zeros(J, dtype=float)
+        grads = np.zeros((len(z), J), dtype=float)
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = vals[j]
+            grads[j, k] = grad_mag[j]
+        return h, grads
+
+
+def h_max_gamma_over_KY_jax(z, H0=None):
+    """
+    Computes h = max_j { z_j / KY_j }, where each z_j represents the output from
+    the application-specific function gamma(kappa, Delta, zeta, KY_j).
+
+    Notes
+    -----
+    - The symbols kappa, Delta, and zeta are domain parameters from
+      the physics/application model. They are *not* related to parameters
+      in the manifold sampling algorithm itself.
+    - The role of hfun in manifold sampling is simply to wrap this
+      application objective in the required (value, gradients, hashes)
+      interface. The actual Ffun corresponds to gamma(·).
+
+    Inputs
+    ------
+    z : array-like, shape (11,)
+        Values of gamma(...) evaluated at the 11 KY points.
+    H0 : optional list of str
+        Hashes (indices as strings) of manifolds to evaluate specifically.
+        If None, returns active/near-active manifolds at z.
+    KY : optional array-like, shape (11,)
+        The KY grid; defaults to [0.10, 0.15, ..., 0.60].
+
+    Outputs (H0 is None)
+    --------------------
+    h : float
+        The maximum value over j of z_j / KY_j.
+    grads : ndarray, shape (11, l)
+        Columns are gradients of each active manifold (dh/dz_j = 1/KY_j).
+    Hash : list[str], length l
+        String indices of active/near-active manifolds, matching grads columns.
+
+    Outputs (H0 provided)
+    ---------------------
+    h : ndarray, shape (l,)
+        Values z_j / KY_j for requested manifolds.
+    grads : ndarray, shape (11, l)
+        Gradient columns for requested manifolds.
+    """
+
+    def jax_max_gamma_over_KY(z, KY, type_for_jan, hash_thing=None):
+
+        if hash_thing is None:
+            with jnph.hash_mode(type_for_jan, tol=1e-3) as h:
+                """An example function that has nearby branches."""
+                # Convert to HashTensors
+                hz = jnph.HashTensor(z)
+                hKY = jnph.HashTensor(KY)
+
+                vals = hz / hKY  # shape (11,)
+                result1 = jnph.max(vals) 
+
+            return result1.value, h
+
+        else:
+            with jnph.hash_mode(type_for_jan, replay_hash=hash_thing):
+                """An example function that has nearby branches."""
+                # Convert to HashTensors
+                hz = jnph.HashTensor(z)
+                hKY = jnph.HashTensor(KY)
+
+                vals = hz / hKY  # shape (11,)
+                result1 = jnph.max(vals) 
+
+
+            return result1.value, []
+
+    KY = np.linspace(0.10, 0.60, 11)  # Fixed KY grid: [0.10, 0.15, ..., 0.60] (11 values)
+    z = np.asarray(z, dtype=float).ravel()
+
+    grad_jax_max_gamma_over_KY = jax.value_and_grad(jax_max_gamma_over_KY, has_aux=True)
+
+    if H0 is None:
+        (h, Hash), grads = grad_jax_max_gamma_over_KY(z, KY, "record")
+        grads = np.zeros((len(z), len(Hash)), dtype=float)
+
+        for k, hash_thing in enumerate(Hash): 
+            (_, _), grad_one = grad_jax_max_gamma_over_KY(z, KY, "replay", hash_thing)
+            grads[:, k] = grad_one 
+
+        return h, grads, Hash
+    else:
+        J = len(H0)
+        h = np.zeros(J, dtype=float)
+        grads = np.zeros((len(z), J), dtype=float)
+
+        for k, hash_thing in enumerate(H0): 
+            (h_one, Hash), grad_one = grad_jax_max_gamma_over_KY(z, KY, "replay", hash_thing)
+            h[k] = h_one
+            grads[:, k] = grad_one 
+
+        return h, grads
+
+def h_max_plus_quadratic_violation_penalty(z, H0=None):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling objective
+    function
+
+    .. math::
+
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp), \cdots, z_{p1}(\psp)} +
+                  \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i(\psp), 0}^2
+
+    .. todo::
+        * p1 is not a parameter and appears to be hardcoded to m-1, which means
+          that the sum in the definition is unnecessary
+        * alpha is not a parameter and appears to be hardcoded to zero.  Mention
+          this in the docs?
+    """
+    # Behavior:
+    # - If H0 is None: returns (h, grads, Hashes)
+    #     * h is a scalar (0-d np.ndarray)
+    #     * grads is shape (p, n_active)
+    #     * Hashes is a list[str] of length n_active, each a '0'/'1' string of length p
+    # - If H0 is provided: returns (h, grads, None)
+    #     * h is shape (J,)
+    #     * grads is shape (p, J)
+
+    p = z.size
+    p1 = p - 1
+
+    alpha = 0.0
+    h_activity_tol = 1e-8
+
+    if H0 is None:
+        h1 = np.max(z[:p1])
+
+        # h2 = alpha * sum(max(z(p1+1:end), 0).^2); -> z[p1:]
+        h2 = float(alpha * np.sum(np.maximum(z[p1:], 0.0) ** 2))
+        h = h1 + h2
+
+        # Active indices for the max term:
+        atol = h_activity_tol
+        rtol = h_activity_tol
+
+        inds1 = np.where(np.abs(h1 - z[:p1]) <= atol + rtol * np.abs(z[:p1]))[0]
+        inds2 = p1 + np.where(z[p1:] >= -rtol)[0]
+
+        grads = np.zeros((p, inds1.size))
+        Hash = []
+
+        for j, idx in enumerate(inds1):
+            bits = ["0"] * p
+            bits[idx] = "1"
+            for ii in inds2:
+                bits[ii] = "1"
+            hash_str = "".join(bits)
+            Hash.append(hash_str)
+
+            grads[idx, j] = 1.0
+            grads[inds2, j] = alpha * 2.0 * z[inds2]
+
+        return h, grads, Hash
+
+    else:
+        # H0 provided: evaluate on given hashes
+        J = len(H0)
+        h = np.zeros(J, dtype=float)
+        grads = np.zeros((p, J), dtype=float)
+
+        for k, hk in enumerate(H0):
+            if len(hk) != p:
+                raise ValueError(f"Each hash must be a string of length p={p}; got {len(hk)}")
+
+            # max_ind = find(H0{k}(1:p1) == '1'); MATLAB -> hk[:p1]
+            max_inds = [i for i, ch in enumerate(hk[:p1]) if ch == "1"]
+            if len(max_inds) != 1:
+                raise AssertionError("I don't know what to do in this case")
+            max_ind = max_inds[0]
+
+            grads[max_ind, k] = 1.0
+            h1 = z[max_ind]
+
+            # const_viol_inds = p1 + find(H0{k}(p1 + 1:end) == '1');
+            cv_local = [i for i, ch in enumerate(hk[p1:]) if ch == "1"]
+            const_viol_inds = np.array([p1 + i for i in cv_local], dtype=int)
+
+            if const_viol_inds.size == 0:
+                h2 = 0.0
+            else:
+                grads[const_viol_inds, k] = alpha * 2.0 * z[const_viol_inds]
+                # h2 = alpha * sum(max(z(const_viol_inds), 0).^2);
+                h2 = float(alpha * np.sum(np.maximum(z[const_viol_inds], 0.0) ** 2))
+
+            h[k] = h1 + h2
+
+        return h, grads
