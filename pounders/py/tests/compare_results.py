@@ -101,7 +101,7 @@ def compare_results(filename_benchmark, filename_result):
         error(f"Invalid problem spec ({ref_problem}) for benchmark")
         return False
     if new_problem != ref_problem:
-        msg = "Benchmark and new result used different problems ({} != {})"
+        msg = "Benchmark and new result solve different problems ({} != {})"
         error(msg.format(ref_problem, new_problem))
         return False
 

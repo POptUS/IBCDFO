@@ -22,13 +22,11 @@ def main():
     DESCRIPTION = "Compare new POUNDERS results against benchmarks"
     REFERENCE_HELP = "Path to folder containing benchmarks"
     NEW_HELP = "Path to folder containing new results to compare"
-    DEBUG_HELP = "Print information to help debug this script"
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument("reference", nargs=1, type=str, help=REFERENCE_HELP)
     parser.add_argument("new", nargs=1, type=str, help=NEW_HELP)
-    parser.add_argument("--debug", "-d", action="store_true", help=DEBUG_HELP)
 
     # ----- GET COMMAND LINE ARGUMENTS
     args = parser.parse_args()
@@ -42,16 +40,20 @@ def main():
     print(f"New Results\t{new_path}")
     print()
 
-    # ----- IDENTIFY ALL RESULTS
-    results = [fname.name for fname in new_path.glob("*.mat")]
+    # ----- IDENTIFY ALL NEW RESULTS
+    new_results = [fname.name for fname in new_path.glob("*.mat")]
 
-    # ----- COMPARE RESULTS
-    # Allow for the benchmarks to have results that we don't have new results
-    # for.  A missing benchmark is considered a failure.
+    # ----- COMPARE NEW RESULTS AGAINST BENCHMARKS
+    # Allow for the benchmarks folder to contain results that we don't have new
+    # results for.  A new result without a matching benchmark is considered a
+    # failure.
+    #
+    # A new result and a benchmark are considered to be matching if they have
+    # the same filename.
     n_tests = 0
     n_skip = 0
     n_failed = 0
-    for filename in results:
+    for filename in new_results:
         new_fname = new_path.joinpath(filename)
         ref_fname = ref_path.joinpath(filename)
         if not ref_fname.exists():
