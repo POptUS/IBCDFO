@@ -11,7 +11,7 @@ from importlib.metadata import version
 
 __version__ = version("ibcdfo")
 
-from .pounders.pounders import pounders as run_pounders
+from .pounders.run_pounders import run_pounders
 from .pounders.pounders_concurrent import pounders as run_pounders_concurrent
 # fmt: off
 from .manifold_sampling.manifold_sampling_primal import (

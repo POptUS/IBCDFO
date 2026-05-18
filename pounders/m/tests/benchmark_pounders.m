@@ -21,11 +21,11 @@ else
     solved = zeros(53, 3);
 end
 
-spsolver = 2; % TRSP Solver
 nf_max = 100;
 g_tol = 1e-13;
 factor = 10;
 nfs = 0;
+spsolver = 2;
 
 for row = 1:length(dfo)
     nprob = dfo(row, 1);
@@ -50,13 +50,14 @@ for row = 1:length(dfo)
     end
 
     for hfun_cases = 1:3
-        Results = cell(3, 53);
         if hfun_cases == 1
             hfun = @h_leastsquares;
             combinemodels = @combine_leastsquares;
+            hfun_name = func2str(hfun);
         elseif hfun_cases == 2
             ALPHA = 0;
             [hfun, combinemodels] = create_squared_diff_from_mean_functions(ALPHA);
+            hfun_name = 'h_squared_diff_from_mean';
         elseif hfun_cases == 3
             if m ~= 3 % Emittance is defined only for the case when m == 3
                 continue
@@ -64,13 +65,17 @@ for row = 1:length(dfo)
             hfun = @h_emittance;
             combinemodels = @combine_emittance;
             printf = 2; % Just to test this feature
+            hfun_name = func2str(hfun);
         end
+        assert(startsWith(hfun_name, "h_"));
+        hfun_name = strip(strip(hfun_name, "left", 'h'), "left", '_');
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
+        filename = ['./benchmark_results/pounders_nf_max=' int2str(nf_max) '_prob=' int2str(row) '_spsolver=' int2str(spsolver) '_hfun=' hfun_name '.mat'];
 
         Options.hfun = hfun;
         Options.combinemodels = combinemodels;
+        Options.spsolver = create_trsp_solver(spsolver);
         Options.printf = printf;
 
         [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], Options);
@@ -97,14 +102,15 @@ for row = 1:length(dfo)
             assert(size(X, 1) == nf_max + nfs, "POUNDERs didn't use nf_max evaluations");
         end
 
-        Results{hfun_cases, row}.alg = 'POUNDERs';
-        Results{hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
-        Results{hfun_cases, row}.Fvec = F;
-        Results{hfun_cases, row}.H = hF;
-        Results{hfun_cases, row}.X = X;
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Save results to .mat file with identical format to benchmark results
+        % generated with Python implementation.  This includes writing results
+        % with an identical filenaming scheme.
+        alg = 'POUNDERS_M';
+        problem = ['problem ' num2str(row) ' from More/Wild'];
+        Fvec = F;
+        H = hF;
+        save(filename, 'alg', 'problem', 'Fvec', 'H', 'X', 'flag', 'xk_best');
         %     save('-mat7-binary', filename, 'Results') % Octave save
-        save(filename, 'Results');
     end
 end
 if ~ensure_still_solve_problems

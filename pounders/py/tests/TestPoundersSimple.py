@@ -12,11 +12,20 @@ import numpy as np
 # and pounders_concurrent without having to duplicate every
 # call in this regression test.
 def both_pounders(*args, **kwargs):
+    assert "concurrent" not in kwargs
+    ibcdfo.run_pounders(*args, concurrent=True, **kwargs)
+    return ibcdfo.run_pounders(*args, concurrent=False, **kwargs)
+
+
+def both_expert_mode(*args, **kwargs):
     ibcdfo.run_pounders_concurrent(*args, **kwargs)
-    return ibcdfo.run_pounders(*args, **kwargs)
+    return ibcdfo.pounders.run_expert_mode(*args, **kwargs)
 
 
 class TestPounders(unittest.TestCase):
+    def setUp(self):
+        self.__crappy = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.CRAPPY_TRSP)
+
     def test_failing_objective(self):
         def failing_objective(x, nan_freq=0.1):
             fvec = x
@@ -26,7 +35,6 @@ class TestPounders(unittest.TestCase):
 
             return fvec
 
-        spsolver = 1
         nf_max = 1000
         g_tol = 1e-13
         n = 3
@@ -36,20 +44,18 @@ class TestPounders(unittest.TestCase):
         Low = -np.inf * np.ones(n)
         Upp = np.inf * np.ones(n)
         delta = 0.1
-        printf = 1
 
         np.random.seed(1)
 
-        Opts = {"spsolver": spsolver, "printf": printf}
-        [X, F, hF, flag, xk_best] = both_pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best] = both_pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
         self.assertEqual(flag, -3, f"No NaN was encountered in this test, but should have been. (flag={flag})")
 
         Ffun_to_fail = lambda x: failing_objective(x, 1.0)
-        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
         self.assertEqual(flag, -3, f"NaN should have been encountered on first eval. (flag={flag})")
 
         Ffun_to_fail = lambda x: np.hstack((x, x))
-        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
         self.assertEqual(flag, -1, f"Dimension error should have occurred on first eval. (flag={flag})")
 
         # Intentionally crashing pounders
@@ -101,7 +107,7 @@ class TestPounders(unittest.TestCase):
             F_init[i, :] = Ffun(X_0[i, :])
 
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
+        [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         hfun = ibcdfo.pounders.h_identity
@@ -122,18 +128,18 @@ class TestPounders(unittest.TestCase):
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
         Ffun = lambda x: np.sum(x**2)
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels}
+        [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -2, f"This test should terminate because mdec == 0.  (flag={flag})")
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
+        [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
@@ -152,11 +158,11 @@ class TestPounders(unittest.TestCase):
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
+        Opts = {"spsolver": self.__crappy, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
 
         F_init = Ffun(X_0.T)
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": 1, "xk_in": 0}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = both_expert_mode(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")
 

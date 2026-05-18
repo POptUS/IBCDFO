@@ -23,7 +23,6 @@ xk_in = 1;
 Low = -Inf(1, n);
 Upp = Inf(1, n);
 printf = 1;
-spsolver = 2;
 hfun = @h_identity;
 combinemodels = @combine_identity;
 
@@ -34,7 +33,7 @@ Prior.nfs = nfs;
 
 Options.hfun = hfun;
 Options.combinemodels = combinemodels;
-Options.spsolver = spsolver;
+Options.spsolver = create_trsp_solver(2);
 Options.printf = printf;
 
 Model.np_max = np_max;

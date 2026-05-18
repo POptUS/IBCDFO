@@ -53,9 +53,9 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     g_tol = 10**-13
     delta = 0.1
 
-    Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels}
+    Opts = {"spsolver": ibcdfo.pounders.create_trsp_solver(1), "hfun": identity_hfun, "combinemodels": combinemodels}
 
-    X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
+    X, F, h_pounders, flag, xk_in = ibcdfo.pounders.run_expert_mode(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
 
     # # --- Plotting ---
     # plt.figure(figsize=(10, 4))
