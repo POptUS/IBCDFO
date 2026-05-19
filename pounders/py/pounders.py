@@ -1,13 +1,10 @@
-import sys
-
 import numpy as np
 
-from .._get_minq_installation import get_minq_installation
 from .bmpts import bmpts
-from .bqmin import bqmin
 from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
+from .solve_trsp import solve_trsp
 
 
 def _default_model_par_values(n):
@@ -136,16 +133,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
     else:
-        from .general_h_funs import h_leastsquares as hfun
         from .general_h_funs import combine_leastsquares as combinemodels
-
-    # choose your spsolver
-    if spsolver == 2:
-        required_minq_SHA, minq_installation = get_minq_installation()
-        if not minq_installation["is_valid"]:
-            msg = f"Please set MINQ clone to git commit {required_minq_SHA}.\nSee User Guide (https://ibcdfo.readthedocs.io) for more information and instructions."
-            sys.exit(msg)
-        from minqsw import minqsw
+        from .general_h_funs import h_leastsquares as hfun
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
@@ -262,18 +251,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 return X, F, hF, flag, xk_in
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
-        Lows = np.maximum(Low - X[xk_in], -delta * np.ones((np.shape(Low))))
-        Upps = np.minimum(Upp - X[xk_in], delta * np.ones((np.shape(Upp))))
-        if spsolver == 1:  # Stefan's crappy 10line solver
-            [Xsp, mdec] = bqmin(H, G, Lows, Upps)
-        elif spsolver == 2:  # Arnold Neumaier's minq5
-            [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-            if minq_err < 0:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
-                return X, F, hF, flag, xk_in
-        # elif spsolver == 3:  # Arnold Neumaier's minq8
-        #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-        #     assert minq_err >= 0, "Input error in minq"
+        Xsp, mdec, trsp_flag = solve_trsp(H, G, Low, Upp, X[xk_in], delta, spsolver, n)
+        if trsp_flag < 0:
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, trsp_flag)
+            return X, F, hF, flag, xk_in
+
         Xsp = Xsp.squeeze()
         step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
