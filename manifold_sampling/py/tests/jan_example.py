@@ -26,14 +26,94 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     return inds, grads, Hashes
 
 
+def h_censored_L1_loss(z, H0=None, **kwargs):
+    """
+    This is a generalized version of Womersley's censored L1 loss function.
+
+    .. todo::
+        * Either add in the equation or a reference to an article that describes
+          this.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
+    """
+
+    C = kwargs["C"]
+    D = kwargs["D"]
+
+    eqtol = 1e-8
+
+    # Ensure column vector and collect dimensions
+    z = np.asarray(z).flatten()
+    C = np.asarray(C).flatten()
+    D = np.asarray(D).flatten()
+    p = len(C)
+
+    if H0 is None:
+        h = np.sum(np.abs(D - np.maximum(z, C)))
+        g = [[] for _ in range(p)]
+        H = [[] for _ in range(p)]
+
+        for i in range(p):
+            if z[i] <= C[i] or abs(z[i] - C[i]) < eqtol * max(abs(z[i]), abs(C[i])) or abs(z[i] - C[i]) < eqtol:
+                if C[i] >= D[i]:
+                    g[i].append(0)
+                    H[i].append("2")
+                if C[i] <= D[i]:
+                    g[i].append(0)
+                    H[i].append("4")
+            if z[i] >= C[i] or abs(z[i] - C[i]) < eqtol * max(abs(z[i]), abs(C[i])) or abs(z[i] - C[i]) < eqtol:
+                if (max(z[i], C[i]) == D[i]) or (abs(max(z[i], C[i]) - D[i]) < eqtol * max(abs(max(z[i], C[i])), abs(D[i]))) or (abs(max(z[i], C[i]) - D[i]) < eqtol):
+                    g[i].append(1)
+                    g[i].append(-1)
+                    H[i].append("1")
+                    H[i].append("3")
+                else:
+                    g[i].append(np.sign(z[i] - D[i]))
+                    if D[i] >= z[i]:
+                        H[i].append("3")
+                    else:
+                        H[i].append("1")
+
+        grads = np.array(list(product(*g))).T
+
+        Hash = ["".join(t) for t in product(*H)]
+
+        return h, grads, Hash
+    else:
+        K = len(H0)
+
+        h = np.zeros(K)
+        grads = np.zeros((p, K))
+        vals = np.zeros((p, K))
+
+        for k in range(K):
+            for j in range(p):
+                if H0[k][j] == "1":
+                    vals[j, k] = -(D[j] - z[j])
+                    grads[j, k] = 1
+                elif H0[k][j] == "2":
+                    vals[j, k] = -(D[j] - C[j])
+                    grads[j, k] = 0
+                elif H0[k][j] == "3":
+                    vals[j, k] = D[j] - z[j]
+                    grads[j, k] = -1
+                elif H0[k][j] == "4":
+                    vals[j, k] = D[j] - C[j]
+                    grads[j, k] = 0
+            h[k] = np.sum(vals[:, k])
+
+        return h, grads
+
+
 def h_one_norm(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the 1-norm
+    :math:`\hfun` function for constructing the manifold sampling 1-norm
     objective function
 
     .. math::
 
-        \hfun\left(\zvec\right) = \sum_{i = 1}^{\nd} \abs{z_i}.
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \sum_{i = 1}^{\nd} \abs{z_i(\psp)}.
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -97,13 +177,13 @@ def h_one_norm(z, H0=None):
 
 def h_pw_maximum(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the pointwise
+    :math:`\hfun` function for constructing the manifold sampling pointwise
     maximum objective function
 
     .. math::
 
-                  \hfun\left(\zvec\right)
-                = \max \set{z_1, \cdots, z_{\nd}}
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -139,13 +219,13 @@ def h_pw_maximum(z, H0=None):
 
 def h_pw_maximum_squared(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the pointwise
+    :math:`\hfun` function for constructing the manifold sampling pointwise
     maximum objective function
 
     .. math::
 
-                  \hfun\left(\zvec\right)
-                = \max \set{z_1^2, \cdots, z_{\nd}^2}
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -181,15 +261,77 @@ def h_pw_maximum_squared(z, H0=None):
         return h, grads
 
 
+def h_piecewise_quadratic(z, H0=None, **kwargs):
+    r"""
+    :math:`\hfun` function for constructing the manifold sampling piecewise
+    quadratic objective function
+
+    .. math::
+
+        f(\psp; \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l)
+            & = \hfun\left(\zvec(\psp); \zvec_1, \cdots, \zvec_l, Q_1, \cdots, Q_l, b_1, \cdots, b_l\right)\\
+            & = \max_{j\in\set{1, \cdots, l}}\set{\norm{\zvec(\psp) - \zvec_j}_{Q_j^2} + b_j}
+
+    .. todo::
+
+        * Please check if the above formula is correct.
+        * It looks like the ``kwargs`` are required.  Why not just add them as
+          regular named arguments?
+    """
+    # Inputs:
+    #  z:              [1 x p]   point where we are evaluating h
+    #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate
+
+    # Outputs:
+    #  h: [dbl]                       function value
+    #  grads: [p x l]                 gradients of each of the l quadratics active at z
+    #  Hash: [1 x l cell of strings]  set of hashes for each of the l quadratics active at z (in the same order as the elements of grads)
+
+    # Hashes are output (and must be input) in the following fashion:
+    #   Hash{i} = 'j' if quadratic j is active at z (or H0{i} = 'j' if the
+    #   value/gradient of quadratic j at z is desired)
+
+    Qs = kwargs["Qs"]
+    zs = kwargs["zs"]
+    cs = np.squeeze(kwargs["cs"])
+
+    if H0 is None:
+        n, J = zs.shape
+        manifolds = np.zeros(J)
+        for j in range(J):
+            manifolds[j] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
+
+        h = np.max(manifolds)
+
+        inds, grads, Hash = _activities_and_inds(h, manifolds, n=n)
+
+        for j in range(len(inds)):
+            grads[:, j] = 2 * np.dot(Qs[:, :, inds[j]], (z - zs[:, inds[j]]))
+
+        return h, grads, Hash
+
+    else:
+        J = len(H0)
+        h = np.zeros(J)
+        grads = np.zeros((len(z), J))
+
+        for k in range(J):
+            j = int(H0[k])
+            h[k] = np.dot(np.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j]
+            grads[:, k] = 2 * np.dot(Qs[:, :, j], (z - zs[:, j]))
+
+        return h, grads
+
+
 def h_pw_minimum(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the pointwise
+    :math:`\hfun` function for constructing the manifold sampling pointwise
     minimum objective function
 
     .. math::
 
-                  \hfun\left(\zvec\right)
-                = \min \set{z_1, \cdots, z_{\nd}}
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \min \set{z_1(\psp), \cdots, z_{\nd}(\psp)}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -225,13 +367,13 @@ def h_pw_minimum(z, H0=None):
 
 def h_pw_minimum_squared(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the pointwise
+    :math:`\hfun` function for constructing the manifold sampling pointwise
     minimum objective function
 
     .. math::
 
-                  \hfun\left(\zvec\right)
-                = \min \set{z_1^2, \cdots, z_{\nd}^2}
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \min \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -268,18 +410,19 @@ def h_pw_minimum_squared(z, H0=None):
 
 def h_quantile(z, H0=None):
     r"""
-    :math:`\hfun` function whose value is determined by returning at each :math:`z` the
+    :math:`\hfun` function for constructing the manifold sampling
+    objective function determined by evaluating at each :math:`\psp` the
     :math:`q^{\mathrm{th}}` quantile of
 
     .. math::
 
-        \set{z_1^2, \cdots, z_{\nd}^2}.
+        \set{z_1(\psp)^2, \cdots, z_{\nd}(\psp)^2}.
 
-    Note that this example has hard-coded the value :math:`q=1`, which corresponds to
-    returning the minimum value of the above set. You must alter this function for other
-    quantiles by changing the value of :math:`q` to an integer between 1 and :math:`\nd`,
-    inclusive. Note this functionality is the same as provided by `h_pw_minimum_squared`.
+    .. todo::
 
+        * The value of :math:`q` is not provided as an argument and appears to
+          be a hardcoded value.  True?  Update docs to be more specific?  How
+          many subsets were used to define the quantiles?
     """
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
@@ -320,25 +463,24 @@ def h_quantile(z, H0=None):
 
 def h_max_gamma_over_KY(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the objective
+    :math:`\hfun` function for constructing the manifold sampling objective
     function
 
     .. math::
 
-        \hfun\left(\zvec; KY_1, \cdots, KY_{11}\right)
-                = \max \left\{\frac{z_1}{KY_1}, \cdots,
-                              \frac{z_{11}}{KY_{11}}\right\},
+        f(\psp; KY_1, \cdots, KY_{11}) = \hfun\left(\zvec(\psp); KY_1, \cdots, KY_{11}\right)
+                = \max \left\{\frac{z_1(\psp)}{KY_1}, \cdots,
+                              \frac{z_{11}(\psp)}{KY_{11}}\right\},
 
-    where the components
+    where :math:`\psp = (\kappa, \Delta, \zeta)` are application-specific
+    parameters and the outputs
 
     .. math::
 
-        z_j = \gamma(\kappa, \Delta, \zeta, KY_j)
+        z_j(\psp) = \gamma(\kappa, \Delta, \zeta, KY_j)
 
-    are computed from the application-specific model function :math:`\gamma`
-    based on application-specific parameters :math:`\psp = (\kappa, \Delta,
-    \zeta)`.  Presently, the :math:`KY` parameters are hardcoded to the uniform
-    grid
+    are computed from the application-specific model function :math:`\gamma`.
+    Presently, the :math:`KY` parameters are hardcoded to the uniform grid
 
     .. math::
 
@@ -492,28 +634,20 @@ def h_max_gamma_over_KY_jax(z, H0=None):
 
 def h_max_plus_quadratic_violation_penalty(z, H0=None):
     r"""
-    :math:`\hfun` function for constructing the objective
+    :math:`\hfun` function for constructing the manifold sampling objective
     function
 
     .. math::
 
-          \hfun\left(\zvec\right)
-                = \max \set{z_1, \cdots, z_{p1}} +
-                  \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i, 0}^2
+        f(\psp) = \hfun\left(\zvec(\psp)\right)
+                = \max \set{z_1(\psp), \cdots, z_{p1}(\psp)} +
+                  \alpha\sum_{i=p1+1}^{\nd} \max\set{z_i(\psp), 0}^2
 
-    where :math:`\zvec = (z_1, \cdots, z_p)` is an
-    application-specific residual or feature vector. Presently,
-    :math:`p1 = p-1` and :math:`\alpha = 0` are hardcoded, so in the current
-    implementation reduces to
-
-    .. math::
-
-          \max \left\{ z_1, \cdots, z_{p-1} \right\}.
-
-    The final component :math:`z_p` is kept to
-    reflect the original max-plus-violation-penalty structure, even though its
-    contribution is currently zeroed by the hardcoded choice
-    :math:`\alpha = 0`.
+    .. todo::
+        * p1 is not a parameter and appears to be hardcoded to m-1, which means
+          that the sum in the definition is unnecessary
+        * alpha is not a parameter and appears to be hardcoded to zero.  Mention
+          this in the docs?
     """
     # Behavior:
     # - If H0 is None: returns (h, grads, Hashes)
