@@ -36,8 +36,8 @@ def main():
     print()
     print("POUNDERS Regression Testing")
     print("-" * 80)
-    print(f"Benchmarks\t{ref_path}")
-    print(f"New Results\t{new_path}")
+    print(f"Benchmarks\t{ref_path.joinpath("*.mat")}")
+    print(f"New Results\t{new_path.joinpath("*.mat")}")
     print()
 
     # ----- IDENTIFY ALL NEW RESULTS
