@@ -44,7 +44,7 @@ def _load_results_py_v1(filename):
 
 def _load_results_py_v2(filename):
     """
-    POUNDERS/Python v2 format established at commit XXX
+    POUNDERS/Python v2 format established at commit 9f5a5f37c
     """
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
 
