@@ -127,6 +127,8 @@ class TestPounders(unittest.TestCase):
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["flag"] = flag
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["xk_best"] = xk_best
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not
