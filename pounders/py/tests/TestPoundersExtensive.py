@@ -3,6 +3,7 @@ Unit test of compute function
 """
 
 import os
+import shutil
 import unittest
 
 import ibcdfo
@@ -11,11 +12,24 @@ import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
 
+from pathlib import Path
+
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
-        if not os.path.exists("benchmark_results"):
-            os.makedirs("benchmark_results")
+        # Always start with an empty temporary folder whose name indicates to
+        # users that it might be overwritten at any time.
+        #
+        # This class should **not** destroy this folder or its contents so that
+        # users can manually inspect the results and potentially use them as
+        # baselines for regression testing.  Ideally no other test cases in the
+        # IBCDFO test suite will create or delete folders with this name.
+        RESULT_PATH = Path.cwd().joinpath("TempPoundersBenchmarkResults")
+        if RESULT_PATH.is_file():
+            os.remove(RESULT_PATH)
+        elif RESULT_PATH.is_dir():
+            shutil.rmtree(RESULT_PATH)
+        os.mkdir(RESULT_PATH)
 
         dfo = np.loadtxt("dfo.dat")
 
@@ -72,19 +86,21 @@ class TestPounders(unittest.TestCase):
                 if hfun_cases == 1:
                     hfun = ibcdfo.pounders.h_leastsquares
                     combinemodels = ibcdfo.pounders.combine_leastsquares
-                    hfun_name = combinemodels.__name__
+                    hfun_name = hfun.__name__
                 elif hfun_cases == 2:
                     ALPHA = 0.0
                     hfun, combinemodels = ibcdfo.pounders.create_squared_diff_from_mean_functions(ALPHA)
-                    hfun_name = "combine_squared_diff_from_mean"
+                    hfun_name = "h_squared_diff_from_mean"
                 elif hfun_cases == 3:
                     if m != 3:  # Emittance is defined only for the case when m == 3
                         continue
                     hfun = ibcdfo.pounders.h_emittance
                     combinemodels = ibcdfo.pounders.combine_emittance
-                    hfun_name = combinemodels.__name__
+                    hfun_name = hfun.__name__
+                assert hfun_name.startswith("h_")
+                hfun_name = hfun_name.lstrip("h_")
 
-                filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat"
+                filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
