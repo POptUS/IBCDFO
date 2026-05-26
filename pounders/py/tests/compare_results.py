@@ -1,5 +1,3 @@
-import scipy.io
-
 import numpy as np
 
 from .load_results import load_results
