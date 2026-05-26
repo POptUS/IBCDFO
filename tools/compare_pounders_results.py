@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import argparse
-
+import sys
 from pathlib import Path
 
 from ibcdfo.pounders.tests import compare_results
@@ -36,12 +35,16 @@ def main():
     print()
     print("POUNDERS Regression Testing")
     print("-" * 80)
-    print(f"Benchmarks\t{ref_path.joinpath("*.mat")}")
-    print(f"New Results\t{new_path.joinpath("*.mat")}")
+    print(f"Benchmarks\t{ref_path.joinpath('*.mat')}")
+    print(f"New Results\t{new_path.joinpath('*.mat')}")
     print()
 
     # ----- IDENTIFY ALL NEW RESULTS
     new_results = [fname.name for fname in new_path.glob("*.mat")]
+    if not new_results:
+        print(f"{RED}ERROR{NC} - No new results found\n")
+        print(f"{RED}FAILURE{NC}\n")
+        return FAILURE
 
     # ----- COMPARE NEW RESULTS AGAINST BENCHMARKS
     # Allow for the benchmarks folder to contain results that we don't have new

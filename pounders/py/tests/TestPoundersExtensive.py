@@ -121,14 +121,11 @@ class TestPounders(unittest.TestCase):
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["flag"] = flag
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["xk_best"] = xk_best
+                # Write results to .mat file using the same format as used by
+                # the MATLAB implementation.  We prefer the .mat format since
+                # Python can write that format as well.  This includes using the
+                # same filenaming scheme.
+                Results = {"alg": "POUNDERS_Py", "problem": "problem " + str(row) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not
