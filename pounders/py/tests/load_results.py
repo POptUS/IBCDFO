@@ -15,8 +15,8 @@ def load_results(filename):
     keys = [k for k in data.keys() if not k.startswith("__")]
     assert set(keys) == EXPECTED_KEYS
 
-    algorithm = np.squeeze(data["alg"])
-    problem = np.squeeze(data["problem"])
+    algorithm = str(np.squeeze(data["alg"]))
+    problem = str(np.squeeze(data["problem"]))
 
     H = np.squeeze(data["H"])
     assert H.ndim == 1
