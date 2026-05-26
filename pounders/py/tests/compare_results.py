@@ -99,6 +99,8 @@ def compare_results(filename_benchmark, filename_result):
         msg = "Benchmark and new result used different algorithms ({} != {})"
         error(msg.format(ref_alg, new_alg))
         return False
+    # TODO: Remove above elif and uncomment this once we check v3 against v3,
+    # which uses POUNDERS_py.
     # elif new_alg != ref_alg:
     #     msg = "Benchmark and new result used different algorithms ({} != {})"
     #     error(msg.format(ref_alg, new_alg))
@@ -128,7 +130,7 @@ def compare_results(filename_benchmark, filename_result):
     # users with all such differences in one go.
     msgs = []
     if x_best_new != x_best_ref:
-        msgs += [f"Best solution indices differ ({x_best_new} != {x_best_ref})"]
+        msgs += [f"Best approximation indices differ ({x_best_new} != {x_best_ref})"]
     if flag_new != flag_ref:
         msgs += [f"Flags differ ({flag_new} != {flag_ref})"]
     if (flag_new >= 0) and (flag_ref >= 0):
