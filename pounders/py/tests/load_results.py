@@ -5,7 +5,9 @@ import numpy as np
 
 def load_results(filename):
     """
-    POUNDERS/Python v3 format established at commit XXX
+    Based on benchmark results' file format established at commit
+    * fb33cdfd for POUNDERS/Python and
+    * PENDING for POUNDERS/MATLAB.
     """
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
 
