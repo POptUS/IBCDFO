@@ -1,13 +1,56 @@
-import numpy as np
+import scipy.io
 
-from .load_results import load_results
+import numpy as np
 
 
 def _load_results_m_v1(filename):
     """
     POUNDERS/MATLAB v1 format established at commit 360d6e29
     """
-    raise NotImplementedError("Pending task")
+    EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X"}
+
+    contents = scipy.io.loadmat(filename)
+    keys = [k for k in contents.keys() if not k.startswith("__")]
+    assert len(keys) == 1
+    assert keys[0] == "Results"
+
+    # Only one valid set of results across all three known hfun cases.
+    data = None
+    tmp = contents[keys[0]]
+    assert len(tmp) == 3
+    for hfun in range(len(tmp)):
+        # See if we can find that one valid result for this hfun case.
+        tmp_i = [e for e in tmp[hfun] if np.squeeze(e).ndim == 0]
+        if tmp_i:
+            assert len(tmp_i) == 1
+            assert data is None
+            data = tmp_i[0][0]
+            assert data is not None
+
+    assert set(data.dtype.names) == EXPECTED_KEYS
+
+    algorithm = data["alg"][0][0]
+    problem = data["problem"][0][0]
+
+    H = np.squeeze(data["H"][0])
+    assert H.ndim == 1
+    n_evaluations = len(H)
+    assert all(np.isreal(H))
+
+    Fvec = np.squeeze(data["Fvec"][0])
+    assert Fvec.ndim == 2
+    tmp, _ = Fvec.shape
+    assert tmp == n_evaluations
+    assert all(np.isreal(Fvec.flatten()))
+
+    X = np.squeeze(data["X"][0])
+    assert X.ndim == 2
+    tmp, _ = X.shape
+    assert tmp == n_evaluations
+    assert all(np.isreal(X.flatten()))
+    assert all(np.isfinite(X.flatten()))
+
+    return algorithm, problem, X, Fvec, H
 
 
 def compare_results(filename_benchmark, filename_result):
@@ -42,10 +85,31 @@ def compare_results(filename_benchmark, filename_result):
         error(f"New result has different filename ({filename_result.stem})")
         return False
 
-    ref_alg, ref_problem, X_ref, F_ref, H_ref, x_best_ref, flag_ref = load_results(filename_benchmark)
-    new_alg, new_problem, X_new, F_new, H_new, x_best_new, flag_new = load_results(filename_result)
+    ref_alg, ref_problem, X_ref, F_ref, H_ref = _load_results_m_v1(filename_benchmark)
+    if not all(np.isfinite(H_ref)):
+        error("Non-finite h values in benchmark")
+        return False
+    elif not all(np.isfinite(F_ref.flatten())):
+        error("Non-finite Fvec values in benchmark")
+        return False
 
-    if ref_alg not in ["POUNDERS_Py"]:
+    new_alg, new_problem, X_new, F_new, H_new = _load_results_m_v1(filename_result)
+    if not all(np.isfinite(H_new)):
+        error("Non-finite h values in new results")
+        return False
+    elif not all(np.isfinite(F_new.flatten())):
+        error("Non-finite Fvec values in new results")
+        return False
+
+    # Fake these values until the MATLAB format results have them stored.  Set
+    # flags so that the tests below will check for and report any differences
+    # despite the fact that flag and xk_best are identical.
+    x_best_ref = len(H_ref) - 1
+    flag_ref = 0
+    x_best_new = x_best_ref
+    flag_new = flag_ref
+
+    if ref_alg not in ["POUNDERs"]:
         error(f"Invalid algorithm name ({ref_alg}) for benchmark")
         return False
     elif new_alg != ref_alg:

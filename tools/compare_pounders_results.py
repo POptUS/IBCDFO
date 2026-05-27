@@ -67,10 +67,12 @@ def main():
         if not compare_results(ref_fname, new_fname):
             n_failed += 1
         n_tests += 1
+    n_passed = n_tests - n_failed
 
     print()
-    print(f"N Failed\t\t{n_failed}")
     print(f"N Skipped\t\t{n_skip}")
+    print(f"N Failed\t\t{n_failed}")
+    print(f"N Passed\t\t{n_passed}")
     print(f"N Total Tests\t\t{n_tests}")
 
     if (n_skip != 0) or (n_failed != 0):
