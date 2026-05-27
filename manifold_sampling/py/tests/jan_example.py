@@ -559,8 +559,6 @@ def h_max_gamma_over_KY_jax(z, H0=None):
     H0 : optional list of str
         Hashes (indices as strings) of manifolds to evaluate specifically.
         If None, returns active/near-active manifolds at z.
-    KY : optional array-like, shape (11,)
-        The KY grid; defaults to [0.10, 0.15, ..., 0.60].
 
     Outputs (H0 is None)
     --------------------
@@ -578,57 +576,37 @@ def h_max_gamma_over_KY_jax(z, H0=None):
     grads : ndarray, shape (11, l)
         Gradient columns for requested manifolds.
     """
+    import jaxnp_hash.numpy as jnp_h
 
-    def jax_max_gamma_over_KY(z, KY, type_for_jan, hash_thing=None):
-
-        if hash_thing is None:
-            with jnph.hash_mode(type_for_jan, tol=1e-3) as h:
-                """An example function that has nearby branches."""
-                # Convert to HashTensors
-                hz = jnph.HashTensor(z)
-                hKY = jnph.HashTensor(KY)
-
-                vals = hz / hKY  # shape (11,)
-                result1 = jnph.max(vals) 
-
-            return result1.value, h
-
-        else:
-            with jnph.hash_mode(type_for_jan, replay_hash=hash_thing):
-                """An example function that has nearby branches."""
-                # Convert to HashTensors
-                hz = jnph.HashTensor(z)
-                hKY = jnph.HashTensor(KY)
-
-                vals = hz / hKY  # shape (11,)
-                result1 = jnph.max(vals) 
-
-
-            return result1.value, []
-
-    KY = np.linspace(0.10, 0.60, 11)  # Fixed KY grid: [0.10, 0.15, ..., 0.60] (11 values)
+    KY = np.linspace(0.10, 0.60, 11)
     z = np.asarray(z, dtype=float).ravel()
 
-    grad_jax_max_gamma_over_KY = jax.value_and_grad(jax_max_gamma_over_KY, has_aux=True)
+    KY_jax = jnp.array(KY)
+
+    def f(z_in):
+        vals = z_in / KY_jax
+        return jnp_h.max(vals)
 
     if H0 is None:
-        (h, Hash), grads = grad_jax_max_gamma_over_KY(z, KY, "record")
-        grads = np.zeros((len(z), len(Hash)), dtype=float)
+        results, paths = jnph.all_value_and_grad(f, tol=1e-3)(jnp.array(z))
 
-        for k, hash_thing in enumerate(Hash): 
-            (_, _), grad_one = grad_jax_max_gamma_over_KY(z, KY, "replay", hash_thing)
-            grads[:, k] = grad_one 
+        grads = np.zeros((len(z), len(paths)), dtype=float)
+        h_vals = np.zeros(len(paths), dtype=float)
+        for k, (v, g) in enumerate(results):
+            h_vals[k] = float(v)
+            grads[:, k] = np.asarray(g)
 
-        return h, grads, Hash
+        Hash = paths
+        return float(h_vals[0]), grads, Hash
     else:
         J = len(H0)
         h = np.zeros(J, dtype=float)
         grads = np.zeros((len(z), J), dtype=float)
 
-        for k, hash_thing in enumerate(H0): 
-            (h_one, Hash), grad_one = grad_jax_max_gamma_over_KY(z, KY, "replay", hash_thing)
-            h[k] = h_one
-            grads[:, k] = grad_one 
+        for k, path in enumerate(H0):
+            v, g = jnph.replay_value_and_grad(f, path)(jnp.array(z))
+            h[k] = float(v)
+            grads[:, k] = np.asarray(g)
 
         return h, grads
 
