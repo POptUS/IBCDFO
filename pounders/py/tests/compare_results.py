@@ -12,19 +12,20 @@ def _load_results_m_v1(filename):
     contents = scipy.io.loadmat(filename)
     keys = [k for k in contents.keys() if not k.startswith("__")]
     assert len(keys) == 1
-    assert keys[0].startswith("Results")
-    tmp = contents[keys[0]]
-    assert len(tmp) == 3
+    assert keys[0] == "Results"
 
     # Only one valid set of results across all three known hfun cases.
     data = None
-    for idx in range(len(tmp)):
+    tmp = contents[keys[0]]
+    assert len(tmp) == 3
+    for hfun in range(len(tmp)):
         # See if we can find that one valid result for this hfun case.
-        tmp_i = [e for e in tmp[idx] if np.squeeze(e).ndim == 0]
+        tmp_i = [e for e in tmp[hfun] if np.squeeze(e).ndim == 0]
         if tmp_i:
             assert len(tmp_i) == 1
             assert data is None
             data = tmp_i[0][0]
+            assert data is not None
 
     assert set(data.dtype.names) == EXPECTED_KEYS
 
