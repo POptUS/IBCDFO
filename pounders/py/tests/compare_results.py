@@ -1,53 +1,6 @@
-import scipy.io
-
 import numpy as np
 
 from .load_results import load_results
-
-
-def _load_results_py_v2(filename):
-    """
-    POUNDERS/Python v2 format established at commit 9f5a5f37c
-    """
-    EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
-
-    contents = scipy.io.loadmat(filename)
-    keys = [k for k in contents.keys() if not k.startswith("__")]
-    assert len(keys) == 1
-    assert keys[0].startswith("pounders4py_")
-    data = contents[keys[0]]
-    assert set(data.dtype.names) == EXPECTED_KEYS
-
-    algorithm = data["alg"][0][0][0]
-    problem = data["problem"][0][0][0]
-
-    H = np.squeeze(data["H"][0][0])
-    assert H.ndim == 1
-    n_evaluations = len(H)
-    assert all(np.isreal(H))
-    assert all(np.isfinite(H))
-
-    Fvec = np.squeeze(data["Fvec"][0][0])
-    assert Fvec.ndim == 2
-    tmp, _ = Fvec.shape
-    assert tmp == n_evaluations
-    assert all(np.isreal(Fvec.flatten()))
-    assert all(np.isfinite(Fvec.flatten()))
-
-    X = np.squeeze(data["X"][0][0])
-    assert X.ndim == 2
-    tmp, _ = X.shape
-    assert tmp == n_evaluations
-    assert all(np.isreal(X.flatten()))
-    assert all(np.isfinite(X.flatten()))
-
-    flag = np.squeeze(data["flag"][0][0])
-    assert np.isreal(flag)
-    assert np.isfinite(flag)
-    xk_best = np.squeeze(data["xk_best"][0][0])
-    assert xk_best in range(0, len(H))
-
-    return algorithm, problem, X, Fvec, H, xk_best, flag
 
 
 def _load_results_m_v1(filename):
@@ -89,22 +42,16 @@ def compare_results(filename_benchmark, filename_result):
         error(f"New result has different filename ({filename_result.stem})")
         return False
 
-    ref_alg, ref_problem, X_ref, F_ref, H_ref, x_best_ref, flag_ref = _load_results_py_v2(filename_benchmark)
+    ref_alg, ref_problem, X_ref, F_ref, H_ref, x_best_ref, flag_ref = load_results(filename_benchmark)
     new_alg, new_problem, X_new, F_new, H_new, x_best_new, flag_new = load_results(filename_result)
 
-    if ref_alg not in ["pounders4py"]:
+    if ref_alg not in ["POUNDERS_Py"]:
         error(f"Invalid algorithm name ({ref_alg}) for benchmark")
         return False
-    elif new_alg != "POUNDERS_Py":
+    elif new_alg != ref_alg:
         msg = "Benchmark and new result used different algorithms ({} != {})"
         error(msg.format(ref_alg, new_alg))
         return False
-    # TODO: Remove above elif and uncomment this once we check v3 against v3,
-    # which uses POUNDERS_py.
-    # elif new_alg != ref_alg:
-    #     msg = "Benchmark and new result used different algorithms ({} != {})"
-    #     error(msg.format(ref_alg, new_alg))
-    #     return False
 
     if (not ref_problem.startswith("problem")) or (not ref_problem.endswith("from More/Wild")):
         error(f"Invalid problem spec ({ref_problem}) for benchmark")
