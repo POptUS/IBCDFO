@@ -35,14 +35,12 @@ def _load_results_m_v1(filename):
     assert H.ndim == 1
     n_evaluations = len(H)
     assert all(np.isreal(H))
-    assert all(np.isfinite(H))
 
     Fvec = np.squeeze(data["Fvec"][0])
     assert Fvec.ndim == 2
     tmp, _ = Fvec.shape
     assert tmp == n_evaluations
     assert all(np.isreal(Fvec.flatten()))
-    assert all(np.isfinite(Fvec.flatten()))
 
     X = np.squeeze(data["X"][0])
     assert X.ndim == 2
@@ -87,7 +85,20 @@ def compare_results(filename_benchmark, filename_result):
         return False
 
     ref_alg, ref_problem, X_ref, F_ref, H_ref = _load_results_m_v1(filename_benchmark)
+    if not all(np.isfinite(H_ref)):
+        error("Non-finite h values in benchmark")
+        return False
+    elif not all(np.isfinite(F_ref.flatten())):
+        error("Non-finite Fvec values in benchmark")
+        return False
+
     new_alg, new_problem, X_new, F_new, H_new = _load_results_m_v1(filename_result)
+    if not all(np.isfinite(H_new)):
+        error("Non-finite h values in new results")
+        return False
+    elif not all(np.isfinite(F_new.flatten())):
+        error("Non-finite Fvec values in new results")
+        return False
 
     # Fake these values until the MATLAB format results have them stored.  Set
     # flags so that the tests below will check for and report any differences
