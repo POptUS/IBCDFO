@@ -55,7 +55,7 @@ def _load_results_m_v1(filename):
 
 def _load_results_m_v2(filename):
     """
-    POUNDERS/MATLAB v2 format established at commit XYZ.
+    POUNDERS/MATLAB v2 format established at commit 4336b866.
     """
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
 
