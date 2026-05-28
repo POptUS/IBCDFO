@@ -7,7 +7,7 @@ def load_results(filename):
     """
     Based on benchmark results' file format established at commit
     * fb33cdfd for POUNDERS/Python and
-    * PENDING for POUNDERS/MATLAB.
+    * 2b4d9603 for POUNDERS/MATLAB.
     """
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
 
