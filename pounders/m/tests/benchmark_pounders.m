@@ -126,6 +126,8 @@ for row = 1:length(dfo)
         Results{hfun_cases, row}.Fvec = F;
         Results{hfun_cases, row}.H = hF;
         Results{hfun_cases, row}.X = X;
+        Results{hfun_cases, row}.xk_best = xk_best;
+        Results{hfun_cases, row}.flag = flag;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %     save('-mat7-binary', filename, 'Results') % Octave save
         save(filename, 'Results');
