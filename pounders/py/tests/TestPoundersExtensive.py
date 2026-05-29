@@ -125,6 +125,11 @@ class TestPounders(unittest.TestCase):
                 # the MATLAB implementation.  We prefer the .mat format since
                 # Python can write that format as well.  This includes using the
                 # same filenaming scheme.
+                #
+                # We have algorithm names specify the language of the
+                # implementations because, for instance, the MATLAB results
+                # store the best approximation index as 1-based as opposed to
+                # 0-based as this test does.
                 Results = {"alg": "POUNDERS_Py", "problem": "problem " + str(row) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,

@@ -68,7 +68,6 @@ for row = 1:length(dfo)
     end
 
     for hfun_cases = 1:3
-        Results = cell(3, 53);
         if hfun_cases == 1
             hfun = @h_leastsquares;
             combinemodels = @combine_leastsquares;
@@ -121,16 +120,19 @@ for row = 1:length(dfo)
             assert(size(X, 1) == nf_max + nfs, "POUNDERs didn't use nf_max evaluations");
         end
 
-        Results{hfun_cases, row}.alg = 'POUNDERs';
-        Results{hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
-        Results{hfun_cases, row}.Fvec = F;
-        Results{hfun_cases, row}.H = hF;
-        Results{hfun_cases, row}.X = X;
-        Results{hfun_cases, row}.xk_best = xk_best;
-        Results{hfun_cases, row}.flag = flag;
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %     save('-mat7-binary', filename, 'Results') % Octave save
-        save(filename, 'Results');
+        % Save results to .mat file with identical format to benchmark results
+        % generated with Python implementation.  This includes writing results
+        % with an identical filenaming scheme.
+        %
+        % We have algorithm names specify the language of the implementations
+        % because, for instance, the MATLAB results store the best
+        % approximation index as 1-based as opposed to 0-based as the Python
+        % tests do.
+        alg = 'POUNDERS_M';
+        problem = ['problem ' num2str(row) ' from More/Wild'];
+        Fvec = F;
+        H = hF;
+        save(filename, 'alg', 'problem', 'Fvec', 'H', 'X', 'flag', 'xk_best');
     end
 end
 if ~ensure_still_solve_problems
