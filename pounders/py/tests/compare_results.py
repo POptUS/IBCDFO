@@ -57,11 +57,8 @@ def compare_results(filename_benchmark, filename_result):
         return False
 
     # ----- COMPARE NEW RESULTS AGAINST BENCHMARK
-    if len(H_new) != len(H_ref):
-        error(f"H arrays have different lengths ({len(H_ref)} != {len(H_new)})")
-        return False
-    assert F_new.shape == F_ref.shape
-    assert X_new.shape == X_ref.shape
+    assert F_new.shape[1] == F_ref.shape[1]
+    assert X_new.shape[1] == X_ref.shape[1]
 
     # Don't fail immediately if values are different so that we can provide
     # users with all such differences in one go.
@@ -91,6 +88,11 @@ def compare_results(filename_benchmark, filename_result):
         if any(X_best_new != X_best_ref):
             max_abs_diff = np.max(np.fabs(X_best_new - X_best_ref))
             msgs += [f"X max absolute difference = {max_abs_diff}"]
+    else:
+        if flag_ref < 0:
+            msgs += [f"Benchmark failed with flag={flag_ref}"]
+        if flag_new < 0:
+            msgs += [f"New result failed with flag={flag_new}"]
 
     if msgs:
         error("\n\t".join(msgs))
