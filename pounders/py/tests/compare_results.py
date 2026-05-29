@@ -66,16 +66,19 @@ def compare_results(filename_benchmark, filename_result):
         return False
 
     # ----- COMPARE NEW RESULTS AGAINST BENCHMARK
+    # These checks are designed under the assumption that the prime use of this
+    # function is to detect if two results are not *identical*.
     assert F_new.shape[1] == F_ref.shape[1]
     assert X_new.shape[1] == X_ref.shape[1]
 
     # Don't fail immediately if values are different so that we can provide
     # users with all such differences in one go.
-    msgs = []
+    errors = []
+    warnings = []
     if x_best_new != x_best_ref:
-        msgs += [f"Best approximation indices differ ({x_best_new} != {x_best_ref})"]
+        errors += [f"Best approximation indices differ ({x_best_new} != {x_best_ref})"]
     if flag_new != flag_ref:
-        msgs += [f"Flags differ ({flag_new} != {flag_ref})"]
+        errors += [f"Flags differ ({flag_new} != {flag_ref})"]
     if (not _failed(flag_new)) and (not _failed(flag_ref)):
         # Only show comparison if both ran without a hard failure.  For
         # instance, I would like to see the these comparisons if one or both
@@ -89,27 +92,32 @@ def compare_results(filename_benchmark, filename_result):
         H_best_new = H_new[x_best_new]
 
         if flag_ref == _FLAG_DELTA_MIN:
-            msgs += ["Benchmark reached delta_min"]
+            warnings += ["Benchmark reached delta_min"]
         if flag_new == _FLAG_DELTA_MIN:
-            msgs += ["new result reached delta_min"]
+            warnings += ["New result reached delta_min"]
         if H_best_new != H_best_ref:
             abs_diff = np.fabs(H_best_new - H_best_ref)
-            msgs += [f"H absolute difference = {abs_diff}"]
+            errors += [f"H absolute difference = {abs_diff}"]
         if any(F_best_new != F_best_ref):
             max_abs_diff = np.max(np.fabs(F_best_new - F_best_ref))
-            msgs += [f"Fvec max absolute difference = {max_abs_diff}"]
+            errors += [f"Fvec max absolute difference = {max_abs_diff}"]
         if any(X_best_new != X_best_ref):
             max_abs_diff = np.max(np.fabs(X_best_new - X_best_ref))
-            msgs += [f"X max absolute difference = {max_abs_diff}"]
+            errors += [f"X max absolute difference = {max_abs_diff}"]
     else:
+        # We've already reported an error if the flags differ and consistenly
+        # "bad" flags is not necessarily a failure.
         if _failed(flag_ref):
-            msgs += [f"Benchmark failed with flag={flag_ref}"]
+            warnings += [f"Benchmark failed with flag={flag_ref}"]
         if _failed(flag_new):
-            msgs += [f"New result failed with flag={flag_new}"]
+            warnings += [f"New result failed with flag={flag_new}"]
 
-    if msgs:
-        error("\n\t".join(msgs))
+    if errors:
+        error("\n\t".join(errors + warnings))
         return False
+    elif warnings:
+        print(f"{BLUE}PASS{NC}\n\t" + "\n\t".join(warnings))
+        return True
 
     print(f"{BLUE}PASS{NC}")
     return True

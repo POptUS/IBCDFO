@@ -53,8 +53,7 @@ def load_results(filename):
     assert all(np.isfinite(X.flatten()))
 
     flag = np.squeeze(data["flag"])
-    assert np.isreal(flag)
-    assert np.isfinite(flag)
+    assert (flag >= 0.0) or (flag in [-6, -5, -4, -3, -2, -1])
     xk_best = np.squeeze(data["xk_best"])
     if algorithm == "POUNDERS_M":
         # The MATLAB implementation's test suite saves the index of the best
