@@ -2,6 +2,15 @@ import numpy as np
 
 from .load_results import load_results
 
+_FLAG_DELTA_MIN = -6
+
+
+def _failed(flag):
+    # Having the optimization terminate due to the trust region radius
+    # shrinking down to delta_min does not necessarily indicate a failure.  If
+    # delta_min is well-specified, it could be treated as a success.
+    return (flag < 0) and (flag != _FLAG_DELTA_MIN)
+
 
 def compare_results(filename_benchmark, filename_result):
     """
@@ -67,7 +76,7 @@ def compare_results(filename_benchmark, filename_result):
         msgs += [f"Best approximation indices differ ({x_best_new} != {x_best_ref})"]
     if flag_new != flag_ref:
         msgs += [f"Flags differ ({flag_new} != {flag_ref})"]
-    if (flag_new >= 0) and (flag_ref >= 0):
+    if (not _failed(flag_new)) and (not _failed(flag_ref)):
         # Only show comparison if both ran without a hard failure.  For
         # instance, I would like to see the these comparisons if one or both
         # were simply nonconvergent.
@@ -79,6 +88,10 @@ def compare_results(filename_benchmark, filename_result):
         F_best_new = F_new[x_best_new]
         H_best_new = H_new[x_best_new]
 
+        if flag_ref == _FLAG_DELTA_MIN:
+            msgs += ["Benchmark reached delta_min"]
+        if flag_new == _FLAG_DELTA_MIN:
+            msgs += ["new result reached delta_min"]
         if H_best_new != H_best_ref:
             abs_diff = np.fabs(H_best_new - H_best_ref)
             msgs += [f"H absolute difference = {abs_diff}"]
@@ -89,9 +102,9 @@ def compare_results(filename_benchmark, filename_result):
             max_abs_diff = np.max(np.fabs(X_best_new - X_best_ref))
             msgs += [f"X max absolute difference = {max_abs_diff}"]
     else:
-        if flag_ref < 0:
+        if _failed(flag_ref):
             msgs += [f"Benchmark failed with flag={flag_ref}"]
-        if flag_new < 0:
+        if _failed(flag_new):
             msgs += [f"New result failed with flag={flag_new}"]
 
     if msgs:
