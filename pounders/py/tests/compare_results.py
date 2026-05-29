@@ -105,7 +105,7 @@ def compare_results(filename_benchmark, filename_result):
             max_abs_diff = np.max(np.fabs(X_best_new - X_best_ref))
             errors += [f"X max absolute difference = {max_abs_diff}"]
     else:
-        # We've already reported an error if the flags differ and consistenly
+        # We've already reported an error if the flags differ and consistently
         # "bad" flags is not necessarily a failure.
         if _failed(flag_ref):
             warnings += [f"Benchmark failed with flag={flag_ref}"]
