@@ -41,7 +41,7 @@ class TestPounders(unittest.TestCase):
             # TODO: Set nf_max to match values used in MATLAB to allow for
             # direct comparison.  I suspect that many optimizations are running
             # down to delta_min.  Therefore, we don't need a special nf_max,
-            # but can add a check to confirm that at least one optimiztion did
+            # but can add a check to confirm that at least one optimization did
             # run down to delta_min.
             if row == 0:
                 nf_max = 500  # Testing delta_min stopping on first problem
