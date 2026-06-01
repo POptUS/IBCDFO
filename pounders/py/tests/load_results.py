@@ -22,9 +22,10 @@ def load_results(filename):
     keys = [k for k in data.keys() if not k.startswith("__")]
     assert set(keys) == EXPECTED_KEYS
 
-    algorithm = str(np.squeeze(data["alg"]))
+    algorithm = str(data["alg"])
+    assert algorithm in ["POUNDERS_M", "POUNDERS_Py"]
 
-    problem = str(np.squeeze(data["problem"]))
+    problem = str(data["problem"])
     if (not problem.startswith("problem")) or (not problem.endswith("from More/Wild")):
         raise ValueError(f"Invalid problem spec ({problem})")
     try:
@@ -32,36 +33,39 @@ def load_results(filename):
     except Exception:
         raise ValueError(f"Invalid problem spec ({problem})")
 
-    H = np.squeeze(data["H"])
+    H = data["H"]
     assert H.ndim == 1
     n_evaluations = len(H)
     assert all(np.isreal(H))
+    # Non-finite can happen in our tests, so checking finiteness of H must be
+    # handled by calling code.
 
     # Fvec could be a scalar at each evaluation
-    Fvec = np.atleast_2d(np.squeeze(data["Fvec"]))
+    Fvec = np.atleast_2d(data["Fvec"])
     assert Fvec.ndim == 2
     tmp, _ = Fvec.shape
     assert tmp == n_evaluations
     assert all(np.isreal(Fvec.flatten()))
+    # Non-finite can happen in our tests, so checking finiteness of Fvec must
+    # be handled by calling code.
 
     # X could be a scalar at each evaluation
-    X = np.atleast_2d(np.squeeze(data["X"]))
+    X = np.atleast_2d(data["X"])
     assert X.ndim == 2
     tmp, _ = X.shape
     assert tmp == n_evaluations
     assert all(np.isreal(X.flatten()))
     assert all(np.isfinite(X.flatten()))
 
-    flag = np.squeeze(data["flag"])
+    flag = data["flag"]
     assert (flag >= 0.0) or (flag in [-6, -5, -4, -3, -2, -1])
-    xk_best = np.squeeze(data["xk_best"])
+
+    xk_best = data["xk_best"]
     if algorithm == "POUNDERS_M":
         # The MATLAB implementation's test suite saves the index of the best
         # approximation as a 1-based integer.  However, we need to adjust it to
         # 0-based since we are returning Python arrays.
         xk_best -= 1
-    elif algorithm != "POUNDERS_Py":
-        raise ValueError(f"Unknown POUNDERS test algorithm {algorithm}")
-    assert xk_best in range(0, len(H))
+    assert xk_best in range(0, n_evaluations)
 
     return algorithm, problem, X, Fvec, H, xk_best, flag

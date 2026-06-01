@@ -16,9 +16,6 @@ def compare_results(filename_benchmark, filename_result):
     """
     .. todo::
         * Allow for users to specify nonzero tolerances if the use case arises.
-        * Allow for checking Python and MATLAB results on a set of problems on
-          which we expect all optimizations to find the same local minimizer.
-          This would require nonzero tolerances.
 
     :param filename_benchmark: Filename of |pounders| ``.mat``-format
         benchmarking result that calling code considers to be the accepted
@@ -26,7 +23,7 @@ def compare_results(filename_benchmark, filename_result):
     :param filename_result: Filename of |pounders| ``.mat``-format benchmarking
         result that calling code wishes to check against the reference.
     :return: True if the files correspond to identical test setups and contain
-        bitwise-identical results.
+        valid, bitwise-identical results.
     """
     # ----- HARDCODED VALUES
     RED = "\033[0;91;1m"  # Bright Red/bold
@@ -68,11 +65,12 @@ def compare_results(filename_benchmark, filename_result):
     # ----- COMPARE NEW RESULTS AGAINST BENCHMARK
     # These checks are designed under the assumption that the prime use of this
     # function is to detect if two results are not *identical*.
+    #
+    # Even so, we don't fail immediately if values are different so that we can
+    # provide users with all such differences in one go.
     assert F_new.shape[1] == F_ref.shape[1]
     assert X_new.shape[1] == X_ref.shape[1]
 
-    # Don't fail immediately if values are different so that we can provide
-    # users with all such differences in one go.
     errors = []
     warnings = []
     if x_best_new != x_best_ref:
@@ -95,6 +93,7 @@ def compare_results(filename_benchmark, filename_result):
             warnings += ["Benchmark reached delta_min"]
         if flag_new == _FLAG_DELTA_MIN:
             warnings += ["New result reached delta_min"]
+
         if H_best_new != H_best_ref:
             abs_diff = np.fabs(H_best_new - H_best_ref)
             errors += [f"H absolute difference = {abs_diff}"]
@@ -105,7 +104,7 @@ def compare_results(filename_benchmark, filename_result):
             max_abs_diff = np.max(np.fabs(X_best_new - X_best_ref))
             errors += [f"X max absolute difference = {max_abs_diff}"]
     else:
-        # We've already reported an error if the flags differ and consistently
+        # We've already reported an error if the flags differ and identical
         # "bad" flags is not necessarily a failure.
         if _failed(flag_ref):
             warnings += [f"Benchmark failed with flag={flag_ref}"]
