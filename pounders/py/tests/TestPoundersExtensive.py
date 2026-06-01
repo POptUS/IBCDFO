@@ -38,6 +38,11 @@ class TestPounders(unittest.TestCase):
         factor = 10
 
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
+            # TODO: Set nf_max to match values used in MATLAB to allow for
+            # direct comparison.  I suspect that many optimizations are running
+            # down to delta_min.  Therefore, we don't need a special nf_max,
+            # but can add a check to confirm that at least one optimiztion did
+            # run down to delta_min.
             if row == 0:
                 nf_max = 500  # Testing delta_min stopping on first problem
             else:
@@ -100,6 +105,7 @@ class TestPounders(unittest.TestCase):
                 assert hfun_name.startswith("h_")
                 hfun_name = hfun_name.lstrip("h_")
 
+                # TODO: Need to make problem number 1-based to match filenaming scheme in MATLAB
                 filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
@@ -130,6 +136,13 @@ class TestPounders(unittest.TestCase):
                 # implementations because, for instance, the MATLAB results
                 # store the best approximation index as 1-based as opposed to
                 # 0-based as this test does.
+                #
+                # TODO: Need to make problem number 1-based to match MATLAB's
+                # value.  Normally there should be no need to adjust this since
+                # it's an internal value and we could adjust as needed when
+                # loading the data when alg == POUNDERS_Py.  However, we are
+                # forced to use a 1-based problem number in the filename, so we
+                # should make the value here match the value in the filename.
                 Results = {"alg": "POUNDERS_Py", "problem": "problem " + str(row) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
