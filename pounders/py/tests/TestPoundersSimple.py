@@ -26,7 +26,7 @@ class TestPounders(unittest.TestCase):
 
             return fvec
 
-        spsolver = 1
+        spsolver = 3
         nf_max = 1000
         g_tol = 1e-13
         n = 3
@@ -122,17 +122,17 @@ class TestPounders(unittest.TestCase):
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": 3, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
         Ffun = lambda x: np.sum(x**2)
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": 3, "hfun": hfun, "combinemodels": combinemodels}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -2, f"This test should terminate because mdec == 0.  (flag={flag})")
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
+        Opts = {"spsolver": 3, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
@@ -152,7 +152,7 @@ class TestPounders(unittest.TestCase):
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
+        Opts = {"spsolver": 3, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
 
         F_init = Ffun(X_0.T)
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": 1, "xk_in": 0}
