@@ -120,7 +120,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     nfs = Prior["nfs"]
     delta = delta_0
-    spsolver = Options.get("spsolver", 2)
+    spsolver = Options.get("spsolver", 3) # changed to 3 to test LBFGSB.
     delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
     delta_min = Options.get("delta_min", np.minimum(delta * (10**-13), g_tol / 10))
     gamma_dec = Options.get("gamma_dec", 0.5)
@@ -132,9 +132,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if "hfun" in Options:
         hfun = Options["hfun"]
         combinemodels = Options["combinemodels"]
+        # need to import a hfun_d
+        if "hfun_d" not in Options:
+            from .general_h_funs import h_leastsquares_d as hfun_d
     else:
         from .general_h_funs import combine_leastsquares as combinemodels
         from .general_h_funs import h_leastsquares as hfun
+        from .general_h_funs import h_leastsquares_d as hfun_d
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
@@ -254,7 +258,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 return X, F, hF, flag, xk_in
 
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
-        Xsp, mdec, trsp_flag = solve_trsp(H, G, Low, Upp, X[xk_in], delta, spsolver, n)
+        Xsp, mdec, trsp_flag = solve_trsp(H, G, Cres, Hres, Gres, hfun, hfun_d, Low, Upp, X[xk_in], delta, spsolver, n)
         if trsp_flag < 0:
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, trsp_flag)
             return X, F, hF, flag, xk_in
