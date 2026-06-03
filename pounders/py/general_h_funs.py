@@ -67,15 +67,11 @@ def h_leastsquares(F):
 
 
 def combine_leastsquares(Cres, Gres, Hres):
-    n, _, m = Hres.shape
+    Cres = np.asarray(Cres, dtype=float).reshape(-1)
+    Gres = np.asarray(Gres, dtype=float)
 
-    G = 2 * Gres @ Cres.T
-    H = np.zeros((n, n))
-    for i in range(m):
-        H = H + Cres[i] * Hres[:, :, i]
-
-    H = 2 * H + 2 * Gres @ Gres.T
-
+    G = 2 * Gres @ Cres
+    H = 2 * Gres @ Gres.T
     return G, H
 
 

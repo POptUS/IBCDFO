@@ -1,0 +1,396 @@
+import sys
+import time
+import contextlib
+import io
+import numpy as np
+
+try:
+    import ipdb
+except ModuleNotFoundError:
+    ipdb = None
+
+try:
+    from .prepare_outputs_before_return_gradient import prepare_outputs_before_return
+except ImportError:
+    from prepare_outputs_before_return_gradient import prepare_outputs_before_return
+
+try:
+    import poptus
+except ModuleNotFoundError:
+    class _NoOpArchiver:
+        results_group = None
+
+    class _PoptusFallback:
+        LOG_LEVEL_DEFAULT = 0
+        LOG_LEVEL_MIN_DEBUG = 0
+        Hdf5Archiver = _NoOpArchiver
+
+    poptus = _PoptusFallback()
+
+
+def _solve_trsp_pyrol(G, H, Lows, Upps, n):
+    """Solve the bound-constrained trust-region subproblem using PyROL."""
+    try:
+        from pyrol import Objective, ParameterList, Problem, Bounds, Solver, getCout
+        from pyrol.vectors import NumPyVector as npVector
+
+        class TRSPObjective(Objective):
+            def __init__(self, G, H):
+                super().__init__()
+                self.G = np.asarray(G, dtype=float).reshape(-1)
+                self.H = np.asarray(H, dtype=float)
+
+            def value(self, x, tol):
+                s = np.asarray(x[:], dtype=float)
+                return self.G @ s + 0.5 * s @ (self.H @ s)
+
+            def gradient(self, g, x, tol):
+                s = np.asarray(x[:], dtype=float)
+                g[:] = self.G + self.H @ s
+
+            def hessVec(self, hv, v, x, tol):
+                hv[:] = self.H @ np.asarray(v[:], dtype=float)
+
+        x = npVector(np.zeros(n))
+        g = x.dual()
+
+        objective = TRSPObjective(G, H)
+        problem = Problem(objective, x, g)
+
+        lower = npVector(np.asarray(Lows, dtype=float).reshape(-1))
+        upper = npVector(np.asarray(Upps, dtype=float).reshape(-1))
+        problem.addBoundConstraint(Bounds(lower, upper))
+
+        p = ParameterList()
+        p["General"] = ParameterList()
+        p["General"]["Output Level"] = 0
+        p["Step"] = ParameterList()
+        p["Step"]["Trust Region"] = ParameterList()
+        p["Step"]["Trust Region"]["Subproblem Solver"] = "Truncated CG"
+        p["Step"]["Trust Region"]["Subproblem Model"] = "Lin-More"
+
+        solver = Solver(problem, p)
+        solver.solve(getCout())
+
+        Xsp = np.asarray(x[:], dtype=float).reshape(n, 1)
+        mdec = objective.value(x, 0.0)
+
+        return Xsp, mdec
+    except ModuleNotFoundError:
+        pass
+
+    try:
+        import ROL
+        from ROL.numpy_vector import NumpyVector
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "spsolver=3 requires PyROL/ROL. Install pyroltrilinos in this "
+            "Python environment, or use spsolver=2 for MINQ."
+        ) from exc
+
+    def numpy_vector(values):
+        values = np.asarray(values, dtype=float).reshape(-1)
+        vec = NumpyVector(values.size)
+        vec.data[:] = values
+        return vec
+
+    class TRSPObjective(ROL.Objective):
+        def __init__(self, G, H):
+            ROL.Objective.__init__(self)
+            self.G = np.asarray(G, dtype=float).reshape(-1)
+            self.H = np.asarray(H, dtype=float)
+
+        def value(self, x, tol):
+            s = np.asarray(x.data, dtype=float)
+            return float(self.G @ s + 0.5 * s @ (self.H @ s))
+
+        def gradient(self, g, x, tol):
+            s = np.asarray(x.data, dtype=float)
+            g.data[:] = self.G + self.H @ s
+
+        def hessVec(self, hv, v, x, tol):
+            hv.data[:] = self.H @ np.asarray(v.data, dtype=float)
+
+    objective = TRSPObjective(G, H)
+    x = numpy_vector(np.zeros(n))
+    lower = numpy_vector(Lows)
+    upper = numpy_vector(Upps)
+
+    params = ROL.ParameterList(
+        {
+            "Step": {
+                "Type": "Trust Region",
+                "Trust Region": {
+                    "Subproblem Solver": "Truncated CG",
+                },
+            },
+            "General": {"Print Verbosity": 0},
+        },
+        "Parameters",
+    )
+    problem = ROL.OptimizationProblem(objective, x, ROL.Bounds(lower, upper))
+    solver = ROL.OptimizationSolver(problem, params)
+    with contextlib.redirect_stdout(io.StringIO()):
+        solver.solve()
+
+    Xsp = np.asarray(x.data, dtype=float).reshape(n, 1)
+    mdec = objective.value(x, 0.0)
+
+    return Xsp, mdec
+
+
+def pouders(fun, X0, n, nfmax, gtol, delta, m, L, U, logger, spsolver=2, hfun=None, combinemodels=None):
+    """
+    POUDERS: Practical Optimization Using Derivatives for sums of Squares
+      [X,F,flag,xkin] = ...
+           pouders(fun,X0,n,npmax,nfmax,gtol,delta,nfs,m,F0,xkin,L,U,printf)
+
+    This code minimizes output from a structured blackbox function, solving
+    min { f(X)=sum_(i=1:m) F_i(x)^2, such that L_j <= X_j <= U_j, j=1,...,n }
+    where the user-provided blackbox F is specified in the handle fun. Evaluation
+    of this F must result in the return of a 1-by-m row vector. Bounds must be
+    specified in U and L but can be set to L=-Inf(1,n) and U=Inf(1,n) if the
+    unconstrained solution is desired. The algorithm will not evaluate F
+    outside of these bounds, but it is possible to take advantage of function
+    values at infeasible X if these are passed initially through (X0,F0).
+    In each iteration, the algorithm forms an interpolating quadratic model
+    of the function and minimizes it in an infinity-norm trust region.
+
+    This software comes with no warranty, is not bug-free, and is not for
+    industrial use or public distribution.
+    Direct requests and bugs to wild@mcs.anl.gov.
+    A technical report/manual is forthcoming, a brief description is in
+    Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
+
+    --INPUTS-----------------------------------------------------------------
+    fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
+    X0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
+    n       [int] Dimension (number of continuous variables)
+    nfmax   [int] Maximum number of function evaluations (>n+1) (100)
+    gtol    [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
+    delta   [dbl] Positive trust region radius (.1)
+    m       [int] Number of residual components
+    L       [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
+    U       [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
+    logger  [obj] POptUS logger object 
+    spsolver [int] Trust-region subproblem solver flag (2)
+
+    Optionally, a user can specify and outer-function that maps the the elements
+    of F to a scalar value (to be minimized). Doing this also requires a function
+    handle (combinemodels) that tells pounders how to map the linear and
+    quadratic terms from the residual models into a single quadratic TRSP model.
+
+    hfun           [f h] Function handle for mapping output from F
+    combinemodels  [f h] Function handle for combine residual models
+
+    --OUTPUTS----------------------------------------------------------------
+    X       [dbl] [nfmax+nfs-by-n] Locations of evaluated points
+    F       [dbl] [nfmax+nfs-by-m] Function values of evaluated points
+    flag    [dbl] Termination criteria flag:
+                  = 0 normal termination because of grad,
+                  > 0 exceeded nfmax evals,   flag = norm of grad at final X
+                  = -1 if input was fatally incorrect (error message shown)
+                  = -2 if a valid model produced X[nf] == X[xkin] or (mdec == 0, Fs[nf] == Fs[xkin])
+                  = -3 error if a NaN was encountered
+                  = -4 error in TRSP Solver
+                  = -5 unable to get model improvement with current parameters
+    xkin    [int] Index of point in X representing approximate minimizer
+    """
+
+    archiver = poptus.Hdf5Archiver()
+    group = archiver.results_group
+
+    def log(msg):
+        logger.log("POUDERS", msg, poptus.LOG_LEVEL_DEFAULT)
+
+    def log_debug(msg, level):
+        logger.log("POUDERS", msg, poptus.LOG_LEVEL_MIN_DEBUG + level)
+
+    if hfun is None:
+
+        def hfun(F):
+            return np.sum(F**2)
+
+    if combinemodels is None:
+        try:
+            from .general_h_funs import combine_leastsquares as combinemodels
+        except ImportError:
+            from general_h_funs import combine_leastsquares as combinemodels
+
+    # choose your spsolver
+    if spsolver == 2:
+        try:
+            from minqsw import minqsw
+        except ModuleNotFoundError as e:
+            # TODO: Should this use logger.error?
+            print(e)
+            sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
+
+    maxdelta = min(0.5 * np.min(U - L), (10**3) * delta)
+    mindelta = min(delta * (10**-13), gtol / 10)
+    gam0 = 0.5
+    gam1 = 2
+    eta1 = 0.05
+
+    eps = np.finfo(float).eps  # Define machine epsilon
+    log("Beginning gradient-based optimization.")
+    X = np.vstack((X0, np.zeros((nfmax - 1, n))))
+    F = np.zeros((nfmax, m))
+    J = [None] * nfmax
+    Fs = np.zeros(nfmax)
+    nf = 0  # in Matlab this is 1
+    xkin = 0
+
+    # first evaluation:
+    t0 = time.perf_counter()
+    F0, J0 = fun(X[nf])
+    log(f"Initial residual/Jacobian evaluation took {time.perf_counter() - t0:.2f} seconds.")
+    F0 = np.atleast_2d(F0)
+
+    if F0.shape[1] != m:
+        X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -1)
+        # TODO: Should this use logger.warn or logger.error?
+        # TODO: If you are archiving X, F, J automatically, can this function
+        # just raise an exception to indicate issues rather than return a flag?
+        # If so, could you implement a simpler log_and_abort() helper function
+        # and use that consistently throughout?
+        log("Your residual is not m-dimensional.")
+        return X, F, J, flag, xkin
+
+    if J0.shape[0] != n or J0.shape[1] != m:
+        # TODO: Should this use logger.warn or logger.error?
+        log("Your Jacobian is not n by m.")
+        X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -1)
+        return X, F, J, flag, xkin
+
+    F[nf] = F0
+    J[nf] = J0
+
+    if np.any(np.isnan(F[nf])):
+        # TODO: Should this use logger.warn or logger.error?
+        log("The initial evaluation of F contained a NaN.")
+        X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -3)
+        return X, F, J, flag, xkin
+    
+    log("Initial point evaluated.")
+    log(f"nf: {nf}, f(x) = {hfun(F[nf])}")
+
+    # if we had previous evaluations (an nfs ~=0), we would put them in X, F here
+    for i in range(nf + 1):
+        Fs[i] = hfun(F[i])
+    Res = np.zeros(np.shape(F))
+    # The original code allocated Hres = np.zeros((n, n, m)), but this branch
+    # never updates Hres. Store just its logical dimensions and let
+    # combine_leastsquares treat the residual Hessian as implicit zeros.
+    Hres = (n, m)
+    ng = np.nan  # Needed for early termination, e.g., if a model is never built
+
+    while nf + 1 < nfmax:
+        #  1a. Compute the "interpolation set".
+        Res[xkin] = F[xkin]
+        Gres = J[xkin]
+
+        #  1b. Update the quadratic model
+        Cres = F[xkin]
+        #Hres = Hres + Hresdel
+        t_model = time.perf_counter()
+        G, H = combinemodels(Cres, Gres, Hres)
+        log_debug(f"Model combine took {time.perf_counter() - t_model:.2f} seconds.", 0)
+        if np.shape(G) == np.shape(Gres):
+            # Some notebook sessions may still hold a stale combiner that
+            # returns the residual Jacobian instead of the scalar objective
+            # gradient. Recover the least-squares gradient directly.
+            G = 2 * Gres @ np.asarray(Cres, dtype=float).reshape(-1)
+        G = np.asarray(G, dtype=float).reshape(-1)
+        H = np.asarray(H, dtype=float)
+        if G.size != n or H.shape != (n, n):
+            log(f"Model has incompatible shapes: G={G.shape}, H={H.shape}, expected G=({n},), H=({n}, {n}).")
+            X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -4)
+            return X, F, J, flag, xkin
+        ind_Lnotbinding = (X[xkin] > L) * (G.T > 0)
+        ind_Unotbinding = (X[xkin] < U) * (G.T < 0)
+        ng = np.linalg.norm(G * (ind_Lnotbinding + ind_Unotbinding).T, 2)
+
+        log(f"nf: {nf}, delta: {delta}, f(x): {Fs[xkin]}, ng: {ng}")
+
+        # 2. Critically test invoked if the projected model gradient is small
+        if ng < gtol:
+            X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, 0)
+            return X, F, J, flag, xkin
+
+        # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
+        Lows = np.maximum(L - X[xkin], -delta * np.ones((np.shape(L))))
+        Upps = np.minimum(U - X[xkin], delta * np.ones((np.shape(U))))
+        if spsolver == 1:  # Stefan's crappy 10line solver
+            [Xsp, mdec] = bqmin(H, G, Lows, Upps)
+        elif spsolver == 2:  # Arnold Neumaier's minq5
+            log(f"Starting MINQ trust-region solve with n={n}.")
+            t_trsp = time.perf_counter()
+            [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
+            log(f"MINQ trust-region solve took {time.perf_counter() - t_trsp:.2f} seconds.")
+            if minq_err < 0:
+                X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -4)
+                return X, F, J, flag, xkin
+        elif spsolver == 3:  # PyROL
+            log(f"Starting PyROL trust-region solve with n={n}.")
+            t_trsp = time.perf_counter()
+            Xsp, mdec = _solve_trsp_pyrol(G, H, Lows, Upps, n)
+            log(f"PyROL trust-region solve took {time.perf_counter() - t_trsp:.2f} seconds.")
+        # elif spsolver == 3:  # Arnold Neumaier's minq8
+        #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
+        #     assert minq_err >= 0, "Input error in minq"
+        Xsp = Xsp.squeeze()
+        step_norm = np.linalg.norm(Xsp, np.inf)
+
+        # 4. Evaluate the function at the new point
+        if mdec != 0:
+            Xsp = np.minimum(U, np.maximum(L, X[xkin] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
+
+            # Project if we're within machine precision
+            for i in range(n):  # This will need to be cleaned up eventually
+                if (U[i] - Xsp[i] < eps * abs(U[i])) and (U[i] > Xsp[i] and G[i] >= 0):
+                    Xsp[i] = U[i]
+                    log_debug("eps project!", 0)
+                elif (Xsp[i] - L[i] < eps * abs(L[i])) and (L[i] < Xsp[i] and G[i] >= 0):
+                    Xsp[i] = L[i]
+                    log_debug("eps project!", 0)
+
+            nf += 1
+            X[nf] = Xsp
+            t_eval = time.perf_counter()
+            F[nf], J[nf] = fun(X[nf])
+            log(f"Residual/Jacobian evaluation took {time.perf_counter() - t_eval:.2f} seconds.")
+            if np.any(np.isnan(F[nf])):
+                X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -3)
+                return X, F, J, flag, xkin
+            Fs[nf] = hfun(F[nf])
+
+            rho = (Fs[nf] - Fs[xkin]) / mdec
+            previous_xkin = xkin
+
+            # 4a. Update the center
+            if rho > 0:
+                # Update model to reflect new center
+                xkin = nf  # Change current center
+                J[previous_xkin] = None
+            else:
+                J[nf] = None
+
+            # 4b. Update the trust-region radius:
+            if (rho >= eta1) and (step_norm > 0.75 * delta):
+                delta = min(delta * gam1, maxdelta)
+            else:
+                delta = max(delta * gam0, mindelta)
+        else:
+            # TODO: Should this use logger.warn or logger.error?
+            log("Model decrease cannot be found, terminating. ")
+            X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -2)
+            return X, F, J, flag, xkin
+
+    # TODO: Should this use logger.warn or logger.error?
+    # TODO: If you implement a log_and_abort(), should this particular instance
+    # use that or just log a warning and return all arguments as it does for
+    # success?
+    log("Number of function evals exceeded")
+    flag = ng
+    return X, F, J, flag, xkin

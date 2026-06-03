@@ -59,3 +59,7 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
+
+# Jupyter/GST generated files
+.ipynb_checkpoints/
+GST_POUNDERS/standard_gst_checkpoints/

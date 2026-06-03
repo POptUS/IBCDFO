@@ -1,0 +1,14 @@
+.git
+.github
+**/__pycache__
+**/.ipynb_checkpoints
+GST_POUNDERS/standard_gst_checkpoints
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+build
+dist
