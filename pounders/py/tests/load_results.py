@@ -28,7 +28,7 @@ def load_results(filename):
         # when loading two different files.  However, using a deepcopy resolves
         # the issue.  A simple copy is not sufficient, which makes sense since
         # data is a nested dictionary.
-        data = copy.deepcopy(scipy.io.loadmat(filename))
+        data = copy.deepcopy(scipy.io.loadmat(fptr))
     keys = [k for k in data.keys() if not k.startswith("__")]
     assert set(keys) == EXPECTED_KEYS
 
