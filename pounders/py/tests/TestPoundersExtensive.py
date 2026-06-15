@@ -34,20 +34,12 @@ class TestPounders(unittest.TestCase):
         dfo = np.loadtxt("dfo.dat")
 
         spsolver = 2
+        nf_max = 100
         g_tol = 1e-13
         factor = 10
 
+        n_delta_min = 0
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
-            # TODO: Set nf_max to match values used in MATLAB to allow for
-            # direct comparison.  I suspect that many optimizations are running
-            # down to delta_min.  Therefore, we don't need a special nf_max,
-            # but can add a check to confirm that at least one optimization did
-            # run down to delta_min.
-            if row == 0:
-                nf_max = 500  # Testing delta_min stopping on first problem
-            else:
-                nf_max = 50
-
             n = int(n)
             m = int(m)
 
@@ -105,8 +97,8 @@ class TestPounders(unittest.TestCase):
                 assert hfun_name.startswith("h_")
                 hfun_name = hfun_name.lstrip("h_")
 
-                # TODO: Need to make problem number 1-based to match filenaming scheme in MATLAB
-                filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
+                # Need to make problem number 1-based to match filenaming scheme in MATLAB
+                filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row + 1) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
@@ -127,6 +119,9 @@ class TestPounders(unittest.TestCase):
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
+                if flag == -6:
+                    n_delta_min += 1
+
                 # Write results to .mat file using the same format as used by
                 # the MATLAB implementation.  We prefer the .mat format since
                 # Python can write that format as well.  This includes using the
@@ -137,16 +132,19 @@ class TestPounders(unittest.TestCase):
                 # store the best approximation index as 1-based as opposed to
                 # 0-based as this test does.
                 #
-                # TODO: Need to make problem number 1-based to match MATLAB's
+                # Need to make problem number 1-based to match MATLAB's
                 # value.  Normally there should be no need to adjust this since
                 # it's an internal value and we could adjust as needed when
                 # loading the data when alg == POUNDERS_Py.  However, we are
                 # forced to use a 1-based problem number in the filename, so we
                 # should make the value here match the value in the filename.
-                Results = {"alg": "POUNDERS_Py", "problem": "problem " + str(row) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
+                Results = {"alg": "POUNDERS_Py", "problem": "problem " + str(row + 1) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not
                 #                      # correctly redefine calfun_wrapper
 
                 sp.io.savemat(filename, Results)
+
+        # Ensure that at least one test ran down to delta_min
+        self.assertTrue(n_delta_min > 0)
