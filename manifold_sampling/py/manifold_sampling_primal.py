@@ -107,6 +107,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
 
         bar_delta = delta
 
+        successful = False
         # Line 3: manifold sampling while loop
         while nf + 1 < nf_max:
             # Line 4: build models
@@ -167,7 +168,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
                     # Line 20: See if intersection is nonempty
                     if np.any(np.isin(hashes_at_nf, Act_Z_k)):
-                        successful = False
                         break
                     else:
                         # Line 24: Shrink delta
