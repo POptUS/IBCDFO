@@ -171,7 +171,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                     # Line 20: See if intersection is nonempty
                     # if np.any(np.isin(hashes_at_nf, Act_Z_k)):
                     if len(hashes_at_nf.intersection(Act_Z_k)) > 0:
-                        successful = False
                         break
                     else:
                         # Line 24: Shrink delta
