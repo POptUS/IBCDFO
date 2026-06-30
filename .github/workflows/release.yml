@@ -17,9 +17,10 @@
 name: Build & Test Release Candidate
 env:
   CLONE_PATH:       ${{ github.workspace }}
+  MINQ_COMMIT_FILE: ${{ github.workspace }}/REQUIRED_MINQ_COMMIT
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
-  MINQ5_PY_PATH:    ${{ github.workspace }}/minq/py/minq5
+  MINQ5_PY_PATH:    ${{ github.workspace }}/MINQ/py/minq5
   IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
   DIST_PATH:        ${{ github.workspace }}/ibcdfo_pypkg/dist
 
@@ -36,6 +37,23 @@ on:
     types:    [published]
 
 jobs:
+  # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
+  # Load this eagerly so that it is available for immediate use in all
+  # subsequent jobs.
+  load_minq_sha:
+    outputs:
+        minq_sha: ${{ steps.load_sha.outputs.minq_sha }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout IBCDFO repository
+      uses: actions/checkout@v6
+    - name: Load Official MINQ SHA
+      id: load_sha
+      run: |
+        MINQ_SHA=$(cat $MINQ_COMMIT_FILE)
+        echo "The valid MINQ commit hash is $MINQ_SHA"
+        echo "minq_sha=$MINQ_SHA" >> "$GITHUB_OUTPUT"
+
   # Prefer using the latest Python version supported by the package
   build:
     name: Build release candidate distributions
@@ -43,15 +61,10 @@ jobs:
     steps:
       # Clone the repository with the full history since setuptools-scm needs
       # the tags to set the correct version.
-      #
-      # Submodule content is not needed to build distributions.
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: false
+        uses: actions/checkout@v6
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
       - name: Construct sdist and wheel
@@ -66,7 +79,7 @@ jobs:
           python -m build
           popd
       - name: Archive both distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ibcdfo-release-candidate
           path: |
@@ -75,36 +88,40 @@ jobs:
 
   test_sdist:
     name: Test source distribution
-    needs: [build]
+    needs: [build, load_minq_sha]
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     strategy:
       matrix:
         # python-versions must be maintained consistent with associated
         # pyproject.toml and tox.ini configuration.
         #
-        # TODO: Strange failures on macos-15-intel prevent its use (Issue 235).
-        # This means that this action is **not** running any mac tests using
-        # Intel chips.
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
+        # TODO: Strange failures on macos-15-intel and macos-26-intel prevent
+        # their use (Issue 235).  This means that this action is **not** running
+        # any mac tests using Intel chips.
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
-      # Install MINQ at commit specified in current submodule setting rather
-      # than installing as clone of actual MINQ repo.
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - name: Checkout MINQ repository
+        uses: actions/checkout@v6
         with:
-          submodules: recursive
+          repository: POptUS/MINQ
+          path: MINQ
+          ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Obtain release candidate
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ibcdfo-release-candidate
           path: ${{ env.CLONE_PATH }}
@@ -122,36 +139,40 @@ jobs:
 
   test_wheel:
     name: Test universal wheel
-    needs: [build]
+    needs: [build, load_minq_sha]
+    env:
+      MINQ_SHA: ${{ needs.load_minq_sha.outputs.minq_sha }}
     strategy:
       matrix:
         # python-versions must be maintained consistent with associated
         # pyproject.toml and tox.ini configuration.
         #
-        # TODO: Strange failures on macos-15-intel prevent its use (Issue 235).
-        # This means that this action is **not** running any mac tests using
-        # Intel chips.
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15]
+        # TODO: Strange failures on macos-15-intel and macos-26-intel prevent
+        # their use (Issue 235).  This means that this action is **not** running
+        # any mac tests using Intel chips.
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
-      # Install MINQ at commit specified in current submodule setting rather
-      # than installing as clone of actual MINQ repo.
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - name: Checkout MINQ repository
+        uses: actions/checkout@v6
         with:
-          submodules: recursive
+          repository: POptUS/MINQ
+          path: MINQ
+          ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Obtain release candidate
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ibcdfo-release-candidate
           path: ${{ env.CLONE_PATH }}

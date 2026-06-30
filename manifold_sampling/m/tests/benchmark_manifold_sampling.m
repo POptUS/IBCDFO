@@ -13,7 +13,7 @@ function [] = benchmark_manifold_sampling()
 oldpath = addpath(fullfile(here_path, '..'));
 addpath(fullfile(here_path, '..', 'general_nonsmooth_h_funs'));
 
-global C D Qs zs cs
+global Qs zs cs
 factor = 10;
 
 subprob_switch = 'linprog';
@@ -50,17 +50,21 @@ for row = [1, 2, 7, 8, 43, 44, 45]
     ind = find(C_L1_loss(:, 1) == row & C_L1_loss(:, 2) == 1);
     C = C_L1_loss(ind, 4:m + 3);
     D = D_L1_loss(ind, 4:m + 3);
+    h_censored_L1_loss = create_censored_L1_loss_hfun(C, D);
+
     Qs = Qzb.Q_mat{row, 1};
     zs = Qzb.z_mat{row, 1};
     cs = Qzb.b_mat{row, 1};
+    h_piecewise_quadratic = create_piecewise_quadratic_hfun(Qs, zs, cs);
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Manifold sampling
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     jj = 1;
-    hfuns_all = {@h_censored_L1_loss, ...
+    hfuns_all = {h_censored_L1_loss, ...
+                 h_piecewise_quadratic, ...
                  @h_max_plus_quadratic_violation_penalty, ...
-                 @h_piecewise_quadratic, @h_piecewise_quadratic_1, ...
                  @h_pw_maximum, @h_pw_maximum_squared, ...
                  @h_pw_minimum, @h_pw_minimum_squared, ...
                  @h_quantile, ...
@@ -69,7 +73,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
         hfun = hfuns{1};
         nf_max = 100;
         if row == 1
-            if jj == 1 || jj == 7
+            if jj == 1 || jj == 6
                 nf_max = 400;  % Increasing nf_max for a few tests helps cover parts of manifold_sampling_primal
             end
         end

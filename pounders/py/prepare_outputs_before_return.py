@@ -14,7 +14,7 @@ def prepare_outputs_before_return(X, F, hF, nf, exit_flag):
     elif exit_flag == -2:
         print("Terminating because no improvement from TRSP solution (mdec == 0) with a valid model and small delta.")
     elif exit_flag == -3:
-        print("A NaN was encountered in an objective evaluation. Exiting.")
+        print("A NaN or Inf was encountered in an objective evaluation. Exiting.")
     elif exit_flag == -4:
         print("A minq input error occurred. Exiting.")
     elif exit_flag == -5:

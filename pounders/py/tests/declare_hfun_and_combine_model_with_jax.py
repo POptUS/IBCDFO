@@ -6,8 +6,9 @@
 # needs to be changed (and combinemodels_jax can be given to pounders)
 
 
-import jax
 import numpy
+
+import jax
 
 jax.config.update("jax_enable_x64", True)
 

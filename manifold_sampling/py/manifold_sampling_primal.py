@@ -17,48 +17,53 @@ eng = []
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     r"""
-    Run manifold sampling on the optimization problem specified by the given
-    arguments.
+    Run manifold sampling to solve the composite nonsmooth optimization problem.
 
-    .. todo::
-        Does $h_i$ refer to a partial derivative?
+    :param hfun:
+        Function implementing :math:`\hfun`. Supports two calling modes.
 
-    :param hfun: Function that, given an :math:`\np` element numpy array
-        :math:`\zvec`, returns
+        **Mode 1**::
 
-        * the value :math:`h(\zvec)`
-        * :math:`\np \times l` numpy array that contains gradients for all
-          :math:`l` limiting gradients at :math:`\zvec`
-        * ``list`` of :math:`l` hashes for each manifold active at :math:`\zvec`
+            hval, grads, hashes = hfun(z)
 
-        Given point :math:`\zvec` and :math:`l` hashes :math:`H`, returns
+        where:
 
-        * An :math:`l` element numpy array that contains the values
-          :math:`h_i(\zvec)` for each hash in :math:`H`
-        * A :math:`p \times l` numpy array that contains the gradients of
-          :math:`h_i(\zvec)` for each hash in :math:`H`
+        * ``z`` is a length-:math:`\nd` array
+        * ``hval`` is the scalar value :math:`\hfun(\zvec)`
+        * ``grads`` is a :math:`(\nd, l)` array whose columns are gradients of the
+          :math:`l` active selection functions at :math:`\zvec`
+        * ``hashes`` is a list of identifiers for those :math:`l` active manifolds
 
-    :param Ffun: Function that returns the value :math:`\Ffun(\psp)` of the
-        blackbox simulation as an :math:`\nd` element numpy array for given
-        :math:`\psp`
-    :param x0: :math:`\np` element numpy array that specifies the starting point
-    :param L: :math:`\np` element numpy array of lower bounds
-    :param U: :math:`\np` element numpy array of upper bounds
-    :param nf_max: Maximum number of function evaluations
-    :param subprob_switch: **???**
+        **Mode 2**::
+
+            vals, grads = hfun(z, hashes)
+
+        where the list ``hashes`` specifies which manifolds to evaluate, ``vals[i]`` is the
+        value of the ``i`` th corresponding selection, and column ``i`` of
+        ``grads`` is the gradient of the ``i`` th selection at :math:`\zvec`.
+
+    :param Ffun: Function returning :math:`\Ffun(\psp)` as a length-:math:`\nd`
+        array for a given length-:math:`\np` array ``x``.
+
+    :param x0: Initial point (length :math:`\np` array).
+
+    :param L: Lower bounds for ``x`` (length :math:`\np` array).
+
+    :param U: Upper bounds for ``x`` (length :math:`\np` array).
+
+    :param nf_max: Maximum number of evaluations of ``Ffun``.
+
+    :param subprob_switch:
+        Selects the trust-region subproblem solver/variant used internally.
 
     :return:
-        * **X** - :math:`\mathrm{nf\_max} \times \np` numpy array containing the
-            points evaluated in the order in which they were evaluated
-        * **F** - :math:`\mathrm{nf\_max} \times \nd` numpy array containing the
-          blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
-          with matching ordering
-        * **h**: :math:`\mathrm{nf\_max}` numpy array containing the values
-          :math:`\hfun(\Ffun(\psp))` for all points in ``X`` with matching
-          ordering.
-        * **xkin**: Current trust region center.  **ZERO-BASED INDEX INTO
-          X?**
-        * **flag**: Termination criteria flag (See general documentation)
+        Tuple ``(X, F, h, xkin, flag)`` where
+
+        * ``X`` -- array of evaluated points in evaluation order
+        * ``F`` -- array with rows :math:`\Ffun(X[i])`
+        * ``h`` -- array with :math:`h[i] = \hfun(\Ffun(X[i]))`
+        * ``xkin`` -- zero-based index in ``X`` of the final trust-region center
+        * ``flag`` -- termination code (See general documentation)
     """
     # Some other values
     #  n:       [int]     Dimension of the domain of F (deduced from x0)
@@ -81,7 +86,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     finally:
         pass
 
-    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres = check_inputs_and_initialize(x0, F0, nf_max)
+    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
     flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nf_max, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
     if flag == -1:
         print("MSP: Error with inputs. Exiting.")
@@ -97,8 +102,12 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     H_mm = np.zeros((n, n))
 
     while nf + 1 < nf_max and delta > tol["mindelta"]:
+        if printf:
+            print("MSP: nf: %4d; fval: %8e; delta: %8.3e; chi: %8.3e;" % (nf, np.squeeze(h[xkin]), delta, chi_k))
+
         bar_delta = delta
 
+        successful = False
         # Line 3: manifold sampling while loop
         while nf + 1 < nf_max:
             # Line 4: build models
@@ -156,8 +165,11 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
+
+                # if np.all(np.isin(tmp_Act_Z_k, Act_Z_k)):
                 if len(tmp_Act_Z_k.intersection(Act_Z_k)) == len(tmp_Act_Z_k):
                     # Line 20: See if intersection is nonempty
+                    # if np.any(np.isin(hashes_at_nf, Act_Z_k)):
                     if len(hashes_at_nf.intersection(Act_Z_k)) > 0:
                         successful = False
                         break
@@ -175,8 +187,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
             # Line 21: iteration is unsuccessful; shrink Delta
             delta = max(bar_delta * tol["gamma_dec"], tol["mindelta"])
             # h_activity_tol = min(1e-8, delta);
-        if printf:
-            print("MSP: nf: %8d; fval: %8e; chi: %8e; radius: %8e;" % (nf, np.squeeze(h[xkin]), chi_k, delta))
 
     if nf + 1 >= nf_max:
         return prepare_outputs_before_return(X, F, h, nf, xkin, 0)

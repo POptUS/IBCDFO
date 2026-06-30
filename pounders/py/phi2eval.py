@@ -4,7 +4,7 @@ import numpy as np
 def phi2eval(X):
     """
     Input:
-    X is a [m-by-n] numpy array
+    X is a [m-by-n] NumPy array
     Output:
     Phi
     """

@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 
+from .._get_minq_installation import get_minq_installation
 from .bmpts import bmpts
 from .bqmin import bqmin
 from .checkinputss import checkinputss
@@ -36,34 +37,31 @@ def _default_prior():
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     r"""
-    Run a |pounders| run on the optimization problem specified by the given
+    Run |pounders| on the optimization problem specified by the given
     arguments.
 
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
-        element numpy array for given :math:`\psp`
-    :param X_0:     :math:`\np` element numpy array that specifies the initial
+        element NumPy array for given :math:`\psp`
+    :param X_0:     :math:`\np` element NumPy array that specifies the initial
         point
-    :param n:       Dimension (number of continuous variables)
+    :param n:       Dimension (number of continuous, real-valued input variables)
     :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
     :param g_tol:   Tolerance for the 2-norm of the model gradient
     :param delta_0: Positive initial trust region radius
-    :param m:       Number of components returned from ``Ffun``
-    :param Low:     :math:`\np` element numpy array of lower bounds
-    :param Upp:     :math:`\np` element numpy array of upper bounds
-    :param Prior:   ``dict`` of past evaluations of ``Ffun``.  Set to ``None``
-        to run optimization assuming no past evaluations.  Otherwise arguments
-        must be provided for all dictionary entries?  **What if a user wants to
-        provide just values outside feasible region but not use any as the
-        initial point?**
+    :param m:       Dimension of output of ``Ffun`` (number of component functions)
+    :param Low:     :math:`\np` element NumPy array of lower bounds
+    :param Upp:     :math:`\np` element NumPy array of upper bounds
+    :param Prior:   ``dict`` describing  past evaluations of ``Ffun``.  Set to ``None`` to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
 
         * **nfs** - Number of past function evaluations
-        * **X_init** - :math:`\mathrm{nfs} \times \np` numpy array of points
+        * **X_init** - :math:`\mathrm{nfs} \times \np` NumPy array of points
           :math:`\psp_k`
-        * **F_init** - :math:`\mathrm{nfs} \times \nd` numpy array of values
-          :math:`\Ffun(\psp_k)` obtained with ``Ffun``
+        * **F_init** - :math:`\mathrm{nfs} \times \nd` NumPy array of values
+          :math:`\Ffun(\psp_k)` computed with ``Ffun``
         * **xk_in** -  Zero-based index into ``X_init`` and ``F_init`` that
           corresponds to the point and value to use as initial point for
-          optimization.  **IS X_0 IGNORED IN THIS CASE?**
+          optimization. Note that if **Prior** is nonempty, this will override
+          the previously specified **X_0**.
 
     :param Options: ``dict`` of method options.  Set to ``None`` to use default
         values.
@@ -74,7 +72,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             * 1 - Debugging level of output to screen
             * 2 - More verbose screen output
 
-        * **spsolver** - Trust-region subproblem solver flag (default is 2)
+        * **spsolver** - Trust-region subproblem solver flag (default is 2, not recommended to change)
         * **hfun** - Outer function :math:`\hfun` that maps given
           :math:`\Ffun(\psp)` to scalars for minimization (default is
           sum-of-squares that yields :math:`f`)
@@ -87,19 +85,19 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **np_max** -  Maximum number of interpolation points (:math:`>\np+1`)
           (default is :math:`2\np+1`)
-        * **Par** - Five element ``list`` for ``formquad`` (default is **???**)
+        * **Par** - Five element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
 
     :return:
-        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` numpy array containing
+        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` NumPy array containing
           locations of evaluated points in the order in which they were
           evaluated
-        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` numpy array containing
+        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` NumPy array containing
           the function values at ``X`` with matching ordering
         * **hF** - :math:`\mathrm{nf\_max+nfs}\times 1` Composed values
-          ``hfun(Ffun)`` for evaluated points in ``X``
+          ``hfun(Ffun(x))`` for evaluated points ``x`` in ``X``
         * **flag** - Termination criteria flag (See general |pounders| documentation)
         * **xk_in** - Zero-based index of point in ``X`` representing
-          approximate minimizer.  **EXPLAIN HOW THIS WAS DETERMINED?**
+          incumbent at termination (approximate local minimizer if `flag=0`)
     """
     if Options is None:
         Options = {}
@@ -143,11 +141,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # choose your spsolver
     if spsolver == 2:
-        try:
-            from minqsw import minqsw
-        except ModuleNotFoundError as e:
-            print(e)
-            sys.exit("Ensure a python implementation of MINQ is available. For example, clone https://github.com/POptUS/minq and add minq/py/minq5 to the PYTHONPATH environment variable")
+        required_minq_SHA, minq_installation = get_minq_installation()
+        if not minq_installation["is_valid"]:
+            msg = f"Please set MINQ clone to git commit {required_minq_SHA}.\nSee User Guide (https://ibcdfo.readthedocs.io) for more information and instructions."
+            sys.exit(msg)
+        from minqsw import minqsw
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
@@ -156,9 +154,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         hF = []
         return X, F, hF, flag, xk_in
     eps = np.finfo(float).eps  # Define machine epsilon
-    if printf:
-        print("  nf   delta    fl  np       f0           g0       ierror")
-        progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
     if Prior["nfs"] == 0:
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
@@ -169,11 +164,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -1)
             return X, F, hF, flag, xk_in
         F[nf] = F_0
-        if np.any(np.isnan(F[nf])):
+        if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
             return X, F, hF, flag, xk_in
         if printf:
-            print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
+            print("%4i    Initial point  %11.5e" % (nf, hfun(F[nf, :])))
     else:
         X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
         F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
@@ -190,19 +185,19 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
+        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
             for i in range(int(min(n - mp, nf_max - (nf + 1)))):
                 nf += 1
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                 F[nf] = Ffun(X[nf])
-                if np.any(np.isnan(F[nf])):
+                if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                     X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                     return X, F, hF, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
-                    print("%4i   Geometry point  %11.5e\n" % (nf, hF[nf]))
+                    print("%4i   Geometry point  %11.5e" % (nf, hF[nf]))
                 D = Mdir[i, :]
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
@@ -229,7 +224,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 ierror = np.nan
             else:
                 ierror = np.linalg.norm(IERR / np.abs(hF[Mind]), np.inf)
-            print(progstr % (nf, delta, valid, mp, hF[xk_in], ng, ierror))
+            print("POUNDERS: nf: %4d; fval: %8e; delta: %8.3e; valid: %1i; mp: %2i; ng: %12.4e; ierror: %11.3e;" % (nf, hF[xk_in], delta, valid, mp, ng, ierror))
             if printf >= 2:
                 jerr = np.zeros((len(Mind), m))
                 for i in range(len(Mind)):
@@ -241,23 +236,23 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
             delta = np.maximum(g_tol, np.max(np.abs(X[xk_in])) * eps)
-            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
+            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
             if not valid:
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
                     nf += 1
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
                     F[nf] = Ffun(X[nf])
-                    if np.any(np.isnan(F[nf])):
+                    if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                         return X, F, hF, flag, xk_in
                     hF[nf] = hfun(F[nf])
                     if printf:
-                        print("%4i   Critical point  %11.5e\n" % (nf, hF[nf]))
+                        print("%4i   Critical point  %11.5e" % (nf, hF[nf]))
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
-                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 0)
+                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
@@ -308,7 +303,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             else:
                 F[nf] = Ffun(X[nf])
 
-            if np.any(np.isnan(F[nf])):
+            if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                 return X, F, hF, flag, xk_in
             hF[nf] = hfun(F[nf])
@@ -346,7 +341,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
-            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], 1)
+            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xk_in unchanged)
                 D = X[: nf + 1] - X[xk_in]
@@ -384,12 +379,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 nf += 1
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
                 F[nf] = Ffun(X[nf])
-                if np.any(np.isnan(F[nf])):
+                if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                     X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                     return X, F, hF, flag, xk_in
                 hF[nf] = hfun(F[nf])
                 if printf:
-                    print("%4i   Model point     %11.5e\n" % (nf, hF[nf]))
+                    print("%4i   Model point     %11.5e" % (nf, hF[nf]))
                 if hF[nf] < hF[xk_in]:  # ! Eventually check stuff decrease here
                     if printf:
                         print("**improvement from model point****")

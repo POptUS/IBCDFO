@@ -3,20 +3,33 @@ Unit test of compute function
 """
 
 import os
+import shutil
 import unittest
 
 import ibcdfo
-import functools
 import numpy as np
 import scipy as sp
 from calfun import calfun
 from dfoxs import dfoxs
 
+from pathlib import Path
+
 
 class TestPounders(unittest.TestCase):
     def test_benchmark_pounders(self):
-        if not os.path.exists("benchmark_results"):
-            os.makedirs("benchmark_results")
+        # Always start with an empty temporary folder whose name indicates to
+        # users that it might be overwritten at any time.
+        #
+        # This class should **not** destroy this folder or its contents so that
+        # users can manually inspect the results and potentially use them as
+        # baselines for regression testing.  Ideally no other test cases in the
+        # IBCDFO test suite will create or delete folders with this name.
+        RESULT_PATH = Path.cwd().joinpath("TempPoundersBenchmarkResults")
+        if RESULT_PATH.is_file():
+            os.remove(RESULT_PATH)
+        elif RESULT_PATH.is_dir():
+            shutil.rmtree(RESULT_PATH)
+        os.mkdir(RESULT_PATH)
 
         dfo = np.loadtxt("dfo.dat")
 
@@ -25,6 +38,11 @@ class TestPounders(unittest.TestCase):
         factor = 10
 
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
+            # TODO: Set nf_max to match values used in MATLAB to allow for
+            # direct comparison.  I suspect that many optimizations are running
+            # down to delta_min.  Therefore, we don't need a special nf_max,
+            # but can add a check to confirm that at least one optimization did
+            # run down to delta_min.
             if row == 0:
                 nf_max = 500  # Testing delta_min stopping on first problem
             else:
@@ -73,20 +91,22 @@ class TestPounders(unittest.TestCase):
                 if hfun_cases == 1:
                     hfun = ibcdfo.pounders.h_leastsquares
                     combinemodels = ibcdfo.pounders.combine_leastsquares
-                    hfun_name = combinemodels.__name__
+                    hfun_name = hfun.__name__
                 elif hfun_cases == 2:
                     ALPHA = 0.0
-                    hfun = functools.partial(ibcdfo.pounders.h_squared_diff_from_mean, alpha=ALPHA)
-                    combinemodels = functools.partial(ibcdfo.pounders.combine_squared_diff_from_mean, alpha=ALPHA)
-                    hfun_name = "combine_squared_diff_from_mean"
+                    hfun, combinemodels = ibcdfo.pounders.create_squared_diff_from_mean_functions(ALPHA)
+                    hfun_name = "h_squared_diff_from_mean"
                 elif hfun_cases == 3:
-                    if m != 3:  # Emittance is only defined for the case when m == 3
+                    if m != 3:  # Emittance is defined only for the case when m == 3
                         continue
                     hfun = ibcdfo.pounders.h_emittance
                     combinemodels = ibcdfo.pounders.combine_emittance
-                    hfun_name = combinemodels.__name__
+                    hfun_name = hfun.__name__
+                assert hfun_name.startswith("h_")
+                hfun_name = hfun_name.lstrip("h_")
 
-                filename = "./benchmark_results/pounders4py_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat"
+                # TODO: Need to make problem number 1-based to match filenaming scheme in MATLAB
+                filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
@@ -107,12 +127,23 @@ class TestPounders(unittest.TestCase):
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X
+                # Write results to .mat file using the same format as used by
+                # the MATLAB implementation.  We prefer the .mat format since
+                # Python can write that format as well.  This includes using the
+                # same filenaming scheme.
+                #
+                # We have algorithm names specify the language of the
+                # implementations because, for instance, the MATLAB results
+                # store the best approximation index as 1-based as opposed to
+                # 0-based as this test does.
+                #
+                # TODO: Need to make problem number 1-based to match MATLAB's
+                # value.  Normally there should be no need to adjust this since
+                # it's an internal value and we could adjust as needed when
+                # loading the data when alg == POUNDERS_Py.  However, we are
+                # forced to use a 1-based problem number in the filename, so we
+                # should make the value here match the value in the filename.
+                Results = {"alg": "POUNDERS_Py", "problem": "problem " + str(row) + " from More/Wild", "Fvec": F, "H": hF, "X": X, "flag": flag, "xk_best": xk_best}
                 # oct2py.kill_octave() # This is necessary to restart the octave instance,
                 #                      # and thereby remove some caching of inside of oct2py,
                 #                      # namely changing problem dimension does not

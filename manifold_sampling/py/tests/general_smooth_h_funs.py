@@ -11,7 +11,7 @@ def h_leastsquares(z, H0=None):
         f(\psp) = \hfun\left(\Ffun(\psp)\right)
                 = \sum_{i = 1}^{\nd} \Ffuncomp{i}(\psp)^2.
 
-    It is intended that this only be used for testing purposes.
+    It is intended that this be used only for testing purposes.
     """
     n = len(z)
     h = np.sum(z**2)

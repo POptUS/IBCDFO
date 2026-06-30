@@ -1,5 +1,5 @@
-import numpy as np
 import ibcdfo
+import numpy as np
 
 
 def call_beamline_simulation(x):

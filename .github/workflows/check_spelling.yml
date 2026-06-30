@@ -12,15 +12,12 @@ on:
 
 jobs:
   spelling:
-    # No need to spell check submodules
     name: Spell Check with Typos
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v4
-      with:
-        submodules: false
+      uses: actions/checkout@v6
     - name: Spell Check Repo
-      uses: crate-ci/typos@v1.38.1
+      uses: crate-ci/typos@v1.44.0
       with:
         config: ${{ env.TYPOS_CFG }}

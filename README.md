@@ -1,9 +1,9 @@
-**NOTE: The `main` branch is currently in a state of transition (Issue #173)
-and should not presently be used.  Instead, please consider using `main-v0`**
-
 # IBCDFO
 
-Interpolation-Based Composite Derivative-Free Optimization.  Part of [POptUS: Practical Optimization Using Structure](https://github.com/POptUS).
+Interpolation-Based Composite Derivative-Free Optimization, part of [POptUS: Practical Optimization Using Structure](https://github.com/POptUS).
+
+A collection of interpolation-based methods for solving structured,
+composite derivative-free optimization problems.
 
 ### Repository
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -25,18 +25,23 @@ Interpolation-Based Composite Derivative-Free Optimization.  Part of [POptUS: Pr
 
 ## License & Copyright
 
-All code included in IBCDFO is open source, with the particular form of license contained in the top-level
-subdirectories.  If such a subdirectory does not contain a LICENSE file, then it is automatically licensed
-as described in the otherwise encompassing IBCDFO [LICENSE](/LICENSE).
+All code included in IBCDFO is open source, with the specific license for each component provided in the corresponding top-level
+subdirectory. If a subdirectory does not contain a LICENSE file, it is covered by the
+IBCDFO [LICENSE](https://github.com/poptus/IBCDFO/blob/main/LICENSE).
 
-Copyright (c) 2023, The Regents of the University of California,
+Copyright (c) 2023-2026, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory and UChicago Argonne
 LLC through Argonne National Laboratory (subject to receipt of any
-required approvals from the U.S. Dept. of Energy).  All rights reserved.
+required approvals from the U.S. Dept. of Energy). All rights reserved.
+
+This material is based upon work supported by the U.S. Department of
+Energy, Office of Science, Office of Advanced Scientific Computing Research,
+Scientific Discovery through Advanced Computing (SciDAC) Program through the
+FASTMath Institute.
 
 ## Support
 
-To 
+To
 
 * report potential problems with IBCDFO,
 * propose a change, or
@@ -56,23 +61,23 @@ The inclusion of examples is [pending](https://github.com/POptUS/IBCDFO/issues/2
 
 ## Installation & Testing
 
-Refer to [Getting Started](https://ibcdfo.readthedocs.io/en/latest/get_started.html) section of User Guide.
+Refer to the [Getting Started](https://ibcdfo.readthedocs.io/en/latest/get_started.html) section of the User Guide.
 
 ## Contributing to IBCDFO
 
-Contributions are welcome in a variety of forms; please see
+Contributions are welcome in a variety of forms; see
 [Contributing](https://ibcdfo.readthedocs.io/en/latest/contributing.html) in the
 Developer Guide.
 
 ## Cite IBCDFO
 
 ```
-  @misc{ibcdfo,
-    author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
-    title  = {Interpolation-Based Composite Derivative-Free Optimization},
-    url    = {https://github.com/POptUS/IBCDFO},
-    year   = {2024},
-  }
+@techreport{ibcdfo,
+  author = {Jeffrey Larson and Matt Menickelly and Stefan M. Wild},
+  title  = {Interpolation-Based Composite Derivative-Free Optimization},
+  url    = {https://github.com/POptUS/IBCDFO},
+  number = {Version 0.1.0},
+  year   = {2026},
+  doi    = {10.11578/dc.20240627.2}
+}
 ```
-
-

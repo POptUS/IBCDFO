@@ -21,6 +21,7 @@
         "kvec":       "\\vec{k}",
         "lvec":       "\\vec{l}",
         "mvec":       "\\vec{m}",
+        "Mvec":       "\\vec{M}",
         "nvec":       "\\vec{n}",
         "ovec":       "\\vec{o}",
         "pvec":       "\\vec{p}",

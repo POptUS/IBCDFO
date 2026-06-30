@@ -1,13 +1,12 @@
 function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch)
-% Run manifold sampling on the optimization problem specified by the given
-% arguments.
+% Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
 % :param hfun: Handle to function that, given a :math:`\np \times 1` point
 %     :math:`\zvec`, returns
 %
 %     * the value :math:`h(\zvec)`
 %     * :math:`\np \times l` matrix that contains gradients for all
-%       :math:`l` limiting gradients at :math:`\zvec`
+%       :math:`l` active selections at :math:`\zvec`
 %     * :math:`1 \times l` vector of hashes for each manifold active at :math:`\zvec`
 %
 %     Given point :math:`\zvec` and :math:`l` hashes :math:`H`, returns
@@ -24,7 +23,7 @@ function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, 
 % :param L: :math:`1 \times \np` vector of lower bounds
 % :param U: :math:`1 \times \np` vector of upper bounds
 % :param nf_max: [int] Maximum number of function evaluations
-% :param subprob_switch: **???**
+% :param subprob_switch: Selects the trust-region subproblem solver used internally.
 %
 % :return:
 %      * **X** - :math:`\mathrm{nf\_max} \times \np` matrix containing the
@@ -35,8 +34,7 @@ function [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, 
 %      * **h** - :math:`\mathrm{nf\_max} \times 1` matrix containing the values
 %        :math:`\hfun(\Ffun(\psp))` for all points in ``X`` with matching
 %        ordering.
-%      * **xkin** - Current trust region center.  **ONE-BASED INDEX INTO
-%        X?**
+%      * **xkin** - One-based index of current trust region center.
 %      * **flag** - Termination criteria flag (See general documentation)
 
 % Some other values
@@ -90,6 +88,8 @@ H_mm = zeros(n);
 
 while nf < nf_max && delta > tol.mindelta
     bar_delta = delta;
+
+    successful = false;
 
     % Line 3: manifold sampling while loop
     while nf < nf_max
@@ -170,7 +170,6 @@ while nf < nf_max && delta > tol.mindelta
 
                 % Line 20: See if intersection is nonempty
                 if any(ismember(hashes_at_nf, Act_Z_k))
-                    successful = false; % iteration is unsuccessful
                     break
                 else
                     % Line 24: Shrink delta
