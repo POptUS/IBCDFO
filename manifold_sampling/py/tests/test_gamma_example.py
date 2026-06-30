@@ -10,7 +10,8 @@ import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
 
-from jan_example import h_max_gamma_over_KY_jax as hfun
+# from jan_example import h_max_gamma_over_KY_jax as hfun
+from ibcdfo.manifold_sampling import h_max_gamma_over_KY as hfun
 
 dfo = np.loadtxt("dfo.dat")
 
@@ -33,6 +34,8 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return np.squeeze(out)
 
     X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+
+    np.savez(f"old_msp_output_{row}.npz", X=X, F=F, h_msp=h_msp, xkin=xkin, flag=flag)
 
     # # --- Run pounders without using the structure ---
     # combinemodels = ibcdfo.pounders.combine_identity
