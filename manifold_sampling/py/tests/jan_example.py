@@ -538,77 +538,18 @@ def h_max_gamma_over_KY(z, H0=None):
         return h, grads
 
 
-def h_max_gamma_over_KY_jax(z, H0=None):
-    """
-    Computes h = max_j { z_j / KY_j }, where each z_j represents the output from
-    the application-specific function gamma(kappa, Delta, zeta, KY_j).
-
-    Notes
-    -----
-    - The symbols kappa, Delta, and zeta are domain parameters from
-      the physics/application model. They are *not* related to parameters
-      in the manifold sampling algorithm itself.
-    - The role of hfun in manifold sampling is simply to wrap this
-      application objective in the required (value, gradients, hashes)
-      interface. The actual Ffun corresponds to gamma(·).
-
-    Inputs
-    ------
-    z : array-like, shape (11,)
-        Values of gamma(...) evaluated at the 11 KY points.
-    H0 : optional list of str
-        Hashes (indices as strings) of manifolds to evaluate specifically.
-        If None, returns active/near-active manifolds at z.
-
-    Outputs (H0 is None)
-    --------------------
-    h : float
-        The maximum value over j of z_j / KY_j.
-    grads : ndarray, shape (11, l)
-        Columns are gradients of each active manifold (dh/dz_j = 1/KY_j).
-    Hash : list[str], length l
-        String indices of active/near-active manifolds, matching grads columns.
-
-    Outputs (H0 provided)
-    ---------------------
-    h : ndarray, shape (l,)
-        Values z_j / KY_j for requested manifolds.
-    grads : ndarray, shape (11, l)
-        Gradient columns for requested manifolds.
-    """
+def _make_h_max_gamma_over_KY_jax():
     import jaxnp_hash.numpy as jnp_h
 
-    KY = np.linspace(0.10, 0.60, 11)
-    z = np.asarray(z, dtype=float).ravel()
-
-    KY_jax = jnp.array(KY)
+    KY_jax = jnp.array(np.linspace(0.10, 0.60, 11))
 
     def f(z_in):
         vals = z_in / KY_jax
         return jnp_h.max(vals)
 
-    if H0 is None:
-        results, paths = jnph.all_value_and_grad(f, tol=1e-3)(jnp.array(z))
+    return jnph.h_fun(f, tol=1e-3)
 
-        grads = np.zeros((len(z), len(paths)), dtype=float)
-        h_vals = np.zeros(len(paths), dtype=float)
-        for k, (v, g) in enumerate(results):
-            h_vals[k] = float(v)
-            grads[:, k] = np.asarray(g)
-
-        Hash = paths
-        return float(h_vals[0]), grads, Hash
-    else:
-        J = len(H0)
-        h = np.zeros(J, dtype=float)
-        grads = np.zeros((len(z), J), dtype=float)
-
-        for k, path in enumerate(H0):
-            v, g = jnph.replay_value_and_grad(f, path)(jnp.array(z))
-            h[k] = float(v)
-            grads[:, k] = np.asarray(g)
-
-        return h, grads
+h_max_gamma_over_KY_jax = _make_h_max_gamma_over_KY_jax()
 
 def h_max_plus_quadratic_violation_penalty(z, H0=None):
     r"""
