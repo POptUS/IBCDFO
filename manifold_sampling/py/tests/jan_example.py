@@ -4,6 +4,7 @@ import numpy as np
 
 import jax
 import jax.numpy as jnp
+import jaxnp_hash.numpy as jnp_h
 import jaxnp_hash as jnph
 jax.config.update("jax_enable_x64", True)
 
@@ -539,15 +540,13 @@ def h_max_gamma_over_KY(z, H0=None):
 
 
 def _make_h_max_gamma_over_KY_jax():
-    import jaxnp_hash.numpy as jnp_h
-
     KY_jax = jnp.array(np.linspace(0.10, 0.60, 11))
 
     def f(z_in):
         vals = z_in / KY_jax
         return jnp_h.max(vals)
 
-    return jnph.h_fun(f, tol=1e-3)
+    return jnph.h_fun(f, tol=1e-8)
 
 h_max_gamma_over_KY_jax = _make_h_max_gamma_over_KY_jax()
 

@@ -7,8 +7,8 @@ from jan_example import h_max_gamma_over_KY_jax as jan_hfun
 from ibcdfo.manifold_sampling import h_max_gamma_over_KY as old_hfun
 
 
-a = np.load("jans_msp_output_0.npz", allow_pickle=True)
-b = np.load("old_msp_output_0.npz", allow_pickle=True)
+a = np.load("jans_msp_output_1.npz", allow_pickle=True)
+b = np.load("old_msp_output_1.npz", allow_pickle=True)
 
 for key in ["X", "F", "h_msp"]:
     print(f"\n{key}:")
