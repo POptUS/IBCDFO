@@ -1,0 +1,11 @@
+label,reference_label,num_pairs,pairs_shared_with_reference,pairs_only_in_reference,pairs_only_in_this_run,jaccard_vs_reference
+random_1,random_1,60,60,0,0,1.0
+random_2,random_1,60,9,51,51,0.08108108108108109
+random_3,random_1,60,10,50,50,0.09090909090909091
+random_4,random_1,60,12,48,48,0.1111111111111111
+random_5,random_1,60,6,54,54,0.05263157894736842
+random_6,random_1,60,10,50,50,0.09090909090909091
+random_7,random_1,60,11,49,49,0.10091743119266056
+random_8,random_1,60,10,50,50,0.09090909090909091
+random_9,random_1,60,7,53,53,0.061946902654867256
+random_10,random_1,60,13,47,47,0.12149532710280374

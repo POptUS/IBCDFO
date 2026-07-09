@@ -103,3 +103,97 @@ def h_emittance(F):
     """
     assert len(F) == 3, "Emittance must have exactly 3 inputs"
     return F[0] * F[1] - F[2] ** 2
+
+
+def h_loglikelihood(probabilities, counts):
+    r"""
+    Multinomial log-likelihood for outcome probabilities and observed counts.
+
+    This returns the data-dependent part of
+
+    .. math::
+
+        \log L(p; n) = \sum_i n_i \log(p_i),
+
+    omitting multinomial constants that do not depend on ``probabilities``.
+    The return value is a scalar.  To use this as a minimization objective,
+    minimize ``-h_loglikelihood(probabilities, counts)``.
+    """
+    probabilities = np.asarray(probabilities, dtype=float).reshape(-1)
+    counts = np.asarray(counts, dtype=float).reshape(-1)
+
+    if probabilities.shape != counts.shape:
+        raise ValueError(
+            "probabilities and counts must have the same flattened shape."
+        )
+    if np.any(counts < 0):
+        raise ValueError("counts must be nonnegative.")
+
+    safe_probabilities = np.clip(probabilities, 1e-15, 1.0)
+    return float(np.sum(counts * np.log(safe_probabilities)))
+
+
+def h_negative_loglikelihood(probabilities, counts):
+    r"""
+    Negative multinomial log-likelihood for minimization.
+
+    This is the minimization-ready version of ``h_loglikelihood``:
+
+    .. math::
+
+        -\log L(p; n) = -\sum_i n_i \log(p_i).
+    """
+    return -h_loglikelihood(probabilities, counts)
+
+
+def combine_negative_loglikelihood(Cres, Gres, Hres, info=None):
+    r"""
+    Combine probability models for the negative multinomial log-likelihood.
+
+    This builds a local model for
+
+    .. math::
+
+        -\log L(p; n) = -\sum_i n_i \log(p_i).
+
+    ``Gres`` is expected to be the Jacobian of the probabilities with shape
+    ``(n_parameters, n_probability_entries)``.  The probabilities and counts
+    are read from ``info["p"]`` and ``info["counts"]``.
+
+    When ``Hres`` contains per-entry Hessians, this includes the exact
+    second-derivative term.  When ``Hres`` is the implicit-zero tuple used by
+    the GST notebook, this returns the Gauss-Newton/Fisher approximation.
+    """
+    if info is None or "p" not in info or "counts" not in info:
+        raise ValueError(
+            "combine_negative_loglikelihood requires info with 'p' and 'counts'."
+        )
+
+    probabilities = np.asarray(info["p"], dtype=float).reshape(-1)
+    counts = np.asarray(info["counts"], dtype=float).reshape(-1)
+    Gres = np.asarray(Gres, dtype=float)
+
+    if probabilities.shape != counts.shape:
+        raise ValueError("probabilities and counts must have the same shape.")
+    if Gres.shape[1] != probabilities.size:
+        raise ValueError(
+            "Gres must have one column per probability/count entry."
+        )
+    if np.any(counts < 0):
+        raise ValueError("counts must be nonnegative.")
+
+    safe_probabilities = np.clip(probabilities, 1e-15, 1.0)
+
+    grad_coefficients = -counts / safe_probabilities
+    hessian_diagonal = counts / (safe_probabilities**2)
+
+    G = Gres @ grad_coefficients
+    H = (Gres * hessian_diagonal) @ Gres.T
+
+    if not isinstance(Hres, tuple):
+        Hres = np.asarray(Hres, dtype=float)
+        if Hres.ndim == 3 and Hres.shape[2] == probabilities.size:
+            for i in range(probabilities.size):
+                H = H + grad_coefficients[i] * Hres[:, :, i]
+
+    return G, H

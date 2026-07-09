@@ -1,0 +1,42 @@
+{
+  "label": "fpr_call_83",
+  "modelpack": "unknown",
+  "max_lengths": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+  ],
+  "num_parameters": 72,
+  "num_prep_fiducials": 6,
+  "num_meas_fiducials": 6,
+  "num_germs": 10,
+  "stage1_method": "twirled_derivative",
+  "stage2_method": "paper_greedy",
+  "outcomes_per_circuit": 2,
+  "standard_circuits": 1918,
+  "reduced_circuits": 343,
+  "circuits_removed": 1575,
+  "reduction_fraction": 0.8211678832116789,
+  "standard_probability_entries": 3836,
+  "reduced_probability_entries": 686,
+  "stage1_global_J_shape": [
+    72,
+    40
+  ],
+  "stage1_global_rank": 40,
+  "stage1_proxy_global_J_shape": [
+    72,
+    40
+  ],
+  "stage1_proxy_global_rank": 40,
+  "total_selected_fiducial_pairs_across_germs": 40,
+  "total_candidate_fiducial_pairs_across_germs": 360,
+  "all_stage2_ranks_complete": true,
+  "elapsed_seconds": 0.6525012879865244,
+  "stage1_note": "Stage 1 uses twirled germ derivatives when stage1_method='twirled_derivative'. Stage 2 uses probability Jacobians J_{g,c} and directional derivatives D_{g,c}=J_{g,c}W_g.",
+  "shots_per_circuit": 10000
+}

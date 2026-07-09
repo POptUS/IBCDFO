@@ -1,0 +1,7 @@
+Some run in FPR seem to get below 1 N_sigma whereas others don't. Don't see a pattern. 
+
+Initially I though the it is because the FPR is not choosing some germs, but that's not the case. 
+
+The NLL optimization after wLS optimization seems to worsen the N_sigma. WERID !!
+
+

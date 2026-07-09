@@ -1,0 +1,9 @@
+germ_index,prep_fiducial_index,meas_fiducial_index,random_1,random_2,random_3,random_4,random_5,random_6,random_7
+0,11,9,,,,,,yes,
+0,13,9,,,,,yes,,
+0,15,3,yes,yes,yes,yes,,yes,
+0,15,6,yes,,yes,yes,yes,,
+0,15,7,yes,yes,yes,,,yes,yes
+0,15,8,,,,,yes,,yes
+0,15,9,,yes,,yes,,yes,yes
+0,15,10,yes,yes,yes,yes,yes,,yes

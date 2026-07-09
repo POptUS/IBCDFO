@@ -1,0 +1,46 @@
+germ_index,germ,stage1_method,candidate_pairs,candidate_probability_rows,stage1_matrix_rows,stage1_rank_before_global_cssp,proxy_rank_before_global_cssp,twirled_commutant_dimension,elapsed_seconds
+0,"Qubit 0 ---| |---
+Qubit 1 ---| |---
+",twirled_derivative,176,704,256,16,16,16,0.8983568480034592
+1,"Qubit 0 ---|Gxpi2|---
+Qubit 1 ---|     |---
+",twirled_derivative,176,704,256,16,16,16,0.5857403420013725
+2,"Qubit 0 ---|Gypi2|---
+Qubit 1 ---|     |---
+",twirled_derivative,176,704,256,16,16,16,0.6698772009985987
+3,"Qubit 0 ---|     |---
+Qubit 1 ---|Gxpi2|---
+",twirled_derivative,176,704,256,16,16,16,0.5948903010066715
+4,"Qubit 0 ---|     |---
+Qubit 1 ---|Gypi2|---
+",twirled_derivative,176,704,256,16,16,16,1.1746263099994394
+5,"Qubit 0 ---|C1|---
+Qubit 1 ---|T0|---
+",twirled_derivative,176,704,256,16,16,16,1.2910869719999027
+6,"Qubit 0 ---|Gxpi2|-|Gypi2|---
+Qubit 1 ---|     |-|     |---
+",twirled_derivative,176,704,256,16,16,16,0.9595563690018025
+7,"Qubit 0 ---|     |-|     |---
+Qubit 1 ---|Gxpi2|-|Gypi2|---
+",twirled_derivative,176,704,256,16,16,16,0.7475992019972182
+8,"Qubit 0 ---|Gxpi2|-|Gxpi2|-|Gypi2|---
+Qubit 1 ---|     |-|     |-|     |---
+",twirled_derivative,176,704,256,16,16,16,0.7259895359966322
+9,"Qubit 0 ---|     |-|     |-|     |---
+Qubit 1 ---|Gxpi2|-|Gxpi2|-|Gypi2|---
+",twirled_derivative,176,704,256,16,16,16,0.703704020997975
+10,"Qubit 0 ---|C1|-|     |-|Gxpi2|-|Gxpi2|---
+Qubit 1 ---|T0|-|Gxpi2|-|     |-|     |---
+",twirled_derivative,176,704,256,16,16,16,0.703595414001029
+11,"Qubit 0 ---|Gxpi2|-|     |-|     |-|Gxpi2|-|     |-|Gypi2|---
+Qubit 1 ---|     |-|Gxpi2|-|Gypi2|-|     |-|Gypi2|-|     |---
+",twirled_derivative,176,704,256,16,16,16,0.7573585499994806
+12,"Qubit 0 ---|Gxpi2|-|     |-|     |-|Gypi2|-|     |-|     |---
+Qubit 1 ---|     |-|Gypi2|-|Gxpi2|-|     |-|Gxpi2|-|Gxpi2|---
+",twirled_derivative,176,704,256,16,16,16,2.103435946999525
+13,"Qubit 0 ---|Gypi2|-|     |-|Gxpi2|-|Gypi2|-|Gxpi2|-|C1|---
+Qubit 1 ---|     |-|Gypi2|-|     |-|     |-|     |-|T0|---
+",twirled_derivative,176,704,256,16,16,16,1.6976542850024998
+14,"Qubit 0 ---|Gypi2|-|Gxpi2|-|     |-|Gxpi2|-|     |-|Gxpi2|-|Gypi2|-|     |---
+Qubit 1 ---|     |-|     |-|Gypi2|-|     |-|Gxpi2|-|     |-|     |-|Gypi2|---
+",twirled_derivative,176,704,256,16,16,16,1.3703781889998936

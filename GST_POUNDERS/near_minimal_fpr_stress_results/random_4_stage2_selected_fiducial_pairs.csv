@@ -1,0 +1,46 @@
+germ_index,germ,selected_directions_r_g,selected_fiducial_pairs,candidate_fiducial_pairs,achieved_rank,rank_complete,elapsed_seconds
+0,"Qubit 0 ---| |---
+Qubit 1 ---| |---
+",16,4,176,16,True,0.006366419002006296
+1,"Qubit 0 ---|Gxpi2|---
+Qubit 1 ---|     |---
+",16,4,176,16,True,0.005973345003440045
+2,"Qubit 0 ---|Gypi2|---
+Qubit 1 ---|     |---
+",16,4,176,16,True,0.005760551997809671
+3,"Qubit 0 ---|     |---
+Qubit 1 ---|Gxpi2|---
+",16,4,176,16,True,0.00561240800016094
+4,"Qubit 0 ---|     |---
+Qubit 1 ---|Gypi2|---
+",16,4,176,16,True,0.005889755004318431
+5,"Qubit 0 ---|C1|---
+Qubit 1 ---|T0|---
+",16,4,176,16,True,0.00576404899766203
+6,"Qubit 0 ---|Gxpi2|-|Gypi2|---
+Qubit 1 ---|     |-|     |---
+",16,4,176,16,True,0.005853618000401184
+7,"Qubit 0 ---|     |-|     |---
+Qubit 1 ---|Gxpi2|-|Gypi2|---
+",16,4,176,16,True,0.0056180690007749945
+8,"Qubit 0 ---|Gxpi2|-|Gxpi2|-|Gypi2|---
+Qubit 1 ---|     |-|     |-|     |---
+",16,4,176,16,True,0.005824403000588063
+9,"Qubit 0 ---|     |-|     |-|     |---
+Qubit 1 ---|Gxpi2|-|Gxpi2|-|Gypi2|---
+",16,4,176,16,True,0.005699086003005505
+10,"Qubit 0 ---|C1|-|     |-|Gxpi2|-|Gxpi2|---
+Qubit 1 ---|T0|-|Gxpi2|-|     |-|     |---
+",16,4,176,16,True,0.005896738002775237
+11,"Qubit 0 ---|Gxpi2|-|     |-|     |-|Gxpi2|-|     |-|Gypi2|---
+Qubit 1 ---|     |-|Gxpi2|-|Gypi2|-|     |-|Gypi2|-|     |---
+",16,4,176,16,True,0.0064655829992261715
+12,"Qubit 0 ---|Gxpi2|-|     |-|     |-|Gypi2|-|     |-|     |---
+Qubit 1 ---|     |-|Gypi2|-|Gxpi2|-|     |-|Gxpi2|-|Gxpi2|---
+",16,4,176,16,True,0.004811913997400552
+13,"Qubit 0 ---|Gypi2|-|     |-|Gxpi2|-|Gypi2|-|Gxpi2|-|C1|---
+Qubit 1 ---|     |-|Gypi2|-|     |-|     |-|     |-|T0|---
+",16,4,176,16,True,0.004661576997023076
+14,"Qubit 0 ---|Gypi2|-|Gxpi2|-|     |-|Gxpi2|-|     |-|Gxpi2|-|Gypi2|-|     |---
+Qubit 1 ---|     |-|     |-|Gypi2|-|     |-|Gxpi2|-|     |-|     |-|Gypi2|---
+",16,4,176,16,True,0.004829363999306224

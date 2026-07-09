@@ -1,0 +1,21 @@
+germ_index,germ,stage2_method,selected_directions_r_g,selected_fiducial_pairs,candidate_fiducial_pairs,achieved_rank,rank_complete,elapsed_seconds
+0,"Qubit 0 ---| |---
+",paper_greedy,1,1,36,1,True,0.0012242640004842542
+1,"Qubit 0 ---|Gxpi2|---
+",paper_greedy,1,1,36,1,True,0.000864020999870263
+2,"Qubit 0 ---|Gypi2|---
+",paper_greedy,1,1,36,1,True,0.0009276040000258945
+3,"Qubit 0 ---|Gzpi2|---
+",paper_greedy,1,1,36,1,True,0.0014910969985066913
+4,"Qubit 0 ---|Gxpi2|-|Gzpi2|---
+",paper_greedy,1,1,36,1,True,0.0011818019993370399
+5,"Qubit 0 ---|Gxpi2|-|Gypi2|---
+",paper_greedy,1,1,36,1,True,0.0010642260021995753
+6,"Qubit 0 ---|Gxpi2|-|Gxpi2|-|Gypi2|---
+",paper_greedy,0,0,36,0,True,2.8313996153883636e-05
+7,"Qubit 0 ---|Gxpi2|-|Gxpi2|-|Gzpi2|---
+",paper_greedy,0,0,36,0,True,2.6170004275627434e-05
+8,"Qubit 0 ---|Gypi2|-|Gypi2|-|Gzpi2|---
+",paper_greedy,0,0,36,0,True,2.455699723213911e-05
+9,"Qubit 0 ---|Gxpi2|-|Gypi2|-|Gzpi2|---
+",paper_greedy,1,1,36,1,True,0.0009809159964788705

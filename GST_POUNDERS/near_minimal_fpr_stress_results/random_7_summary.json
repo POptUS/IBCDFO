@@ -1,0 +1,37 @@
+{
+  "label": "random_7",
+  "modelpack": "pygsti.modelpacks.smq2Q_XYICNOT",
+  "max_lengths": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "num_parameters": 1616,
+  "num_prep_fiducials": 16,
+  "num_meas_fiducials": 11,
+  "num_germs": 15,
+  "stage1_method": "twirled_derivative",
+  "standard_circuits": 8740,
+  "reduced_circuits": 1103,
+  "circuits_removed": 7637,
+  "reduction_fraction": 0.8737986270022884,
+  "standard_probability_entries": 34960,
+  "reduced_probability_entries": 4412,
+  "stage1_global_J_shape": [
+    1616,
+    240
+  ],
+  "stage1_global_rank": 240,
+  "stage1_proxy_global_J_shape": [
+    1616,
+    240
+  ],
+  "stage1_proxy_global_rank": 240,
+  "total_selected_fiducial_pairs_across_germs": 60,
+  "total_candidate_fiducial_pairs_across_germs": 2640,
+  "all_stage2_ranks_complete": true,
+  "elapsed_seconds": 11.460394905006979,
+  "stage1_note": "Stage 1 uses twirled germ derivatives when stage1_method='twirled_derivative'. Stage 2 uses probability Jacobians J_{g,c} and directional derivatives D_{g,c}=J_{g,c}W_g."
+}

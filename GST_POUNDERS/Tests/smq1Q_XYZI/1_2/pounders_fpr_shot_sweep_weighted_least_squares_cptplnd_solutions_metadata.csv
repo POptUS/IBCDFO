@@ -1,0 +1,11 @@
+run_key,run_label,shots_per_circuit,use_fpr_reduction,flag,termination_reason,converged,final_grad_norm,xkin,objective_mode
+no_fpr_shots_500,"no FPR, shots=500.0",500,False,0.1645500164742265,nfmax_exceeded,False,0.1645500164742265,798,weighted_least_squares
+fpr_shots_500,"FPR, shots=500.0",500,True,0.05550325743413235,nfmax_exceeded,False,0.05550325743413235,799,weighted_least_squares
+no_fpr_shots_1000,"no FPR, shots=1000.0",1000,False,0.027611300457632312,nfmax_exceeded,False,0.027611300457632312,799,weighted_least_squares
+fpr_shots_1000,"FPR, shots=1000.0",1000,True,0.08321797552748497,nfmax_exceeded,False,0.08321797552748497,798,weighted_least_squares
+no_fpr_shots_10000,"no FPR, shots=10000.0",10000,False,-2.0,stalled_no_progress,False,,34,weighted_least_squares
+fpr_shots_10000,"FPR, shots=10000.0",10000,True,-2.0,stalled_no_progress,False,,36,weighted_least_squares
+no_fpr_shots_100000,"no FPR, shots=100000.0",100000,False,-2.0,stalled_no_progress,False,,18,weighted_least_squares
+fpr_shots_100000,"FPR, shots=100000.0",100000,True,-2.0,stalled_no_progress,False,,25,weighted_least_squares
+no_fpr_shots_1000000,"no FPR, shots=1000000.0",1000000,False,-2.0,stalled_no_progress,False,,32,weighted_least_squares
+fpr_shots_1000000,"FPR, shots=1000000.0",1000000,True,-2.0,stalled_no_progress,False,,29,weighted_least_squares
