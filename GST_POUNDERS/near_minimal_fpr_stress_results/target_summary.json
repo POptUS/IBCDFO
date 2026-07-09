@@ -1,0 +1,31 @@
+{
+  "label": "target",
+  "modelpack": "pygsti.modelpacks.smq2Q_XYICNOT",
+  "max_lengths": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "num_parameters": 1616,
+  "num_prep_fiducials": 16,
+  "num_meas_fiducials": 11,
+  "num_germs": 15,
+  "standard_circuits": 8740,
+  "reduced_circuits": 3432,
+  "circuits_removed": 5308,
+  "reduction_fraction": 0.6073226544622425,
+  "standard_probability_entries": 34960,
+  "reduced_probability_entries": 13728,
+  "stage1_proxy_global_J_shape": [
+    1616,
+    7249
+  ],
+  "stage1_proxy_global_rank": 1469,
+  "total_selected_fiducial_pairs_across_germs": 811,
+  "total_candidate_fiducial_pairs_across_germs": 2640,
+  "all_stage2_ranks_complete": true,
+  "elapsed_seconds": 26.625324593998812,
+  "stage1_note": "This prototype uses per-germ full-fiducial probability Jacobians as a proxy for the paper's twirled derivatives."
+}
