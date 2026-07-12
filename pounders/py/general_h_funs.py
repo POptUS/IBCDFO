@@ -66,6 +66,11 @@ def h_leastsquares(F):
     return np.sum(F**2)
 
 
+def h_leastsquares_d(F):
+
+    return 2.0 * F
+
+
 def combine_leastsquares(Cres, Gres, Hres):
     n, _, m = Hres.shape
 
