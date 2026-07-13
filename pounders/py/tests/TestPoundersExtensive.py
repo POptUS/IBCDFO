@@ -97,7 +97,7 @@ class TestPounders(unittest.TestCase):
                 assert hfun_name.startswith("h_")
                 hfun_name = hfun_name.lstrip("h_")
 
-                # Need to make problem number 1-based to match filenaming scheme in MATLAB
+                # Below, we make the saved "row" or "prob" match the 1-based numbering scheme in MATLAB
                 filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row + 1) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
@@ -132,7 +132,7 @@ class TestPounders(unittest.TestCase):
                 # store the best approximation index as 1-based as opposed to
                 # 0-based as this test does.
                 #
-                # Need to make problem number 1-based to match MATLAB's
+                # Below, we make the "row" / "problem" 1-based to match MATLAB's
                 # value.  Normally there should be no need to adjust this since
                 # it's an internal value and we could adjust as needed when
                 # loading the data when alg == POUNDERS_Py.  However, we are
