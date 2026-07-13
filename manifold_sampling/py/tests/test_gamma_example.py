@@ -5,6 +5,13 @@ import sys
 
 sys.path.append('./jaxnp_hash/')
 
+
+import jax
+import jax.numpy as jnp
+import jaxnp_hash.numpy as jnp_h
+import jaxnp_hash as jnph
+jax.config.update("jax_enable_x64", True)
+
 import ibcdfo
 import numpy as np
 from calfun import calfun
