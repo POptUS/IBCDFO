@@ -1,0 +1,78 @@
+import sys
+
+import numpy as np
+
+from .constants import SIMPLE_TRSP, MINQ5_TRSP
+from .._get_minq_installation import get_minq_installation
+from .bqmin import bqmin
+
+
+def create_trsp_solver(spsolver):
+    r"""
+    Create a Python function that solves the bound-constrained trust-region
+    subproblem
+
+    .. math::
+        \min_{\svec \in \R^{\np}}  G^T \svec + \frac{1}{2}\svec^T H \svec
+
+    such that
+
+    .. math::
+        Low_j \leq s_j \le Upp_j, j=1,...,\np
+
+    for all components :math:`s_j` of :math:`\svec`.
+
+    :param spsolver:
+        * ``ibcdfo.pounders.SIMPLE_TRSP`` - simplistic 10 line solver that is
+          included only for testing and maintenance purposes
+        * ``ibcdfo.pounders.MINQ5_TRSP`` - Arnold Neumaier's minq5 solver
+        * ``ibcdfo.pounders.MINQ8_TRSP`` - Arnold Neumaier's minq8 solver
+    :return: Python function with the interface
+
+        .. code:: python
+
+            Xsp, mdec, flag = solve_trsp(H, G, Low, Upp)
+
+        where
+
+        * ``H`` is an :math:`\np \times \np` numpy array that provides the
+          (symmetric) Hessian of the objective function,
+        * ``G`` is an :math:`\np` element numpy array that provides the gradient
+          of the objective function,
+        * ``Low`` and ``High`` are :math:`\np` element numpy arrays that specify
+          the bound constraints,
+        * ``Xsp`` is the subproblem solution,
+        * ``mdec`` is the value of the subproblem objective function at
+          solution, and
+        * ``flag`` communicates the termination condition of the solver with a
+          negative value indicating failure.
+    """
+    if spsolver == SIMPLE_TRSP:
+
+        def __bqmin_wrapper(H, G, Low, Upp):
+            Xsp, mdec = bqmin(H, G, Low, Upp)
+            return Xsp, mdec, 0
+
+        return __bqmin_wrapper
+
+    elif spsolver == MINQ5_TRSP:
+        required_minq_SHA, minq_installation = get_minq_installation()
+        if not minq_installation["is_valid"]:
+            msg = f"Please set MINQ clone to git commit {required_minq_SHA}.\nSee User Guide (https://ibcdfo.readthedocs.io) for more information and instructions."
+            sys.exit(msg)
+
+        # Implement in such away that users that would like to use a non-MINQ
+        # solver don't have to install MINQ.  In other words, allow MINQ to be
+        # an *optional* external dependence.
+        from minqsw import minqsw
+
+        def __minq5_wrapper(H, G, Low, Upp):
+            n = H.shape[0]
+            Xsp, mdec, minq_err, _ = minqsw(0, G, H, Low.T, Upp.T, 0, np.zeros((n, 1)))
+            if minq_err < 0:
+                return Xsp, mdec, -4
+            return Xsp, mdec, 0
+
+        return __minq5_wrapper
+
+    raise ValueError(f"Unknown trust-region subproblem solver: {spsolver}")
