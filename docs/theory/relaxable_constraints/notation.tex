@@ -1,0 +1,288 @@
+% !TEX root = main.tex
+%======================================================================
+%  M1 Scoping note --- Problem, assumptions, models, criticality, funnel
+%======================================================================
+\section{Problem, assumptions, and notation}
+\label{sec:problem}
+
+\subsection{The problem class}
+
+We study the inequality-constrained optimization problem
+\begin{equation}
+  \label{eq:problem}
+  \min_{x \in \Rn} \; f(x)
+  \quad\text{subject to}\quad
+  c(x) \le 0,
+\end{equation}
+where $f:\Rn\to\R$ and $c=(c_1,\dots,c_p):\Rn\to\R^p$. Both $f$ and $c$ are
+available only through a \emph{blackbox / simulation} that returns their values
+at a queried point $x$; no derivatives are available and finite differencing is
+assumed unreliable or too expensive. We write the feasible set as
+\begin{equation}
+  \label{eq:feasset}
+  \feas \;=\; \{\, x\in\Rn : c(x)\le 0 \,\}.
+\end{equation}
+
+The defining structural assumption --- and the source of this project's novelty
+--- concerns \emph{what the simulation returns at infeasible points}.
+
+\begin{assumption}[Relaxable, quantifiable, simulation constraints]
+  \label{ass:relaxable}
+  Each constraint $c_i$ is
+  \emph{relaxable} (the simulation can be evaluated at points with $c_i(x)>0$,
+  and such evaluations are permitted by the algorithm),
+  \emph{quantifiable} (the returned value $c_i(x)$ measures the \emph{degree} of
+  satisfaction/violation, not merely a yes/no feasibility flag), and
+  \emph{simulation-based} (revealed only by running the blackbox).
+  This is the QRSK class of \citet{LeDigabelWild2015}.
+\end{assumption}
+
+Relaxability is exactly what \emph{permits} the normal step and the funnel
+mechanism of Section~\ref{sec:funnel} to evaluate models built from infeasible
+sample points; it is the property that fails for the ``unrelaxable /
+feasible-iterate'' methods discussed in Section~\ref{sec:positioning}.
+
+\subsection{Smoothness and the working region}
+
+\begin{assumption}[Smoothness]
+  \label{ass:smooth}
+  $f$ and every $c_i$ are continuously differentiable on $\Rn$, and their
+  gradients $\nabla f$, $\nabla c_i$ are Lipschitz continuous on an open set
+  containing the level set $\Lset$ defined below. (These properties are used only
+  in the analysis; the \emph{algorithm} never accesses a derivative.)
+\end{assumption}
+
+\begin{assumption}[Bounded level set / working region]
+  \label{ass:levelset}
+  There is a point $x_0$ and a constant such that the region
+  \[
+    \Lset \;=\; \bigl\{\, x\in\Rn : f(x)\le f(x_0),\ \theta(x)\le\theta_0^{\max}\,\bigr\}
+  \]
+  swept by the iterates (with $\theta$ and $\theta_0^{\max}$ from
+  Sections~\ref{sec:infeas}--\ref{sec:funnel}) is bounded. Consequently $f$, $c$
+  and their gradients are bounded on $\Lset$.
+\end{assumption}
+
+\begin{assumption}[Feasible, reachable start]
+  \label{ass:feasstart}
+  A point $x_0$ with $c(x_0)\le 0$ is given (so $\feas\ne\varnothing$).
+\end{assumption}
+
+Assumption~\ref{ass:feasstart} is a deliberate scoping decision. Because a
+feasible start is available, we need \emph{not} prove global feasibility recovery
+from an arbitrary infeasible start, and we drop the usual ``converge to a
+stationary point of the infeasibility measure'' fallback dichotomy. The method
+may still take \emph{relaxable} excursions into $\{c(x)\not\le0\}$ between
+iterates; the funnel of Section~\ref{sec:funnel} drives the infeasibility back to
+zero. It also lets the funnel be initialized cleanly (e.g.\ $\theta_0^{\max}$
+from the first tolerated excursion).
+
+\subsection{Standing notation}
+
+We use $\|\cdot\|$ for the Euclidean norm unless a subscript indicates otherwise,
+$B(x,\Delta)=\{y:\|y-x\|\le\Delta\}$ for the closed trust region, and
+$[\,a\,]_+=\max(0,a)$ componentwise. At iteration $k$ the incumbent is $x_k$ with
+trust-region radius $\Delta_k>0$. The names of the algorithmic constants are
+chosen to match the existing MATLAB scaffold \path{DFO_quad_TR/Algorithm_11_1.m}
+and \path{Algorithm_10_2.m}, so the later implementation is a direct
+translation:
+\[
+  \Delta_{\max},\ \eta_0,\ \eta_1,\ \gamma\in(0,1),\ \gamma_{\text{inc}}>1,\
+  \epsilon_c,\ \mu,\ \beta,\ \omega\in(0,1),\ r,\ \Delta_{\min}.
+\]
+
+\section{Models: fully linear for objective \emph{and} constraints}
+\label{sec:models}
+
+At $x_k$ we build a model of the objective, $m_f^k$, and a model of each
+constraint, $m_{c,i}^k$, valid on $B(x_k,\Delta_k)$. We adopt the standard DFO
+convention that models \emph{interpolate at the incumbent}: $m_f^k(x_k)=f(x_k)$ and
+$m_{c,i}^k(x_k)=c_i(x_k)$ (the incumbent is always a sample point), so in particular
+$\theta_k^m(x_k)=\theta(x_k)=\theta_k$; this makes each predicted decrease
+$m(x_k)-m(x_k+s)$ a true model decrease from the incumbent. We denote the model
+gradients and the model Jacobian by
+\[
+  g_k \;=\; \nabla m_f^k(x_k)\in\Rn,
+  \qquad
+  J_k \;=\; \bigl[\,\nabla m_{c,1}^k(x_k),\dots,\nabla m_{c,p}^k(x_k)\,\bigr]^{\!\top}\in\R^{p\times n}.
+\]
+These are exactly the quantities returned by \path{pounders/py/formquad.py} for a
+vector-valued blackbox $F=(f,c_1,\dots,c_p)$, together with its \verb|valid| flag
+(the computational witness of the fully-linear property below).
+
+\begin{definition}[Fully-linear model, {\citealp[Def.~6.1--6.2]{CSV2009}}]
+  \label{def:fl}
+  A model $m$ of a function $h\in\{f,c_1,\dots,c_p\}$ is \emph{fully linear} on
+  $B(x_k,\Delta_k)$ if there exist constants $\kappa_{\mathrm{ef}},
+  \kappa_{\mathrm{eg}}\ge 0$, \emph{independent of $k$}, such that for all
+  $y\in B(x_k,\Delta_k)$,
+  \begin{align}
+    \bigl|h(y)-m(y)\bigr|            &\;\le\; \kappa_{\mathrm{ef}}\,\Delta_k^2,
+    \label{eq:fl-value}\\
+    \bigl\|\nabla h(y)-\nabla m(y)\bigr\| &\;\le\; \kappa_{\mathrm{eg}}\,\Delta_k.
+    \label{eq:fl-grad}
+  \end{align}
+\end{definition}
+
+\begin{assumption}[Uniform fully-linearity]
+  \label{ass:fl}
+  The models $m_f^k$ and $m_{c,i}^k$ ($i=1,\dots,p$) are fully linear on
+  $B(x_k,\Delta_k)$ at \emph{every} iteration, with common constants
+  $\kappa_{\mathrm{ef}},\kappa_{\mathrm{eg}}$ that do not depend on $k$. Uniformity
+  is delivered by $\Lambda$-poised geometry management (\citealp[Ch.~6]{CSV2009};
+  \path{Algorithm_6_4.m}, \path{Model_Improvement_Step.m}), and full-linearity at
+  \emph{every} iteration by running a model-improvement step whenever the incumbent
+  set is not certifiably $\Lambda$-poised on $B(x_k,\Delta_k)$ (the standard DFO
+  convention that lets the trust-region lemmas of Section~\ref{sec:tr-lemmas} apply
+  uniformly). Consequently $\theta$ also has a fully-linear model with constants
+  $\kappa_{\mathrm{ef}}^\theta,\kappa_{\mathrm{eg}}^\theta$ (Lemma~\ref{lem:L1}).
+\end{assumption}
+
+We stress the theme this note exists to make precise: \emph{building fully-linear
+models of $f$ and $c$ on every iteration is necessary but not, by itself,
+sufficient} for convergence. Two further ingredients are required --- a
+criticality step that ties $\Delta_k$ to the criticality measures
+(Section~\ref{sec:crit}), and a funnel that controls infeasibility
+(Section~\ref{sec:funnel}) --- and the analysis of milestone M3 will pin down
+exactly where each is used.
+
+\section{Infeasibility measure}
+\label{sec:infeas}
+
+We measure constraint violation by the \emph{smooth} squared measure
+\begin{equation}
+  \label{eq:theta}
+  \theta(x) \;=\; \tfrac12\bigl\|\,[\,c(x)\,]_+\,\bigr\|_2^2
+           \;=\; \tfrac12\sum_{i=1}^p [\,c_i(x)\,]_+^2 ,
+\end{equation}
+so $\theta(x)=0 \iff x\in\feas$. We deliberately choose the squared form over the
+unsquared $\|[c]_+\|$: since $t\mapsto[t]_+^2$ is $C^1$ with derivative $2[t]_+$,
+\eqref{eq:theta} is \emph{continuously differentiable} (Assumption~\ref{ass:smooth})
+with
+\begin{equation}
+  \label{eq:grad-theta}
+  \nabla\theta(x) \;=\; \sum_{i=1}^p [\,c_i(x)\,]_+\,\nabla c_i(x)
+                 \;=\; J(x)^{\top}[\,c(x)\,]_+ ,
+\end{equation}
+where $J(x)=[\nabla c_i(x)]^\top$ is the constraint Jacobian. This removes the
+active/violated-boundary nonsmoothness of $\|[c]_+\|$ and makes the feasibility
+analysis a \emph{smooth} trust-region minimization of $\theta$; it also matches the
+measure $\tfrac12\|c\|^2$ of \citet{GouldToint2010,SampaioToint2015}, from which we
+reproduce the requisite trust-region machinery (Section~\ref{sec:tr-lemmas}). Note
+$\nabla\theta$ is Lipschitz on $\Lset$ (composition of Lipschitz maps), and
+$\theta$ inherits fully-linear models from those of $c$ (Lemma~\ref{lem:L1}); it is
+\emph{not} a penalty --- infeasibility is controlled by the funnel, never folded
+into the objective.
+
+The model counterpart of $\theta$, built from the fully-linear constraint models
+$m_c^k=(m_{c,1}^k,\dots,m_{c,p}^k)$, is
+\begin{equation}
+  \label{eq:theta-model}
+  \theta_k^m(x) \;=\; \tfrac12\bigl\|\,[\,m_c^k(x)\,]_+\,\bigr\|_2^2,
+  \qquad
+  \nabla\theta_k^m(x_k)=J_k^{\top}[\,m_c^k(x_k)\,]_+ ,
+\end{equation}
+and its linearization at $x_k$, $\ell_k(s)=\tfrac12\|[\,c(x_k)+J_k s\,]_+\|^2$, is
+what the normal step reduces.
+
+\section{Two criticality measures}
+\label{sec:crit}
+
+The method monitors two nonnegative quantities that vanish exactly at the two
+kinds of stationarity we care about.
+
+\paragraph{Feasibility criticality $\chi_k^c$.}
+Because $\theta$ is now smooth, its first-order criticality is simply the model
+gradient norm
+\begin{equation}
+  \label{eq:chi-c}
+  \chi_k^c \;=\; \bigl\|\nabla\theta_k^m(x_k)\bigr\|
+           \;=\; \bigl\|J_k^{\top}[\,m_c^k(x_k)\,]_+\bigr\| ,
+\end{equation}
+the standard measure for unconstrained minimization of $\theta_k^m$; $\chi_k^c=0$
+means $x_k$ is a stationary point of the model infeasibility. (This is the model
+analog of $\|\nabla\theta\|=\|J^\top[c]_+\|$, the Gould--Toint feasibility measure.)
+
+\paragraph{Optimality / KKT criticality $\pi_k^f$.}
+This measures first-order KKT stationarity for~\eqref{eq:problem} using the
+\emph{model} data $(g_k,J_k)$ and the linearized active constraints. With the
+model active set
+$\A_k(\varepsilon)=\{\,i : c_i(x_k) \ge -\varepsilon\,\}$, write
+$J_{k}^{\A}$ for the rows of $J_k$ indexed by $\A_k$. A convenient
+projected-gradient form is
+\begin{equation}
+  \label{eq:pi-f}
+  \pi_k^f \;=\;
+  \Bigl|\, \min_{\substack{\|d\|\le 1,\ J_k^{\A} d\,\le\,0}}
+      \ \bigl\langle g_k,\, d\bigr\rangle \,\Bigr|,
+\end{equation}
+the largest first-order decrease of the model objective achievable along a
+direction that keeps the linearized active constraints from being violated.
+Equivalently, under a constraint qualification, $\pi_k^f$ is a residual of the
+KKT system
+\begin{equation}
+  \label{eq:kkt}
+  g_k + J_k^{\top}\lambda = 0,\qquad
+  \lambda\ge 0,\qquad
+  \lambda_i\, c_i(x_k)=0,\quad i=1,\dots,p,
+\end{equation}
+i.e.\ $\pi_k^f=0$ certifies that $(x_k,\lambda)$ solves the \emph{model} KKT
+conditions. The constraint qualification we invoke to pass from model KKT to true
+KKT and to bound the multipliers $\lambda$ is the following.
+
+\begin{assumption}[MFCQ at limit points]
+  \label{ass:mfcq}
+  At every limit point $x_*$ of the sequence of incumbents, the
+  Mangasarian--Fromovitz constraint qualification holds: the gradients
+  $\{\nabla c_i(x_*)\}_{i\in\A(x_*)}$ of the active constraints
+  ($\A(x_*)=\{i:c_i(x_*)=0\}$) admit a direction $d$ with
+  $\langle\nabla c_i(x_*),d\rangle<0$ for all $i\in\A(x_*)$.
+\end{assumption}
+
+MFCQ is equivalent to boundedness of the set of Lagrange multipliers and to
+consistency of the linearized active constraints; both are used in M3 (the
+normal-step decrease lemma L2 needs linearized consistency, and the passage to a
+KKT limit point in T2 needs bounded multipliers).
+
+A point $x_*$ is our target \emph{constrained (KKT) stationary point} if
+$\theta(x_*)=0$ and there exists $\lambda\ge0$ with
+$\nabla f(x_*)+\sum_i\lambda_i\nabla c_i(x_*)=0$ and
+$\lambda_i c_i(x_*)=0$.
+
+\section{The trust-funnel mechanism for inequalities}
+\label{sec:funnel}
+
+Rather than penalizing infeasibility, we cap it. The method maintains a
+\emph{funnel bound}
+\begin{equation}
+  \label{eq:funnel}
+  \theta_k^{\max} > 0,
+  \qquad \text{maintained monotone non-increasing:}\quad
+  \theta_{k+1}^{\max}\le\theta_k^{\max},
+\end{equation}
+and only accepts iterates that satisfy $\theta_{k+1}\le\theta_{k+1}^{\max}$. Each
+iteration is classified (as in \citealp{GouldToint2010} and its DFO descendant
+\citealp{SampaioToint2015}) as either
+
+\begin{itemize}
+  \item an \emph{$f$-iteration}, when the (model-predicted) objective decrease is
+        the dominant achievement and feasibility is comfortably within the funnel;
+        the funnel bound is left unchanged and $x_k$ moves to reduce $f$; or
+  \item a \emph{$c$-iteration}, when reducing infeasibility is the priority; a
+        normal step reduces the linearized violation and the funnel bound is
+        tightened, driving $\theta_k\to0$.
+\end{itemize}
+
+The switch between the two is governed by comparing $\theta_k$ against a forcing
+function of the optimality criticality $\pi_k^f$ (a normal step is taken only when
+$\theta_k$ is large relative to $\pi_k^f$), exactly the trust-funnel switching
+condition, specialized here to the inequality infeasibility
+measure~\eqref{eq:theta}. This single-cap mechanism is the \emph{funnel}; a
+\emph{filter} (a Pareto set of $(\theta,f)$ pairs) is an alternative acceptance
+rule with the same purpose. We default to the funnel for its cleaner monotonicity
+proof and note the filter as a variant.
+
+The precise step computation (normal step $n_k$, tangential step $t_k$,
+$s_k=n_k+t_k\in B(x_k,\Delta_k)$), the ratio/acceptance tests, the funnel and
+$\Delta_k$ updates, and the criticality step are specified in milestone~M2; their
+convergence analysis (lemmas L1--L5, theorems T1--T2) is milestone~M3.

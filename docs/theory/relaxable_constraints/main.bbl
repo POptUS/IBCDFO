@@ -1,0 +1,85 @@
+\begin{thebibliography}{10}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Augustin and Marzouk(2017)]{AugustinMarzouk2017}
+Florian Augustin and Youssef~M. Marzouk.
+\newblock {NOWPAC}: A provably convergent derivative-free nonlinear optimizer
+  with path-augmented constraints.
+\newblock \emph{arXiv preprint arXiv:1403.1931}, 2017.
+\newblock Original NOWPAC; feasible-iterate inner-boundary path.
+
+\bibitem[Birgin et~al.(2021)Birgin, Kreji\'c, and Mart\'inez]{Birgin2021}
+E.~G. Birgin, N.~Kreji\'c, and J.~M. Mart\'inez.
+\newblock Inexact restoration for derivative-free expensive function
+  minimization and applications.
+\newblock \emph{Journal of Computational and Applied Mathematics}, 2021.
+\newblock File: articles/8025.pdf.
+
+\bibitem[Conn et~al.(2000)Conn, Gould, and Toint]{ConnGouldToint2000}
+Andrew~R. Conn, Nicholas I.~M. Gould, and Philippe~L. Toint.
+\newblock \emph{Trust-Region Methods}.
+\newblock MPS-SIAM Series on Optimization. SIAM, Philadelphia, 2000.
+\newblock \doi{10.1137/1.9780898719857}.
+\newblock Single-region trust-region convergence theory (criticality step,
+  radius lower bound, liminf/lim criticality).
+
+\bibitem[Conn et~al.(2009)Conn, Scheinberg, and Vicente]{CSV2009}
+Andrew~R. Conn, Katya Scheinberg, and Lu\'is~N. Vicente.
+\newblock \emph{Introduction to Derivative-Free Optimization}.
+\newblock MOS-SIAM Series on Optimization. SIAM, Philadelphia, 2009.
+\newblock \doi{10.1137/1.9780898718768}.
+\newblock File: articles/Conn, Scheinberg, Vicente - 2009 ...pdf.
+
+\bibitem[Gould and Toint(2010)]{GouldToint2010}
+N.~I.~M. Gould and Ph.~L. Toint.
+\newblock Nonlinear programming without a penalty function or a filter.
+\newblock \emph{Mathematical Programming, Series A}, 122\penalty0 (1):\penalty0
+  155--196, 2010.
+\newblock \doi{10.1007/s10107-008-0244-7}.
+\newblock File: articles/s10107-008-0244-7.pdf.
+
+\bibitem[Larson et~al.(2019)Larson, Menickelly, and Wild]{LMW2019}
+Jeffrey Larson, Matt Menickelly, and Stefan~M. Wild.
+\newblock Derivative-free optimization methods.
+\newblock \emph{Acta Numerica}, 28:\penalty0 287--404, 2019.
+\newblock \doi{10.1017/S0962492919000060}.
+\newblock File: articles/1904.11585v2.pdf.
+
+\bibitem[Le~Digabel and Wild(2015)]{LeDigabelWild2015}
+S\'ebastien Le~Digabel and Stefan~M. Wild.
+\newblock A taxonomy of constraints in simulation-based optimization.
+\newblock Technical Report 1505.07881, arXiv, 2015.
+\newblock Defines relaxable / quantifiable / simulation constraints (QRSK
+  taxonomy).
+
+\bibitem[Menhorn et~al.(2022)Menhorn, Augustin, Bungartz, and
+  Marzouk]{Menhorn2022}
+Friedrich Menhorn, Florian Augustin, Hans-Joachim Bungartz, and Youssef~M.
+  Marzouk.
+\newblock A trust-region method for derivative-free nonlinear constrained
+  stochastic optimization.
+\newblock Technical Report 1703.04156v2, arXiv, 2022.
+\newblock (S)NOWPAC; extends NOWPAC. File: articles/1703.04156v2.pdf.
+
+\bibitem[Sampaio and Toint(2015)]{SampaioToint2015}
+Ph.~R. Sampaio and Ph.~L. Toint.
+\newblock A derivative-free trust-funnel method for equality-constrained
+  nonlinear optimization.
+\newblock \emph{Computational Optimization and Applications}, 61\penalty0
+  (1):\penalty0 25--49, 2015.
+\newblock \doi{10.1007/s10589-014-9715-3}.
+\newblock File: articles/s10589-014-9715-3.pdf.
+
+\bibitem[Sampaio and Toint(2016)]{SampaioToint2016}
+Ph.~R. Sampaio and Ph.~L. Toint.
+\newblock Numerical experience with a derivative-free trust-funnel method for
+  nonlinear optimization problems with general nonlinear constraints.
+\newblock \emph{Optimization Methods and Software}, 31\penalty0 (3):\penalty0
+  511--534, 2016.
+\newblock \doi{10.1080/10556788.2015.1135919}.
+
+\end{thebibliography}

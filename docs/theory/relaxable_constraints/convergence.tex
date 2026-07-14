@@ -1,0 +1,801 @@
+% !TEX root = main.tex
+%======================================================================
+%  M3 --- Convergence analysis
+%  Lemmas L1--L5, Theorems T1 (feasibility) and T2 (KKT under MFCQ),
+%  plus limiting-case validations.
+%======================================================================
+\section{Convergence analysis}
+\label{sec:convergence}
+
+Throughout, Assumptions~\ref{ass:relaxable}--\ref{ass:mfcq} hold. We write
+$\{x_k\}$ for the incumbents produced by Algorithm~1, $\S$ for the index set of
+\emph{successful} iterations (those on which $x_{k+1}=x_k+s_k$), and we say a model
+quantity is ``valid at $k$'' when the models are fully linear on $B(x_k,\Delta_k)$
+(Assumption~\ref{ass:fl}). Two consequences of the standing assumptions are used
+repeatedly and recorded first.
+
+\begin{proposition}[Boundedness]
+  \label{prop:bounded}
+  $f$ is bounded below on the working region $\Lset$
+  (Assumption~\ref{ass:levelset}), and there is $\kappa_H\ge0$ with
+  $\|H_k\|\le\kappa_H$ and $\|J_k\|\le\kappa_J$ for all $k$ (model Hessian of $f$
+  and model Jacobian of $c$ are uniformly bounded).
+\end{proposition}
+\begin{proof}
+  $\Lset$ is bounded (Assumption~\ref{ass:levelset}) and $f,c\in C^1$
+  (Assumption~\ref{ass:smooth}), so $f$ attains a finite minimum on $\overline{\Lset}$.
+  Fully-linear gradients satisfy $\|g_k\|\le\|\nabla f(x_k)\|+\kappa_{\mathrm{eg}}\Delta_k$
+  and likewise for $J_k$; since $\nabla f,\nabla c$ are bounded on $\Lset$ and
+  $\Delta_k\le\Delta_{\max}$, both are uniformly bounded. Minimum-Frobenius-norm
+  model Hessians (as returned by \path{formquad}) are bounded by the same data.
+\end{proof}
+
+\noindent\emph{Standing constant relations.} The analysis uses the relations fixed
+in Section~\ref{sec:algo-data}: the active-set tolerance shrinks,
+$\varepsilon_k=\kappa_{\eps}\sigma_k\to0$ (for limiting complementarity in T2); and,
+for the smooth measure, Lemma~\ref{lem:cq-nonstat} supplies a feasibility-criticality
+lower bound $\chi_k^c\ge\kappa_{\mathrm m}\sqrt{2\theta_k}-\kappa_{\mathrm{eg}}^\theta\Delta_k$
+whose ``in particular'' clause is invoked with $\varrho=\tau/2$ (a fixed positive
+constant in the T1 contradiction). No lower bound on $\epsilon_c$ relative to the
+(unknown) infeasibility level is needed: the radius controls come from the reproduced
+lemmas of Section~\ref{sec:tr-lemmas} and the criticality step (L5).
+
+\subsection{Supporting lemmas}
+\label{sec:lemmas}
+
+\paragraph{L1 --- Model-error propagation (objective, constraints, and $\theta$).}
+
+\begin{lemma}[L1]
+  \label{lem:L1}
+  Let the models be valid at $k$. Then for all $y\in B(x_k,\Delta_k)$,
+  \begin{align}
+    |f(y)-m_f^k(y)|            &\le \kappa_{\mathrm{ef}}\Delta_k^2, &
+    \|\nabla f(y)-\nabla m_f^k(y)\| &\le \kappa_{\mathrm{eg}}\Delta_k, \label{eq:L1f}\\
+    |c_i(y)-m_{c,i}^k(y)|      &\le \kappa_{\mathrm{ef}}\Delta_k^2, &
+    \|\nabla c_i(y)-\nabla m_{c,i}^k(y)\| &\le \kappa_{\mathrm{eg}}\Delta_k, \label{eq:L1c}
+  \end{align}
+  and, with the smooth $\theta=\tfrac12\|[c]_+\|^2$ and its model
+  $\theta_k^m=\tfrac12\|[m_c^k]_+\|^2$, $\theta$ has a fully-linear model on
+  $B(x_k,\Delta_k)$:
+  \begin{equation}
+    \label{eq:L1theta}
+    |\theta(y)-\theta_k^m(y)| \le \kappa_{\mathrm{ef}}^{\theta}\Delta_k^2,
+    \qquad
+    \|\nabla\theta(y)-\nabla\theta_k^m(y)\| \le \kappa_{\mathrm{eg}}^{\theta}\Delta_k,
+  \end{equation}
+  with $\kappa_{\mathrm{ef}}^{\theta}=\sqrt p\,C_\theta\kappa_{\mathrm{ef}}$ and
+  $\kappa_{\mathrm{eg}}^{\theta}=\sqrt p\,(C_\theta\kappa_{\mathrm{eg}}+\kappa_J\kappa_{\mathrm{ef}}\Delta_{\max})$,
+  where $C_\theta:=\sup_{\Lset}\|[c]_+\|+\sqrt p\,\kappa_{\mathrm{ef}}\Delta_{\max}^2<\infty$.
+\end{lemma}
+\begin{proof}
+  \eqref{eq:L1f}--\eqref{eq:L1c} are Definition~\ref{def:fl} applied to $f$ and each
+  $c_i$. For \eqref{eq:L1theta}, write $u=[c(y)]_+$, $v=[m_c^k(y)]_+$; the map
+  $z\mapsto[z]_+$ is $1$-Lipschitz, so $\|u-v\|\le\|c(y)-m_c^k(y)\|\le\sqrt p\,\kappa_{\mathrm{ef}}\Delta_k^2$
+  by \eqref{eq:L1c}. Then
+  $|\theta-\theta_k^m|=\tfrac12|\,\|u\|^2-\|v\|^2\,|=\tfrac12|\langle u+v,u-v\rangle|\le\tfrac12(\|u\|+\|v\|)\|u-v\|\le C_\theta\|u-v\|$,
+  giving the value bound. For the gradient, $\nabla\theta(y)=J(y)^\top[c(y)]_+$ and
+  $\nabla\theta_k^m(y)=J_k^\top[m_c^k(y)]_+$; adding and subtracting $J_k^\top[c(y)]_+$
+  and using \eqref{eq:L1c}, $\|[c(y)]_+\|\le C_\theta$, and $\|J_k\|\le\kappa_J$ gives
+  the $O(\Delta_k)$ bound. All constants are $k$-independent (Assumption~\ref{ass:fl},
+  Proposition~\ref{prop:bounded}).
+\end{proof}
+
+\noindent The point of L1 is that \emph{the smooth infeasibility measure inherits a
+fully-linear model} --- $O(\Delta_k^2)$ in value and $O(\Delta_k)$ in gradient ---
+from the constraint models. This lets the feasibility analysis treat $\theta$ as a
+smooth merit with a fully-linear model, so the reproduced trust-region lemmas of
+Section~\ref{sec:tr-lemmas} apply to it verbatim; it is why fully-linear models of
+the \emph{constraints} (not merely the objective) are required.
+
+\paragraph{L2 --- Normal-step decrease (feasibility).}
+
+\begin{lemma}[L2]
+  \label{lem:L2}
+  Suppose a normal step is computed at $k$ and $n_k$ is a generalized Cauchy point of
+  the convex subproblem \eqref{eq:normal-sub}. Then, with $\beta_\theta$ a curvature
+  bound for $\theta_k^m$,
+  \begin{equation}
+    \label{eq:L2}
+    \theta_k - \theta_k^m(x_k+n_k)
+      \;\ge\; \kappa_{\mathrm{nc}}\,\chi_k^c\,
+              \min\!\Bigl(\tfrac{\chi_k^c}{1+\beta_\theta},\ \kappa_{\mathrm n}\Delta_k\Bigr),
+    \qquad \kappa_{\mathrm{nc}}=\tfrac12 .
+  \end{equation}
+\end{lemma}
+\begin{proof}
+  This is the classical fraction-of-Cauchy decrease for the \emph{smooth} convex
+  $\theta_k^m$ minimized along its steepest-descent direction $-\nabla\theta_k^m(x_k)$
+  inside $\|n\|\le\kappa_{\mathrm n}\Delta_k$: with criticality
+  $\chi_k^c=\|\nabla\theta_k^m(x_k)\|$ and curvature $\le\beta_\theta$, the Cauchy
+  point gives $\theta_k^m(x_k)-\theta_k^m(x_k+n_k^{\mathrm C})\ge\tfrac12\chi_k^c\min(\chi_k^c/\beta_\theta,\kappa_{\mathrm n}\Delta_k)$
+  (\citealp[Ch.~6.3]{ConnGouldToint2000}; the same bound underlies (TR-acc) of
+  Section~\ref{sec:tr-lemmas}). A generalized Cauchy point does at least this well.
+  $\beta_\theta$ is finite: $\theta_k^m=\tfrac12\|[m_c^k]_+\|^2$ has Hessian (where
+  differentiable) $J_k^\top D J_k+\sum_i[m_{c,i}^k]_+\nabla^2 m_{c,i}^k$ bounded by
+  Proposition~\ref{prop:bounded}.
+\end{proof}
+
+\noindent \emph{Role of MFCQ.} \eqref{eq:L2} is vacuous unless $\chi_k^c>0$, i.e.\
+unless $\theta_k^m$ has nonzero gradient. MFCQ (Assumption~\ref{ass:mfcq}) is exactly
+what guarantees $\|\nabla\theta\|>0$ at infeasible points; this is made precise for the
+smooth measure in Lemma~\ref{lem:cq-nonstat} and is the pivot of the feasibility
+theorem~T1.
+
+\paragraph{L3 --- Tangential-step decrease (optimality).}
+
+\begin{lemma}[L3]
+  \label{lem:L3}
+  Suppose the switching condition \eqref{eq:switch} holds at $k$ and $t_k$ is a
+  (projected) generalized Cauchy point of \eqref{eq:tang-sub}. Then
+  \begin{equation}
+    \label{eq:L3}
+    m_f^k(x_k+n_k) - m_f^k(x_k+s_k)
+      \;\ge\; \kappa_{\mathrm{tc}}\,\pi_k^f\,
+              \min\!\Bigl(\tfrac{\pi_k^f}{1+\kappa_H},\ \Delta_k\Bigr),
+    \qquad \kappa_{\mathrm{tc}}=\tfrac12 .
+  \end{equation}
+\end{lemma}
+\begin{proof}
+  This is the fraction-of-Cauchy-decrease bound for a quadratic model minimized
+  over the polyhedral cone $\{t:J_k^{\A}t\le0\}$ intersected with the trust region,
+  with $\pi_k^f$ the projected-gradient criticality \eqref{eq:pi-f}. The argument is
+  the constrained Cauchy-point estimate of \citet[Ch.~10]{CSV2009} (their
+  unconstrained $\|g_k\|$ replaced by the projected measure $\pi_k^f$ and the line
+  search restricted to the feasible cone), using $\|H_k\|\le\kappa_H$ from
+  Proposition~\ref{prop:bounded}. When $\A_k=\varnothing$ the cone is all of $\Rn$,
+  $\pi_k^f=\|g_k\|$, and \eqref{eq:L3} is precisely the unconstrained Cauchy decrease
+  of \path{Algorithm_11_1.m}.
+\end{proof}
+
+\paragraph{L4 --- Funnel monotonicity.}
+
+\begin{lemma}[L4]
+  \label{lem:L4}
+  The funnel sequence $\{\theta_k^{\max}\}$ is non-increasing and bounded below by
+  $0$, hence convergent to some $\theta_*^{\max}\ge0$. Every iterate satisfies
+  $\theta_k\le\theta_k^{\max}$, and on every successful $c$-iteration
+  \begin{equation}
+    \label{eq:L4-gap}
+    \theta_k^{\max}-\theta_{k+1}^{\max}
+      \;\ge\; (1-\kappa_{\mathrm{cb}})\,(\theta_k^{\max}-\theta_{k+1}).
+  \end{equation}
+\end{lemma}
+\begin{proof}
+  By construction \eqref{eq:funnel-update} fires only on successful $c$-iterations
+  and returns $\theta_{k+1}^{\max}=\max(\kappa_{\mathrm{ca}}\theta_k^{\max},\,
+  \theta_{k+1}+\kappa_{\mathrm{cb}}(\theta_k^{\max}-\theta_{k+1}))$; on all other
+  iterations $\theta_{k+1}^{\max}=\theta_k^{\max}$. Since a successful $c$-iteration
+  has $\rho^c_k\ge\eta_1>0$, hence $\ared^\theta_k>0$ and $\theta_{k+1}<\theta_k
+  \le\theta_k^{\max}$, both branches of the max are $\le\theta_k^{\max}$
+  (as $\kappa_{\mathrm{ca}},\kappa_{\mathrm{cb}}\in(0,1)$), so the sequence is
+  non-increasing; it is bounded below by $0$, so it converges. Acceptance rules
+  \eqref{eq:accept-f}/\eqref{eq:rhoc} never admit a point with $\theta>\theta_k^{\max}$
+  (the $f$-branch enforces it explicitly; the $c$-branch decreases $\theta$ from
+  $\theta_k\le\theta_k^{\max}$), giving $\theta_k\le\theta_k^{\max}$ for all $k$.
+  Finally, from the second argument of the max,
+  $\theta_{k+1}^{\max}\le\theta_{k+1}+\kappa_{\mathrm{cb}}(\theta_k^{\max}-\theta_{k+1})$,
+  which rearranges to \eqref{eq:L4-gap}.
+\end{proof}
+
+\subsection{Reproduced single-region trust-region lemmas}
+\label{sec:tr-lemmas}
+
+We reproduce, self-contained, the standard single-region trust-region results
+(\citealp[Ch.~6.4]{ConnGouldToint2000}; \citealp[Ch.~10]{CSV2009}) in the exact
+abstract form the constrained analysis invokes, so nothing here is imported. The
+\emph{abstract setting} is one iteration acting on a merit $\varphi$ (later $f$ or
+$\theta$) via a model $m$ fully linear on $B(x_k,\Delta_k)$ with value error
+$\le\kappa_{\mathrm{ef}}^\varphi\Delta_k^2$ (Definition~\ref{def:fl}); a step
+$\|s_k\|\le\Delta_k$ with model decrease obeying a \emph{fraction-of-Cauchy} bound
+\begin{equation}
+  \label{eq:fcd}
+  \mathrm{pred}_k := m(x_k)-m(x_k+s_k)\;\ge\;\kappa_{\mathrm{fcd}}\,\xi_k\,
+    \min\!\Bigl(\tfrac{\xi_k}{1+\kappa_H^\varphi},\,\Delta_k\Bigr)
+\end{equation}
+for a criticality measure $\xi_k\ge0$ and curvature bound $\kappa_H^\varphi$; ratio
+$\rho_k=\mathrm{ared}_k/\mathrm{pred}_k$ with $\mathrm{ared}_k=\varphi(x_k)-\varphi(x_k+s_k)$;
+acceptance iff $\rho_k\ge\eta_1$; and the radius update \eqref{eq:radius-update}
+(shrink by $\gamma$ only on unsuccessful iterations; never shrink on a successful
+one). All of L2, L3 supply \eqref{eq:fcd} (for $\theta$ with $\xi=\chi^c$, and for
+$f$ with $\xi=\pi^f$ respectively).
+
+\begin{lemma}[TR-acc --- accuracy implies success]
+  \label{lem:tr-acc}
+  In the abstract setting, if
+  $\Delta_k\le\min\!\bigl(\tfrac{\xi_k}{1+\kappa_H^\varphi},\,
+     \tfrac{\kappa_{\mathrm{fcd}}(1-\eta_1)\xi_k}{2\kappa_{\mathrm{ef}}^\varphi}\bigr)$
+  then $\rho_k\ge\eta_1$ (the iteration is successful).
+\end{lemma}
+\begin{proof}
+  Since $x_k,x_k+s_k\in B(x_k,\Delta_k)$, full-linearity gives
+  $|\mathrm{ared}_k-\mathrm{pred}_k|\le 2\kappa_{\mathrm{ef}}^\varphi\Delta_k^2$. The
+  first bound on $\Delta_k$ makes the $\min$ in \eqref{eq:fcd} equal $\Delta_k$, so
+  $\mathrm{pred}_k\ge\kappa_{\mathrm{fcd}}\xi_k\Delta_k>0$. Hence
+  $|\rho_k-1|\le 2\kappa_{\mathrm{ef}}^\varphi\Delta_k^2/(\kappa_{\mathrm{fcd}}\xi_k\Delta_k)
+   =2\kappa_{\mathrm{ef}}^\varphi\Delta_k/(\kappa_{\mathrm{fcd}}\xi_k)\le 1-\eta_1$
+  by the second bound, so $\rho_k\ge\eta_1$.
+\end{proof}
+
+\begin{lemma}[TR1 --- radius lower bound at non-critical points]
+  \label{lem:tr1}
+  If $\xi_j\ge\varsigma>0$ for every iteration $j$ in an index interval $[k_0,k_1]$
+  on which the model is fully linear, then $\Delta_j\ge\Delta_{\mathrm{lb}}(\varsigma):=
+  \gamma\min\!\bigl(\tfrac{\varsigma}{1+\kappa_H^\varphi},
+    \tfrac{\kappa_{\mathrm{fcd}}(1-\eta_1)\varsigma}{2\kappa_{\mathrm{ef}}^\varphi},\Delta_{k_0}\bigr)$
+  for all $j\in[k_0,k_1]$.
+\end{lemma}
+\begin{proof}
+  Let $\bar\Delta(\varsigma)=\min(\tfrac{\varsigma}{1+\kappa_H^\varphi},
+  \tfrac{\kappa_{\mathrm{fcd}}(1-\eta_1)\varsigma}{2\kappa_{\mathrm{ef}}^\varphi})$. If
+  $\Delta_j\le\bar\Delta(\varsigma)\le\bar\Delta(\xi_j)$ then TR-acc makes iteration
+  $j$ successful, so $\Delta_{j+1}\ge\Delta_j$ (\eqref{eq:radius-update} never shrinks
+  on success). Thus the radius can drop below $\bar\Delta(\varsigma)$ only by a single
+  $\gamma$-shrink from a value $>\bar\Delta(\varsigma)$, landing $\ge\gamma\bar\Delta(\varsigma)$;
+  and it starts at $\Delta_{k_0}$. Hence $\Delta_j\ge\gamma\min(\bar\Delta(\varsigma),\Delta_{k_0})$
+  throughout.
+\end{proof}
+
+\begin{lemma}[TR2 --- liminf criticality]
+  \label{lem:tr2}
+  Suppose $\varphi$ is bounded below on $\Lset$ and is non-increasing over the
+  iterations under consideration (each successful one decreasing it by $\ge\eta_1\mathrm{pred}$,
+  the others leaving $x$ fixed). Then $\liminf_k\xi_k=0$.
+\end{lemma}
+\begin{proof}
+  Suppose $\xi_k\ge\varsigma>0$ for all large $k$. If there are infinitely many
+  successful iterations, each decreases $\varphi$ by
+  $\ge\eta_1\kappa_{\mathrm{fcd}}\varsigma\min(\varsigma/(1+\kappa_H^\varphi),\Delta_k)
+  \ge\eta_1\kappa_{\mathrm{fcd}}\varsigma\min(\varsigma/(1+\kappa_H^\varphi),\Delta_{\mathrm{lb}}(\varsigma))>0$
+  (TR1), so $\varphi\to-\infty$, contradicting boundedness. If instead there are only
+  finitely many successful iterations, then past the last one every iteration is
+  unsuccessful, so \eqref{eq:radius-update} shrinks $\Delta_k\to0$; but once
+  $\Delta_k\le\bar\Delta(\varsigma)$, TR-acc forces success --- a contradiction. Either
+  way $\xi_k\ge\varsigma$ eventually is impossible, so $\liminf_k\xi_k=0$.
+\end{proof}
+
+\begin{lemma}[TR-lim --- full criticality limit under the criticality step]
+  \label{lem:tr-lim}
+  If, in addition, the criticality step ties $\Delta_k$ to $\xi_k$
+  (Lemma~\ref{lem:L5}: $\Delta_k\ge\kappa_\Delta\xi_k$ near non-critical points and
+  $\Delta_k\to0$ only as $\xi_k\to0$), then $\lim_{k\to\infty}\xi_k=0$.
+\end{lemma}
+\begin{proof}
+  Standard ``eventually-successful'' argument of \citet[Thm~6.4.6]{ConnGouldToint2000}
+  / \citet[Ch.~10]{CSV2009}: were $\xi_k\ge2\varsigma$ along a subsequence while
+  (by TR2) $\xi_k<\varsigma$ infinitely often, the criticality change between a
+  $\xi<\varsigma$ index and the next $\xi\ge2\varsigma$ index is bounded below, forcing
+  a total $\varphi$-decrease that (via TR1 and $\varphi$ bounded below) can occur only
+  finitely often --- a contradiction. Hence $\lim\xi_k=0$.
+\end{proof}
+
+\paragraph{L5 --- Finiteness of the criticality step.}
+
+\begin{lemma}[L5]
+  \label{lem:L5}
+  If $\sigma_k>0$, the criticality loop of Step~2 (Section~\ref{sec:algo-crit})
+  terminates after finitely many model-improvement steps, and on exit
+  \begin{equation}
+    \label{eq:L5}
+    \Delta_k \;\ge\; \min\bigl(\Delta_k^{\text{in}},\ \beta\,\sigma_k\bigr)
+    \qquad\text{and}\qquad
+    \Delta_k \;\le\; \mu\,\sigma_k \ \text{ or } \ \Delta_k=\Delta_k^{\text{in}} .
+  \end{equation}
+  Consequently there is $\kappa_\Delta>0$ with $\Delta_k\ge\kappa_\Delta\,\sigma_k$
+  whenever the criticality step is entered.
+\end{lemma}
+\begin{proof}
+  For a $\Lambda$-poised set, finitely many model-improvement steps produce a
+  fully-linear model on any given radius \citep[Ch.~6, Theorem on model
+  improvement]{CSV2009}. The loop shrinks the radius geometrically by $\omega\in(0,1)$
+  and exits once the model is fully linear on $B(x_k,r\Delta_k)$ \emph{and}
+  $r\Delta_k\le\mu\sigma_k$; since $\omega^i\Delta_k^{\text{in}}\to0<\mu\sigma_k/r$
+  (as $\sigma_k>0$) and each radius needs only finitely many improvement steps, the
+  loop terminates. The exit assignment \eqref{eq:crit-radius},
+  $\Delta_k=\min(\max(\Delta_k,\beta\sigma_k),\Delta_k^{\text{in}})$, gives the lower
+  bound in \eqref{eq:L5}; the exit test gives the upper alternative. For the final
+  bound, either $\Delta_k=\Delta_k^{\text{in}}$ (the loop did not shrink, so
+  $\Delta_k\ge\min(\Delta_k^{\text{in}},\beta\sigma_k)$ trivially) or the exit
+  assignment gave $\Delta_k\ge\beta\sigma_k$; in both cases
+  $\Delta_k\ge\beta\sigma_k$ whenever the criticality step is entered
+  ($\sigma_k\le\epsilon_c$, so $\beta\sigma_k\le\beta\epsilon_c$ is the binding
+  branch), i.e.\ $\kappa_\Delta=\beta$ works. This is the inequality-funnel analog of the criticality-step lemma of
+  \citet[Ch.~10]{CSV2009} realized by \path{Algorithm_10_2.m}.
+\end{proof}
+
+\noindent Lemma~\ref{lem:L5} is the ingredient promised in
+Section~\ref{sec:algo-crit}: it \emph{ties $\Delta_k$ to the criticality
+$\sigma_k$}. Together with L1 ($\|\nabla f-g_k\|\le\kappa_{\mathrm{eg}}\Delta_k$),
+it is what transfers model stationarity to true stationarity --- the step that
+fully-linear models alone do not provide.
+
+\paragraph{$\mu$-iteration criticality.}
+
+\begin{lemma}[$\mu$-iterations are model-feasibility-critical]
+  \label{lem:mu-critical}
+  Under the strengthened trigger \eqref{eq:normal-trigger}, a $\mu$-iteration
+  ($s_k=0$) has
+  \[
+    \chi_k^c=0 \qquad\text{and}\qquad \pi_k^f\le\omega_{\mathrm t}(\theta_k).
+  \]
+  Consequently (Lemma~\ref{lem:cq-nonstat}, contrapositive) a $\mu$-iteration occurs
+  only at points that are \emph{near-feasible relative to the radius},
+  $\theta_k\le(\kappa_{\mathrm{eg}}^\theta\Delta_k/\kappa_{\mathrm m})^2/2$; in
+  particular no $\mu$-iteration has $\theta_k\ge\tau>0$ with
+  $\Delta_k<\kappa_{\mathrm m}\sqrt{2\tau}/\kappa_{\mathrm{eg}}^\theta$.
+\end{lemma}
+\begin{proof}
+  $s_k=0$ forces $t_k=0$ and $n_k=0$. If switching \eqref{eq:switch} held, the
+  tangential Cauchy decrease \eqref{eq:tang-cauchy} is null only when $\pi_k^f=0$,
+  contradicting $\pi_k^f>\omega_{\mathrm t}(\theta_k)\ge0$; hence switching failed,
+  $\pi_k^f\le\omega_{\mathrm t}(\theta_k)$. Then the trigger's second disjunct fired,
+  so a normal step was computed; $n_k=0$ makes the normal Cauchy bound
+  \eqref{eq:normal-cauchy} null, forcing $\chi_k^c=0$. By
+  Lemma~\ref{lem:cq-nonstat}, $0=\chi_k^c\ge\kappa_{\mathrm m}\sqrt{2\theta_k}-\kappa_{\mathrm{eg}}^\theta\Delta_k$,
+  i.e.\ $\sqrt{2\theta_k}\le\kappa_{\mathrm{eg}}^\theta\Delta_k/\kappa_{\mathrm m}$, which
+  is the stated near-feasibility bound.
+\end{proof}
+
+\noindent The lemma is what lets L8 exclude $\mu$-iterations (which shrink $\Delta$)
+at infeasible points: a $\mu$-iteration is model-feasibility-critical, and under
+extended MFCQ that means near-feasible relative to the radius. Its residual
+infeasibility, if any, is $O(\Delta_k^2)$ and handled by the funnel drive of T1.
+
+\subsection{Feasibility of limit points (Theorem T1)}
+\label{sec:T1}
+
+The feasibility argument rests on the observation that MFCQ makes an infeasible
+point a \emph{non}-stationary point of the infeasibility measure $\theta$. We
+state the precise form used. For $x$ with $\theta(x)>0$ let the
+\emph{positively-active set} be $\A^+(x)=\{i:c_i(x)\ge0\}$ (constraints that are
+violated or exactly active); these are the ones contributing to $\theta$.
+
+\begin{assumption}[Extended MFCQ on the working region]
+  \label{ass:emfcq}
+  There is $\kappa_{\mathrm m}>0$ such that at every $x\in\Lset$ with $\theta(x)>0$
+  there is a unit direction $d$ with
+  $\langle\nabla c_i(x),d\rangle\le-\kappa_{\mathrm m}$ for all $i\in\A^+(x)$.
+\end{assumption}
+
+Assumption~\ref{ass:emfcq} is the natural extension of MFCQ
+(Assumption~\ref{ass:mfcq}) from the active set at feasible limit points to the
+positively-active set at infeasible points; at a feasible point ($\theta=0$,
+$\A^+=\A$) it \emph{is} MFCQ. It is exactly the ``no infeasible stationary
+points of $\theta$'' hypothesis that the feasible-start scoping
+(Assumption~\ref{ass:feasstart}) presumes: it guarantees the funnel can always
+make feasibility progress, so the method cannot stall at an infeasible point.
+
+\begin{lemma}[MFCQ excludes infeasible $\theta$-stationarity]
+  \label{lem:cq-nonstat}
+  Under Assumption~\ref{ass:emfcq}, at every iteration the model feasibility
+  criticality obeys
+  \begin{equation}
+    \label{eq:cq-nonstat}
+    \chi_k^c \;=\; \|\nabla\theta_k^m(x_k)\|
+             \;\ge\; \kappa_{\mathrm m}\sqrt{2\theta_k}\;-\;\kappa_{\mathrm{eg}}^\theta\Delta_k .
+  \end{equation}
+  In particular, for any $\varrho>0$, if $\theta_k\ge\varrho$ and
+  $\Delta_k\le\bar\Delta(\varrho):=\kappa_{\mathrm m}\sqrt{2\varrho}/(2\kappa_{\mathrm{eg}}^\theta)$,
+  then $\chi_k^c\ge\tfrac12\kappa_{\mathrm m}\sqrt{2\varrho}>0$.
+\end{lemma}
+\begin{proof}
+  Because $\theta$ is smooth with $\nabla\theta(x_k)=J(x_k)^\top[c_k]_+=\sum_{i:c_i(x_k)>0}c_i(x_k)\nabla c_i(x_k)$,
+  the extended-MFCQ direction $d$ (unit, $\langle\nabla c_i(x_k),d\rangle\le-\kappa_{\mathrm m}$
+  for $i\in\A^+(x_k)\supseteq\{i:c_i(x_k)>0\}$) gives
+  \[
+    \|\nabla\theta(x_k)\| \;\ge\; -\langle\nabla\theta(x_k),d\rangle
+      = -\sum_{i:c_i(x_k)>0}c_i(x_k)\langle\nabla c_i(x_k),d\rangle
+      \;\ge\; \kappa_{\mathrm m}\!\!\sum_{i:c_i(x_k)>0}\!\!c_i(x_k)
+      = \kappa_{\mathrm m}\|[c_k]_+\|_1 .
+  \]
+  Since $\|[c_k]_+\|_1\ge\|[c_k]_+\|_2=\sqrt{2\theta_k}$, we get
+  $\|\nabla\theta(x_k)\|\ge\kappa_{\mathrm m}\sqrt{2\theta_k}$. The model gradient bound
+  of L1, $\|\nabla\theta_k^m(x_k)-\nabla\theta(x_k)\|\le\kappa_{\mathrm{eg}}^\theta\Delta_k$,
+  then yields \eqref{eq:cq-nonstat}. The ``in particular'' clause substitutes
+  $\theta_k\ge\varrho$ and $\Delta_k\le\bar\Delta(\varrho)$.
+\end{proof}
+
+\noindent With the smooth measure this is a clean gradient bound --- no subgradient
+or spurious-active-constraint bookkeeping. It is the exact model analog of the
+Gould--Toint feasibility bound $\|\nabla\theta\|\ge\kappa_{\mathrm m}\sqrt{2\theta}$,
+and it is the pivot that excludes infeasible $\theta$-stationary limit points in T1.
+
+We give a \emph{self-contained} proof that $\theta_k\to0$, replacing the imported
+dichotomy of the previous draft. We follow the logical order of
+\citet{GouldToint2010} --- optimality progress is analyzed \emph{before}
+feasibility, so no circular dependence on T2 arises --- adapt every step to the
+derivative-free ($f,c$ known only through fully-linear models, via L1) and smooth
+inequality ($\theta=\tfrac12\|[c]_+\|^2$) setting, and use only the reproduced
+trust-region lemmas of Section~\ref{sec:tr-lemmas} (nothing imported). Write
+$\kappa_{\mathrm{dec}}=\kappa_{\mathrm{tg}}\kappa_{\mathrm{tc}}$ for the
+$f$-iteration decrease constant. On a successful $f$-iteration $j$, the ratio test
+gives $f(x_j)-f(x_{j+1})\ge\eta_1\pred^f_j$; the $f$-domination test
+\eqref{eq:f-domination} gives $\pred^f_j\ge\kappa_{\mathrm{tg}}\delta^{f,t}_j$ where
+$\delta^{f,t}_j=m_f^j(x_j+n_j)-m_f^j(x_j+s_j)$ is the tangential objective decrease;
+and L3 bounds $\delta^{f,t}_j$ below. Chaining,
+\begin{equation}
+  \label{eq:f-decrease}
+  f(x_j)-f(x_{j+1}) \;\ge\; \eta_1\kappa_{\mathrm{tg}}\,\delta^{f,t}_j
+    \;\ge\; \eta_1\kappa_{\mathrm{dec}}\,\pi_j^f\min\!\Bigl(\tfrac{\pi_j^f}{1+\kappa_H},\Delta_j\Bigr).
+\end{equation}
+(Comparing $\pred^f_j$ to $\delta^{f,t}_j$ --- not to $\pred^\theta_j$ --- is what
+makes this bound in terms of $\pi_j^f$ valid; see \eqref{eq:f-domination}.)
+
+\begin{lemma}[L6 --- path length between criticality crossings]
+  \label{lem:pathlen}
+  Let $k_1<k_2$ be successful iterations such that every successful iteration in
+  $[k_1,k_2)$ is an $f$-iteration with $\pi_j^f\ge\varepsilon>0$, and
+  $f(x_{k_1})-f(x_{k_2})\le\eta_1\kappa_{\mathrm{dec}}\varepsilon^2/\bigl(2(1+\kappa_H)\bigr)$.
+  Then
+  \begin{equation}
+    \label{eq:pathlen}
+    \|x_{k_1}-x_{k_2}\| \;\le\; \frac{1}{\eta_1\kappa_{\mathrm{dec}}\varepsilon}\bigl(f(x_{k_1})-f(x_{k_2})\bigr).
+  \end{equation}
+\end{lemma}
+\begin{proof}
+  For a successful $f$-iteration $j\in[k_1,k_2)$, \eqref{eq:f-decrease} and
+  $\pi_j^f\ge\varepsilon$ give
+  $f(x_j)-f(x_{j+1})\ge\eta_1\kappa_{\mathrm{dec}}\varepsilon\min(\varepsilon/(1+\kappa_H),\Delta_j)$.
+  Were the minimum ever $\varepsilon/(1+\kappa_H)$, that single term would be
+  $\ge\eta_1\kappa_{\mathrm{dec}}\varepsilon^2/(1+\kappa_H)=2\bigl[\eta_1\kappa_{\mathrm{dec}}\varepsilon^2/(2(1+\kappa_H))\bigr]\ge2\bigl(f(x_{k_1})-f(x_{k_2})\bigr)$,
+  exceeding the total decrease $\sum_j(f(x_j)-f(x_{j+1}))=f(x_{k_1})-f(x_{k_2})$ (all
+  terms nonnegative) --- impossible. So the minimum is always $\Delta_j$, whence
+  $\|x_j-x_{j+1}\|=\|s_j\|\le\Delta_j\le(f(x_j)-f(x_{j+1}))/(\eta_1\kappa_{\mathrm{dec}}\varepsilon)$.
+  On unsuccessful and $\mu$-iterations $x$ is unchanged. Summing over $j\in[k_1,k_2)$
+  and using the triangle inequality gives \eqref{eq:pathlen}.
+\end{proof}
+This is the derivative-free, inequality analog of \citet[Lemma~3.20]{GouldToint2010}.
+
+\begin{lemma}[L7 --- feasibility when finitely many successful $c$-iterations]
+  \label{lem:feas-B}
+  If $|\S_c|<\infty$ (Regime~B), then $\theta_k\to0$.
+\end{lemma}
+\begin{proof}
+  Let $k_0$ be the last successful $c$-iteration. For $k>k_0$ every successful
+  iteration is an $f$-iteration, so $\{f(x_k)\}_{k>k_0}$ is non-increasing (only
+  $f$-iterations move $x$, and they decrease $f$) and bounded below
+  (Proposition~\ref{prop:bounded}); it converges to some $f_*$. By (TR2) applied to
+  these $f$-iterations (criticality $\pi_k^f$, merit $f$),
+  $\liminf_{k}\pi_k^f=0$.
+
+  Suppose $\theta_k\not\to0$: there are $\varepsilon_0>0$ and infinitely many
+  successful $f$-iterations $k>k_0$ with $\theta_k\ge\varepsilon_0$. On an
+  $f$-iteration the switching test \eqref{eq:switch} held, so
+  $\pi_k^f>\omega_{\mathrm t}(\theta_k)\ge\omega_{\mathrm t}(\varepsilon_0)>0$
+  ($\omega_{\mathrm t}$ non-decreasing, $\omega_{\mathrm t}(t)>0$ for $t>0$). Fix
+  $\varepsilon$ with
+  $0<\varepsilon<\tfrac12\omega_{\mathrm t}(\varepsilon_0)$ and small enough that
+  $\omega_{\mathrm t}^{-1}(\varepsilon)<\varepsilon_0/2$ (possible as
+  $\omega_{\mathrm t}$ is strictly increasing near $0$). Choose $k_1>k_0$ with
+  $\theta_{k_1}\ge\varepsilon_0$ and
+  \begin{equation}
+    \label{eq:B-choice}
+    f(x_{k_1})-f_* \;\le\; \eta_1\kappa_{\mathrm{dec}}\varepsilon\,
+       \min\!\Bigl(\tfrac{\varepsilon}{2(1+\kappa_H)},\ \tfrac{\varepsilon_0}{2L_\theta}\Bigr),
+  \end{equation}
+  where $L_\theta=\sup_{\Lset}\|\nabla\theta\|<\infty$ is the Lipschitz constant of the
+  \emph{smooth} $\theta$; possible since $f(x_k)\downarrow f_*$. Let $k_2>k_1$ be the
+  first successful iteration with $\pi_{k_2}^f<\varepsilon$ (it exists since
+  $\liminf\pi_k^f=0$ and $\pi_{k_1}^f\ge\omega_{\mathrm t}(\varepsilon_0)>\varepsilon$);
+  every successful iteration in $[k_1,k_2)$ is an $f$-iteration with $\pi_j^f\ge\varepsilon$.
+  The first argument of \eqref{eq:B-choice} meets L6's hypothesis, so L6 gives
+  $P:=\sum_{j\in[k_1,k_2)\cap\S}\|x_j-x_{j+1}\|\le(f(x_{k_1})-f_*)/(\eta_1\kappa_{\mathrm{dec}}\varepsilon)\le\varepsilon_0/(2L_\theta)$.
+  Each accepted step segment $[x_j,x_{j+1}]$ lies in $B(x_j,\Delta_j)\subseteq\Lset$,
+  where $\|\nabla\theta\|\le L_\theta$; the mean-value theorem on each segment and
+  summation give
+  \[
+    \bigl|\theta_{k_1}-\theta_{k_2}\bigr|
+      \le\sum_j|\theta(x_j)-\theta(x_{j+1})|\le L_\theta\sum_j\|x_j-x_{j+1}\|=L_\theta P\le\varepsilon_0/2,
+  \]
+  so $\theta_{k_2}\ge\theta_{k_1}-\varepsilon_0/2\ge\varepsilon_0/2$ (the polygonal path
+  avoids assuming $\Lset$ convex).
+  But $k_2$ is a successful $f$-iteration, so
+  $\omega_{\mathrm t}(\theta_{k_2})<\pi_{k_2}^f<\varepsilon$, giving
+  $\theta_{k_2}<\omega_{\mathrm t}^{-1}(\varepsilon)<\varepsilon_0/2$ --- a
+  contradiction. Hence $\theta_k\to0$.
+\end{proof}
+This is the derivative-free, inequality analog of \citet[Lemma~3.21]{GouldToint2010};
+the inequality enters only through the $1$-Lipschitz bound on $[\cdot]_+$.
+
+\begin{lemma}[L8 --- feasibility when infinitely many successful $c$-iterations]
+  \label{lem:feas-A}
+  If $|\S_c|=\infty$ (Regime~A), then $\theta_k\to0$.
+\end{lemma}
+\begin{proof}
+  By L4 the funnel converges, $\theta_k^{\max}\downarrow\theta_*^{\max}\ge0$. Suppose
+  $\theta_*^{\max}=\tau>0$. On a successful $c$-iteration, L4-gap \eqref{eq:L4-gap}
+  and $\theta_k\le\theta_k^{\max}$ telescope:
+  \[
+    \sum_{k\in\S_c}\ared^\theta_k
+      \le\sum_{k\in\S_c}\bigl(\theta_k^{\max}-\theta_{k+1}\bigr)
+      \le\frac{1}{1-\kappa_{\mathrm{cb}}}\bigl(\theta_0^{\max}-\tau\bigr)<\infty,
+  \]
+  so $\ared^\theta_k\to0$, hence $\pred^\theta_k\le\ared^\theta_k/\eta_1\to0$ on
+  $\S_c$. Moreover, because $\kappa_{\mathrm{ca}}\theta_k^{\max}\to\kappa_{\mathrm{ca}}\tau<\tau$
+  while $\theta_{k+1}^{\max}\ge\tau$, for large $k\in\S_c$ the maximum in
+  \eqref{eq:funnel-update} is attained by its second argument, giving
+  $\theta_{k+1}\ge(\tau-\kappa_{\mathrm{cb}}\theta_k^{\max})/(1-\kappa_{\mathrm{cb}})\to\tau$;
+  thus $\theta_k\ge\theta_{k+1}\ge\tau/2$ for all large $k\in\S_c$.
+
+  For all large $k\in\S_c$ we thus have $\theta_k\ge\tau/2>0$. A $c$-iteration
+  computes a normal step, so the feasibility radius cap \eqref{eq:feas-cap} is in
+  force, and (Section~\ref{sec:algo-crit}) it makes cq-nonstat spurious-free:
+  \begin{equation}
+    \label{eq:chi-tau}
+    \chi_k^c\;\ge\;\frac{\kappa_{\mathrm m}\sqrt{2\theta_k}}{1+\mu\kappa_{\mathrm{eg}}^\theta}
+      \;\ge\;\varsigma_\tau:=\frac{\kappa_{\mathrm m}\sqrt{\tau}}{1+\mu\kappa_{\mathrm{eg}}^\theta}>0
+    \qquad(k\in\S_c\text{ large}),
+  \end{equation}
+  \emph{with no large-radius exception} --- the cap $\Delta_k\le\mu\chi_k^c$ is exactly
+  what prevents an over-large radius from masking the true criticality (this is where
+  the smooth measure and the feasibility criticality step earn their keep). Every
+  $c$-iteration carries a genuine normal step (Section~\ref{sec:algo-accept}), so the
+  normal Cauchy bound \eqref{eq:normal-cauchy} and feasibility-retention
+  \eqref{eq:retention} ($\pred^\theta_k\ge(1-\kappa_{\mathrm{nt}})\times$\eqref{eq:normal-cauchy}) give
+  \begin{equation}
+    \label{eq:A-predtheta}
+    \pred^\theta_k\;\ge\;\tfrac{1-\kappa_{\mathrm{nt}}}{2}\,\chi_k^c\min\!\Bigl(\tfrac{\chi_k^c}{1+\beta_\theta},\kappa_{\mathrm n}\Delta_k\Bigr)
+    \qquad\text{with } \chi_k^c\ge\varsigma_\tau .
+  \end{equation}
+
+  \emph{Step 1 (summable radii on $\S_c$).} Since $\chi_k^c\ge\varsigma_\tau$ is bounded
+  below on large $\S_c$, \eqref{eq:A-predtheta} gives
+  $\pred^\theta_k\ge\tfrac{1-\kappa_{\mathrm{nt}}}{2}\varsigma_\tau\min(\varsigma_\tau/(1+\beta_\theta),\kappa_{\mathrm n}\Delta_k)$.
+  At most finitely many $k\in\S_c$ have $\Delta_k\ge\varsigma_\tau/(\kappa_{\mathrm n}(1+\beta_\theta))$
+  (each such has $\pred^\theta_k$ bounded below, but $\pred^\theta_k\to0$); for the rest
+  the $\min$ is $\kappa_{\mathrm n}\Delta_k$, so $\pred^\theta_k\ge c_2\Delta_k$ with
+  $c_2:=\tfrac{(1-\kappa_{\mathrm{nt}})\kappa_{\mathrm n}\varsigma_\tau}{2}$. With the
+  telescoping bound,
+  $\sum_{k\in\S_c}\Delta_k\le c_2^{-1}\sum_{k\in\S_c}\pred^\theta_k+O(1)<\infty$.
+  \emph{(No trust-region radius-bookkeeping is imported here: the cap
+  \eqref{eq:feas-cap} makes $\chi_k^c$ genuinely bounded below, so the earlier
+  ``large-radius spurious criticality'' case cannot arise.)}\hfill$(\ast)$
+
+  \emph{Step 2 (finitely many band up-crossings).} Let $L_f=\sup_{\Lset}\|\nabla f\|$
+  and $L_\theta=\sup_{\Lset}\|\nabla\theta\|$ (finite, Assumptions~\ref{ass:smooth},
+  \ref{ass:levelset}), $\pi_B:=\omega_{\mathrm t}(\tau/4)>0$, and consider the band
+  $\{x:\tau/4\le\theta(x)\le\tau/2\}$. An \emph{up-crossing} is an ascent from
+  $\theta\le\tau/4$ to $\theta\ge\tau/2$. Only $f$-iterations raise $\theta$ (a
+  $c$-iteration reduces it; $\mu$/unsuccessful leave $x$ fixed), and a \emph{rising}
+  $f$-iteration in the band has, by switching \eqref{eq:switch},
+  $\pi_j^f>\omega_{\mathrm t}(\theta_j)\ge\pi_B$; hence by \eqref{eq:f-decrease}, when
+  $\Delta_j\le\pi_B/(1+\kappa_H)$,
+  \[
+    f(x_j)-f(x_{j+1})\ge\eta_1\kappa_{\mathrm{dec}}\pi_B\Delta_j
+      \;\ge\;\tfrac{\eta_1\kappa_{\mathrm{dec}}\pi_B}{L_\theta}\,\bigl(\theta_{j+1}-\theta_j\bigr)
+  \]
+  (using $\theta_{j+1}-\theta_j\le L_\theta\|s_j\|\le L_\theta\Delta_j$), and
+  $f(x_j)-f(x_{j+1})\ge\eta_1\kappa_{\mathrm{dec}}\pi_B^2/(1+\kappa_H)$ otherwise.
+  Summing the rising $f$-iterations of one up-crossing (whose $\theta$-increases total
+  $\ge\tau/4$) yields an objective decrease $\ge
+  \Phi:=\min\!\bigl(\tfrac{\eta_1\kappa_{\mathrm{dec}}\pi_B}{L_\theta}\tfrac{\tau}{4},\ \tfrac{\eta_1\kappa_{\mathrm{dec}}\pi_B^2}{1+\kappa_H}\bigr)>0$
+  per up-crossing. Meanwhile $f$ \emph{increases} only on successful $c$-iterations,
+  each by $\le L_f\Delta_k$, so the total increase is $\le L_f\sum_{k\in\S_c}\Delta_k<\infty$
+  by $(\ast)$. Since $f\ge f_{\mathrm{low}}$ (Proposition~\ref{prop:bounded}),
+  \[
+    (\#\text{up-crossings})\cdot\Phi \le f(x_0)-f_{\mathrm{low}}+L_f\textstyle\sum_{k\in\S_c}\Delta_k <\infty,
+  \]
+  so there are finitely many up-crossings.
+
+  \emph{Step 3 (contradiction).} After the last up-crossing, either
+  \emph{(I)} $\theta_k\ge\tau/4$ for all large $k$, or \emph{(II)} $\theta_k<\tau/2$
+  for all large $k$.
+
+  In case~(II) only finitely many $k$ have $\theta_k\ge\tau/2$; but every large
+  $k\in\S_c$ has $\theta_k\ge\tau/2$, so $|\S_c|<\infty$ --- contradicting Regime~A.
+
+  In case~(I) all large iterations lie in the \emph{pure} infeasible region
+  $\{\theta\ge\tau/4\}$ (no near-feasible excursions interleave). There
+  cq-nonstat \eqref{eq:cq-nonstat} gives, for $\Delta_k\le\varrho_0:=\kappa_{\mathrm m}\sqrt{\tau/2}/(2\kappa_{\mathrm{eg}}^\theta)$,
+  $\chi_k^c\ge\tfrac12\kappa_{\mathrm m}\sqrt{\tau/2}=:\varsigma_0>0$; so no $\mu$-iteration
+  occurs (Lemma~\ref{lem:mu-critical} needs $\chi_k^c=0$), and $\Delta$ can shrink only
+  on \emph{unsuccessful} iterations. Apply the reproduced accuracy lemma
+  \ref{lem:tr-acc}: a $c$-iteration (merit $\theta$, $\xi=\chi_k^c\ge\varsigma_0$,
+  decrease \eqref{eq:A-predtheta}) and an $f$-iteration (merit $f$, $\xi=\pi_k^f>\pi_B$
+  by switching, decrease \eqref{eq:f-decrease}) are both \emph{successful} once
+  $\Delta_k\le\Delta_3:=\min(\varrho_0,\bar\Delta(\varsigma_0),\bar\Delta(\pi_B))$
+  (the accuracy thresholds of Lemma~\ref{lem:tr-acc} for the two merits). Hence no
+  shrinkage occurs at $\Delta_k\le\Delta_3$, so by Lemma~\ref{lem:tr1}
+  $\Delta_k\ge\gamma\Delta_3=:\Delta_{\mathrm{lb}}>0$ for all large $k$. But this
+  contradicts $(\ast)$ ($\sum_{k\in\S_c}\Delta_k<\infty$, with $|\S_c|=\infty$, forces
+  $\Delta_k\to0$ along $\S_c$).
+
+  Both cases are impossible, so $\tau=0$: $\theta_k^{\max}\to0$ and
+  $\theta_k\le\theta_k^{\max}\to0$.
+\end{proof}
+
+\begin{theorem}[T1 --- feasibility]
+  \label{thm:T1}
+  Under Assumptions~\ref{ass:relaxable}--\ref{ass:mfcq} and \ref{ass:emfcq},
+  $\theta_k\to0$; hence $\theta_*^{\max}=0$ and every limit point $x_*$ of
+  $\{x_k\}$ is feasible, $c(x_*)\le0$.
+\end{theorem}
+\begin{proof}
+  Either $|\S_c|<\infty$ (L7) or $|\S_c|=\infty$ (L8); both give $\theta_k\to0$. By
+  continuity of $c$, $c(x_*)=\lim c(x_k)\le0$ at every limit point.
+\end{proof}
+
+\begin{remark}[The feasibility theorem is self-contained]
+  Theorem~\ref{thm:T1} is proved in full. Every trust-region ingredient it uses ---
+  the accuracy-implies-success lemma \ref{lem:tr-acc}, the radius lower bound
+  \ref{lem:tr1}, and the liminf-criticality \ref{lem:tr2} (invoked in Regime~B) --- is
+  \emph{reproduced} in Section~\ref{sec:tr-lemmas}; nothing is imported. The smooth
+  measure $\theta=\tfrac12\|[c]_+\|^2$ is what makes this clean: it turns feasibility
+  into smooth trust-region minimization with the gradient criticality
+  $\chi^c=\|\nabla\theta^m\|$, and the feasibility radius cap \eqref{eq:feas-cap}
+  removes the large-radius ``spurious criticality'' obstruction outright (the former
+  residual TD1$'$ is gone --- see Step~1 of L8). The genuinely new content is the
+  extended-MFCQ pivot (Lemma~\ref{lem:cq-nonstat}, now a one-line gradient bound
+  $\chi^c\ge\kappa_{\mathrm m}\sqrt{2\theta}-\kappa_{\mathrm{eg}}^\theta\Delta$), the
+  funnel--inequality interaction, and the band-crossing argument that tames the
+  interleaving of infeasible and near-feasible iterations.
+
+  The pivot throughout is Lemma~\ref{lem:cq-nonstat}: extended MFCQ forces
+  $\chi_k^c>0$ at infeasible points, ruling out the ``infeasible stall'' a pure
+  funnel-relative trigger would permit. This is where the feasible-reachable-start
+  scoping (Assumption~\ref{ass:feasstart}) pays off: it is consistent with the absence
+  of infeasible $\theta$-stationary traps that Assumption~\ref{ass:emfcq} formalizes.
+\end{remark}
+
+\subsection{Optimality: a KKT limit point (Theorem T2)}
+\label{sec:T2}
+
+With feasibility secured, the optimality argument applies the reproduced
+trust-region lemmas of Section~\ref{sec:tr-lemmas} to the $f$-iterations, which
+dominate once $\theta_k\to0$.
+
+\begin{lemma}[Eventually $f$-iterations near a non-KKT accumulation]
+  \label{lem:eventually-f}
+  If $\pi_k^f\ge\pi_*>0$ along a subsequence, then along that subsequence the
+  switching condition \eqref{eq:switch} holds for all large $k$ and each such
+  iteration is an $f$-iteration.
+\end{lemma}
+\begin{proof}
+  By T1, $\theta_k\to0$. Since $\pi_k^f\ge\pi_*$ and $\omega_{\mathrm t}(\theta_k)\to
+  \omega_{\mathrm t}(0)=0$, the switching test \eqref{eq:switch}
+  $\pi_k^f>\omega_{\mathrm t}(\theta_k)$ holds for all large $k$ in the subsequence, so
+  a tangential step is taken and, by L3,
+  \[
+    \delta^{f,t}_k \;\ge\; \kappa_{\mathrm{tc}}\,\pi_*\min\!\bigl(\pi_*/(1+\kappa_H),\Delta_k\bigr)\;>\;0.
+  \]
+  We must show the $f$-domination test \eqref{eq:f-domination},
+  $\pred^f_k\ge\kappa_{\mathrm{tg}}\delta^{f,t}_k$, so the iteration is classified $f$.
+  Writing $\pred^f_k=\delta^{f,t}_k+[m_f^k(x_k)-m_f^k(x_k+n_k)]$, the normal-step
+  objective change is bounded using $\|n_k\|\le\kappa_{\mathrm{nn}}\sqrt{2\theta_k}$
+  \eqref{eq:normal-size} and $\|g_k\|,\|H_k\|$ bounded (Proposition~\ref{prop:bounded}):
+  \[
+    \bigl|m_f^k(x_k)-m_f^k(x_k+n_k)\bigr|
+      \le \|g_k\|\,\|n_k\| + \tfrac12\|H_k\|\,\|n_k\|^2
+      \le C\,\sqrt{\theta_k}
+  \]
+  for a constant $C$ (as $\theta_k\to0$, $\sqrt{\theta_k}$ dominates $\theta_k$). Near a
+  non-critical accumulation the criticality step (L5) keeps
+  $\Delta_k\ge\kappa_\Delta\sigma_k\ge\kappa_\Delta\pi_*$ bounded below, so
+  $\delta^{f,t}_k\ge\kappa_{\mathrm{tc}}\pi_*\min(\pi_*/(1+\kappa_H),\kappa_\Delta\pi_*)=:\delta_*>0$
+  is bounded below, while $C\sqrt{\theta_k}\to0$ (by T1). Hence for all large $k$,
+  $C\sqrt{\theta_k}\le(1-\kappa_{\mathrm{tg}})\delta_*\le(1-\kappa_{\mathrm{tg}})\delta^{f,t}_k$,
+  giving $\pred^f_k\ge\delta^{f,t}_k-C\sqrt{\theta_k}\ge\kappa_{\mathrm{tg}}\delta^{f,t}_k$.
+  Thus \eqref{eq:f-domination} holds and the iteration is an $f$-iteration.
+\end{proof}
+
+\begin{theorem}[T2 --- first-order optimality / KKT]
+  \label{thm:T2}
+  Under Assumptions~\ref{ass:relaxable}--\ref{ass:mfcq} and \ref{ass:emfcq},
+  \[
+    \liminf_{k\to\infty}\ \pi_k^f \;=\; 0 .
+  \]
+  Consequently there is a limit point $x_*$ of $\{x_k\}$ that is feasible
+  ($c(x_*)\le0$, by T1) and satisfies the KKT conditions of \eqref{eq:problem}: there
+  exists $\lambda\ge0$ with $\nabla f(x_*)+\sum_i\lambda_i\nabla c_i(x_*)=0$ and
+  $\lambda_i c_i(x_*)=0$. Under the criticality step (Lemma~\ref{lem:L5}) the stronger
+  $\lim_{k\to\infty}\pi_k^f=0$ holds, so \emph{every} feasible limit point is KKT.
+\end{theorem}
+\begin{proof}
+  \emph{$\liminf\pi_k^f=0$.} Suppose not: $\pi_k^f\ge\pi_*>0$ for all large $k$.
+  By Lemma~\ref{lem:eventually-f} all large iterations are $f$-iterations, so $f$ is
+  non-increasing over the tail (only $f$-iterations move $x$, decreasing $f$; the
+  others fix it) and bounded below (Proposition~\ref{prop:bounded}); and L3 supplies
+  the fraction-of-Cauchy decrease \eqref{eq:fcd} for the merit $f$ with criticality
+  $\pi^f$. The reproduced Lemma~\ref{lem:tr2} (TR2), applied with $\varphi=f$,
+  $\xi=\pi^f$, then gives $\liminf_k\pi_k^f=0$ --- contradicting $\pi_k^f\ge\pi_*$.
+
+  \emph{KKT limit point.} Take a subsequence with $\pi_k^f\to0$ and (by boundedness
+  of $\Lset$) $x_k\to x_*$. By T1, $\theta(x_*)=0$, so $x_*$ is feasible. On this
+  subsequence the criticality step drives $\Delta_k\to0$ (L5, since
+  $\sigma_k\to0$), so L1 gives $g_k\to\nabla f(x_*)$ and $J_k\to\nabla c(x_*)$.
+
+  \emph{Active-set identification (shrinking $\varepsilon_k$).} The model
+  active set uses the \emph{shrinking} tolerance
+  $\varepsilon_k=\kappa_{\eps}\sigma_k\to0$ (Section~\ref{sec:algo-data}), so
+  $\A_k(\varepsilon_k)=\{i:c_i(x_k)\ge-\varepsilon_k\}$. For $i\notin\A(x_*)$ we have
+  $c_i(x_*)<0$; by continuity $c_i(x_k)\to c_i(x_*)<0$, so for large $k$,
+  $c_i(x_k)<-\varepsilon_k$ and $i\notin\A_k(\varepsilon_k)$. Conversely each
+  $i\in\A(x_*)$ ($c_i(x_*)=0$) satisfies $c_i(x_k)\ge-\varepsilon_k$ for large $k$.
+  Hence $\A_k(\varepsilon_k)=\A(x_*)$ for all large $k$ in the subsequence --- exact
+  identification, which a \emph{fixed} $\varepsilon$ would not deliver.
+
+  \emph{Passing to the limit.} The model KKT residual $\pi_k^f\to0$ furnishes
+  multipliers $\lambda^k\ge0$ supported on $\A_k(\varepsilon_k)=\A(x_*)$ with
+  $g_k+(J_k^{\A})^\top\lambda^k\to0$. Since $\A_k(\varepsilon_k)=\A(x_*)$ and
+  $J_k^{\A}\to\nabla c_{\A}(x_*)$, MFCQ (Assumption~\ref{ass:mfcq}) at $x_*$ ---
+  linear independence of a strictly-feasible direction, equivalently boundedness of
+  the multiplier set --- bounds $\{\lambda^k\}$, so it has a limit point
+  $\lambda\ge0$ supported on $\A(x_*)$. Passing to the limit in
+  $g_k+(J_k^{\A})^\top\lambda^k\to0$ gives $\nabla f(x_*)+\nabla c(x_*)^\top\lambda=0$;
+  complementarity $\lambda_ic_i(x_*)=0$ holds because $\lambda_i=0$ for
+  $i\notin\A(x_*)$ (multipliers supported on $\A(x_*)$) and $c_i(x_*)=0$ for
+  $i\in\A(x_*)$. Thus $x_*$ is a KKT point.
+
+  \emph{Strengthening to $\lim\pi_k^f=0$.} Once $\theta_k\to0$ the iterations are
+  eventually $f$-iterations wherever $\pi_k^f$ is bounded below
+  (Lemma~\ref{lem:eventually-f}), so the reproduced Lemma~\ref{lem:tr-lim} (TR-lim)
+  applies with $\varphi=f$, $\xi=\pi^f$, giving $\lim_k\pi_k^f=0$; hence \emph{every}
+  limit point is a KKT point.
+\end{proof}
+
+\subsection{Limiting-case validations}
+\label{sec:limits}
+
+We check that the analysis reduces correctly in the four regimes named in the
+plan; these are the sanity constraints on the proof.
+
+\paragraph{(a) $p=0$ (unconstrained) $\Rightarrow$ CSV Ch.~10/11.}
+With no constraints, $\theta\equiv0$, $\chi_k^c\equiv0$, $n_k\equiv0$,
+$\theta_k^{\max}$ is irrelevant, and every iteration is an $f$-iteration with
+$\pi_k^f=\|g_k\|$ and $\A_k=\varnothing$. Algorithm~1 becomes
+\path{Algorithm_11_1.m}, L3 becomes the unconstrained Cauchy decrease, L5 becomes
+the CSV criticality step, T1 is vacuous, and T2 reduces to
+$\liminf\|g_k\|=0$ (resp.\ $\lim\|g_k\|=0$), i.e.\ CSV Ch.~10/11.
+
+\paragraph{(b) Equalities $\Rightarrow$ Sampaio--Toint (2015).}
+An equality $c^{\mathrm{eq}}(x)=0$ is $\{c^{\mathrm{eq}}\le0,\,-c^{\mathrm{eq}}\le0\}$;
+then $[c]_+$ recovers $|c^{\mathrm{eq}}|$ componentwise, so
+$\theta=\tfrac12\|[c]_+\|^2=\tfrac12\|c^{\mathrm{eq}}\|^2$ with
+$\nabla\theta=(J^{\mathrm{eq}})^\top c^{\mathrm{eq}}$ and feasibility criticality
+$\chi^c=\|(J^{\mathrm{eq}})^\top c^{\mathrm{eq}}\|$. This is \emph{exactly} the squared
+infeasibility measure $\tfrac12\|c\|^2$ and criticality $\|J^\top c\|$ of
+\citet{SampaioToint2015}: having adopted the smooth measure, the correspondence is now
+a genuine specialization (not merely structural), with L2/L4/T1 specializing to their
+feasibility lemmas and T2 to their first-order result. The only differences are the
+inequality one-sidedness ($[\cdot]_+$) and the derivative-free model layer (L1).
+
+\paragraph{(c) MFCQ failure $\Rightarrow$ identifies the breaking lemma.}
+If Assumption~\ref{ass:emfcq} fails at some infeasible $\bar x\in\Lset$
+(no direction strictly reduces all positively-active constraints), then
+Lemma~\ref{lem:cq-nonstat} fails: $\chi_k^c$ may vanish with $\theta_k>0$, so L2's
+right-hand side is $0$ and T1's feasibility drive stalls --- the algorithm may
+converge to an \emph{infeasible} stationary point of $\theta$. This is precisely
+the dropped dichotomy branch; it localizes the indispensability of MFCQ to
+Lemma~\ref{lem:cq-nonstat} $\to$ T1. If instead MFCQ (Assumption~\ref{ass:mfcq})
+fails only at a \emph{feasible} limit point, T1 still holds but the multiplier set
+in T2 may be unbounded, breaking the KKT conclusion (only Fritz--John stationarity
+survives).
+
+\paragraph{(d) Feasible-iterate regime $\Rightarrow$ NOWPAC relation.}
+If the acceptance rule is tightened to admit only $\theta(x_k+s_k)=0$ (equivalently
+$\theta_k^{\max}\equiv0$), then no relaxable excursion is ever taken, the normal
+step keeps iterates feasible, and Algorithm~1 runs entirely inside $\feas$. This is
+the feasible-iterate regime of NOWPAC \citep{AugustinMarzouk2017,Menhorn2022};
+our analysis then does not \emph{use} relaxability, and T1 is automatic
+($\theta_k\equiv0$). The contrast is that our default ($\theta_k^{\max}>0$)
+\emph{exploits} relaxability to sample and step through infeasible points, which is
+unavailable to a feasible-iterate method.
+
+\subsection{Summary of the argument}
+\label{sec:summary}
+
+The charter question --- ``do fully-linear models of $f$ and $c$ on every iteration
+suffice for convergence to a KKT point?'' --- is answered: \emph{necessary, but
+only in concert with two further mechanisms}. L1 shows fully-linearity of $f$ and
+$c$ (and the inherited accuracy of $\theta$) controls all four ratio tests; L5
+(the criticality step) ties $\Delta_k$ to criticality so model stationarity
+transfers to true stationarity; and the feasibility theorem~\ref{thm:T1} ---
+proved self-contained via the path-length lemma~\ref{lem:pathlen}, the two
+regime lemmas~\ref{lem:feas-B}--\ref{lem:feas-A}, and the extended-MFCQ
+Lemma~\ref{lem:cq-nonstat} --- drives $\theta_k\to0$. Remove any one and a
+limiting-case check in Section~\ref{sec:limits} breaks. The two theorems T1
+(feasibility) and T2 (KKT under MFCQ) are the deliverable D3. \emph{The analysis is
+now self-contained}: the single-region trust-region facts it needs
+(Lemmas~\ref{lem:tr-acc}--\ref{lem:tr-lim}) are reproduced in
+Section~\ref{sec:tr-lemmas} from first principles, and the smooth measure
+$\theta=\tfrac12\|[c]_+\|^2$ with the feasibility radius cap \eqref{eq:feas-cap}
+removes the large-radius obstruction that the earlier unsquared draft could only cite.

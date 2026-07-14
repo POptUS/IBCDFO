@@ -1,0 +1,398 @@
+% !TEX root = main.tex
+%======================================================================
+%  M2 --- Algorithm specification
+%  "DFO trust-funnel for relaxable inequalities"
+%  Mirrors DFO_quad_TR/Algorithm_11_1.m (5-step) and Algorithm_10_2.m.
+%======================================================================
+\section{Algorithm: a DFO trust-funnel for relaxable inequalities}
+\label{sec:algorithm}
+
+This section specifies the method whose convergence is analyzed in
+milestone~M3. It keeps the five-step structure of the CSV modified-DFO
+algorithm as implemented in \path{DFO_quad_TR/Algorithm_11_1.m}
+(criticality $\to$ step calculation $\to$ acceptance $\to$ model improvement
+$\to$ radius update), and grafts onto it the normal/tangential step and funnel
+machinery of \citet{GouldToint2010} and its derivative-free descendant
+\citet{SampaioToint2015}, specialized to the smooth inequality infeasibility measure
+$\theta=\tfrac12\|[c]_+\|^2$ of Section~\ref{sec:infeas}. The design deliberately avoids
+both a penalty parameter and a feasible-iterate requirement
+(Section~\ref{sec:positioning}).
+
+\subsection{Per-iteration data and constants}
+\label{sec:algo-data}
+
+Entering iteration $k$ we hold the incumbent $x_k$, radius $\Delta_k$, funnel
+bound $\theta_k^{\max}$, and the fully-linear models $m_f^k,\,m_{c,i}^k$ of
+Section~\ref{sec:models} with gradient $g_k=\nabla m_f^k(x_k)$ and Jacobian
+$J_k=[\nabla m_{c,i}^k(x_k)]$. Write $c_k=c(x_k)$, $f_k=f(x_k)$,
+$\theta_k=\theta(x_k)=\tfrac12\|[c_k]_+\|^2$. Because $f$ and $c$ come from one vector
+blackbox $F=(f,c_1,\dots,c_p)$, all $p+1$ models are produced by a single call to
+\path{formquad} sharing the same $\Lambda$-poised sample set, and the
+\verb|valid| flag is the computational witness of Assumption~\ref{ass:fl}.
+
+The constants below reuse the names in \path{DFOoptions.mat} /
+\path{Algorithm_11_1.m}; the funnel/step constants are new and named in the
+Gould--Toint style. All are fixed over the run.
+\[
+\begin{array}{llll}
+  \eta_0\in(0,\eta_1), & \eta_1\in(0,1) & \text{(ratio-test thresholds)} & \text{\ttfamily eta\_0, eta\_1}\\[2pt]
+  \gamma\in(0,1), & \gamma_{\text{inc}}>1 & \text{(radius shrink / expand)} & \text{\ttfamily gamma, gamma\_inc}\\[2pt]
+  \Delta_{\max}>0, & \Delta_{\min}>0 & \text{(radius cap / stop)} & \text{\ttfamily Delta\_max, Delta\_min}\\[2pt]
+  \epsilon_c>0, & \omega\in(0,1) & \text{(criticality threshold / shrink)} & \text{\ttfamily epsilon\_c, omega}\\[2pt]
+  \mu>0, & \beta>0 & \text{(criticality--radius coupling)} & \text{\ttfamily mu, beta}\\[2pt]
+  r\ge1 & & \text{(poisedness-radius factor)} & \text{\ttfamily r}\\[2pt]
+  \kappa_{\mathrm n}\in(0,1] & & \text{(normal-step radius fraction)} & \text{new}\\[2pt]
+  \omega_{\mathrm n},\ \omega_{\mathrm t} & & \text{(normal-trigger / switching bounding functions)} & \text{new}\\[2pt]
+  \kappa_\omega\in(0,1) & & \text{(trigger/switching consistency)} & \text{new}\\[2pt]
+  \kappa_{\mathrm{tg}}\in(0,1) & & \text{(tangential-objective domination)} & \text{new}\\[2pt]
+  \kappa_{\mathrm{nt}}\in(0,1) & & \text{(feasibility-retention relaxation)} & \text{new}\\[2pt]
+  \kappa_{\mathrm{ca}}\in(0,1),\ \kappa_{\mathrm{cb}}\in(0,1) & & \text{(funnel-update constants)} & \text{new}\\[2pt]
+  \kappa_{\eps}>0 & & \text{(active-set tolerance scale)} & \text{new}
+\end{array}
+\]
+Here $\omega_{\mathrm n},\omega_{\mathrm t}:[0,\infty)\to[0,\infty)$ are continuous,
+non-decreasing \emph{bounding functions} with $\omega_{\mathrm n}(t)=0\iff t=0$ and
+$\omega_{\mathrm t}$ strictly increasing near $0$; the canonical choice is
+$\omega_{\mathrm n}(t)=\omega_{\mathrm t}(t)=\kappa\,t^{\,q}$ for constants
+$\kappa>0$, $q\ge1$.
+
+\paragraph{Standing constant relations (used in M3).} The analysis requires the
+following relations, all satisfiable by construction:
+\begin{enumerate}\itemsep1pt
+  \item \emph{Feasibility radius cap:} on normal-step iterations the model management
+        enforces $\Delta_k\le\mu\chi_k^c$ \eqref{eq:feas-cap}, so (with L1 and
+        cq-nonstat) $\chi_k^c\ge\kappa_{\mathrm m}\sqrt{2\theta_k}/(1+\mu\kappa_{\mathrm{eg}}^\theta)$:
+        an over-large radius cannot make the model report a spuriously small
+        feasibility criticality. (With the smooth measure this replaces the
+        $\epsilon_c$-vs-$\kappa_{\mathrm m}$ relation of the unsquared draft.)
+  \item \emph{Trigger/switching consistency} (\citealp[(2.31)]{GouldToint2010}):
+        $\omega_{\mathrm t}(\omega_{\mathrm n}(t))\le\kappa_\omega\,t$ for all
+        $t\ge0$. This couples the normal-step trigger \eqref{eq:normal-trigger} and
+        the switching test \eqref{eq:switch} so that they cannot both be dormant
+        while $s_k\ne0$ is productive (the residual $s_k=0$ case is the
+        $\mu$-iteration of Step~3, controlled by Lemma~\ref{lem:mu-critical}).
+  \item \emph{Shrinking active-set tolerance:} the model active set uses
+        $\varepsilon_k=\kappa_{\eps}\,\sigma_k\to0$ (rather than a fixed
+        $\varepsilon$), so $\A_k(\varepsilon_k)$ identifies the true active set at a
+        limit point (needed for limiting complementarity in T2).
+\end{enumerate}
+
+\subsection{Step~1 --- Criticality step}
+\label{sec:algo-crit}
+
+Define the aggregate criticality
+\begin{equation}
+  \label{eq:sigma}
+  \sigma_k \;=\; \max\bigl(\chi_k^c,\ \pi_k^f\bigr),
+\end{equation}
+with $\chi_k^c,\pi_k^f$ from \eqref{eq:chi-c}--\eqref{eq:pi-f}. This is the
+constrained analog of the scalar \verb|sigma =|
+$\max(\|c_{\mathrm{icb}}\|,-\lambda_{\min}(Q))$ used in
+\path{Algorithm_11_1.m}: it collapses ``how nonstationary are we'' for both
+feasibility and optimality into one number.
+
+If $\sigma_k>\epsilon_c$, skip to Step~2 with the incumbent models and
+$\Delta_k$. Otherwise invoke the criticality loop (the analog of
+\path{Algorithm_10_2.m}): while the models are not certifiably fully linear on
+$B(x_k,r\Delta_k)$ \emph{or} $r\Delta_k>\mu\,\sigma_k$, apply a
+$\Lambda$-poised model-improvement step on $B(x_k,\omega^{i}\Delta_k)$,
+rebuild $m_f^k,m_{c,i}^k$, recompute $\sigma_k$, and set
+$\Delta_k\leftarrow\omega^{i}\Delta_k$. On exit set
+\begin{equation}
+  \label{eq:crit-radius}
+  \Delta_k \;\leftarrow\; \min\bigl(\max(\Delta_k,\ \beta\,\sigma_k),\ \Delta_k^{\text{in}}\bigr),
+\end{equation}
+matching the final line of \path{Algorithm_10_2.m}. If $\Delta_k<\Delta_{\min}$,
+stop (approximate stationarity). This is the step that \emph{ties $\Delta_k$ to
+$\sigma_k$} and is what lets model stationarity transfer to true stationarity in
+M3; it is the ingredient that ``fully-linear models on every iteration'' does not
+supply on its own.
+
+\paragraph{Feasibility radius cap on normal-step iterations.} Whenever a normal step
+will be computed (Step~2a), the model-management additionally enforces
+\begin{equation}
+  \label{eq:feas-cap}
+  \Delta_k \;\le\; \mu\,\chi_k^c ,
+\end{equation}
+i.e.\ the trust region is sized to the \emph{feasibility} criticality it is about to
+reduce (shrinking $\Delta_k$ and rebuilding as in the criticality loop if
+\eqref{eq:feas-cap} is violated). This is the feasibility analog of the standard
+criticality step \citep[Ch.~10]{CSV2009}: it prevents an over-large radius from
+letting the fully-linear model report a spuriously small $\chi_k^c$ while the true
+infeasibility criticality is large. With \eqref{eq:feas-cap} and L1, cq-nonstat
+yields $\chi_k^c\ge\kappa_{\mathrm m}\sqrt{2\theta_k}/(1+\mu\kappa_{\mathrm{eg}}^\theta)$
+on every normal-step iteration (used throughout the feasibility analysis, M3).
+
+\subsection{Step~2 --- Step calculation (normal then tangential)}
+\label{sec:algo-step}
+
+The trial step is a composite $s_k=n_k+t_k$ kept in $B(x_k,\Delta_k)$.
+
+\paragraph{(2a) Normal step $n_k$ --- reduce linearized infeasibility.}
+A normal step is computed when the incumbent infeasibility is significant
+\emph{relative to the optimality measure of the previous iterate}, or when the
+current point is too infeasible to pursue optimality (switching \eqref{eq:switch}
+fails), i.e.\ when
+\begin{equation}
+  \label{eq:normal-trigger}
+  \theta_k>0 \quad\text{and}\quad
+  \Bigl(\ \theta_k\ge\omega_{\mathrm n}(\pi_{k-1}^f)
+     \ \ \text{or}\ \ \pi_k^f\le\omega_{\mathrm t}(\theta_k)\ \Bigr),
+\end{equation}
+and $n_k=0$ otherwise. The second disjunct (switching failure) guarantees that
+\emph{every} $c$-iteration carries a genuine normal step, which the feasibility
+analysis (L8) needs; the first is the optimality-forcing trigger of
+\citet[(2.30)]{GouldToint2010}, \textbf{the correct replacement for a radius-based one.}
+A trigger such as $\theta_k>\kappa\Delta_k^2$ is a rate error (near a critical point
+both $\theta_k\to0$ and $\Delta_k\to0$, and $\theta_k>\kappa\Delta_k^2$ can persist,
+e.g.\ $\theta_k\asymp\Delta_k\gg\Delta_k^2$, never switching off); a purely
+\emph{funnel}-relative trigger $\theta_k>\kappa\,\theta_k^{\max}$ can instead
+\emph{stall} at an infeasible, non-$\theta$-stationary point where the funnel is
+frozen. Tying the trigger to $\pi_{k-1}^f$ via $\omega_{\mathrm n}$ (with
+$\omega_{\mathrm n}(t)=0\iff t=0$ and the consistency
+$\omega_{\mathrm t}(\omega_{\mathrm n}(t))\le\kappa_\omega t$) forces feasibility
+\emph{as optimality improves}: as $\pi_{k-1}^f\to0$, even a tiny $\theta_k$
+triggers a normal step. This coupling is what drives $\theta_k\to0$ in T1. When
+triggered,
+$n_k$ approximately solves the convex (piecewise-linear/quadratic) trust-region
+subproblem in the (smooth) linearized violation,
+\begin{equation}
+  \label{eq:normal-sub}
+  \min_{n\in\Rn}\ \tfrac12\bigl\|\,[\,c_k+J_k n\,]_+\,\bigr\|^2
+  \quad\text{s.t.}\quad \|n\|\le\kappa_{\mathrm n}\,\Delta_k,
+\end{equation}
+and is required to achieve a Cauchy-type decrease of the model infeasibility: there
+is $\kappa_{\mathrm{nc}}>0$ with
+\begin{equation}
+  \label{eq:normal-cauchy}
+  \theta_k - \theta_k^m(x_k+n_k)
+  \;\ge\;
+  \kappa_{\mathrm{nc}}\,\chi_k^c\,
+  \min\!\Bigl(\tfrac{\chi_k^c}{\,1+\beta_\theta\,},\ \kappa_{\mathrm n}\Delta_k\Bigr),
+\end{equation}
+where $\beta_\theta$ bounds the curvature of $\theta_k^m$ (finite, since
+$\|J_k\|\le\kappa_J$). This is the standard fraction-of-Cauchy decrease for the
+smooth $\theta_k^m$ along the steepest-descent direction $-\nabla\theta_k^m(x_k)$
+(the objective of \eqref{eq:normal-sub} is convex, so a generalized Cauchy point
+attains it). The normal step is also required to be \emph{normal},
+\begin{equation}
+  \label{eq:normal-size}
+  \|n_k\| \;\le\; \kappa_{\mathrm{nn}}\,\bigl\|[\,c_k\,]_+\bigr\|
+             \;=\; \kappa_{\mathrm{nn}}\sqrt{2\theta_k}
+  \qquad(\kappa_{\mathrm{nn}}>0),
+\end{equation}
+the standard trust-funnel requirement \citep[\S2]{GouldToint2010} that makes $n_k$
+vanish as $\theta_k\to0$ (used in Lemma~\ref{lem:eventually-f}). Computationally
+\eqref{eq:normal-sub} is a small bound-constrained convex QP in $(c_k,J_k)$ --- the
+role played by \path{minqsw}/\path{bqmin} in the code-bridge (D5).
+
+\paragraph{(2b) Tangential step $t_k$ --- reduce the objective model.}
+Given $n_k$, the tangential step reduces the objective model along directions that
+do not undo the linearized feasibility gain. Let
+$\A_k=\A_k(\varepsilon_k)$ be the model active set (Section~\ref{sec:crit}) with the
+\emph{shrinking} tolerance $\varepsilon_k=\kappa_{\eps}\sigma_k$, and
+$N_k$ a basis for (an approximation of) the null space
+$\{d:J_k^{\A}d=0\}$. We take a tangential step only when the optimality criticality
+is significant relative to the current infeasibility --- the
+\emph{switching condition} \citep[(2.29)]{GouldToint2010}
+\begin{equation}
+  \label{eq:switch}
+  \pi_k^f \;>\; \omega_{\mathrm t}\bigl(\theta_k\bigr)
+  \qquad\bigl(\text{equivalently } \theta_k<\omega_{\mathrm t}^{-1}(\pi_k^f)\text{: infeasibility small relative to } \pi_k^f\bigr).
+\end{equation}
+When \eqref{eq:switch} holds, $t_k$ approximately solves
+\begin{equation}
+  \label{eq:tang-sub}
+  \min_{t}\ m_f^k(x_k+n_k+t)
+  \quad\text{s.t.}\quad
+  J_k^{\A}\,t\le 0,\quad \|n_k+t\|\le\Delta_k,\quad
+  \theta_k^m\bigl(x_k+n_k+t\bigr)\le\vartheta_k,
+\end{equation}
+where the last constraint --- the analog of \citet[(2.28)]{GouldToint2010} for the
+squared measure --- caps the model infeasibility of the composite step at
+\begin{equation}
+  \label{eq:retention}
+  \vartheta_k \;:=\; \kappa_{\mathrm{nt}}\,\theta_k + (1-\kappa_{\mathrm{nt}})\,\theta_k^m(x_k+n_k)
+  \qquad(\kappa_{\mathrm{nt}}\in(0,1)),
+\end{equation}
+so the tangential step cannot undo the normal step's feasibility gain by more than a
+fraction. (It is feasible: $t=0$ satisfies it since $\theta_k^m(x_k+n_k)\le\vartheta_k$.)
+This \emph{feasibility-retention} bound lets the composite predicted decrease inherit
+the normal-step Cauchy bound:
+$\pred^\theta_k=\theta_k-\theta_k^m(x_k+s_k)\ge\theta_k-\vartheta_k=(1-\kappa_{\mathrm{nt}})\bigl(\theta_k-\theta_k^m(x_k+n_k)\bigr)$,
+i.e.\ $\pred^\theta_k\ge(1-\kappa_{\mathrm{nt}})\times$\eqref{eq:normal-cauchy} (used in L8).
+On this step $t_k$ must deliver a fraction-of-Cauchy decrease of the objective model on the
+tangent space: there is $\kappa_{\mathrm{tc}}>0$ with
+\begin{equation}
+  \label{eq:tang-cauchy}
+  m_f^k(x_k+n_k) - m_f^k(x_k+s_k)
+  \;\ge\;
+  \kappa_{\mathrm{tc}}\,\pi_k^f\,
+  \min\!\Bigl(\tfrac{\pi_k^f}{\,1+\|H_k\|\,},\ \Delta_k\Bigr),
+\end{equation}
+where $H_k$ is the objective model Hessian. If \eqref{eq:switch} fails, set
+$t_k=0$ (this is a pure feasibility, or ``$c$-'', iteration). In all cases
+$s_k=n_k+t_k$ with $\|s_k\|\le\Delta_k$. When $p=0$ and $\theta_k\equiv0$ this
+reduces exactly to the unconstrained trust-region step of \path{Algorithm_11_1.m}
+(Step~2, \verb|s_k = trust(c,Q,Delta)|).
+
+\subsection{Step~3 --- Iteration type and acceptance}
+\label{sec:algo-accept}
+
+Define the predicted decreases
+\begin{align}
+  \mathrm{pred}^f_k &= m_f^k(x_k) - m_f^k(x_k+s_k), \label{eq:predf}\\
+  \mathrm{pred}^\theta_k &= \theta_k - \theta_k^m(x_k+s_k), \label{eq:predtheta}
+\end{align}
+and the achieved decreases $\mathrm{ared}^f_k=f_k-f(x_k+s_k)$,
+$\mathrm{ared}^\theta_k=\theta_k-\theta(x_k+s_k)$, computed from a single blackbox
+evaluation of $F$ at the trial point $x_k+s_k$ (yielding $f$ and all $c_i$ at
+once). The iteration is classified into three mutually exclusive types
+(following \citealp{GouldToint2010}), the $\mu$-iteration handling the degenerate
+$s_k=0$ case that a two-way $f$/$c$ split would leave undefined:
+
+\begin{description}
+\item[$\mu$-iteration] if $s_k=0$. Under the strengthened trigger
+  \eqref{eq:normal-trigger} this is a \emph{model-critical} situation:
+  $t_k=0$ with switching held would force $\pi_k^f=0$ (L3), contradicting
+  \eqref{eq:switch}; hence switching failed ($\pi_k^f\le\omega_{\mathrm t}(\theta_k)$),
+  the trigger's second disjunct fired, and $n_k=0$ then forces $\chi_k^c=0$
+  (the normal Cauchy bound \eqref{eq:normal-cauchy} is null). So a $\mu$-iteration
+  has $\chi_k^c=0$ and $\pi_k^f\le\omega_{\mathrm t}(\theta_k)$
+  (Lemma~\ref{lem:mu-critical}); by cq-nonstat \eqref{eq:cq-nonstat}, $\chi_k^c=0$
+  forces $\sqrt{2\theta_k}\le\kappa_{\mathrm{eg}}^\theta\Delta_k/\kappa_{\mathrm m}$, i.e.\
+  the point is \emph{near-feasible relative to the radius}. No trial point is
+  evaluated; the iteration is routed through the criticality step (Step~1), the funnel
+  is unchanged, and $x_{k+1}=x_k$. In particular, a $\mu$-iteration \emph{cannot occur
+  at a point with $\theta_k\ge\tau>0$ and
+  $\Delta_k<\kappa_{\mathrm m}\sqrt{2\tau}/\kappa_{\mathrm{eg}}^\theta$} --- the fact the
+  feasibility analysis (L8) relies on.
+\item[$f$-iteration] if $s_k\ne0$, a tangential step was computed
+  (\eqref{eq:switch} held), and the full objective decrease retains a fraction of the
+  \emph{tangential} objective decrease,
+  \begin{equation}
+    \label{eq:f-domination}
+    \mathrm{pred}^f_k \;\ge\; \kappa_{\mathrm{tg}}\,\delta^{f,t}_k,
+    \qquad \delta^{f,t}_k := m_f^k(x_k+n_k)-m_f^k(x_k+s_k)
+  \end{equation}
+  (the \citet[(2.33)]{GouldToint2010} domination test; $\delta^{f,t}_k$ is the
+  quantity bounded below by L3, so \eqref{eq:f-domination} transfers that bound to
+  $\mathrm{pred}^f_k$ --- this is what the feasibility path-length lemma L6 uses,
+  and it replaces the earlier, incorrect comparison of $\mathrm{pred}^f_k$ to
+  $\mathrm{pred}^\theta_k$). Acceptance uses the objective ratio
+  \begin{equation}
+    \label{eq:rhof}
+    \rho^f_k \;=\; \frac{\mathrm{ared}^f_k}{\mathrm{pred}^f_k}.
+  \end{equation}
+  The trial point is accepted iff it respects the funnel and the ratio passes:
+  \begin{equation}
+    \label{eq:accept-f}
+    \theta(x_k+s_k)\le\theta_k^{\max}
+    \quad\text{and}\quad
+    \bigl(\rho^f_k\ge\eta_1,\ \text{or}\ (\rho^f_k>\eta_0\ \text{and models valid})\bigr).
+  \end{equation}
+  The funnel bound is left unchanged: $\theta_{k+1}^{\max}=\theta_k^{\max}$.
+\item[$c$-iteration] otherwise ($s_k\ne0$ and \eqref{eq:f-domination} fails or no
+  tangential step was computed). \emph{A $c$-iteration always carries a genuine
+  normal step} ($n_k\ne0$ whenever $\chi_k^c>0$): if switching \eqref{eq:switch}
+  failed, the trigger \eqref{eq:normal-trigger} computed $n_k$ directly; if switching
+  held but \eqref{eq:f-domination} failed, then $\mathrm{pred}^f_k<\kappa_{\mathrm{tg}}\delta^{f,t}_k\le\delta^{f,t}_k$,
+  which (as $\mathrm{pred}^f_k=\delta^{f,t}_k+[m_f^k(x_k)-m_f^k(x_k+n_k)]$) forces
+  $m_f^k(x_k)-m_f^k(x_k+n_k)<0$, i.e.\ $n_k\ne0$. This closes the gap that a pure
+  tangential step could be classified $c$ without a normal step. Acceptance uses the
+  feasibility ratio
+  \begin{equation}
+    \label{eq:rhoc}
+    \rho^c_k \;=\; \frac{\mathrm{ared}^\theta_k}{\mathrm{pred}^\theta_k},
+  \end{equation}
+  well defined since the normal step gives, via retention \eqref{eq:retention},
+  $\mathrm{pred}^\theta_k\ge(1-\kappa_{\mathrm{nt}})\times\eqref{eq:normal-cauchy}>0$.
+  The trial point is accepted iff $\rho^c_k\ge\eta_1$. On a successful $c$-iteration
+  the funnel is tightened (Step~4b).
+\end{description}
+
+On acceptance, $x_{k+1}=x_k+s_k$; on rejection, $x_{k+1}=x_k$. As in
+\path{Algorithm_11_1.m}, the trial point (and its already-paid blackbox value) is
+\emph{always} added to the sample set regardless of acceptance, since evaluations
+are expensive.
+
+\subsection{Step~4 --- Model improvement and funnel update}
+\label{sec:algo-improve}
+
+\paragraph{(4a) Model improvement.} If the iteration was unsuccessful
+($\rho^{\bullet}_k<\eta_1$) or the step was negligible
+($\|s_k\|/\Delta_k$ below \path{tol\_step\_ratio}), run a $\Lambda$-poised
+model-improvement step on $B(x_k,r\Delta_k)$ and rebuild the models --- exactly
+Step~4 of \path{Algorithm_11_1.m} via \path{Model_Improvement_Step.m}.
+
+\paragraph{(4b) Funnel update.} On a successful $c$-iteration, tighten the funnel
+by the Gould--Toint rule
+\begin{equation}
+  \label{eq:funnel-update}
+  \theta_{k+1}^{\max}
+  = \max\Bigl(\kappa_{\mathrm{ca}}\,\theta_k^{\max},\
+                  \theta_{k+1} + \kappa_{\mathrm{cb}}\,(\theta_k^{\max}-\theta_{k+1})\Bigr),
+\end{equation}
+which keeps $\theta_{k+1}<\theta_{k+1}^{\max}\le\theta_k^{\max}$ (strict room
+below the cap, monotone non-increasing cap). On $f$-iterations and unsuccessful
+iterations, $\theta_{k+1}^{\max}=\theta_k^{\max}$. This monotonicity is lemma~L4
+of M3 and is the mechanism that forces $\theta_k\to0$.
+
+\subsection{Step~5 --- Trust-region radius update}
+\label{sec:algo-radius}
+
+Mirroring Step~5 of \path{Algorithm_11_1.m}:
+\begin{equation}
+  \label{eq:radius-update}
+  \Delta_{k+1} =
+  \begin{cases}
+    \min(\gamma_{\text{inc}}\Delta_k,\ \Delta_{\max})
+      & \text{very successful } (\rho^{\bullet}_k\ge\eta_1) \text{ and } \|s_k\|\approx\Delta_k,\\[4pt]
+    \gamma\,\Delta_k
+      & \text{unsuccessful } (\rho^{\bullet}_k<\eta_1) \text{ and models valid on } B(x_k,r\Delta_k),\\[4pt]
+    \Delta_k & \text{otherwise,}
+  \end{cases}
+\end{equation}
+where $\rho^{\bullet}_k$ is $\rho^f_k$ on $f$-iterations and $\rho^c_k$ on
+$c$-iterations. Increment $k$ and return to Step~1.
+
+\subsection{Consolidated pseudocode}
+\label{sec:algo-pseudocode}
+
+\begin{quote}\small
+\noindent\textbf{Algorithm~1 (DFO trust-funnel for relaxable inequalities).}\\
+\textit{Given} feasible $x_0$ (Assumption~\ref{ass:feasstart}), $\Delta_0$,
+$\theta_0^{\max}\ge\theta_0$, constants of Section~\ref{sec:algo-data}.\\
+\textbf{For} $k=0,1,2,\dots$:
+\begin{enumerate}\itemsep2pt
+  \item \textbf{Models.} Build fully-linear $m_f^k,\{m_{c,i}^k\}$ on
+        $B(x_k,\Delta_k)$; form $g_k,J_k$; compute $\chi_k^c,\pi_k^f$,
+        $\sigma_k=\max(\chi_k^c,\pi_k^f)$.
+  \item \textbf{Criticality.} If $\sigma_k\le\epsilon_c$: run the
+        \path{Algorithm_10_2} loop (improve poisedness, shrink $\Delta_k$ toward
+        $\mu\sigma_k$, apply \eqref{eq:crit-radius}); if $\Delta_k<\Delta_{\min}$
+        \textbf{stop}.
+  \item \textbf{Normal step.} If $\theta_k\ge\omega_{\mathrm n}(\pi_{k-1}^f)$,
+        compute $n_k$ solving \eqref{eq:normal-sub} with decrease
+        \eqref{eq:normal-cauchy}; else $n_k=0$.
+  \item \textbf{Tangential step.} If switching \eqref{eq:switch} holds, compute
+        $t_k$ solving \eqref{eq:tang-sub} with decrease \eqref{eq:tang-cauchy};
+        else $t_k=0$. Set $s_k=n_k+t_k$ ($\|s_k\|\le\Delta_k$).
+  \item \textbf{Classify \& evaluate.} If $s_k=0$: \textbf{$\mu$-iteration} ---
+        criticality/geometry refresh, $x_{k+1}=x_k$, funnel unchanged, go to Step~7.
+        Else evaluate $F(x_k+s_k)$ and classify $f$- vs.\ $c$-iteration (Step~3);
+        accept/reject by \eqref{eq:accept-f}/\eqref{eq:rhoc}.
+  \item \textbf{Improve \& funnel.} Model improvement (4a) if needed; funnel
+        update \eqref{eq:funnel-update} on a successful $c$-iteration.
+  \item \textbf{Radius.} Update $\Delta_{k+1}$ by \eqref{eq:radius-update}.
+\end{enumerate}
+\end{quote}
+
+\paragraph{Design invariants (to be discharged in M3).}
+(i) $\theta_k\le\theta_k^{\max}$ for all $k$ and $\{\theta_k^{\max}\}$ is
+non-increasing; (ii) every accepted step lies in $B(x_k,\Delta_k)$; (iii) with
+$p=0$ (so $\theta_k\equiv0$, $n_k\equiv0$, always $f$-iterations) Algorithm~1
+collapses to \path{Algorithm_11_1.m}; (iv) rewriting an equality
+$c^{\mathrm{eq}}(x)=0$ as $\{c^{\mathrm{eq}}\le0,\ -c^{\mathrm{eq}}\le0\}$
+recovers the equality trust-funnel of \citet{SampaioToint2015}. These invariants
+are the sanity checks the convergence analysis (M3) must respect.

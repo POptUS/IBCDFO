@@ -1,0 +1,113 @@
+% !TEX root = main.tex
+%======================================================================
+%  M1 Scoping note --- Positioning / relation to prior work + novelty
+%======================================================================
+\section{Positioning: why this is a genuine gap}
+\label{sec:positioning}
+
+The setting of Section~\ref{sec:problem} --- \emph{model-based} DFO with
+fully-linear models of the objective \emph{and} of \emph{relaxable inequality}
+constraints, aiming at KKT stationarity under MFCQ --- sits in a gap left open by
+the closest lines of work. We locate each precedent precisely and identify what
+it does not cover. Every claim below is stated against the source PDF in
+\path{articles/}.
+
+\paragraph{Trust-funnel lineage (derivative-based).}
+\citet{GouldToint2010} introduced the trust-funnel method: equality-constrained
+nonlinear programming ``without a penalty function or a filter,'' using a
+normal/tangential step decomposition and a monotone infeasibility cap (the
+funnel). We adopt this normal/tangential + funnel machinery
+(Section~\ref{sec:funnel}) but replace derivatives with fully-linear models and
+target inequalities.
+
+\paragraph{Derivative-free trust-funnel (equalities).}
+\citet{SampaioToint2015} is the primary precedent: a derivative-free trust-funnel
+method that builds fully-linear models and proves first-order convergence --- but
+for \emph{equality} constraints $c(x)=0$. The companion numerical study
+\citep{SampaioToint2016} reports experience extending the approach to problems
+``with both equality and inequality constraints and \dots\ simple bounds,''
+handling inequalities by the usual device of adding slack variables and using
+``neither filter nor penalty function.'' Our project differs in two ways that
+matter for the theory: (i) we treat inequalities \emph{directly} through the
+violation measure $\theta=\|[c]_+\|$ rather than by slack-variable
+equality reformulation, so the model geometry lives in the original $x$-space that
+the simulation samples; and (ii) our target is a \emph{proof} of KKT convergence
+under MFCQ for that direct inequality treatment, not a numerical extension.
+
+\paragraph{Model-based DFO with feasible inequality iterates (the contrast).}
+NOWPAC \citep{AugustinMarzouk2017} and its stochastic generalization (S)NOWPAC
+\citep{Menhorn2022} build fully-linear models of the objective and of
+\emph{inequality} constraints inside a trust region --- superficially the closest
+match. The decisive difference is that NOWPAC enforces \emph{feasible iterates}:
+it adds a convex offset $h_k$ to the constraints, the ``inner boundary path,''
+which keeps iterates strictly inside the feasible region and is precisely what
+their convergence argument relies on \citep[\S4]{Menhorn2022}. That design
+targets \emph{unrelaxable} constraints (points outside $\feas$ may not be usable)
+--- the opposite of our Assumption~\ref{ass:relaxable}. Requiring feasibility
+throughout forbids the infeasible model-sample points and normal-step excursions
+that our funnel both permits and needs. So NOWPAC solves an adjacent but distinct
+problem, and its proof technique does not transfer to the relaxable setting.
+
+\paragraph{Feasibility-restoration alternatives.}
+Inexact-restoration DFO \citep{Birgin2021} handles constraints by alternating a
+feasibility-restoration phase with an optimization phase. It is a legitimate
+alternative architecture for relaxable constraints and a useful contrast, but it
+is not a trust-funnel method and does not build a single fully-linear model set
+used jointly by a normal and a tangential step; we mention it as related rather
+than as the framework we extend.
+
+\paragraph{Constraint taxonomy and the DFO backdrop.}
+\citet{LeDigabelWild2015} give the taxonomy (quantifiable/relaxable/simulation)
+that names our constraint class and explains why relaxability is the enabling
+property. \citet{LMW2019} survey constrained DFO and the fully-linear-model /
+trust-region machinery, and \citet[Ch.~6,10,11]{CSV2009} provide the
+$\Lambda$-poisedness geometry (uniform fully-linearity constants) and the
+unconstrained trust-region convergence template that our criticality step and
+$\kappa_{\mathrm{eg}}\Delta_k\to0$ argument specialize.
+
+\subsection{Novelty statement}
+\label{sec:novelty}
+
+To our knowledge, no existing method provides a \emph{model-based} trust-funnel
+algorithm --- with fully-linear models of \emph{both} the objective and the
+\emph{inequality} constraints --- for \emph{relaxable} simulation constraints,
+together with a proof of convergence to a KKT stationary point under MFCQ, and
+\emph{without} a penalty parameter or a feasible-iterate requirement.
+
+\medskip\noindent
+Concretely, the contribution combines
+\begin{enumerate}
+  \item the DFO trust-funnel of \citet{SampaioToint2015} --- but extended from
+        \emph{equalities} to \emph{inequalities} via the violation measure
+        $\theta=\|[c]_+\|$ handled \emph{directly} in $x$-space;
+  \item the fully-linear objective-and-inequality-constraint modeling of NOWPAC
+        \citep{AugustinMarzouk2017,Menhorn2022} --- but \emph{without} its
+        feasible-iterate inner-boundary requirement, using relaxability
+        (Assumption~\ref{ass:relaxable}) to sample and step through infeasible
+        points; and
+  \item a KKT-under-MFCQ convergence guarantee, obtained without any penalty
+        parameter (contrast the penalty $h$-functions in the repository, e.g.\
+        \path{general_h_funs.py}, which this project deliberately does \emph{not}
+        use).
+\end{enumerate}
+
+\subsection{Summary table}
+\label{sec:table}
+
+\begin{center}\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Method & DF? & FL model of $c$ & Constraint type & Iterates & Convergence \\
+\midrule
+Gould--Toint \citeyearpar{GouldToint2010}   & no  & --- & equality            & funnel  & 1st-order \\
+Sampaio--Toint \citeyearpar{SampaioToint2015} & yes & yes & equality           & funnel  & 1st-order \\
+NOWPAC / (S)NOWPAC                            & yes & yes & inequality          & feasible-only & yes \\
+Inexact restoration \citeyearpar{Birgin2021} & yes & (rest.) & general         & restoration & yes \\
+\textbf{This project}                        & \textbf{yes} & \textbf{yes} & \textbf{relaxable ineq.} & \textbf{funnel (infeasible OK)} & \textbf{KKT/MFCQ (target)} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+``FL model of $c$'' = fully-linear model of the constraints; ``DF'' =
+derivative-free. The last row is the deliverable of milestones M2--M3.

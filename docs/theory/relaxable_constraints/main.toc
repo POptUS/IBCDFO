@@ -1,0 +1,55 @@
+\contentsline {section}{\numberline {1}Problem, assumptions, and notation}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}The problem class}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Smoothness and the working region}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Standing notation}{3}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Models: fully linear for objective \emph {and} constraints}{3}{section.2}%
+\contentsline {section}{\numberline {3}Infeasibility measure}{4}{section.3}%
+\contentsline {section}{\numberline {4}Two criticality measures}{4}{section.4}%
+\contentsline {paragraph}{Feasibility criticality $\chi _k^c$.}{4}{section*.2}%
+\contentsline {paragraph}{Optimality / KKT criticality $\pi _k^f$.}{5}{section*.3}%
+\contentsline {section}{\numberline {5}The trust-funnel mechanism for inequalities}{5}{section.5}%
+\contentsline {section}{\numberline {6}Positioning: why this is a genuine gap}{6}{section.6}%
+\contentsline {paragraph}{Trust-funnel lineage (derivative-based).}{6}{section*.4}%
+\contentsline {paragraph}{Derivative-free trust-funnel (equalities).}{6}{section*.5}%
+\contentsline {paragraph}{Model-based DFO with feasible inequality iterates (the contrast).}{6}{section*.6}%
+\contentsline {paragraph}{Feasibility-restoration alternatives.}{6}{section*.7}%
+\contentsline {paragraph}{Constraint taxonomy and the DFO backdrop.}{6}{section*.8}%
+\contentsline {subsection}{\numberline {6.1}Novelty statement}{7}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Summary table}{7}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Algorithm: a DFO trust-funnel for relaxable inequalities}{7}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Per-iteration data and constants}{7}{subsection.7.1}%
+\contentsline {paragraph}{Standing constant relations (used in M3).}{8}{section*.9}%
+\contentsline {subsection}{\numberline {7.2}Step~1 --- Criticality step}{8}{subsection.7.2}%
+\contentsline {paragraph}{Feasibility radius cap on normal-step iterations.}{9}{section*.10}%
+\contentsline {subsection}{\numberline {7.3}Step~2 --- Step calculation (normal then tangential)}{9}{subsection.7.3}%
+\contentsline {paragraph}{(2a) Normal step $n_k$ --- reduce linearized infeasibility.}{9}{section*.11}%
+\contentsline {paragraph}{(2b) Tangential step $t_k$ --- reduce the objective model.}{10}{section*.12}%
+\contentsline {subsection}{\numberline {7.4}Step~3 --- Iteration type and acceptance}{10}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Step~4 --- Model improvement and funnel update}{11}{subsection.7.5}%
+\contentsline {paragraph}{(4a) Model improvement.}{11}{section*.13}%
+\contentsline {paragraph}{(4b) Funnel update.}{12}{section*.14}%
+\contentsline {subsection}{\numberline {7.6}Step~5 --- Trust-region radius update}{12}{subsection.7.6}%
+\contentsline {subsection}{\numberline {7.7}Consolidated pseudocode}{12}{subsection.7.7}%
+\contentsline {paragraph}{Design invariants (to be discharged in M3).}{12}{section*.15}%
+\contentsline {section}{\numberline {8}Convergence analysis}{12}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Supporting lemmas}{13}{subsection.8.1}%
+\contentsline {paragraph}{L1 --- Model-error propagation (objective, constraints, and $\theta $).}{13}{section*.16}%
+\contentsline {paragraph}{L2 --- Normal-step decrease (feasibility).}{14}{section*.17}%
+\contentsline {paragraph}{L3 --- Tangential-step decrease (optimality).}{14}{section*.18}%
+\contentsline {paragraph}{L4 --- Funnel monotonicity.}{14}{section*.19}%
+\contentsline {subsection}{\numberline {8.2}Reproduced single-region trust-region lemmas}{15}{subsection.8.2}%
+\contentsline {paragraph}{L5 --- Finiteness of the criticality step.}{16}{section*.20}%
+\contentsline {paragraph}{$\mu $-iteration criticality.}{16}{section*.21}%
+\contentsline {subsection}{\numberline {8.3}Feasibility of limit points (Theorem T1)}{16}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}Optimality: a KKT limit point (Theorem T2)}{20}{subsection.8.4}%
+\contentsline {subsection}{\numberline {8.5}Limiting-case validations}{21}{subsection.8.5}%
+\contentsline {paragraph}{(a) $p=0$ (unconstrained) $\Rightarrow $ CSV Ch.~10/11.}{21}{section*.22}%
+\contentsline {paragraph}{(b) Equalities $\Rightarrow $ Sampaio--Toint (2015).}{21}{section*.23}%
+\contentsline {paragraph}{(c) MFCQ failure $\Rightarrow $ identifies the breaking lemma.}{21}{section*.24}%
+\contentsline {paragraph}{(d) Feasible-iterate regime $\Rightarrow $ NOWPAC relation.}{22}{section*.25}%
+\contentsline {subsection}{\numberline {8.6}Summary of the argument}{22}{subsection.8.6}%
+\contentsline {section}{Status}{22}{section*.26}%
+\contentsline {section}{\numberline {A}Code-bridge appendix (D5)}{23}{appendix.A}%
+\contentsline {paragraph}{Deliberate non-reuse (penalty).}{24}{section*.27}%
+\contentsline {paragraph}{Manifold/active-set machinery for the nonsmooth $\theta $.}{24}{section*.28}%
+\contentsline {paragraph}{Summary of extension points (the new code the next phase must write).}{25}{section*.29}%

@@ -1,0 +1,93 @@
+% !TEX root = main.tex
+%======================================================================
+%  D5 --- Code-bridge appendix
+%  Maps each Algorithm 1 component to existing IBCDFO building blocks.
+%  THEORY PHASE ONLY: no solver code is written here; this is the
+%  implementation map for the later coding phase.
+%======================================================================
+\appendix
+\section{Code-bridge appendix (D5)}
+\label{sec:codebridge}
+
+This appendix maps each component of Algorithm~1 (Section~\ref{sec:algorithm}) to
+an existing routine in this repository, so the later implementation phase is a
+translation rather than a fresh build. \textbf{No code is written in this
+theory phase.} Paths are relative to the repository root; all listed files were
+confirmed present at the time of writing. Each row also flags whether the block is
+\emph{reusable as-is}, needs \emph{adaptation}, or is a genuine \emph{extension
+point} (new code the later phase must add).
+
+\begin{center}\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{0.30\textwidth} p{0.42\textwidth} p{0.19\textwidth}@{}}
+\toprule
+\textbf{Algorithm~1 component} & \textbf{Existing building block} & \textbf{Status}\\
+\midrule
+Step~1 fully-linear models of $F=(f,c_1,\dots,c_p)$; $g_k,J_k$, model Hessians; \verb|valid| flag (Assumption~\ref{ass:fl})
+  & \path{pounders/py/formquad.py} --- vector-valued minimum-Frobenius-norm models, returns \verb|G|, \verb|H|, and \verb|valid|; monomial basis in \path{phi2eval.py}
+  & reuse as-is \\
+$\Lambda$-poised geometry management (uniform constants of L1/L5)
+  & \path{DFO_quad_TR/}: \path{Algorithm_6_4.m}, \path{Model_Improvement_Step.m}, \path{Maximize_Lagrange_polynomial.m}, \path{Test_fully_quadratic.m}; geometry rays via \path{pounders/py/bmpts.py} + \path{boxline.py}
+  & reuse as-is \\
+Infeasibility measure $\theta=\|[c]_+\|$ and its model $\theta_k^m$ \eqref{eq:theta}--\eqref{eq:theta-model}
+  & compose from the vector model $m_c^k$ (from \path{formquad}); the composition pattern mirrors \path{pounders/py/general_h_funs.py} \verb|combine_*| (e.g.\ \verb|combine_leastsquares|)
+  & adapt \\
+Two criticality measures $\chi_k^c$ \eqref{eq:chi-c}, $\pi_k^f$ \eqref{eq:pi-f}
+  & new: convex-composite steepest-descent slope for $\chi_k^c$; projected-gradient/KKT residual for $\pi_k^f$ over $J_k^{\A}$
+  & extension point \\
+Step~1 criticality loop (L5), $\Delta$ tie-in \eqref{eq:crit-radius}
+  & \path{DFO_quad_TR/Algorithm_10_2.m} --- structure and $\Delta=\min(\max(\Delta,\beta\sigma),\Delta_{\text{in}})$ carried over verbatim; only $\sigma_k=\max(\chi_k^c,\pi_k^f)$ replaces the scalar criticality
+  & adapt \\
+Step~2a normal step $n_k$: $\min\|[c_k+J_k n]_+\|$ s.t.\ $\|n\|\le\kappa_{\mathrm n}\Delta$ \eqref{eq:normal-sub}
+  & convex QP/LP in $(c_k,J_k)$; box-constrained core solvers \path{pounders/py/bqmin.py} (\verb|spsolver=1|) or external \path{minq} submodule \verb|minqsw| (\verb|spsolver=2|, Neumaier minq5); needs an inequality/violation layer on top
+  & extension point \\
+Step~2b tangential step $t_k$: reduce $m_f^k$ on $\{J_k^{\A}t\le0\}\cap B$ \eqref{eq:tang-sub}
+  & quadratic-model minimization over box: \path{bqmin.py}/\verb|minqsw|; the null-space/active-cone restriction $J_k^{\A}t\le0$ is added on top
+  & adapt \\
+Step~3 ratios $\rho^f_k,\rho^c_k$; $f$-/$c$-iteration classification \eqref{eq:rhof}--\eqref{eq:rhoc}
+  & pattern of \path{DFO_quad_TR/Algorithm_11_1.m} Step~3 (\verb|rho| test); add the $\theta$-ratio $\rho^c_k$ and the switching-based classification
+  & adapt \\
+Step~4b funnel update $\theta_{k+1}^{\max}$ \eqref{eq:funnel-update}
+  & new scalar bookkeeping (Gould--Toint rule)
+  & extension point \\
+Step~5 radius update \eqref{eq:radius-update}
+  & \path{DFO_quad_TR/Algorithm_11_1.m} Step~5 --- carried over verbatim
+  & reuse as-is \\
+Blackbox eval of $F$ (one call returns $f$ and all $c_i$)
+  & driver pattern in \path{Algorithm_11_1.m}; input checks \path{pounders/py/checkinputss.py}
+  & reuse as-is \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Deliberate non-reuse (penalty).}
+The repository contains a penalty-style composition,
+\verb|h_max_plus_quadratic_violation_penalty| in
+\path{manifold_sampling/py/general_nonsmooth_h_funs.py}. Consistent with the
+design decision recorded in Section~\ref{sec:positioning} (trust-funnel,
+\emph{not} penalty), Algorithm~1 does \textbf{not} use it: infeasibility is
+controlled by the funnel bound $\theta_k^{\max}$, never folded into the objective
+through a penalty parameter. It is listed here only to mark it as explicitly out
+of scope.
+
+\paragraph{Manifold/active-set machinery for the nonsmooth $\theta$.}
+The nonsmoothness of $\theta=\|[c]_+\|$ at active/violated boundaries
+(Section~\ref{sec:infeas}) is handled in the analysis by the convex-composite
+argument. For a robust implementation of $\chi_k^c$ and the model active set
+$\A^+$, the manifold-sampling machinery
+(\path{manifold_sampling/py/build_p_models.py}, \verb|h_pw_maximum| and relatives
+in \path{general_nonsmooth_h_funs.py}) is the natural tool for identifying the
+active manifold of $[\cdot]_+$ --- reused for its \emph{geometry/active-set}
+identification, not for any penalty semantics.
+
+\paragraph{Summary of extension points (the new code the next phase must write).}
+\begin{enumerate}\itemsep1pt
+  \item the two criticality measures $\chi_k^c,\pi_k^f$;
+  \item the linearized-violation normal-step subproblem \eqref{eq:normal-sub} on
+        top of the box-QP solvers;
+  \item the active-cone restriction for the tangential subproblem \eqref{eq:tang-sub};
+  \item the funnel bookkeeping (bound $\theta_k^{\max}$, update, and the
+        $f$-/$c$-iteration switch).
+\end{enumerate}
+Everything else --- model building, poisedness/geometry, the criticality-loop
+skeleton, ratio tests, and the radius update --- is already present and reused.

@@ -1,0 +1,132 @@
+%======================================================================
+%  A Derivative-Free Trust-Funnel Method for Relaxable Simulation-Based
+%  Inequality Constraints
+%
+%  Theory document (POptUS / IBCDFO, branch experimental/relaxable_constraints).
+%  Milestone status:
+%    M1  Scoping note ......... notation.tex + positioning.tex        [done]
+%    M2  Algorithm spec ....... algorithm.tex                         [done]
+%    M3  Convergence analysis . convergence.tex                       [done]
+%
+%  Build:  pdflatex main && bibtex main && pdflatex main && pdflatex main
+%======================================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{url}
+\providecommand{\path}[1]{\texttt{#1}}
+\usepackage[round,authoryear]{natbib}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+% --- notation macros ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Rn}{\mathbb{R}^{n}}
+\newcommand{\feas}{\mathcal{F}}
+\newcommand{\Lset}{\mathcal{L}}
+\newcommand{\A}{\mathcal{A}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\pred}{pred}
+\DeclareMathOperator{\ared}{ared}
+\newcommand{\eps}{\varepsilon}
+
+% --- theorem environments ---
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+
+\title{A Derivative-Free Trust-Funnel Method for\\
+       Relaxable Simulation-Based Inequality Constraints}
+\author{POptUS / IBCDFO project\\
+        \small branch \texttt{experimental/relaxable\_constraints}}
+\date{Working draft --- M1--M4 complete; smooth measure; self-contained convergence (TD1+TD2 resolved)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study derivative-free optimization of a simulation-based objective subject to
+\emph{relaxable, quantifiable} simulation-based inequality constraints
+$c(x)\le0$ --- constraints that return a meaningful violation magnitude at
+infeasible points. We propose a trust-funnel (\emph{not} penalty, \emph{not}
+feasible-iterate) method that builds fully-linear models of both the objective
+and the constraints on every iteration, and we target convergence to a KKT
+stationary point under the Mangasarian--Fromovitz constraint qualification. This
+document fixes the problem class, assumptions, and notation (M1); states the
+algorithm (M2); develops the convergence analysis (M3); and reports an adversarial
+self-review with a code-bridge appendix (M4). Using the \emph{smooth} infeasibility
+measure $\theta=\tfrac12\|[c]_+\|^2$, we prove that every limit point is feasible
+($\theta_k\to0$, Theorem~\ref{thm:T1}) and that, under MFCQ, every feasible limit
+point satisfies the KKT conditions ($\lim_k\pi_k^f=0$, Theorem~\ref{thm:T2}). A
+central conceptual point is that building fully-linear models on every iteration is
+\emph{necessary but not sufficient}: a criticality step and the funnel are the two
+further ingredients the proof requires. The analysis is \emph{self-contained} --- the
+standard single-region trust-region results it uses are reproduced from first
+principles and applied to both the objective and the infeasibility merit --- so the
+only inputs are the stated assumptions.
+\end{abstract}
+
+\tableofcontents
+\bigskip
+
+% ---- M1 content ----
+\input{notation}
+\input{positioning}
+
+% ---- M2 content ----
+\input{algorithm}
+
+% ---- M3 content ----
+\input{convergence}
+
+\section*{Status}
+\addcontentsline{toc}{section}{Status}
+Milestones M1--M4 are complete (problem/notation, algorithm, convergence analysis,
+and an adversarial self-review with the D5 code-bridge appendix), and both prior
+technical-debt items are now closed:
+
+\textbf{TD1 (self-contained feasibility) --- resolved.} The feasibility
+theorem~\ref{thm:T1} ($\theta_k\to0$) is proved directly in both regimes
+(Section~\ref{sec:T1}): Lemma~\ref{lem:pathlen} (path length), \ref{lem:feas-B}
+(finitely many successful $c$-iterations), \ref{lem:feas-A} (infinitely many), in the
+Gould--Toint logical order (optimality before feasibility). The \emph{interleaving}
+of infeasible and near-feasible iterations is handled self-contained by a
+summable-radii bound and a \emph{finitely-many-band-crossings} argument; the imported
+trust-funnel dichotomy is gone.
+
+\textbf{TD2 (single-region trust-region machinery) --- resolved.} Two design changes
+requested and made: (i) the \emph{smooth} infeasibility measure
+$\theta=\tfrac12\|[c]_+\|^2$ (Section~\ref{sec:infeas}), which is $C^1$ with
+$\nabla\theta=J^\top[c]_+$, turns feasibility into smooth trust-region minimization
+with the gradient criticality $\chi^c=\|\nabla\theta^m\|$ and makes the MFCQ pivot
+(Lemma~\ref{lem:cq-nonstat}) a one-line bound
+$\chi^c\ge\kappa_{\mathrm m}\sqrt{2\theta}-\kappa_{\mathrm{eg}}^\theta\Delta$; and (ii)
+the standard single-region trust-region results are now \emph{reproduced from first
+principles} in Section~\ref{sec:tr-lemmas} (Lemmas~\ref{lem:tr-acc}
+accuracy$\Rightarrow$success, \ref{lem:tr1} radius lower bound, \ref{lem:tr2} liminf
+criticality, \ref{lem:tr-lim} full criticality limit), applied to both merits $f$ and
+$\theta$. The feasibility radius cap \eqref{eq:feas-cap} removes the former
+large-radius ``spurious criticality'' obstruction (the earlier TD1$'$) outright.
+
+\noindent\textbf{The convergence analysis is now self-contained}, resting only on the
+stated assumptions and results proved within: T1 (feasibility, $\theta_k\to0$) and T2
+($\lim_k\pi_k^f=0$, every feasible limit point KKT under MFCQ). The
+constrained/relaxable novelty --- extended MFCQ excluding infeasible
+$\theta$-stationarity, the funnel--inequality interaction, and the band-crossing
+feasibility argument --- is proved in full; the reproduced single-region lemmas cite
+\citet[Ch.~6.4]{ConnGouldToint2000} only as the source whose arguments they restate.
+
+% ---- D5 code-bridge appendix (M4) ----
+\input{appendix}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}
