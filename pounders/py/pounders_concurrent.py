@@ -1,11 +1,7 @@
-import sys
-
 import numpy as np
 
-from .._get_minq_installation import get_minq_installation
 from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
-from .bqmin import bqmin
 from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
