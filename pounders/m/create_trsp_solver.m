@@ -5,9 +5,12 @@ function [solver] = create_trsp_solver(spsolver)
     % ----- HARDCODED VALUES
     % Ensure that these match the analogous constants implemented for
     % POUNDERS/Python.
-    SIMPLE_TRSP = 1;
-    MINQ5_TRSP = 2;
-    MINQ8_TRSP = 3;
+    %
+    % Both MATLAB and Python implementations should declare the union of all
+    % solvers available even if they don't support one or more of the solvers.
+    TRSP_SOLVER_SIMPLE = 1;
+    TRSP_SOLVER_MINQ5 = 2;
+    TRSP_SOLVER_MINQ8 = 3;
 
     % ----- DEFINE POUNDERS-COMPATIBLE INTERFACES ON SOLVERS
     % Stefan's crappy 10 line solver
@@ -44,12 +47,12 @@ function [solver] = create_trsp_solver(spsolver)
     end
 
     % ----- IDENTIFY DESIRED SOLVER
-    if spsolver == SIMPLE_TRSP
+    if spsolver == TRSP_SOLVER_SIMPLE
         solver = @bqmin_wrapper;
-    elseif spsolver == MINQ5_TRSP
+    elseif spsolver == TRSP_SOLVER_MINQ5
         check_minq_installation(5);
         solver = @minq5_wrapper;
-    elseif spsolver == MINQ8_TRSP
+    elseif spsolver == TRSP_SOLVER_MINQ8
         check_minq_installation(8);
         solver = @minq8_wrapper;
     else

@@ -17,7 +17,7 @@ from .general_h_funs import (
 # fmt: on
 from .create_squared_diff_from_mean_functions import create_squared_diff_from_mean_functions
 
-from .constants import SIMPLE_TRSP, MINQ5_TRSP
+from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, TRSP_SOLVER_MINQ8
 from .create_trsp_solver import create_trsp_solver
 
 # -- Python unittest-based test framework

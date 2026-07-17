@@ -2,7 +2,7 @@ import sys
 
 import numpy as np
 
-from .constants import SIMPLE_TRSP, MINQ5_TRSP
+from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5
 from .._get_minq_installation import get_minq_installation
 from .bqmin import bqmin
 
@@ -23,10 +23,10 @@ def create_trsp_solver(spsolver):
     for all components :math:`s_j` of :math:`\svec`.
 
     :param spsolver:
-        * ``ibcdfo.pounders.SIMPLE_TRSP`` - simplistic 10 line solver that is
+        * ``ibcdfo.pounders.TRSP_SOLVER_SIMPLE`` - simplistic 10 line solver that is
           included only for testing and maintenance purposes
-        * ``ibcdfo.pounders.MINQ5_TRSP`` - Arnold Neumaier's minq5 solver
-        * ``ibcdfo.pounders.MINQ8_TRSP`` - Arnold Neumaier's minq8 solver
+        * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver
+        * ``ibcdfo.pounders.TRSP_SOLVER_MINQ8`` - Arnold Neumaier's minq8 solver
     :return: Python function with the interface
 
         .. code:: python
@@ -47,7 +47,7 @@ def create_trsp_solver(spsolver):
         * ``flag`` communicates the termination condition of the solver with a
           negative value indicating failure.
     """
-    if spsolver == SIMPLE_TRSP:
+    if spsolver == TRSP_SOLVER_SIMPLE:
 
         def __bqmin_wrapper(H, G, Low, Upp):
             Xsp, mdec = bqmin(H, G, Low, Upp)
@@ -55,7 +55,7 @@ def create_trsp_solver(spsolver):
 
         return __bqmin_wrapper
 
-    elif spsolver == MINQ5_TRSP:
+    elif spsolver == TRSP_SOLVER_MINQ5:
         required_minq_SHA, minq_installation = get_minq_installation()
         if not minq_installation["is_valid"]:
             msg = f"Please set MINQ clone to git commit {required_minq_SHA}.\nSee User Guide (https://ibcdfo.readthedocs.io) for more information and instructions."

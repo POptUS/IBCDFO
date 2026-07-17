@@ -1,6 +1,9 @@
 # ----- TRUST-REGION SUBPROBLEM SOLVERS
 # Ensure that these match the analogous constants implemented for
 # POUNDERS/MATLAB.
-SIMPLE_TRSP = 1
-MINQ5_TRSP = 2
-MINQ8_TRSP = 3
+#
+# Both MATLAB and Python implementations should declare the union of all solvers
+# available even if they don't support one or more of the solvers.
+TRSP_SOLVER_SIMPLE = 1
+TRSP_SOLVER_MINQ5 = 2
+TRSP_SOLVER_MINQ8 = 3
