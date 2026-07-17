@@ -39,7 +39,11 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %           * 1 - Debugging level of output to screen
 %           * 2 - More verbose screen output
 %
-%       * **spsolver** - Trust-region subproblem solver flag (default is 2, not recommended to change)
+%       * **spsolver** - Trust-region subproblem solver flag
+%
+%           * 2 - Arnold Neumaier's minq5 solver (default and recommended)
+%           * 3 - Arnold Neumaier's minq8 solver
+%
 %       * **hfun** - Outer function :math:`\hfun` that maps given
 %         :math:`\Ffun(\psp)` to scalars for minimization (default is
 %         sum-of-squares that yields :math:`f`.)
