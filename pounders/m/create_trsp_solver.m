@@ -48,6 +48,7 @@ function [solver] = create_trsp_solver(spsolver)
 
     % ----- IDENTIFY DESIRED SOLVER
     if spsolver == TRSP_SOLVER_SIMPLE
+        printf("WARNING: The simple TRSP solver should only be used for testing or debugging");
         solver = @bqmin_wrapper;
     elseif spsolver == TRSP_SOLVER_MINQ5
         check_minq_installation(5);

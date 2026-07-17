@@ -1,4 +1,5 @@
 import sys
+import warnings
 
 import numpy as np
 
@@ -23,8 +24,6 @@ def create_trsp_solver(spsolver):
     for all components :math:`s_j` of :math:`\svec`.
 
     :param spsolver:
-        * ``ibcdfo.pounders.TRSP_SOLVER_SIMPLE`` - simplistic 10 line solver that is
-          included only for testing and maintenance purposes
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ8`` - Arnold Neumaier's minq8 solver
     :return: Python function with the interface
@@ -48,6 +47,10 @@ def create_trsp_solver(spsolver):
           negative value indicating failure.
     """
     if spsolver == TRSP_SOLVER_SIMPLE:
+        # Since this solver is for testing/debugging only, we do not mention it
+        # in the documentation nor do we put it in the package's public
+        # interface.
+        warnings.warn("The simple TRSP solver should only be used for testing or debugging")
 
         def __bqmin_wrapper(H, G, Low, Upp):
             Xsp, mdec = bqmin(H, G, Low, Upp)
