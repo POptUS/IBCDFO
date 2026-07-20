@@ -74,6 +74,16 @@ def create_trsp_solver(spsolver):
             Xsp, mdec, minq_err, _ = minqsw(0, G, H, Low.T, Upp.T, 0, np.zeros((n, 1)))
             if minq_err < 0:
                 return Xsp, mdec, -4
+            # Continuous function restricted to (compact) k-cell.
+            assert minq_err != 1
+            # TODO: Since we are solving a subproblem, there is likely no sense
+            # in spending an excessive number of iterations seeking a slightly
+            # better approximation to the solution.  But, it might be useful for
+            # developers/power users to be able to identify when the budget
+            # limit is reached.  Once we have improved logging, print debug
+            # messages at high-verbosity level if minq_err == 99?  Better to
+            # return that error code and let POUNDERS log?
+            # assert minq_err != 99
             return Xsp, mdec, 0
 
         return __minq5_wrapper

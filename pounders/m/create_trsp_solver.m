@@ -28,6 +28,11 @@ function [solver] = create_trsp_solver(spsolver)
         if minq_err < 0
             trsp_err = -4;
         end
+        % Continuous function restricted to (compact) k-cell.
+        assert(minq_err ~= 1);
+        % See comments in Python version of this function for info on handling
+        % error code 99.
+        % assert(minq_err ~= 99);
     end
 
     % Arnold Neumaier's minq8

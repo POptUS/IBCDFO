@@ -70,8 +70,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             * 2 - More verbose screen output
 
         * **spsolver** - Trust-region subproblem solver flag
- 
-            * 2 - Arnold Neumaier's minq5 solver (default)
+
+            * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver (default)
 
         * **hfun** - Outer function :math:`\hfun` that maps given
           :math:`\Ffun(\psp)` to scalars for minimization (default is
