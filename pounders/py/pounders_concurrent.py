@@ -10,6 +10,53 @@ from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
+def _solve_trsp_pyrol(G, H, Lows, Upps, n):
+    from pyrol import Objective, ParameterList, Problem, Bounds, Solver, getCout
+    from pyrol.vectors import NumPyVector as npVector
+
+    class TRSPObjective(Objective):
+        def __init__(self, G, H):
+            super().__init__()
+            self.G = np.asarray(G, dtype=float).reshape(-1)
+            self.H = np.asarray(H, dtype=float)
+
+        def value(self, x, tol):
+            s = np.asarray(x[:], dtype=float)
+            return self.G @ s + 0.5 * s @ (self.H @ s)
+
+        def gradient(self, g, x, tol):
+            s = np.asarray(x[:], dtype=float)
+            g[:] = self.G + self.H @ s
+
+        def hessVec(self, hv, v, x, tol):
+            hv[:] = self.H @ np.asarray(v[:], dtype=float)
+
+    x = npVector(np.zeros(n))
+    g = x.dual()
+
+    objective = TRSPObjective(G, H)
+    problem = Problem(objective, x, g)
+
+    lower = npVector(np.asarray(Lows, dtype=float).reshape(-1))
+    upper = npVector(np.asarray(Upps, dtype=float).reshape(-1))
+    problem.addBoundConstraint(Bounds(lower, upper))
+
+    p = ParameterList()
+    p["General"] = ParameterList()
+    p["General"]["Output Level"] = 0
+    p["Step"] = ParameterList()
+    p["Step"]["Trust Region"] = ParameterList()
+    p["Step"]["Trust Region"]["Subproblem Solver"] = "Truncated CG"
+    p["Step"]["Trust Region"]["Subproblem Model"] = "Lin-More"
+
+    solver = Solver(problem, p)
+    solver.solve(getCout())
+
+    Xsp = np.asarray(x[:], dtype=float).reshape(n, 1)
+    mdec = objective.value(x, 0.0)
+
+    return Xsp, mdec
+
 def _default_model_par_values(n):
     par = np.zeros(5)
     par[0] = np.sqrt(n)
@@ -240,6 +287,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             if minq_err < 0:
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
                 return X, F, hF, flag, xk_in
+        elif spsolver == 3:  # PyROL
+            Xsp, mdec = _solve_trsp_pyrol(G, H, Lows, Upps, n)
         # elif spsolver == 3:  # Arnold Neumaier's minq8
         #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
         #     assert minq_err >= 0, "Input error in minq"
