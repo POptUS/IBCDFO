@@ -15,28 +15,28 @@ function [solver] = create_trsp_solver(spsolver)
     % ----- DEFINE POUNDERS-COMPATIBLE INTERFACES ON SOLVERS
     % Stefan's crappy 10 line solver
     function [Xsp, mdec, trsp_err] = bqmin_wrapper(H, G, Low, Upp)
+        % Assume that solver error checks its arguments thoroughly and that
+        % solver always finds valid solution.
         trsp_err = 0;
         [Xsp, mdec] = bqmin(H, G, Low, Upp);
     end
 
     % Arnold Neumaier's minq5
     function [Xsp, mdec, trsp_err] = minq5_wrapper(H, G, Low, Upp)
-        trsp_err = 0;
-
+        % Assume that solver error checks its arguments thoroughly.
         xx = zeros(size(H, 1), 1);
-        [Xsp, mdec, minq_err] = minqsw(0, G, H, Low', Upp', 0, xx);
-        if minq_err < 0
-            trsp_err = -4;
-        end
+        [Xsp, mdec, trsp_err] = minqsw(0, G, H, Low', Upp', 0, xx);
         % Continuous function restricted to (compact) k-cell.
-        assert(minq_err ~= 1);
+        assert(trsp_err ~= 1);
         % See comments in Python version of this function for info on handling
         % error code 99.
-        % assert(minq_err ~= 99);
+        % assert(trsp_err ~= 99);
     end
 
     % Arnold Neumaier's minq8
     function [Xsp, mdec, trsp_err] = minq8_wrapper(H, G, Low, Upp)
+        % Assume that solver error checks its arguments thoroughly and that
+        % solver always finds valid solution.
         trsp_err = 0;
 
         n = size(H, 1);

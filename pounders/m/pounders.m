@@ -342,7 +342,7 @@ while nf < nf_max
     Upps = min(Upp - X(xk_in, :), delta);
     [Xsp, mdec, trsp_err] = solve_trsp(H, G, Lows, Upps);
     if trsp_err < 0
-        [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, trsp_err);
+        [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -4);
         return
     end
 
