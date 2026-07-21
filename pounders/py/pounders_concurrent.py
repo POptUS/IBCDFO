@@ -227,7 +227,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         Upps = np.minimum(Upp - X[xk_in], delta * np.ones((np.shape(Upp))))
         [Xsp, mdec, trsp_flag] = solve_trsp(H, G, Lows, Upps)
         if trsp_flag < 0:
-            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, trsp_flag)
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
             return X, F, hF, flag, xk_in
 
         Xsp = Xsp.squeeze()
