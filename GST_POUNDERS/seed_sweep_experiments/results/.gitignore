@@ -1,0 +1,6 @@
+seed_*/
+all_runs_summary.csv
+*.png
+*.pdf
+!.gitignore
+!README.md
