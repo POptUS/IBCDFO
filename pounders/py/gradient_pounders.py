@@ -205,6 +205,7 @@ def pouders(
     shots_per_circuit=1,
     fpr_use_union_mask=False,
     rho_uses_full_objective=False,
+    iter_callback=None,
 ):
     """
     POUDERS: Practical Optimization Using Derivatives for sums of Squares
@@ -259,6 +260,7 @@ def pouders(
                   = -3 error if a NaN was encountered
                   = -4 error in TRSP Solver
                   = -5 unable to get model improvement with current parameters
+                  = -6 adaptive measurement-shot budget exhausted
     xkin    [int] Index of point in X representing approximate minimizer
     """
 
@@ -275,9 +277,20 @@ def pouders(
     residuals_per_circuit = int(residuals_per_circuit)
     if residuals_per_circuit <= 0:
         raise ValueError("residuals_per_circuit must be positive.")
-    shots_per_circuit = float(shots_per_circuit)
-    if not np.isfinite(shots_per_circuit) or shots_per_circuit < 0:
-        raise ValueError("shots_per_circuit must be a nonnegative finite number.")
+    _shots_is_callable = callable(shots_per_circuit)
+    if not _shots_is_callable:
+        shots_per_circuit = float(shots_per_circuit)
+        if not np.isfinite(shots_per_circuit) or shots_per_circuit < 0:
+            raise ValueError("shots_per_circuit must be a nonnegative finite number or a callable.")
+    _total_circuits = int(np.ceil(m / residuals_per_circuit))
+
+    def _shots_for(circuit_count):
+        # Total shots for `circuit_count` circuits.  Scalar -> circuit_count * scalar
+        # (uniform runs).  Callable (adaptive runs) returns the CURRENT actual total
+        # shots, so the per-circuit count is ignored and the true total is recorded.
+        if _shots_is_callable:
+            return float(shots_per_circuit())
+        return float(circuit_count) * float(shots_per_circuit)
 
     progress_history = []
     last_progress_history = progress_history
@@ -286,7 +299,7 @@ def pouders(
         "n": int(n),
         "residuals_per_circuit": residuals_per_circuit,
         "total_circuits": int(np.ceil(m / residuals_per_circuit)),
-        "shots_per_circuit": shots_per_circuit,
+        "shots_per_circuit": (None if _shots_is_callable else shots_per_circuit),
         "fpr_enabled": fpr_reduction is not None,
         "fpr_use_union_mask": bool(fpr_use_union_mask),
         "rho_uses_full_objective": bool(rho_uses_full_objective),
@@ -440,8 +453,8 @@ def pouders(
             "new_circuits": int(np.ceil(np.sum(new_keep) / residuals_per_circuit)),
             "union_circuits": int(np.ceil(np.sum(fpr_union_mask) / residuals_per_circuit)),
             "active_circuits": int(np.ceil(np.sum(active_keep) / residuals_per_circuit)),
-            "cumulative_shots_revealed": float(
-                np.ceil(np.sum(fpr_union_mask) / residuals_per_circuit) * shots_per_circuit
+            "cumulative_shots_revealed": _shots_for(
+                np.ceil(np.sum(fpr_union_mask) / residuals_per_circuit)
             ),
         }
         fpr_history.append(entry)
@@ -546,11 +559,10 @@ def pouders(
             "union_circuits_revealed": union_revealed_circuits,
             "cumulative_eval_residuals": int(cumulative_eval_residuals),
             "cumulative_eval_circuits": _count_to_circuits(cumulative_eval_residuals),
-            "cumulative_shots_revealed": float(union_revealed_circuits * shots_per_circuit),
-            "cumulative_eval_shots": float(
-                _count_to_circuits(cumulative_eval_residuals) * shots_per_circuit
-            ),
-            "shots_per_circuit": float(shots_per_circuit),
+            "cumulative_shots_revealed": _shots_for(union_revealed_circuits),
+            "cumulative_eval_shots": _shots_for(_count_to_circuits(cumulative_eval_residuals)),
+            "shots_per_circuit": (_shots_for(1) / max(_total_circuits, 1)
+                                  if _shots_is_callable else float(shots_per_circuit)),
             "fpr_enabled": fpr_reduction is not None,
             "fpr_use_union_mask": bool(fpr_use_union_mask),
             "fpr_selected_residuals": latest_fpr.get("selected_residuals", active_residuals),
@@ -672,6 +684,8 @@ def pouders(
     # combine_leastsquares treat the residual Hessian as implicit zeros.
     Hres = (n, m)
     ng = np.nan  # Needed for early termination, e.g., if a model is never built
+    outer_iter = 0  # Counts trust-region iterations; passed to the adaptive-shot hook.
+    previous_rho = None  # rho_k is exposed to the callback at the start of iteration k+1.
 
     while nf + 1 < nfmax:
         center_fpr_mask = _fpr_mask_for_x(X[xkin])
@@ -681,6 +695,57 @@ def pouders(
             )
             Fs[xkin] = _call_hfun(F[xkin], Info[xkin])
         FullFs[xkin] = _call_hfun(center_raw_F, center_raw_Info)
+
+        # --- Adaptive-shot hook -------------------------------------------
+        # Give an external callback the chance to spend additional measurement
+        # shots at the current incumbent BEFORE this iteration's model is built.
+        # All heavy logic (FPR-aware D-optimal allocation, the N_k schedule, and
+        # updating the dataset that fun() reads) lives OUTSIDE POUNDERS; here we
+        # only (a) hand the callback the current state and (b) refresh the center
+        # on the updated dataset so the frozen objective used for the rest of
+        # this iteration reflects the newly collected shots.  Because the hook
+        # fires once per iteration (at the top), the data stays frozen across the
+        # incumbent- and trial-point evaluations below, which keeps rho well
+        # defined.  iter_callback is None => existing behavior is unchanged.
+        if iter_callback is not None:
+            cb_state = {
+                "x": np.asarray(X[xkin], dtype=float).copy(),
+                "delta": float(delta),
+                "ng": float(ng),  # previous iteration's model-gradient norm (nan on first pass)
+                "iteration": int(outer_iter),
+                "nf": int(nf),
+                "xkin": int(xkin),
+                "fpr_mask": None if center_fpr_mask is None else center_fpr_mask.copy(),
+                "previous_rho": previous_rho,
+            }
+            try:
+                cb_result = iter_callback(cb_state)
+            except Exception as exc:  # never let shot bookkeeping crash the solve
+                log(f"Adaptive-shot callback raised {exc!r}; continuing without new shots.")
+                cb_result = None
+            if isinstance(cb_result, dict) and cb_result.get("terminate"):
+                reason = cb_result.get(
+                    "termination_reason", "adaptive callback requested termination"
+                )
+                log(f"Terminating because {reason}.")
+                last_run_metadata["termination_reason"] = str(reason)
+                X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -6)
+                return X, F, J, flag, xkin
+            if isinstance(cb_result, dict) and cb_result.get("data_changed"):
+                # The dataset behind fun() changed; re-evaluate the center so the
+                # residuals/weights match the frozen dataset used this iteration.
+                center_raw_F, center_raw_J, center_raw_Info = _evaluate_fun(X[xkin])
+                F[xkin], J[xkin], Info[xkin] = _apply_fpr_reduction(
+                    center_raw_F, center_raw_J, center_raw_Info, center_fpr_mask
+                )
+                Fs[xkin] = _call_hfun(F[xkin], Info[xkin])
+                FullFs[xkin] = _call_hfun(center_raw_F, center_raw_Info)
+                log(
+                    f"Adaptive-shot hook (iter {outer_iter}): added "
+                    f"{cb_result.get('shots_added', '?')} shots; center refreshed."
+                )
+        outer_iter += 1
+        # ------------------------------------------------------------------
 
         #  1a. Compute the "interpolation set".
         Res[xkin] = F[xkin]
@@ -786,6 +851,7 @@ def pouders(
             rho_active = (Fs[nf] - Fs[xkin]) / mdec
             rho_full = (FullFs[nf] - FullFs[xkin]) / mdec
             rho = rho_full if rho_uses_full_objective else rho_active
+            previous_rho = float(rho)
             previous_xkin = xkin
 
             # 4a. Update the center
