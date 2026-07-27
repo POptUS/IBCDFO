@@ -32,6 +32,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
     end
 
     methods (TestMethodSetup)
+
         function setUp(testCase)
             testCase.solvers = [testCase.SOLVER_SIMPLE, ...
                                 testCase.SOLVER_MINQ5, ...
@@ -46,15 +47,19 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             [here_path, ~, ~] = fileparts(mfilename('fullpath'));
             testCase.oldpath = addpath(fullfile(here_path, '..'));
         end
+
     end
 
     methods (TestMethodTeardown)
+
         function tearDown(testCase)
             path(testCase.oldpath);
         end
+
     end
 
     methods (Test)
+
         function testErrors(testCase)
             badSolvers = [min(testCase.solvers) - 1, ...
                           max(testCase.solvers) + 1];
@@ -73,18 +78,74 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             end
         end
 
-        function testSuccessful(testCase)
+        function test1D(testCase)
+            % Specify problem
+            G = [-1.1];
+            H = [[2.2]];
+            Low = [-1.9];
+            Upp = [0.9];
+            testCase.assertTrue(H(1, 1) > 0.0);
+
+            % Known solutions
+            s_expected = 0.5;
+            f_expected = -0.275;
+
+            too_small = [0.25];
+            s_small = too_small(1);
+            f_small = -0.20625;
+
+            too_large = [0.8];
+            s_large = too_large(1);
+            f_large = -0.176;
+
             % Expected emission of specific warnings tested in testWarnings.
             % Ignore only those to silence expected warnings without
             % inadvertently silencing unintended warnings.
             warning("off", testCase.WARNING_SIMPLE);
             for i = 1:length(testCase.solvers)
                 idx = testCase.solvers(i);
+
                 solve_trsp = create_trsp_solver(idx);
                 testCase.assertTrue(isa(solve_trsp, 'function_handle'));
+
+                % Unconstrained solution in bounds
+                [s_0, f_0, found_solution] = solve_trsp(H, G, Low, Upp);
+                testCase.assertTrue(found_solution);
+                testCase.assertEqual(ndims(s_0), 2);
+                testCase.assertEqual(size(s_0), [1 1]);
+                testCase.assertEqual(ndims(f_0), 2);
+                testCase.assertEqual(size(f_0), [1 1]);
+                rel_err = abs(1.0 - s_0 / s_expected);
+                testCase.assertTrue(rel_err <= 110.0 * eps);
+                rel_err = abs(1.0 - f_0 / f_expected);
+                testCase.assertTrue(rel_err <= 110.0 * eps);
+
+                % Unconstrained solution outside bounds
+                [s_0, f_0, found_solution] = solve_trsp(H, G, Low, too_small);
+                testCase.assertTrue(found_solution);
+                testCase.assertEqual(ndims(s_0), 2);
+                testCase.assertEqual(size(s_0), [1 1]);
+                testCase.assertEqual(ndims(f_0), 2);
+                testCase.assertEqual(size(f_0), [1 1]);
+                testCase.assertEqual(s_0, s_small);
+                rel_err = abs(1.0 - f_0 / f_small);
+                testCase.assertTrue(rel_err <= 35.0 * eps);
+
+                if idx ~= testCase.SOLVER_SIMPLE
+                    % The simple sampler requires that Low <= 0 <= Upp
+                    [s_0, f_0, found_solution] = solve_trsp(H, G, too_large, Upp);
+                    testCase.assertTrue(found_solution);
+                    testCase.assertEqual(ndims(s_0), 2);
+                    testCase.assertEqual(size(s_0), [1 1]);
+                    testCase.assertEqual(ndims(f_0), 2);
+                    testCase.assertEqual(size(f_0), [1 1]);
+                    testCase.assertEqual(s_0, s_large);
+                    rel_err = abs(1.0 - f_0 / f_large);
+                    testCase.assertTrue(rel_err <= 500.0 * eps);
+                end
             end
             warning("on", testCase.WARNING_SIMPLE);
         end
-    end
 
+    end
 end

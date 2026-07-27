@@ -64,8 +64,8 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertTrue(callable(solve_trsp))
 
             # Unconstrained solution in bounds
-            s_0, f_0, was_successful = solve_trsp(H, G, Low, Upp)
-            self.assertTrue(was_successful)
+            s_0, f_0, found_solution = solve_trsp(H, G, Low, Upp)
+            self.assertTrue(found_solution)
             self.assertTrue(isinstance(s_0, np.ndarray))
             self.assertEqual(s_0.ndim, 1)
             self.assertEqual(len(s_0), 1)
@@ -74,8 +74,8 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertTrue(np.fabs(1.0 - f_0 / f_expected) <= 110.0 * EPS)
 
             # Unconstrained solution outside bounds
-            s_0, f_0, was_successful = solve_trsp(H, G, Low, too_small)
-            self.assertTrue(was_successful)
+            s_0, f_0, found_solution = solve_trsp(H, G, Low, too_small)
+            self.assertTrue(found_solution)
             self.assertTrue(isinstance(s_0, np.ndarray))
             self.assertEqual(s_0.ndim, 1)
             self.assertEqual(len(s_0), 1)
@@ -85,8 +85,8 @@ class TestCreateTrspSolver(unittest.TestCase):
 
             if idx != ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE:
                 # The simple sampler requires that Low <= 0 <= Upp
-                s_0, f_0, was_successful = solve_trsp(H, G, too_large, Upp)
-                self.assertTrue(was_successful)
+                s_0, f_0, found_solution = solve_trsp(H, G, too_large, Upp)
+                self.assertTrue(found_solution)
                 self.assertTrue(isinstance(s_0, np.ndarray))
                 self.assertEqual(s_0.ndim, 1)
                 self.assertTrue(isinstance(f_0, numbers.Real))

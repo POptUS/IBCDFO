@@ -340,8 +340,8 @@ while nf < nf_max
     % 3. Solve the subproblem min{G'*s+.5*s'*H*s : Lows <= s <= Upps }
     Lows = max(Low - X(xk_in, :), -delta);
     Upps = min(Upp - X(xk_in, :), delta);
-    [Xsp, mdec, trsp_err] = solve_trsp(H, G, Lows, Upps);
-    if trsp_err < 0
+    [Xsp, mdec, found_solution] = solve_trsp(H, G, Lows, Upps);
+    if ~found_solution
         [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -4);
         return
     end
