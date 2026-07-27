@@ -30,7 +30,7 @@ def create_trsp_solver(spsolver):
 
         .. code:: python
 
-            Xsp, mdec, flag = solve_trsp(H, G, Low, Upp)
+            Xsp, mdec, found_solution = solve_trsp(H, G, Low, Upp)
 
         where
 
@@ -43,9 +43,8 @@ def create_trsp_solver(spsolver):
         * ``Xsp`` is the subproblem solution,
         * ``mdec`` is the value of the subproblem objective function at
           the solution, and
-        * ``flag`` communicates the termination condition of the solver with a
-          negative value indicating failure and all other values indicating
-          success.
+        * ``found_solution`` is True if a solution was found that should be
+          acceptable for POUNDERS's purposes; False, otherwise.
     """
     if spsolver == TRSP_SOLVER_SIMPLE:
         # Since this solver is for testing/debugging only, we do not mention it
@@ -56,7 +55,7 @@ def create_trsp_solver(spsolver):
         def __bqmin_wrapper(H, G, Low, Upp):
             # Assume that solver error checks its arguments thoroughly.
             Xsp, mdec = bqmin(H, G, Low, Upp)
-            return Xsp, mdec, 0
+            return Xsp, mdec, True
 
         return __bqmin_wrapper
 
@@ -81,10 +80,11 @@ def create_trsp_solver(spsolver):
             # better approximation to the solution.  But, it might be useful for
             # developers/power users to be able to identify when the budget
             # limit is reached.  Once we have improved logging, print debug
-            # messages at high verbosity levels if minq_err == 99?  Better to
-            # let POUNDERS log?
+            # messages at high verbosity levels if minq_err == 99?  Since we are
+            # returing a boolean, all logging would have to be done by this
+            # wrapper layer.
             # assert minq_err != 99
-            return Xsp, mdec, minq_err
+            return Xsp, mdec, (minq_err >= 0)
 
         return __minq5_wrapper
 
