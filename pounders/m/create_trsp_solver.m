@@ -2,9 +2,14 @@ function [solver] = create_trsp_solver(spsolver)
     % Please refer to the documentation for the Python version of this
     % function.
 
+    arguments
+        spsolver {mustBeScalarOrEmpty, mustBeNonempty, mustBeInteger}
+    end
+
     % ----- HARDCODED VALUES
     % Ensure that these match the analogous constants implemented for
-    % POUNDERS/Python.
+    % POUNDERS/Python.  These same values might be used in the code that
+    % directly tests this function.
     %
     % Both MATLAB and Python implementations should declare the union of all
     % solvers available even if they don't support one or more of the solvers.
@@ -53,7 +58,8 @@ function [solver] = create_trsp_solver(spsolver)
 
     % ----- IDENTIFY DESIRED SOLVER
     if spsolver == TRSP_SOLVER_SIMPLE
-        disp("WARNING: The simple TRSP solver should only be used for testing or debugging");
+        warning("POUNDERS:simpleTrspSolver", ...
+                "The simple TRSP solver should only be used for testing or debugging");
         solver = @bqmin_wrapper;
     elseif spsolver == TRSP_SOLVER_MINQ5
         check_minq_installation(5);
@@ -62,6 +68,6 @@ function [solver] = create_trsp_solver(spsolver)
         check_minq_installation(8);
         solver = @minq8_wrapper;
     else
-        error(sprintf("Invalid TRSP solver %d", spsolver));
+        error('POUNDERS:badValue', sprintf("Invalid TRSP solver %d", spsolver));
     end
 end
