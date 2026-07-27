@@ -40,9 +40,9 @@ def create_trsp_solver(spsolver):
           of the objective function,
         * ``Low`` and ``Upp`` are :math:`\np` element Numpy arrays that specify
           the bound constraints,
-        * ``Xsp`` is the subproblem solution,
+        * ``Xsp`` is the subproblem solution as a 1D Numpy array,
         * ``mdec`` is the value of the subproblem objective function at
-          the solution, and
+          the solution as a real scalar, and
         * ``found_solution`` is True if a solution was found that should be
           acceptable for POUNDERS's purposes; False, otherwise.
     """
@@ -73,6 +73,9 @@ def create_trsp_solver(spsolver):
             # Assume that solver error checks its arguments thoroughly.
             n = H.shape[0]
             Xsp, mdec, minq_err, _ = minqsw(0, G, H, Low.T, Upp.T, 0, np.zeros((n, 1)))
+            Xsp = np.atleast_1d(np.squeeze(Xsp))
+            mdec = float(np.squeeze(mdec))
+
             # Continuous function restricted to (compact) k-cell.
             assert minq_err != 1
             # TODO: Since we are solving a subproblem, there is likely no sense
@@ -81,7 +84,7 @@ def create_trsp_solver(spsolver):
             # developers/power users to be able to identify when the budget
             # limit is reached.  Once we have improved logging, print debug
             # messages at high verbosity levels if minq_err == 99?  Since we are
-            # returing a boolean, all logging would have to be done by this
+            # returning a boolean, all logging would have to be done by this
             # wrapper layer.
             # assert minq_err != 99
             return Xsp, mdec, (minq_err >= 0)
