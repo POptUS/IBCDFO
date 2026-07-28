@@ -155,8 +155,8 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             % Specify problem
             N = 2;
             G = [1.2; -2.3];
-            H = [[ 1.1 -1.2],
-                 [-1.2  4.5]];
+            H = [[1.1 -1.2]
+                 [-1.2 4.5]];
             [lambdas] = eig(H, "vector");
             testCase.assertTrue(isequal(H', H));
             testCase.assertTrue(all(lambdas > 0.5));
@@ -164,7 +164,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             Upp = [ 5.0  4.0];
 
             % Known solution
-            s_expected = [-0.75213675; 0.31054131]; 
+            s_expected = [-0.75213675; 0.31054131];
             f_expected = -0.8084045584045583;
 
             % Expected emission of specific warnings tested in testWarnings.
@@ -196,11 +196,11 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             % Specify problem
             N = 5;
             G = [1.2; -2.3; 0.7; -0.4; 3.4];
-            H = [[ 30.25,  38.5,  115.5,  -19.25,  8.25],
-                 [ 38.5,   50.0,  131.0,  -14.5,   5.5],
-                 [115.5,  131.0,  818.0, -211.5,  67.5],
-                 [-19.25, -14.5, -211.5,  388.5,  -5.5],
-                 [  8.25,   5.5,   67.5,   -5.5,  64.5]];
+            H = [[30.25 38.5 115.5 -19.25 8.25]
+                 [38.5 50.0 131.0 -14.5 5.5]
+                 [115.5 131.0 818.0 -211.5 67.5]
+                 [-19.25 -14.5 -211.5 388.5 -5.5]
+                 [8.25 5.5 67.5 -5.5 64.5]];
             [lambdas] = eig(H, "vector");
             testCase.assertTrue(isequal(H', H));
             testCase.assertTrue(all(lambdas > 0.01));
@@ -208,10 +208,10 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             Upp = [  10.0 100.0  3.0  0.5  7.0];
 
             % Known solution
-            s_expected = [-128.82782698;
-                            90.82291477;
-                             2.8264531;
-                            -1.37446078;
+            s_expected = [-128.82782698
+                            90.82291477
+                             2.8264531
+                            -1.37446078
                              5.60555695];
             f_expected = -170.94945062515922;
 
