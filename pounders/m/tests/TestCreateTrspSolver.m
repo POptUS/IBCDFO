@@ -161,7 +161,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             testCase.assertTrue(isequal(H', H));
             testCase.assertTrue(all(lambdas > 0.5));
             Low = [-7.0 -4.0];
-            Upp = [ 5.0  4.0];
+            Upp = [5.0 4.0];
 
             % Known solution
             s_expected = [-0.75213675; 0.31054131];
@@ -205,7 +205,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             testCase.assertTrue(isequal(H', H));
             testCase.assertTrue(all(lambdas > 0.01));
             Low = [-150.0 -10.0 -1.0 -2.0 -1.0];
-            Upp = [  10.0 100.0  3.0  0.5  7.0];
+            Upp = [10.0 100.0 3.0 0.5 7.0];
 
             % Known solution
             s_expected = [-128.82782698
