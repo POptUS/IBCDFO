@@ -82,7 +82,8 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
         end
 
         function test1D(testCase)
-            % Specify problem
+            % ----- SPECIFY PROBLEMS
+            % Unconstrained solution inside bounds
             N = 1;
             G = [-1.1];
             H = [[2.2]];
@@ -90,17 +91,19 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             Upp = [0.9];
             testCase.assertTrue(H(1, 1) > 0.0);
 
+            % Bounds that put unconstrained solution outside bounds
+            too_small = [0.25];
+            too_large = [0.8];
+
             % Known solutions
             s_expected = 0.5;
-            f_expected = -0.275;
+            f_expected = -11.0 / 40.0;
 
-            too_small = [0.25];
             s_small = too_small(1);
-            f_small = -0.20625;
+            f_small = -33.0 / 160.0;
 
-            too_large = [0.8];
             s_large = too_large(1);
-            f_large = -0.176;
+            f_large = -22.0 / 125.0;
 
             % Expected emission of specific warnings tested in testWarnings.
             % Ignore only those to silence expected warnings without
@@ -164,8 +167,8 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             Upp = [5.0 4.0];
 
             % Known solution
-            s_expected = [-0.75213675; 0.31054131];
-            f_expected = -0.8084045584045583;
+            s_expected = [-88.0 / 117.0; 109.0 / 351.0];
+            f_expected = -1135.0 / 1404.0;
 
             % Expected emission of specific warnings tested in testWarnings.
             % Ignore only those to silence expected warnings without
@@ -184,9 +187,9 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
                 testCase.assertEqual(size(s_0), [N 1]);
                 testCase.assertEqual(ndims(f_0), 2);
                 testCase.assertEqual(size(f_0), [1 1]);
-                max_rel_err = max(abs(1.0 - s_0 ./ s_expected));
+                max_rel_err = max(abs(1.0 - s_0 ./ s_expected))
                 testCase.assertTrue(max_rel_err <= 5.0e-9);
-                rel_err = abs(1.0 - f_0 / f_expected);
+                rel_err = abs(1.0 - f_0 / f_expected)
                 testCase.assertTrue(rel_err <= 75.0 * eps);
             end
             warning("on", testCase.WARNING_SIMPLE);
@@ -208,12 +211,12 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             Upp = [10.0 100.0 3.0 0.5 7.0];
 
             % Known solution
-            s_expected = [-128.82782698
-                            90.82291477
-                             2.8264531
-                            -1.37446078
-                             5.60555695];
-            f_expected = -170.94945062515922;
+            s_expected = [-18486334673.0 / 143496441.0
+                          1184796821.0 / 13045131.0
+                          368714509.0 / 130451310.0
+                          -16300019.0 / 11859210.0
+                          2014469.0 / 359370.0];
+            f_expected = -4906127551123.0 / 28699288200.0;
 
             % Setting maxit=600,000 in bqmin yielded a solution that was of
             % similar quality to MINQ5's solution.  Since, that's far more that
@@ -233,9 +236,9 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
                 testCase.assertEqual(size(s_0), [N 1]);
                 testCase.assertEqual(ndims(f_0), 2);
                 testCase.assertEqual(size(f_0), [1 1]);
-                max_rel_err = max(abs(1.0 - s_0 ./ s_expected));
+                max_rel_err = max(abs(1.0 - s_0 ./ s_expected))
                 testCase.assertTrue(max_rel_err <= 2.5e-9);
-                rel_err = abs(1.0 - f_0 / f_expected);
+                rel_err = abs(1.0 - f_0 / f_expected)
                 testCase.assertTrue(rel_err <= 7.5e-11);
             end
         end

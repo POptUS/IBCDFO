@@ -33,7 +33,8 @@ class TestCreateTrspSolver(unittest.TestCase):
     def test1D(self):
         EPS = np.finfo(float).eps
 
-        # Specify problem
+        # ----- SPECIFY PROBLEMS
+        # Unconstrained solution inside bounds
         N = 1
         G = np.array([-1.1])
         H = np.atleast_2d([2.2])
@@ -41,17 +42,19 @@ class TestCreateTrspSolver(unittest.TestCase):
         Upp = np.array([0.9])
         self.assertTrue(H[0, 0] > 0.0)
 
+        # Bounds that put unconstrained solution outside bounds
+        too_small = np.array([0.25])
+        too_large = np.array([0.8])
+
         # Known solutions
         s_expected = 0.5
-        f_expected = -0.275
+        f_expected = -11.0 / 40.0
 
-        too_small = np.array([0.25])
         s_small = too_small[0]
-        f_small = -0.20625
+        f_small = -33.0 / 160.0
 
-        too_large = np.array([0.8])
         s_large = too_large[0]
-        f_large = -0.176
+        f_large = -22.0 / 125.0
 
         for idx in self.__solvers:
             # Expected emission of warnings tested in testWarnings.  Ignore only those.
@@ -96,8 +99,6 @@ class TestCreateTrspSolver(unittest.TestCase):
                 self.assertTrue(np.fabs(1.0 - f_0 / f_large) <= 1500.0 * EPS)
 
     def test2D(self):
-        EPS = np.finfo(float).eps
-
         # Specify problem
         N = 2
         G = np.array([1.2, -2.3])
@@ -108,8 +109,8 @@ class TestCreateTrspSolver(unittest.TestCase):
         Upp = np.array([5.0, 4.0])
 
         # Known solution
-        s_expected = np.array([-0.75213675, 0.31054131])
-        f_expected = -0.8084045584045583
+        s_expected = np.array([-88.0 / 117.0, 109.0 / 351.0])
+        f_expected = -1135.0 / 1404.0
 
         for idx in self.__solvers:
             # Expected emission of warnings tested in testWarnings.  Ignore only those.
@@ -129,9 +130,11 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertEqual(len(s_0), N)
             self.assertTrue(isinstance(f_0, numbers.Real))
             max_rel_err = np.max(np.fabs(1.0 - s_0 / s_expected))
-            self.assertTrue(max_rel_err <= 5.0e-9)
+            # print(max_rel_err)
+            self.assertTrue(max_rel_err <= 2.5e-13)
             rel_err = np.fabs(1.0 - f_0 / f_expected)
-            self.assertTrue(rel_err <= 75.0 * EPS)
+            # print(rel_err)
+            self.assertTrue(rel_err <= 2.5e-14)
 
     def test5D(self):
         # Setting maxit=600,000 in bqmin yielded a solution that was of similar
@@ -150,8 +153,8 @@ class TestCreateTrspSolver(unittest.TestCase):
         Upp = np.array([10.0, 100.0, 3.0, 0.5, 7.0])
 
         # Known solution
-        s_expected = [-128.82782698, 90.82291477, 2.8264531, -1.37446078, 5.60555695]
-        f_expected = -170.94945062515922
+        s_expected = [-18486334673.0 / 143496441.0, 1184796821.0 / 13045131.0, 368714509.0 / 130451310.0, -16300019.0 / 11859210.0, 2014469.0 / 359370.0]
+        f_expected = -4906127551123.0 / 28699288200.0
 
         for idx in self.__solvers.difference(TO_SKIP):
             solve_trsp = ibcdfo.pounders.create_trsp_solver(idx)
@@ -164,6 +167,8 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertEqual(len(s_0), N)
             self.assertTrue(isinstance(f_0, numbers.Real))
             max_rel_err = np.max(np.fabs(1.0 - s_0 / s_expected))
-            self.assertTrue(max_rel_err <= 2.5e-9)
+            # print(max_rel_err)
+            self.assertTrue(max_rel_err <= 7.5e-11)
             rel_err = np.fabs(1.0 - f_0 / f_expected)
+            # print(rel_err)
             self.assertTrue(rel_err <= 7.5e-11)
