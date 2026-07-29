@@ -44,7 +44,7 @@ def create_trsp_solver(spsolver):
         * ``mdec`` is the value of the subproblem objective function at
           the solution as a real scalar, and
         * ``found_solution`` is True if a solution was found that should be
-          acceptable for POUNDERS's purposes; False, otherwise.
+          acceptable for |pounders|'s purposes; False, otherwise.
     """
     if spsolver == TRSP_SOLVER_SIMPLE:
         # Since this solver is for testing/debugging only, we do not mention it
