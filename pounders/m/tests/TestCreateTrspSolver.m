@@ -187,10 +187,10 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
                 testCase.assertEqual(size(s_0), [N 1]);
                 testCase.assertEqual(ndims(f_0), 2);
                 testCase.assertEqual(size(f_0), [1 1]);
-                max_rel_err = max(abs(1.0 - s_0 ./ s_expected))
-                testCase.assertTrue(max_rel_err <= 5.0e-9);
-                rel_err = abs(1.0 - f_0 / f_expected)
-                testCase.assertTrue(rel_err <= 75.0 * eps);
+                max_rel_err = max(abs(1.0 - s_0 ./ s_expected));
+                testCase.assertTrue(max_rel_err <= 5.0e-13);
+                rel_err = abs(1.0 - f_0 / f_expected);
+                testCase.assertTrue(rel_err <= 5.0e-14);
             end
             warning("on", testCase.WARNING_SIMPLE);
         end
@@ -236,9 +236,9 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
                 testCase.assertEqual(size(s_0), [N 1]);
                 testCase.assertEqual(ndims(f_0), 2);
                 testCase.assertEqual(size(f_0), [1 1]);
-                max_rel_err = max(abs(1.0 - s_0 ./ s_expected))
-                testCase.assertTrue(max_rel_err <= 2.5e-9);
-                rel_err = abs(1.0 - f_0 / f_expected)
+                max_rel_err = max(abs(1.0 - s_0 ./ s_expected));
+                testCase.assertTrue(max_rel_err <= 7.5e-11);
+                rel_err = abs(1.0 - f_0 / f_expected);
                 testCase.assertTrue(rel_err <= 7.5e-11);
             end
         end
