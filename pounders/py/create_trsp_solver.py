@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 
-from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5
+from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, WARNING_SIMPLE_TRSP
 from .._get_minq_installation import get_minq_installation
 from .bqmin import bqmin
 
@@ -51,11 +51,11 @@ def create_trsp_solver(spsolver):
         # Since this solver is for testing/debugging only, we do not mention it
         # in the documentation nor do we put it in the package's public
         # interface.
-        warnings.warn("The simple TRSP solver should only be used for testing or debugging")
+        warnings.warn(WARNING_SIMPLE_TRSP)
 
-        def __bqmin_wrapper(H, G, Low, Upp):
+        def __bqmin_wrapper(H, g, Low, Upp):
             # Assume that solver error checks its arguments thoroughly.
-            Xsp, mdec = bqmin(H, G, Low, Upp)
+            Xsp, mdec = bqmin(H, g, Low, Upp)
             return Xsp, mdec, True
 
         return __bqmin_wrapper
@@ -70,10 +70,10 @@ def create_trsp_solver(spsolver):
             sys.exit(msg)
         from minqsw import minqsw
 
-        def __minq5_wrapper(H, G, Low, Upp):
+        def __minq5_wrapper(H, g, Low, Upp):
             # Assume that solver error checks its arguments thoroughly.
             n = H.shape[0]
-            Xsp, mdec, minq_err, _ = minqsw(0, G, H, Low.T, Upp.T, 0, np.zeros((n, 1)))
+            Xsp, mdec, minq_err, _ = minqsw(0, g, H, Low.T, Upp.T, 0, np.zeros((n, 1)))
             Xsp = np.atleast_1d(np.squeeze(Xsp))
             mdec = float(np.squeeze(mdec))
 
