@@ -102,6 +102,6 @@ function [solver] = create_trsp_solver(spsolver)
         check_minq_installation(8);
         solver = @minq8_wrapper;
     else
-        error('POUNDERS:badValue', sprintf("Invalid TRSP solver %d", spsolver));
+        error('POUNDERS:badValue', sprintf("Unknown trust-region subproblem solver: %d", spsolver));
     end
 end
