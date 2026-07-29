@@ -11,15 +11,15 @@ from .bqmin import bqmin
 def create_trsp_solver(spsolver):
     r"""
     Create a Python function that solves the bound-constrained trust-region
-    subproblem
+    subproblem (TRSP)
 
     .. math::
-        \argmin_{\svec \in \R^{\np}}  G^T \svec + \frac{1}{2}\svec^T H \svec
+        \argmin_{\svec \in \R^{\np}}  \gvec^T \svec + \frac{1}{2}\svec^T H \svec
 
     such that
 
     .. math::
-        Low_j \leq s_j \le Upp_j, j=1,...,\np
+        Low_j \leq s_j \le Upp_j
 
     for all components :math:`s_j` of :math:`\svec`.
 
@@ -30,17 +30,18 @@ def create_trsp_solver(spsolver):
 
         .. code:: python
 
-            Xsp, mdec, found_solution = solve_trsp(H, G, Low, Upp)
+            Xsp, mdec, found_solution = solve_trsp(H, g, Low, Upp)
 
         where
 
         * ``H`` is an :math:`\np \times \np` Numpy array that provides the
           (symmetric) Hessian of the objective function,
-        * ``G`` is an :math:`\np` element Numpy array that provides the gradient
+        * ``g`` is an :math:`\np` element Numpy array that provides the gradient
           of the objective function,
         * ``Low`` and ``Upp`` are :math:`\np` element Numpy arrays that specify
           the bound constraints,
-        * ``Xsp`` is the subproblem solution as a 1D Numpy array,
+        * ``Xsp`` is the subproblem solution as an :math:`\np` element Numpy
+          array,
         * ``mdec`` is the value of the subproblem objective function at
           the solution as a real scalar, and
         * ``found_solution`` is True if a solution was found that should be

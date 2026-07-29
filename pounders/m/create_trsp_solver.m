@@ -1,22 +1,35 @@
 function [solver] = create_trsp_solver(spsolver)
-    % Please refer to the documentation for the Python version of this
-    % function.
+    % Create a MATLAB function that solves the bound-constrained trust-region
+    % subproblem (TRSP)
     %
-    % The returned solver satisfies the interface
+    % .. math::
+    %     \argmin_{\svec \in \R^{\np}}  \gvec^T \svec + \frac{1}{2}\svec^T H \svec
+    %
+    % such that
+    %
+    % .. math::
+    %     Low_j \leq s_j \le Upp_j
+    %
+    % for all components :math:`s_j` of :math:`\svec`.
+    %
+    % :param spsolver:
+    %     * 2 - Arnold Neumaier's minq5 solver
+    %     * 3 - Arnold Neumaier's minq8 solver
+    % :return: handle to MATLAB function with the interface
     %
     % .. code:: matlab
     %
-    %     [Xsp, mdec, found_solution] = solve_trsp(H, G, Low, Upp);
+    %     [Xsp, mdec, found_solution] = solve_trsp(H, g, Low, Upp);
     %
     % where
     %
     % * ``H`` is an :math:`\np \times \np` matrix that provides the
     %   (symmetric) Hessian of the objective function,
-    % * ``G`` is :math:`\np \times 1` vector that provides the
+    % * ``g`` is an :math:`\np \times 1` vector that provides the
     %   gradient of the objective function,
     % * ``Low`` and ``Upp`` are :math:`1 \times \np` vectors that specify
     %   the bound constraints,
-    % * ``Xsp`` :math:`\np \times 1` subproblem solution vector,
+    % * ``Xsp`` is the :math:`\np \times 1` subproblem solution vector,
     % * ``mdec`` is the value of the subproblem objective function at
     %   the solution as a real scalar, and
     % * ``found_solution`` is True if a solution was found that should be
