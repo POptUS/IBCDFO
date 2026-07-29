@@ -52,18 +52,18 @@ function [solver] = create_trsp_solver(spsolver)
 
     % ----- DEFINE POUNDERS-COMPATIBLE INTERFACES ON SOLVERS
     % Stefan's crappy 10 line solver
-    function [Xsp, mdec, found_solution] = bqmin_wrapper(H, G, Low, Upp)
+    function [Xsp, mdec, found_solution] = bqmin_wrapper(H, g, Low, Upp)
         % Assume that solver error checks its arguments thoroughly and that
         % solver always finds valid solution.
         found_solution = true;
-        [Xsp, mdec] = bqmin(H, G, Low, Upp);
+        [Xsp, mdec] = bqmin(H, g, Low, Upp);
     end
 
     % Arnold Neumaier's minq5
-    function [Xsp, mdec, found_solution] = minq5_wrapper(H, G, Low, Upp)
+    function [Xsp, mdec, found_solution] = minq5_wrapper(H, g, Low, Upp)
         % Assume that solver error checks its arguments thoroughly.
         xx = zeros(size(H, 1), 1);
-        [Xsp, mdec, minq_err] = minqsw(0, G, H, Low', Upp', 0, xx);
+        [Xsp, mdec, minq_err] = minqsw(0, g, H, Low', Upp', 0, xx);
         % Continuous function restricted to (compact) k-cell.
         assert(minq_err ~= 1);
         % See comments in Python version of this function for info on handling
@@ -73,7 +73,7 @@ function [solver] = create_trsp_solver(spsolver)
     end
 
     % Arnold Neumaier's minq8
-    function [Xsp, mdec, found_solution] = minq8_wrapper(H, G, Low, Upp)
+    function [Xsp, mdec, found_solution] = minq8_wrapper(H, g, Low, Upp)
         % Assume that solver error checks its arguments thoroughly and that
         % solver always finds valid solution.
         found_solution = true;
@@ -81,7 +81,7 @@ function [solver] = create_trsp_solver(spsolver)
         n = size(H, 1);
 
         data.gam = 0;
-        data.c = G;
+        data.c = g;
         data.b = zeros(n, 1);
         [tmp1, tmp2] = ldl(H);
         data.D = diag(tmp2);

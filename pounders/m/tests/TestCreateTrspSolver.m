@@ -41,9 +41,8 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             testCase.officialSolvers = [testCase.SOLVER_MINQ5, ...
                                         testCase.SOLVER_MINQ8];
 
-            testCase.emitWarnings = struct([]);
-            testCase.emitWarnings(1).solver = testCase.SOLVER_SIMPLE;
-            testCase.emitWarnings(1).warnID = testCase.WARNING_SIMPLE;
+            testCase.emitWarnings = dictionary(testCase.SOLVER_SIMPLE, ...
+                                               testCase.WARNING_SIMPLE);
 
             warning("on");
 
@@ -74,10 +73,14 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
         end
 
         function testWarnings(testCase)
-            for i = 1:length(testCase.emitWarnings)
-                idx = testCase.emitWarnings(i).solver;
-                warnID = testCase.emitWarnings(i).warnID;
-                testCase.assertWarning(@() create_trsp_solver(idx), warnID);
+            for i = 1:length(testCase.solvers)
+                idx = testCase.solvers(i);
+                if testCase.emitWarnings.isKey(idx)
+                    warnID = testCase.emitWarnings(i);
+                    testCase.assertWarning(@() create_trsp_solver(idx), warnID);
+                else
+                    testCase.assertWarningFree(@() create_trsp_solver(idx));
+                end
             end
         end
 
@@ -85,7 +88,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             % ----- SPECIFY PROBLEMS
             % Unconstrained solution inside bounds
             N = 1;
-            G = [-1.1];
+            g = [-1.1];
             H = [[2.2]];
             Low = [-1.9];
             Upp = [0.9];
@@ -105,18 +108,21 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             s_large = too_large(1);
             f_large = -22.0 / 125.0;
 
-            % Expected emission of specific warnings tested in testWarnings.
-            % Ignore only those to silence expected warnings without
-            % inadvertently silencing unintended warnings.
-            warning("off", testCase.WARNING_SIMPLE);
             for i = 1:length(testCase.solvers)
                 idx = testCase.solvers(i);
+
+                % Expected emission of specific warnings tested in
+                % testWarnings.  Ignore only those.
+                warning("on");
+                if testCase.emitWarnings.isKey(idx)
+                    warning("off", testCase.emitWarnings(idx));
+                end
 
                 solve_trsp = create_trsp_solver(idx);
                 testCase.assertTrue(isa(solve_trsp, 'function_handle'));
 
                 % Unconstrained solution in bounds
-                [s_0, f_0, found_solution] = solve_trsp(H, G, Low, Upp);
+                [s_0, f_0, found_solution] = solve_trsp(H, g, Low, Upp);
                 testCase.assertTrue(found_solution);
                 testCase.assertEqual(ndims(s_0), 2);
                 testCase.assertEqual(size(s_0), [N 1]);
@@ -128,7 +134,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
                 testCase.assertTrue(rel_err <= 110.0 * eps);
 
                 % Unconstrained solution outside bounds
-                [s_0, f_0, found_solution] = solve_trsp(H, G, Low, too_small);
+                [s_0, f_0, found_solution] = solve_trsp(H, g, Low, too_small);
                 testCase.assertTrue(found_solution);
                 testCase.assertEqual(ndims(s_0), 2);
                 testCase.assertEqual(size(s_0), [N 1]);
@@ -140,7 +146,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
 
                 if idx ~= testCase.SOLVER_SIMPLE
                     % The simple sampler requires that Low <= 0 <= Upp
-                    [s_0, f_0, found_solution] = solve_trsp(H, G, too_large, Upp);
+                    [s_0, f_0, found_solution] = solve_trsp(H, g, too_large, Upp);
                     testCase.assertTrue(found_solution);
                     testCase.assertEqual(ndims(s_0), 2);
                     testCase.assertEqual(size(s_0), [N 1]);
@@ -151,13 +157,12 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
                     testCase.assertTrue(rel_err <= 500.0 * eps);
                 end
             end
-            warning("on", testCase.WARNING_SIMPLE);
         end
 
         function test2D(testCase)
             % Specify problem
             N = 2;
-            G = [1.2; -2.3];
+            g = [1.2; -2.3];
             H = [[1.1 -1.2]
                  [-1.2 4.5]];
             [lambdas] = eig(H, "vector");
@@ -170,18 +175,21 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             s_expected = [-88.0 / 117.0; 109.0 / 351.0];
             f_expected = -1135.0 / 1404.0;
 
-            % Expected emission of specific warnings tested in testWarnings.
-            % Ignore only those to silence expected warnings without
-            % inadvertently silencing unintended warnings.
-            warning("off", testCase.WARNING_SIMPLE);
             for i = 1:length(testCase.solvers)
                 idx = testCase.solvers(i);
+
+                % Expected emission of specific warnings tested in
+                % testWarnings.  Ignore only those.
+                warning("on");
+                if testCase.emitWarnings.isKey(idx)
+                    warning("off", testCase.emitWarnings(idx));
+                end
 
                 solve_trsp = create_trsp_solver(idx);
                 testCase.assertTrue(isa(solve_trsp, 'function_handle'));
 
                 % Unconstrained solution in bounds
-                [s_0, f_0, found_solution] = solve_trsp(H, G, Low, Upp);
+                [s_0, f_0, found_solution] = solve_trsp(H, g, Low, Upp);
                 testCase.assertTrue(found_solution);
                 testCase.assertEqual(ndims(s_0), 2);
                 testCase.assertEqual(size(s_0), [N 1]);
@@ -192,13 +200,12 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
                 rel_err = abs(1.0 - f_0 / f_expected);
                 testCase.assertTrue(rel_err <= 5.0e-14);
             end
-            warning("on", testCase.WARNING_SIMPLE);
         end
 
         function test5D(testCase)
             % Specify problem
             N = 5;
-            G = [1.2; -2.3; 0.7; -0.4; 3.4];
+            g = [1.2; -2.3; 0.7; -0.4; 3.4];
             H = [[30.25 38.5 115.5 -19.25 8.25]
                  [38.5 50.0 131.0 -14.5 5.5]
                  [115.5 131.0 818.0 -211.5 67.5]
@@ -226,11 +233,18 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             for i = 1:length(testCase.officialSolvers)
                 idx = testCase.officialSolvers(i);
 
+                % Expected emission of specific warnings tested in
+                % testWarnings.  Ignore only those.
+                warning("on");
+                if testCase.emitWarnings.isKey(idx)
+                    warning("off", testCase.emitWarnings(idx));
+                end
+
                 solve_trsp = create_trsp_solver(idx);
                 testCase.assertTrue(isa(solve_trsp, 'function_handle'));
 
                 % Unconstrained solution in bounds
-                [s_0, f_0, found_solution] = solve_trsp(H, G, Low, Upp);
+                [s_0, f_0, found_solution] = solve_trsp(H, g, Low, Upp);
                 testCase.assertTrue(found_solution);
                 testCase.assertEqual(ndims(s_0), 2);
                 testCase.assertEqual(size(s_0), [N 1]);

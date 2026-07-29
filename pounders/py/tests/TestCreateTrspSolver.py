@@ -63,10 +63,8 @@ class TestCreateTrspSolver(unittest.TestCase):
         for idx in self.__solvers:
             # Expected emission of warnings tested in testWarnings.  Ignore only those.
             warnings.simplefilter("default")
-            for warn_idx, msg in self.__emit_warnings.items():
-                if warn_idx == idx:
-                    warnings.filterwarnings("ignore", message=msg)
-                    break
+            if idx in self.__emit_warnings:
+                warnings.filterwarnings("ignore", message=self.__emit_warnings[idx])
 
             solve_trsp = ibcdfo.pounders.create_trsp_solver(idx)
             self.assertTrue(callable(solve_trsp))
@@ -89,7 +87,7 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertEqual(len(s_0), N)
             self.assertTrue(isinstance(f_0, numbers.Real))
             self.assertEqual(s_0[0], s_small)
-            self.assertTrue(np.fabs(1.0 - f_0 / f_small) <= 110.0 * EPS)
+            self.assertTrue(np.fabs(1.0 - f_0 / f_small) <= 75.0 * EPS)
 
             if idx != ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE:
                 # The simple sampler requires that Low <= 0 <= Upp
@@ -119,10 +117,8 @@ class TestCreateTrspSolver(unittest.TestCase):
         for idx in self.__solvers:
             # Expected emission of warnings tested in testWarnings.  Ignore only those.
             warnings.simplefilter("default")
-            for warn_idx, msg in self.__emit_warnings.items():
-                if warn_idx == idx:
-                    warnings.filterwarnings("ignore", message=msg)
-                    break
+            if idx in self.__emit_warnings:
+                warnings.filterwarnings("ignore", message=self.__emit_warnings[idx])
 
             solve_trsp = ibcdfo.pounders.create_trsp_solver(idx)
             self.assertTrue(callable(solve_trsp))
@@ -161,6 +157,11 @@ class TestCreateTrspSolver(unittest.TestCase):
         f_expected = -4906127551123.0 / 28699288200.0
 
         for idx in self.__solvers.difference(TO_SKIP):
+            # Expected emission of warnings tested in testWarnings.  Ignore only those.
+            warnings.simplefilter("default")
+            if idx in self.__emit_warnings:
+                warnings.filterwarnings("ignore", message=self.__emit_warnings[idx])
+
             solve_trsp = ibcdfo.pounders.create_trsp_solver(idx)
             self.assertTrue(callable(solve_trsp))
 
