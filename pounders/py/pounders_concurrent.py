@@ -225,12 +225,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
         Lows = np.maximum(Low - X[xk_in], -delta * np.ones((np.shape(Low))))
         Upps = np.minimum(Upp - X[xk_in], delta * np.ones((np.shape(Upp))))
-        [Xsp, mdec, trsp_flag] = solve_trsp(H, G, Lows, Upps)
-        if trsp_flag < 0:
+        [Xsp, mdec, found_solution] = solve_trsp(H, G, Lows, Upps)
+        if not found_solution:
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
             return X, F, hF, flag, xk_in
 
-        Xsp = Xsp.squeeze()
         step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
         # 4. Evaluate the function at the new point (provided the model is
