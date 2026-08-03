@@ -1,10 +1,7 @@
-import sys
-
 import numpy as np
 
-from .._get_minq_installation import get_minq_installation
+from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
-from .bqmin import bqmin
 from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
@@ -72,7 +69,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             * 1 - Debugging level of output to screen
             * 2 - More verbose screen output
 
-        * **spsolver** - Trust-region subproblem solver flag (default is 2, not recommended to change)
+        * **spsolver** - Trust-region subproblem solver flag
+
+            * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver (default)
+
         * **hfun** - Outer function :math:`\hfun` that maps given
           :math:`\Ffun(\psp)` to scalars for minimization (default is
           sum-of-squares that yields :math:`f`)
@@ -140,12 +140,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         from .general_h_funs import combine_leastsquares as combinemodels
 
     # choose your spsolver
-    if spsolver == 2:
-        required_minq_SHA, minq_installation = get_minq_installation()
-        if not minq_installation["is_valid"]:
-            msg = f"Please set MINQ clone to git commit {required_minq_SHA}.\nSee User Guide (https://ibcdfo.readthedocs.io) for more information and instructions."
-            sys.exit(msg)
-        from minqsw import minqsw
+    solve_trsp = create_trsp_solver(spsolver)
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
@@ -264,17 +259,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 3. Solve the subproblem min{G.T * s + 0.5 * s.T * H * s : Lows <= s <= Upps }
         Lows = np.maximum(Low - X[xk_in], -delta * np.ones((np.shape(Low))))
         Upps = np.minimum(Upp - X[xk_in], delta * np.ones((np.shape(Upp))))
-        if spsolver == 1:  # Stefan's crappy 10line solver
-            [Xsp, mdec] = bqmin(H, G, Lows, Upps)
-        elif spsolver == 2:  # Arnold Neumaier's minq5
-            [Xsp, mdec, minq_err, _] = minqsw(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-            if minq_err < 0:
-                X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
-                return X, F, hF, flag, xk_in
-        # elif spsolver == 3:  # Arnold Neumaier's minq8
-        #     [Xsp, mdec, minq_err, _] = minq8(0, G, H, Lows.T, Upps.T, 0, np.zeros((n, 1)))
-        #     assert minq_err >= 0, "Input error in minq"
-        Xsp = Xsp.squeeze()
+        [Xsp, mdec, found_solution] = solve_trsp(H, G, Lows, Upps)
+        if not found_solution:
+            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
+            return X, F, hF, flag, xk_in
+
         step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
         # 4. Evaluate the function at the new point (provided the model is

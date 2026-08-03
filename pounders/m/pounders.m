@@ -39,7 +39,11 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %           * 1 - Debugging level of output to screen
 %           * 2 - More verbose screen output
 %
-%       * **spsolver** - Trust-region subproblem solver flag (default is 2, not recommended to change)
+%       * **spsolver** - Trust-region subproblem solver flag
+%
+%           * 2 - Arnold Neumaier's minq5 solver (default and recommended)
+%           * 3 - Arnold Neumaier's minq8 solver
+%
 %       * **hfun** - Outer function :math:`\hfun` that maps given
 %         :math:`\Ffun(\psp)` to scalars for minimization (default is
 %         sum-of-squares that yields :math:`f`.)
@@ -116,7 +120,7 @@ if ~isfield(Options, 'delta_inact')
     Options.delta_inact = 0.75;
 end
 if ~isfield(Options, 'spsolver')
-    Options.spsolver = 2;
+    Options.spsolver = 2; % Use minq5 by default
 end
 
 if isfield(Options, 'hfun')
@@ -128,9 +132,6 @@ else
     addpath(fullfile(here_path, 'general_h_funs'));
     hfun = @h_leastsquares;
     combinemodels = @combine_leastsquares;
-end
-if ~isfield(Options, 'spsolver')
-    Options.spsolver = 2; % Use minq5 by default
 end
 if ~isfield(Options, 'printf')
     Options.printf = 0; % Don't print by default
@@ -152,7 +153,7 @@ end
 nfs = Prior.nfs;
 
 delta = delta_0;
-spsolver = Options.spsolver;
+solve_trsp = create_trsp_solver(Options.spsolver);
 delta_max = Options.delta_max;
 delta_min = Options.delta_min;
 gamma_dec = Options.gamma_dec;
@@ -160,12 +161,6 @@ gamma_inc = Options.gamma_inc;
 eta_1 = Options.eta_1;
 printf = Options.printf;
 delta_inact = Options.delta_inact;
-
-if spsolver == 2 % Arnold Neumaier's minq5
-%    check_minq_installation(5);
-elseif spsolver == 3 % Arnold Neumaier's minq8
-    check_minq_installation(8);
-end
 
 % 0. Check inputs
 [flag, X_0, np_max, F_0, Low, Upp, xk_in] = ...
@@ -345,26 +340,12 @@ while nf < nf_max
     % 3. Solve the subproblem min{G'*s+.5*s'*H*s : Lows <= s <= Upps }
     Lows = max(Low - X(xk_in, :), -delta);
     Upps = min(Upp - X(xk_in, :), delta);
-    if spsolver == 1 % Stefan's crappy 10line solver
-        [Xsp, mdec] = bqmin(H, G, Lows, Upps);
-    elseif spsolver == 2 % Arnold Neumaier's minq5
-        [Xsp, mdec, minq_err] = minqsw(0, G, H, Lows', Upps', 0, zeros(n, 1));
-        if minq_err < 0
-            [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -4);
-            return
-        end
-
-    elseif spsolver == 3 % Arnold Neumaier's minq8
-
-        data.gam = 0;
-        data.c = G;
-        data.b = zeros(n, 1);
-        [tmp1, tmp2] = ldl(H);
-        data.D = diag(tmp2);
-        data.A = tmp1';
-
-        [Xsp, mdec] = minq8(data, Lows', Upps', zeros(n, 1), 10 * n);
+    [Xsp, mdec, found_solution] = solve_trsp(H, G, Lows, Upps);
+    if ~found_solution
+        [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -4);
+        return
     end
+
     Xsp = Xsp'; % Solvers currently work with column vectors
     step_norm = norm(Xsp, inf);
 

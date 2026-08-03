@@ -17,6 +17,11 @@ from .general_h_funs import (
 # fmt: on
 from .create_squared_diff_from_mean_functions import create_squared_diff_from_mean_functions
 
+# Do **not** put TRSP_SOLVER_SIMPLE in the public interface since it is for
+# testing/debugging purposes only.
+from .constants import TRSP_SOLVER_MINQ5, TRSP_SOLVER_MINQ8
+from .create_trsp_solver import create_trsp_solver
+
 # -- Python unittest-based test framework
 # Used for automatic test discovery by main package
 from .load_tests import load_tests
