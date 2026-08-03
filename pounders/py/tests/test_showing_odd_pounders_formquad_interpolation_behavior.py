@@ -15,12 +15,12 @@ from dfoxs import dfoxs
 
 dfo = np.loadtxt("dfo.dat")
 
-spsolver = 2
+simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
 nf_max = 1000
 g_tol = 1e-13
 combinemodels = ibcdfo.pounders.combine_identity
 hfun = ibcdfo.pounders.h_identity
-Opts = {"printf": 1, "spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+Opts = {"printf": 1, "spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
 
 for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
     n = int(n)

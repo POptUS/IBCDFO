@@ -52,8 +52,9 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     nf_max = 200
     g_tol = 10**-13
     delta = 0.1
+    simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
 
-    Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels}
+    Opts = {"spsolver": simple_solver, "hfun": identity_hfun, "combinemodels": combinemodels}
 
     X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
 

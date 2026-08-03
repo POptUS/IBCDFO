@@ -33,7 +33,8 @@ class TestPounders(unittest.TestCase):
 
         dfo = np.loadtxt("dfo.dat")
 
-        spsolver = 2
+        spsolver = ibcdfo.pounders.TRSP_SOLVER_MINQ5
+        solve_trsp = ibcdfo.pounders.create_trsp_solver(spsolver)
         nf_max = 100
         g_tol = 1e-13
         factor = 10
@@ -99,7 +100,7 @@ class TestPounders(unittest.TestCase):
 
                 # Below, we make the saved "row" or "prob" match the 1-based numbering scheme in MATLAB
                 filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row + 1) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
-                Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
+                Opts = {"printf": printf, "spsolver": solve_trsp, "hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
 
                 X, F, hF, flag, xk_best = ibcdfo.run_pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})

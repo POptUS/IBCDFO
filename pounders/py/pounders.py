@@ -1,5 +1,6 @@
 import numpy as np
 
+from .constants import TRSP_SOLVER_MINQ5
 from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
 from .checkinputss import checkinputss
@@ -69,10 +70,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             * 1 - Debugging level of output to screen
             * 2 - More verbose screen output
 
-        * **spsolver** - Trust-region subproblem solver flag
-
-            * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver (default)
-
+        * **spsolver** - Trust-region subproblem solver that is typically
+          created using :py:func:`ibcdfo.pounders.create_trsp_solver`.  If not
+          specified or set to ``None``, then the MINQ5 solver (recommended) is
+          used.
         * **hfun** - Outer function :math:`\hfun` that maps given
           :math:`\Ffun(\psp)` to scalars for minimization (default is
           sum-of-squares that yields :math:`f`)
@@ -123,7 +124,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     nfs = Prior["nfs"]
     delta = delta_0
-    spsolver = Options.get("spsolver", 2)
+    solve_trsp = Options.get("spsolver", None)
     delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
     delta_min = Options.get("delta_min", np.minimum(delta * (10**-13), g_tol / 10))
     gamma_dec = Options.get("gamma_dec", 0.5)
@@ -139,8 +140,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         from .general_h_funs import h_leastsquares as hfun
         from .general_h_funs import combine_leastsquares as combinemodels
 
-    # choose your spsolver
-    solve_trsp = create_trsp_solver(spsolver)
+    if solve_trsp is None:
+        solve_trsp = create_trsp_solver(TRSP_SOLVER_MINQ5)
+    if not callable(solve_trsp):
+        # TODO: Should this be moved into checkinputss?  Is that compatible with
+        # MSP?  Should we call it to confirm that it implements the necessary
+        # interface?
+        print("Error: spsolver is not a function")
+        return [], [], [], -1, Prior["xk_in"]
 
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
