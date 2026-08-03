@@ -28,16 +28,8 @@ elseif isdir(result_path)
 else
     mkdir(result_path);
 end
-solved_txt = fullfile(result_path, 'solved.txt');
 
 load dfo.dat;
-
-ensure_still_solve_problems = 0;
-if ensure_still_solve_problems
-    solved = load(solved_txt); % A 0-1 matrix with 1 when problem was previously solved.
-else
-    solved = zeros(53, 3);
-end
 
 spsolver = 2; % TRSP Solver
 nf_max = 100;
@@ -99,18 +91,6 @@ for row = 1:length(dfo)
 
         [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], Options);
 
-        if ensure_still_solve_problems
-            if solved(row, hfun_cases) == 1
-                assert(flag == 0, "This problem was previously solved but it's anymore.");
-                check_stationary(X(xk_best, :), Low, Upp, BenDFO, combinemodels);
-            end
-        else
-            if flag == 0
-                solved(row, hfun_cases) = 1;
-                % solved(row, hfun_cases) = xk_best;
-            end
-        end
-
         assert(flag ~= -1, "pounders failed");
         assert(hfun(F(1, :)) > hfun(F(xk_best, :)), "Didn't find decrease over the starting point");
         assert(size(X, 1) <= nf_max + nfs, "POUNDERs grew the size of X");
@@ -135,9 +115,6 @@ for row = 1:length(dfo)
         H = hF;
         save(filename, 'alg', 'problem', 'Fvec', 'H', 'X', 'flag', 'xk_best');
     end
-end
-if ~ensure_still_solve_problems
-    writematrix(solved, solved_txt);
 end
 
 path(oldpath);
