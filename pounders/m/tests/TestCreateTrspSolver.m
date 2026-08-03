@@ -76,7 +76,7 @@ classdef TestCreateTrspSolver < matlab.unittest.TestCase
             for i = 1:length(testCase.solvers)
                 idx = testCase.solvers(i);
                 if testCase.emitWarnings.isKey(idx)
-                    warnID = testCase.emitWarnings(i);
+                    warnID = testCase.emitWarnings(idx);
                     testCase.assertWarning(@() create_trsp_solver(idx), warnID);
                 else
                     testCase.assertWarningFree(@() create_trsp_solver(idx));
