@@ -45,7 +45,7 @@ function test_identity_combine()
 
     Options.hfun = hfun;
     Options.combinemodels = combinemodels;
-    Options.spsolver = spsolver;
+    Options.spsolver = create_trsp_solver(spsolver);
     Options.printf = printf;
 
     Model.np_max = np_max;

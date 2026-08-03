@@ -95,7 +95,7 @@ for row = 1:length(dfo)
         Options.hfun = hfun;
         Options.combinemodels = combinemodels;
         Options.printf = printf;
-        Options.spsolver = spsolver;
+        Options.spsolver = create_trsp_solver(spsolver);
 
         [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], Options);
 
