@@ -1,2 +1,15 @@
 __pycache__/
 *.py[cod]
+.ipynb_checkpoints/
+
+# Generated GST results and plots (regenerate by running the notebooks)
+all_methods_comparison/
+all_methods_comparison_best_run/
+criterion_comparison/
+matched_results/
+pounders_ladder/
+standard_gst_checkpoints/
+seed_*/
+*.png
+*.pdf
+*.npy

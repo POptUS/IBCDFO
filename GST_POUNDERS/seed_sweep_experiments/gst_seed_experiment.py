@@ -50,6 +50,11 @@ class ExperimentConfig:
     vary_truth_with_data_seed: bool = False
     op_noise: float = 0.01
     spam_noise: float = 0.005
+    coherent_max_rotate: float = 0.0   # >0 adds random per-gate coherent over-rotations (radians)
+    noise_model: str = "depolarize_rotate"  # "depolarize_rotate" | "lindblad_hard"
+    lindblad_h_max: float = 0.03       # lindblad_hard: coherent (H) coeff range +/-
+    lindblad_s_max: float = 0.004      # lindblad_hard: stochastic (S) coeff range [0, max]
+    lindblad_a_max: float = 0.004      # lindblad_hard: amplitude-damping (A) coeff range [0, max]
     sample_error: str = "multinomial"
 
     objective: str = "weighted_least_squares"
@@ -85,6 +90,11 @@ class ExperimentConfig:
     adaptive_delta_floor: float = 1e-12
     adaptive_rho_band: float = 0.5
     adaptive_initial_topup: int = 0
+
+    # L-optimality (criterion="L") infidelity-metric (M = infidelity Hessian) settings.
+    l_metric_diagonal: bool = True        # diagonal-only Hessian (fast: ~2n gauge-opts) vs full (~2n^2)
+    l_metric_eps: float = 1e-3            # finite-difference step for the infidelity Hessian
+    l_metric_rebuild_every: int = 25      # rebuild M from the current estimate every K iterations
 
     probability_tolerance: float = 1e-8
     save_iteration_models: bool = True
@@ -241,11 +251,7 @@ class GSTProblem:
         self.meas_fiducials = self.modelpack.meas_fiducials()
         self.germs = self.modelpack.germs()
 
-        self.truth_model = self.raw_target_model.depolarize(
-            op_noise=config.op_noise,
-            spam_noise=config.spam_noise,
-            seed=self.truth_seed,
-        )
+        self.truth_model = self._build_truth_model(config)
         design_source = self.processor_spec if self.processor_spec is not None else self.target_model
         self.design = StandardGSTDesign(
             design_source,
@@ -264,6 +270,51 @@ class GSTProblem:
         self.m = int(len(self.circuits) * self.outcomes_per_circuit)
         self.dataset = None
         self.shots_per_circuit = None
+
+    def _build_truth_model(self, config: ExperimentConfig):
+        """Construct the synthetic 'device' (data-generation) model per config.noise_model.
+
+        "depolarize_rotate" (default): depolarizing + optional heterogeneous coherent
+            over-rotations (config.coherent_max_rotate).
+        "lindblad_hard": a rich per-gate Lindblad error generator -- coherent (H),
+            stochastic (S), and non-unital amplitude-damping (A) terms, drawn randomly
+            per driven gate (heterogeneous), plus depolarizing SPAM.  All terms are
+            Lindblad, so the truth stays in-model for a CPTPLND fit.
+        """
+        if config.noise_model == "lindblad_hard":
+            import pygsti.baseobjs as _bo
+            from pygsti.models import modelconstruction as _mc
+            if self.processor_spec is None:
+                raise RuntimeError("noise_model='lindblad_hard' requires a processor_spec.")
+            rng = np.random.default_rng(self.truth_seed)
+            # Driven gates only (the idle does not accept Lindblad coeffs via this API).
+            gate_names = [n for n in self.processor_spec.gate_names if "idle" not in n.lower()]
+            coeffs = {}
+            for name in gate_names:
+                terms = {}
+                for pauli in ("X", "Y", "Z"):
+                    terms[("H", pauli)] = float(rng.uniform(-config.lindblad_h_max, config.lindblad_h_max))
+                    terms[("S", pauli)] = float(rng.uniform(0.0, config.lindblad_s_max))
+                terms[("A", "Y")] = float(rng.uniform(0.0, config.lindblad_a_max))
+                coeffs[_bo.Label(name, 0)] = terms
+            model = _mc.create_explicit_model(self.processor_spec, lindblad_error_coeffs=coeffs)
+            model.set_all_parameterizations("full")   # make SPAM mutable
+            if config.spam_noise:
+                model.depolarize(spam_noise=config.spam_noise)
+            return model
+
+        # default: depolarizing + optional heterogeneous coherent over-rotations
+        model = self.raw_target_model.depolarize(
+            op_noise=config.op_noise,
+            spam_noise=config.spam_noise,
+            seed=self.truth_seed,
+        )
+        if float(getattr(config, "coherent_max_rotate", 0.0) or 0.0) > 0.0:
+            model = model.rotate(
+                max_rotate=float(config.coherent_max_rotate),
+                seed=self.truth_seed + 777,
+            )
+        return model
 
     def normalize_shots(self, shots) -> np.ndarray:
         if np.isscalar(shots):
@@ -328,6 +379,140 @@ class GSTProblem:
         jac = np.vstack(jacobian_rows) if jacobian_rows else np.empty((0, self.n))
         return p, jac, labels
 
+    def model_probability_vector(self, x, circuits=None, data_for_outcomes=None):
+        """Return model probabilities without paying for an unused Jacobian."""
+        circuits = self.circuits if circuits is None else list(circuits)
+        data_for_outcomes = self.dataset if data_for_outcomes is None else data_for_outcomes
+        model = self.copy_model_at_x(x)
+        probabilities_by_circuit = model.bulk_probabilities(circuits)
+        p_values, labels = [], []
+        for circuit in circuits:
+            outcomes = (
+                list(data_for_outcomes[circuit].outcomes)
+                if data_for_outcomes is not None
+                else list(probabilities_by_circuit[circuit].keys())
+            )
+            for outcome in outcomes:
+                p_values.append(float(probabilities_by_circuit[circuit].get(outcome, 0.0)))
+                labels.append((circuit, outcome))
+        return np.asarray(p_values, dtype=float), labels
+
+    def _model_evaluation_for_residual_mask(
+        self,
+        x,
+        residual_mask=None,
+        model_cache=None,
+    ):
+        """Evaluate all probabilities but only the requested probability derivatives.
+
+        POUNDERS keeps the global residual numbering, while FPR supplies the rows
+        needed by the local model.  The probability vector remains full length so
+        the full objective can still be reported.  The Jacobian is compact and its
+        rows are ordered by ``active_residual_indices``.
+        """
+        x = np.asarray(x, dtype=float).reshape(-1)
+        if residual_mask is None:
+            keep = np.ones(self.m, dtype=bool)
+        else:
+            keep = np.asarray(residual_mask, dtype=bool).reshape(-1)
+            if keep.size != self.m:
+                raise ValueError(
+                    f"residual_mask has length {keep.size}, expected {self.m}."
+                )
+        active_rows = np.flatnonzero(keep)
+        if active_rows.size == 0:
+            raise ValueError("The GST Jacobian cannot be evaluated on an empty mask.")
+
+        _, _, _, _, labels = self.data_vector()
+        if len(labels) != self.m:
+            raise ValueError(
+                f"GST data produced {len(labels)} residual labels, expected {self.m}."
+            )
+
+        cache_reusable = (
+            isinstance(model_cache, dict)
+            and np.array_equal(np.asarray(model_cache.get("x", []), dtype=float), x)
+            and model_cache.get("labels") == labels
+        )
+        cached_rows = (
+            np.asarray(model_cache.get("active_residual_indices", []), dtype=int)
+            if cache_reusable
+            else np.empty(0, dtype=int)
+        )
+        cached_jac = (
+            np.asarray(model_cache.get("probability_jacobian", []), dtype=float)
+            if cache_reusable
+            else np.empty((0, self.n), dtype=float)
+        )
+        if cached_jac.shape != (cached_rows.size, self.n):
+            cached_rows = np.empty(0, dtype=int)
+            cached_jac = np.empty((0, self.n), dtype=float)
+
+        model = None
+        if cache_reusable:
+            p = np.asarray(model_cache["p"], dtype=float)
+            if p.shape != (self.m,):
+                cache_reusable = False
+
+        if not cache_reusable:
+            model = self.copy_model_at_x(x)
+            probabilities_by_circuit = model.bulk_probabilities(self.circuits)
+            p = np.asarray(
+                [
+                    float(probabilities_by_circuit[circuit].get(outcome, 0.0))
+                    for circuit, outcome in labels
+                ],
+                dtype=float,
+            )
+            cached_rows = np.empty(0, dtype=int)
+            cached_jac = np.empty((0, self.n), dtype=float)
+
+        cached_row_position = {
+            int(row): position for position, row in enumerate(cached_rows.tolist())
+        }
+        missing_rows = np.asarray(
+            [row for row in active_rows if int(row) not in cached_row_position],
+            dtype=int,
+        )
+        derivatives_by_circuit = {}
+        if missing_rows.size:
+            if model is None:
+                model = self.copy_model_at_x(x)
+            missing_circuit_indices = np.unique(
+                missing_rows // int(self.outcomes_per_circuit)
+            )
+            missing_circuits = [
+                self.circuits[int(index)] for index in missing_circuit_indices
+            ]
+            derivatives_by_circuit = model.sim.bulk_dprobs(missing_circuits)
+
+        jacobian_rows = []
+        for row in active_rows:
+            row = int(row)
+            cached_position = cached_row_position.get(row)
+            if cached_position is not None:
+                jacobian_rows.append(cached_jac[cached_position])
+                continue
+            circuit, outcome = labels[row]
+            jacobian_rows.append(
+                np.asarray(derivatives_by_circuit[circuit][outcome], dtype=float)
+            )
+        probability_jacobian = np.vstack(jacobian_rows)
+
+        cache = {
+            "x": x.copy(),
+            "p": p,
+            "labels": labels,
+            "active_residual_indices": active_rows.copy(),
+            "probability_jacobian": probability_jacobian,
+        }
+        cache_stats = {
+            "probabilities_reused": bool(cache_reusable),
+            "jacobian_rows_reused": int(active_rows.size - missing_rows.size),
+            "jacobian_rows_computed": int(missing_rows.size),
+        }
+        return p, probability_jacobian, labels, active_rows, cache, cache_stats
+
     def data_vector(self, data=None, circuits=None):
         data = self.dataset if data is None else data
         circuits = self.circuits if circuits is None else list(circuits)
@@ -351,11 +536,26 @@ class GSTProblem:
             labels,
         )
 
-    def oracle(self, x, return_info: bool = False):
+    def oracle(
+        self,
+        x,
+        return_info: bool = False,
+        residual_mask=None,
+        model_cache=None,
+    ):
         if self.dataset is None:
             raise RuntimeError("Set a dataset before calling the GST oracle.")
-        p, jac, p_labels = self.model_vector_and_jacobian(
-            x, data_for_outcomes=self.dataset
+        (
+            p,
+            jac,
+            p_labels,
+            active_rows,
+            evaluation_cache,
+            cache_stats,
+        ) = self._model_evaluation_for_residual_mask(
+            x,
+            residual_mask=residual_mask,
+            model_cache=model_cache,
         )
         f, var_f, counts, totals, f_labels = self.data_vector()
         if p_labels != f_labels:
@@ -369,7 +569,7 @@ class GSTProblem:
                 )
             sigma = np.sqrt(np.maximum(var_f, self.config.variance_floor))
             residual = residual / sigma
-            jac = jac / sigma[:, None]
+            jac = jac / sigma[active_rows, None]
         elif self.config.objective != "least_squares":
             raise NotImplementedError(
                 "Use least_squares or weighted_least_squares for the seed sweep."
@@ -383,6 +583,10 @@ class GSTProblem:
             "labels": p_labels,
             "circuits": self.circuits,
             "shots_per_circuit": self.shots_per_circuit,
+            "jacobian_residual_indices": active_rows,
+            "probability_jacobian": evaluation_cache["probability_jacobian"],
+            "_model_cache": evaluation_cache,
+            "model_cache_stats": cache_stats,
         }
         output = (residual, jac.T)
         return (*output, info) if return_info else output
@@ -390,6 +594,26 @@ class GSTProblem:
     def probability_and_jacobian(self, x, circuits):
         p, jac, _ = self.model_vector_and_jacobian(x, circuits=circuits)
         return p, jac
+
+    def residual_vector(self, x, data=None):
+        """Return the configured full residual without calculating derivatives."""
+        data = self.dataset if data is None else data
+        p, p_labels = self.model_probability_vector(
+            x,
+            data_for_outcomes=data,
+        )
+        f, var_f, _, _, f_labels = self.data_vector(data=data)
+        if p_labels != f_labels:
+            raise ValueError("Model and data outcome order differs.")
+        residual = p - f
+        if self.config.objective == "weighted_least_squares":
+            sigma = np.sqrt(np.maximum(var_f, self.config.variance_floor))
+            residual = residual / sigma
+        elif self.config.objective != "least_squares":
+            raise NotImplementedError(
+                "Use least_squares or weighted_least_squares for the seed sweep."
+            )
+        return residual
 
     def probability_diagnostics(self, p: np.ndarray) -> dict[str, Any]:
         p = np.asarray(p, dtype=float)
@@ -403,7 +627,7 @@ class GSTProblem:
 
     def likelihood_diagnostics(self, x, data=None) -> dict[str, Any]:
         data = self.dataset if data is None else data
-        p, _, p_labels = self.model_vector_and_jacobian(x, data_for_outcomes=data)
+        p, p_labels = self.model_probability_vector(x, data_for_outcomes=data)
         f, _, counts, _, f_labels = self.data_vector(data=data)
         if p_labels != f_labels:
             raise ValueError("Model and data labels differ in likelihood diagnostic.")
@@ -534,6 +758,51 @@ def _build_fpr(problem: GSTProblem, config: ExperimentConfig):
     )
 
 
+def _build_infidelity_metric(problem, config):
+    """Return a callable(state) -> M for L-optimality: M = Hessian of mean-gate infidelity
+    around the CURRENT ESTIMATE (state["x"]).  Uses only the estimate + fit template -- NO
+    ground truth -> realizable on hardware.  Cached; rebuilt every l_metric_rebuild_every iters
+    (each rebuild is ~2n gauge-opts with l_metric_diagonal=True, so it is not free)."""
+    import adaptive_shots as ashots
+    from pygsti.tools import entanglement_infidelity as _ent_infid
+
+    cache = {"M": None, "built_at": -(10 ** 9)}
+
+    def metric_M(state):
+        iteration = int(state.get("iteration", 0))
+        if cache["M"] is not None and iteration - cache["built_at"] < int(config.l_metric_rebuild_every):
+            return cache["M"]
+        x_ref = np.asarray(state["x"], dtype=float).reshape(-1)
+        reference = problem.base_model.copy()
+        reference.from_vector(x_ref, close=False)
+        reference.set_all_parameterizations("full")
+        ref_ops, ref_basis = reference.operations, reference.basis
+
+        def infid_to_reference(theta):
+            model = problem.base_model.copy()
+            model.from_vector(np.asarray(theta, dtype=float), close=False)
+            model.set_all_parameterizations("full")
+            with contextlib.redirect_stdout(io.StringIO()):
+                aligned = problem.pygsti.gaugeopt_to_target(model, reference)
+            return float(np.mean([
+                float(_ent_infid(aligned.operations[l], ref_ops[l], ref_basis))
+                for l in ref_ops.keys()
+            ]))
+
+        M = ashots.infidelity_metric_hessian(
+            infid_to_reference, x_ref,
+            eps=float(config.l_metric_eps),
+            diagonal_only=bool(config.l_metric_diagonal),
+            psd_floor=0.0,
+        )
+        cache.update(M=M, built_at=iteration)
+        print(f"  [L] rebuilt infidelity metric at estimate (iter {iteration}): "
+              f"trace {np.trace(M):.3e}")
+        return M
+
+    return metric_M
+
+
 def _build_adaptive_hook(problem, config, fpr_reduction, running_shots, event_history):
     import adaptive_shot_hook
 
@@ -573,14 +842,33 @@ def _build_adaptive_hook(problem, config, fpr_reduction, running_shots, event_hi
         circuits, _ = circuits_from_mask(state.get("fpr_mask"))
         return np.asarray([circuit_to_index[circuit] for circuit in circuits], dtype=int)
 
+    budget_cap = int(config.adaptive_total_shot_budget)
+    _accounting_frozen = {"on": False, "value": 0}
+
     def accounted_shots(state):
-        """Return the monotonic revealed-shot cost through this iteration."""
+        """Revealed-shot cost through this iteration, HARD-CAPPED at the budget.
+
+        The per-batch clip in ``make_adaptive_shot_hook`` already stops *requested*
+        shots from exceeding the budget. But the online FPR union keeps growing even
+        after the budget is spent, and each newly revealed circuit drags its
+        pre-measured baseline shots into the tally -- pushing ``accounted`` past the
+        budget. To guarantee adaptive never *reports* more than the budget, once the
+        cost reaches it we FREEZE the charged circuit set and clamp the value to the
+        budget. Later union growth then cannot drag it up.
+        """
+        if _accounting_frozen["on"]:
+            return _accounting_frozen["value"]
         active_indices = active_indices_from_state(state)
         revealed_indices.update(int(index) for index in active_indices)
         if not revealed_indices:
             return 0
         revealed = np.fromiter(sorted(revealed_indices), dtype=int)
-        return int(np.sum(running_shots[revealed]))
+        total = int(np.sum(running_shots[revealed]))
+        if total >= budget_cap:
+            total = budget_cap
+            _accounting_frozen["on"] = True
+            _accounting_frozen["value"] = total
+        return total
 
     def rebuild_dataset():
         dataset = problem.pygsti.data.DataSet(outcome_labels=outcome_labels)
@@ -659,6 +947,10 @@ def _build_adaptive_hook(problem, config, fpr_reduction, running_shots, event_hi
             "or 'geometric'."
         )
 
+    # criterion="L" needs the infidelity metric M (Hessian of mean-gate infidelity around the
+    # current estimate -- NO ground truth). Build it lazily/cached; ignored for D and A.
+    metric_M = _build_infidelity_metric(problem, config) if config.adaptive_criterion == "L" else None
+
     inner_hook = adaptive_shot_hook.make_adaptive_shot_hook(
         probability_and_jacobian=problem.probability_and_jacobian,
         circuits_from_mask=circuits_from_mask,
@@ -666,6 +958,7 @@ def _build_adaptive_hook(problem, config, fpr_reduction, running_shots, event_hi
         add_shots=add_shots,
         schedule=schedule,
         criterion=config.adaptive_criterion,
+        metric_M=metric_M,
         logger=print,
         total_shot_budget=config.adaptive_total_shot_budget,
         accounted_shots=accounted_shots,
@@ -766,11 +1059,21 @@ def _run_pounders(problem: GSTProblem, config: ExperimentConfig, method: str):
                 )
             cumulative_shots = int(len(revealed_circuit_indices) * shots)
 
-        total_budget = int(config.adaptive_total_shot_budget)
-        print(
-            f"[SHOTS] {method} iter {int(state.get('iteration', 0))}: "
-            f"{cumulative_shots}/{total_budget} cumulative revealed shots"
-        )
+        iteration = int(state.get("iteration", 0))
+        if method == "adaptive_fpr":
+            # The global shot budget only governs the adaptive run; show progress
+            # against it here.
+            total_budget = int(config.adaptive_total_shot_budget)
+            print(
+                f"[SHOTS] {method} iter {iteration}: "
+                f"{cumulative_shots}/{total_budget} cumulative revealed shots"
+            )
+        else:
+            # Fixed methods have no adaptive budget; reporting one is misleading.
+            print(
+                f"[SHOTS] {method} iter {iteration}: "
+                f"{cumulative_shots} cumulative revealed shots"
+            )
         return result
 
     lower = np.full(problem.n, float(config.lower_bound))
@@ -944,7 +1247,7 @@ def run_one_experiment(
     iteration_gates.to_csv(output_dir / "iteration_gate_errors.csv", index=False)
     iteration_spam.to_csv(output_dir / "iteration_spam_errors.csv", index=False)
 
-    residual, _, info = problem.oracle(run["x_best"], return_info=True)
+    residual = problem.residual_vector(run["x_best"])
     objective = float(np.sum(np.asarray(residual, dtype=float) ** 2))
     likelihood = problem.likelihood_diagnostics(run["x_best"])
     shot_summary = _final_shot_accounting(problem, run, method)
