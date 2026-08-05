@@ -3,7 +3,6 @@ import sys
 sys.path.append("./jaxnp_hash/")
 
 import numpy as np
-import pytest
 
 import ibcdfo
 from calfun import calfun
@@ -17,9 +16,7 @@ PROBS_TO_SOLVE = [16, 33]
 SUBPROB_SWITCH = "linprog"
 NF_MAX = 150
 
-
-@pytest.mark.parametrize("prob_row", PROBS_TO_SOLVE)
-def test_h_max_gamma_over_KY_hand_coded_matches_jax(prob_row):
+for prob_row in PROBS_TO_SOLVE:
     nprob, n, m, factor_power = dfo[prob_row, :]
     n = int(n)
     m = int(m)
@@ -38,3 +35,5 @@ def test_h_max_gamma_over_KY_hand_coded_matches_jax(prob_row):
     assert np.allclose(X_old, X_jax, rtol=1e-6, atol=1e-8), f"X trajectories diverge for dfo row {prob_row}"
     assert np.allclose(F_old, F_jax, rtol=1e-6, atol=1e-8), f"F trajectories diverge for dfo row {prob_row}"
     assert np.allclose(h_old, h_jax, rtol=1e-6, atol=1e-8), f"h_msp trajectories diverge for dfo row {prob_row}"
+
+    print(f"dfo row {prob_row} (prob {int(nprob)}): hand-coded and jax h_max_gamma_over_KY agree")
