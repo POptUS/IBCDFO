@@ -21,102 +21,39 @@ overrides max/min/maximum/minimum/sum/abs.
 _TOL = 1e-8
 
 
-def _make_h_one_norm_jax():
-    def f(z):
-        return jnp_h.sum(jnp_h.abs(z))
-
+def _hfun_jax(f):
     return jnph.h_fun(f, tol=_TOL)
 
 
-h_one_norm_jax = _make_h_one_norm_jax()
+h_one_norm_jax = _hfun_jax(lambda z: jnp_h.sum(jnp_h.abs(z)))
+h_pw_maximum_jax = _hfun_jax(lambda z: jnp_h.max(z))
+h_pw_maximum_squared_jax = _hfun_jax(lambda z: jnp_h.max(z**2))
+h_pw_minimum_jax = _hfun_jax(lambda z: jnp_h.min(z))
+h_pw_minimum_squared_jax = _hfun_jax(lambda z: jnp_h.min(z**2))
 
-
-def _make_h_pw_maximum_jax():
-    def f(z):
-        return jnp_h.max(z)
-
-    return jnph.h_fun(f, tol=_TOL)
-
-
-h_pw_maximum_jax = _make_h_pw_maximum_jax()
-
-
-def _make_h_pw_maximum_squared_jax():
-    def f(z):
-        return jnp_h.max(z**2)
-
-    return jnph.h_fun(f, tol=_TOL)
-
-
-h_pw_maximum_squared_jax = _make_h_pw_maximum_squared_jax()
-
-
-def _make_h_pw_minimum_jax():
-    def f(z):
-        return jnp_h.min(z)
-
-    return jnph.h_fun(f, tol=_TOL)
-
-
-h_pw_minimum_jax = _make_h_pw_minimum_jax()
-
-
-def _make_h_pw_minimum_squared_jax():
-    def f(z):
-        return jnp_h.min(z**2)
-
-    return jnph.h_fun(f, tol=_TOL)
-
-
-h_pw_minimum_squared_jax = _make_h_pw_minimum_squared_jax()
-
-
-def _make_h_max_plus_quadratic_violation_penalty_jax():
-    alpha = 0.0
-
-    def f(z):
-        p1 = z.shape[0] - 1
-        h1 = jnp_h.max(z[:p1])
-        h2 = alpha * jnp_h.sum(jnp_h.maximum(z[p1:], 0.0) ** 2)
-        return h1 + h2
-
-    return jnph.h_fun(f, tol=_TOL)
-
-
-h_max_plus_quadratic_violation_penalty_jax = _make_h_max_plus_quadratic_violation_penalty_jax()
+# alpha=0.0 zeroes the quadratic-violation-penalty term's contribution to the value, but
+# keeping the term in place keeps the hash structure comparable to the hand-coded version.
+_ALPHA = 0.0
+h_max_plus_quadratic_violation_penalty_jax = _hfun_jax(
+    lambda z: jnp_h.max(z[: z.shape[0] - 1]) + _ALPHA * jnp_h.sum(jnp_h.maximum(z[z.shape[0] - 1 :], 0.0) ** 2)
+)
 
 
 def create_piecewise_quadratic_hfun_jax(Qs, zs, cs):
     Qs = jnp.asarray(Qs)
     zs = jnp.asarray(zs)
     cs = jnp.asarray(np.squeeze(cs))
+    J = zs.shape[1]
 
-    def f(z):
-        n, J = zs.shape
-        vals = jnp.stack([jnp.dot(jnp.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j] for j in range(J)])
-        return jnp_h.max(vals)
-
-    return jnph.h_fun(f, tol=_TOL)
+    return _hfun_jax(lambda z: jnp_h.max(jnp.stack([jnp.dot(jnp.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j] for j in range(J)])))
 
 
 def create_censored_L1_loss_hfun_jax(C, D):
     C = jnp.asarray(np.asarray(C).flatten())
     D = jnp.asarray(np.asarray(D).flatten())
 
-    def f(z):
-        return jnp_h.sum(jnp_h.abs(D - jnp_h.maximum(z, C)))
-
-    return jnph.h_fun(f, tol=_TOL)
+    return _hfun_jax(lambda z: jnp_h.sum(jnp_h.abs(D - jnp_h.maximum(z, C))))
 
 
-def _make_h_max_gamma_over_KY_jax():
-    KY_jax = jnp.array(np.linspace(0.10, 0.60, 11))
-
-    def f(z_in):
-        vals = z_in / KY_jax
-        return jnp_h.max(vals)
-
-    return jnph.h_fun(f, tol=_TOL)
-
-
-h_max_gamma_over_KY_jax = _make_h_max_gamma_over_KY_jax()
+_KY_jax = jnp.array(np.linspace(0.10, 0.60, 11))
+h_max_gamma_over_KY_jax = _hfun_jax(lambda z_in: jnp_h.max(z_in / _KY_jax))
