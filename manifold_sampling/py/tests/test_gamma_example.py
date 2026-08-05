@@ -1,37 +1,26 @@
-# This wrapper tests various algorithms against the Benchmark functions from the
-# More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
-import os
 import sys
 
-sys.path.append('./jaxnp_hash/')
+sys.path.append("./jaxnp_hash/")
 
-
-import jax
-import jax.numpy as jnp
-import jaxnp_hash.numpy as jnp_h
-import jaxnp_hash as jnph
-jax.config.update("jax_enable_x64", True)
+import numpy as np
+import pytest
 
 import ibcdfo
-import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
-
-# from jan_example import h_max_gamma_over_KY_jax as hfun
-# # from ibcdfo.manifold_sampling import h_max_gamma_over_KY as hfun
-
-# from jan_example import h_one_norm_jax as hfun
-from ibcdfo.manifold_sampling import h_one_norm as hfun
+from ibcdfo.manifold_sampling import h_max_gamma_over_KY
+from jan_example import h_max_gamma_over_KY_jax
 
 dfo = np.loadtxt("dfo.dat")
 
-Results = {}
-probs_to_solve = [16, 33]
+PROBS_TO_SOLVE = [16, 33]
+SUBPROB_SWITCH = "linprog"
+NF_MAX = 150
 
-subprob_switch = "linprog"
-nfmax = 150
 
-for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
+@pytest.mark.parametrize("prob_row", PROBS_TO_SOLVE)
+def test_h_max_gamma_over_KY_hand_coded_matches_jax(prob_row):
+    nprob, n, m, factor_power = dfo[prob_row, :]
     n = int(n)
     m = int(m)
     LB = -np.inf * np.ones((1, n))
@@ -43,23 +32,9 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return np.squeeze(out)
 
-    X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+    X_old, F_old, h_old, xkin_old, flag_old = ibcdfo.run_MSP(h_max_gamma_over_KY, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
+    X_jax, F_jax, h_jax, xkin_jax, flag_jax = ibcdfo.run_MSP(h_max_gamma_over_KY_jax, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
 
-    # np.savez(f"jans_msp_output_{row}.npz", X=X, F=F, h_msp=h_msp, xkin=xkin, flag=flag)
-    np.savez(f"old_msp_output_{row}.npz", X=X, F=F, h_msp=h_msp, xkin=xkin, flag=flag)
-
-    # # --- Run pounders without using the structure ---
-    # combinemodels = ibcdfo.pounders.combine_identity
-
-    # def unstructured_obj(x):
-    #     maxout = hfun(Ffun(x))
-    #     return np.squeeze(maxout[0])  # only the function value
-
-    # identity_hfun = lambda F: np.squeeze(F)
-
-    # g_tol = 10**-13
-    # delta = 0.1
-
-    # Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels, "printf": True}
-
-    # X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nfmax, g_tol, delta, 1, LB, UB, Options=Opts)
+    assert np.allclose(X_old, X_jax, rtol=1e-6, atol=1e-8), f"X trajectories diverge for dfo row {prob_row}"
+    assert np.allclose(F_old, F_jax, rtol=1e-6, atol=1e-8), f"F trajectories diverge for dfo row {prob_row}"
+    assert np.allclose(h_old, h_jax, rtol=1e-6, atol=1e-8), f"h_msp trajectories diverge for dfo row {prob_row}"
