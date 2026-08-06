@@ -54,7 +54,9 @@ class ExperimentConfig:
     noise_model: str = "depolarize_rotate"  # "depolarize_rotate" | "lindblad_hard"
     lindblad_h_max: float = 0.03       # lindblad_hard: coherent (H) coeff range +/-
     lindblad_s_max: float = 0.004      # lindblad_hard: stochastic (S) coeff range [0, max]
-    lindblad_a_max: float = 0.004      # lindblad_hard: amplitude-damping (A) coeff range [0, max]
+    lindblad_a_max: float = 0.004      # lindblad_hard: T1 damping rate range [0, max] (decay toward |0>)
+    lindblad_rho_max: float = 0.3      # lindblad_hard: correlated-stochastic (C) range as a
+                                       #   correlation coeff rho = C_PQ / sqrt(S_P*S_Q); 0 disables
     sample_error: str = "multinomial"
 
     objective: str = "weighted_least_squares"
@@ -180,6 +182,45 @@ def _make_parameterized_model(model, parameterization: str | None, ideal_model=N
     )
 
 
+_PAULI_AXES = ("X", "Y", "Z")
+
+
+def _stochastic_block(s: dict, c: dict, a: dict, scale: float = 1.0) -> np.ndarray:
+    """The 1-qubit stochastic block: 3x3 Hermitian over (X,Y,Z), diag S, off-diag C - iA.
+
+    Complete positivity of the resulting channel is exactly positive-semidefiniteness of
+    this matrix, so it is the cheapest CP test available.  `scale` multiplies the C terms
+    only (A carries the physical T1 rate and is CP-safe on its own).
+    """
+    block = np.zeros((3, 3), dtype=complex)
+    for i, p in enumerate(_PAULI_AXES):
+        block[i, i] = s[p]
+    for i, p in enumerate(_PAULI_AXES):
+        for j, q in enumerate(_PAULI_AXES[i + 1:], start=i + 1):
+            value = scale * c.get((p, q), 0.0) - 1j * a.get((p, q), 0.0)
+            block[i, j] = value
+            block[j, i] = np.conj(value)
+    return block
+
+
+def _cp_safe_c_scale(s: dict, c: dict, a: dict, tol: float = 1e-12) -> float:
+    """Largest factor in [0, 1] on the C terms keeping the stochastic block PSD (i.e. CP).
+
+    Drawing C as rho * sqrt(S_P * S_Q) respects the pairwise bound C^2 + A^2 <= S_P * S_Q,
+    but the full 3x3 can still fail for correlated signs, so shrink until it holds.
+    """
+    if float(np.linalg.eigvalsh(_stochastic_block(s, c, a, 1.0)).min()) >= -tol:
+        return 1.0
+    lo, hi = 0.0, 1.0
+    for _ in range(50):
+        mid = 0.5 * (lo + hi)
+        if float(np.linalg.eigvalsh(_stochastic_block(s, c, a, mid)).min()) >= -tol:
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
 def _safe_json(value: Any) -> Any:
     if isinstance(value, (np.integer,)):
         return int(value)
@@ -276,10 +317,12 @@ class GSTProblem:
 
         "depolarize_rotate" (default): depolarizing + optional heterogeneous coherent
             over-rotations (config.coherent_max_rotate).
-        "lindblad_hard": a rich per-gate Lindblad error generator -- coherent (H),
-            stochastic (S), and non-unital amplitude-damping (A) terms, drawn randomly
-            per driven gate (heterogeneous), plus depolarizing SPAM.  All terms are
-            Lindblad, so the truth stays in-model for a CPTPLND fit.
+        "lindblad_hard": a rich per-gate Lindblad error generator spanning all four
+            elementary sectors -- coherent (H), stochastic (S), correlated stochastic (C,
+            i.e. noise axes tilted out of the computational frame), and T1 amplitude
+            damping (S_X + S_Y + A_(X,Y), decay toward |0>) -- drawn randomly per driven
+            gate (heterogeneous), plus depolarizing SPAM.  All terms are Lindblad, so the
+            truth stays in-model for a CPTPLND fit.
         """
         if config.noise_model == "lindblad_hard":
             import pygsti.baseobjs as _bo
@@ -295,12 +338,48 @@ class GSTProblem:
                 for pauli in ("X", "Y", "Z"):
                     terms[("H", pauli)] = float(rng.uniform(-config.lindblad_h_max, config.lindblad_h_max))
                     terms[("S", pauli)] = float(rng.uniform(0.0, config.lindblad_s_max))
-                terms[("A", "Y")] = float(rng.uniform(0.0, config.lindblad_a_max))
+                # T1 amplitude damping toward |0> (Bloch offset along +Z).  Damping at
+                # rate `a` is not a lone A term: it is S_X = S_Y = a/4 (the transverse
+                # decay that accompanies relaxation) plus A_(X,Y) = -a/4 (the non-unital
+                # slide; the minus sign puts the ground state at +Z).  Adding to the
+                # existing S draws rather than overwriting keeps CP headroom, since the
+                # pair condition is |A_(P,Q)| <= sqrt(S_P * S_Q).
+                # NB: pyGSTi A labels take TWO basis elements and only ascending pairs
+                # register -- a single-index ("A", "Y") is silently discarded (no error).
+                a = float(rng.uniform(0.0, config.lindblad_a_max))
+                terms[("S", "X")] += a / 4.0
+                terms[("S", "Y")] += a / 4.0
+                terms[("A", "X", "Y")] = -a / 4.0
+
+                # Correlated stochastic (C) errors: the off-diagonal of the stochastic
+                # block -- Pauli error channels that fluctuate together rather than
+                # independently.  Physically this is what a tilted noise axis (e.g. drive
+                # phase miscalibration) looks like in the X/Y/Z frame, and it enters at
+                # FIRST order in the tilt while the spurious S term is only second order.
+                # Drawn as a correlation coefficient rho = C_PQ / sqrt(S_P * S_Q) so it
+                # scales to whatever CP headroom each gate has: an absolute range would
+                # violate CP for ~50% of gates, since the pair bound is
+                # C^2 + A^2 <= S_P * S_Q and the S draws reach 0.
+                if config.lindblad_rho_max > 0.0:
+                    s_diag = {p: terms[("S", p)] for p in _PAULI_AXES}
+                    a_off = {("X", "Y"): -a / 4.0}
+                    c_off = {}
+                    for p, q in (("X", "Y"), ("X", "Z"), ("Y", "Z")):
+                        rho = float(rng.uniform(-config.lindblad_rho_max, config.lindblad_rho_max))
+                        c_off[(p, q)] = rho * math.sqrt(s_diag[p] * s_diag[q])
+                    scale = _cp_safe_c_scale(s_diag, c_off, a_off)
+                    for (p, q), value in c_off.items():
+                        terms[("C", p, q)] = scale * value
+
                 coeffs[_bo.Label(name, 0)] = terms
             model = _mc.create_explicit_model(self.processor_spec, lindblad_error_coeffs=coeffs)
             model.set_all_parameterizations("full")   # make SPAM mutable
             if config.spam_noise:
-                model.depolarize(spam_noise=config.spam_noise)
+                # NB: depolarize() RETURNS a new model -- the return value must be kept.
+                # Discarding it silently leaves SPAM ideal, which also makes several
+                # circuits have truth probability exactly 0; those can never produce a
+                # nonzero count, so they sit at the 1/variance_floor weight forever.
+                model = model.depolarize(spam_noise=config.spam_noise)
             return model
 
         # default: depolarizing + optional heterogeneous coherent over-rotations
