@@ -43,7 +43,7 @@ python make_joblist.py                # edit PILOTS / SEEDS inside first
 mkdir -p logs
 condor_submit sweep.sub
 # ... later ...
-python collect.py --indir . --out sweep_summary.csv
+./rolenv/bin/python collect.py --indir . --out sweep_summary.csv
 ```
 
 ## Design decisions worth knowing

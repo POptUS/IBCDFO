@@ -98,4 +98,6 @@ echo "      condor_submit sweep.sub"
 echo "      condor_q"
 echo
 echo "  and afterwards:"
-echo "      $PY collect.py"
+echo "      ./rolenv/bin/python collect.py            # NOT the system python --"
+echo "      ./rolenv/bin/python verify_layout.py by_pilot/pilot_0500"
+echo "      (the AP has no pandas; the venv you just built does)"

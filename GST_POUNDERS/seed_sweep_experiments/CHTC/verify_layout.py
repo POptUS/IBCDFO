@@ -6,7 +6,7 @@ This does NOT check "looks similar". It replays the exact glob patterns and
 column accesses the notebook performs, and fails on any that come back empty.
 The reference inventory below was read off a real local run.
 
-    python verify_layout.py by_pilot/pilot_0350
+    ./rolenv/bin/python verify_layout.py by_pilot/pilot_0350
 
 Exit status 0 means: point RESULTS_DIR at this directory and every cell that
 worked locally will find its inputs.

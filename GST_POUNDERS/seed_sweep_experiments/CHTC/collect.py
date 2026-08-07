@@ -12,9 +12,9 @@ directory per job. This script:
      RESULTS_DIR expects.
 
 Usage:
-    python collect.py                       # unpack + summarise + build by_pilot/
-    python collect.py --no-tree             # skip step 3 (saves disk)
-    python collect.py --indir /path/to/out  # tarballs elsewhere
+    ./rolenv/bin/python collect.py                       # unpack + summarise + build by_pilot/
+    ./rolenv/bin/python collect.py --no-tree             # skip step 3 (saves disk)
+    ./rolenv/bin/python collect.py --indir /path/to/out  # tarballs elsewhere
 """
 from __future__ import annotations
 
