@@ -1,0 +1,17 @@
+# build artefacts -- regenerate with build_env.sh, never commit (rolenv is ~250 MB)
+rolenv/
+rolenv.tar.gz
+code.tar.gz
+
+# per-run scratch
+joblist.txt
+logs/
+out_p*_s*.tar.gz
+collected/
+sweep_summary.csv
+testrun/
+
+# vendored source: output of vendor_code.sh, only needed for the standalone-scp
+# route. Never commit it -- it would be a second copy of files already in this
+# repo, and the two would silently drift.
+code/
