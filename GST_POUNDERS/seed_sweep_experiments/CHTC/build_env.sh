@@ -8,9 +8,16 @@
 #            code.tar.gz     the IBCDFO tree + experiment_config.json
 set -euo pipefail
 
-PYVER=${PYVER:-python3.11}
+# resolve an interpreter: honour $PYVER if set (setup.sh exports it), else detect
 ROLVER=${ROLVER:-0.5.3}          # pin: matches the Docker image; 0.5.6 is newer
 HERE=$(cd "$(dirname "$0")" && pwd)
+if [ -f "$(dirname "$0")/pick_python.sh" ]; then
+    . "$(dirname "$0")/pick_python.sh"
+    pick_python || exit 1
+    PYVER="$PY"
+else
+    PYVER=${PYVER:-python3}
+fi
 IBCDFO=$(cd "$HERE/../../.." && pwd)     # .../IBCDFO
 
 # --- preflight: this folder is NOT self-contained -------------------------------
@@ -100,4 +107,4 @@ else
 fi
 
 ls -lh rolenv.tar.gz code.tar.gz experiment_config.json
-echo "== done. Now: python make_joblist.py  &&  condor_submit sweep.sub"
+echo "== done. Now: $PYVER make_joblist.py  &&  condor_submit sweep.sub"

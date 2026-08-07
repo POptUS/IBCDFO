@@ -21,6 +21,12 @@ set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 cd "$HERE"
 
+# CHTC APs ship python3 but usually no bare `python`, and not always 3.11.
+. ./pick_python.sh
+pick_python || exit 1
+export PYVER="$PY"
+echo "  interpreter: $PY  ($("$PY" --version 2>&1))"
+
 echo "############ 1/4  environment ############"
 OSVER=""
 if [ -r /etc/os-release ]; then
@@ -32,7 +38,7 @@ fi
 echo "  glibc: $(ldd --version 2>/dev/null | head -1 || echo unknown)"
 
 if [ -n "$OSVER" ]; then
-    python - "$OSVER" <<'PY'
+    "$PY" - "$OSVER" <<'PY'
 import re, sys, pathlib
 osver = int(sys.argv[1])
 p = pathlib.Path("sweep.sub")
@@ -74,7 +80,7 @@ cd "$HERE" && rm -rf .verify
 
 echo
 echo "############ 4/4  job list ############"
-python make_joblist.py
+"$PY" make_joblist.py
 mkdir -p logs
 
 echo
@@ -89,4 +95,4 @@ echo "      condor_submit sweep.sub"
 echo "      condor_q"
 echo
 echo "  and afterwards:"
-echo "      python collect.py"
+echo "      $PY collect.py"
