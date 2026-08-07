@@ -12,6 +12,7 @@
   "lindblad_h_max": 0.01,
   "lindblad_s_max": 0.004,
   "lindblad_a_max": 0.004,
+  "lindblad_rho_max": 0.3,
   "op_noise": 0.002,
   "coherent_max_rotate": 0.12,
 
