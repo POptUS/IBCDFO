@@ -1,0 +1,20 @@
+# Interactive job for building the environment and smoke-testing, so that both
+# happen on an EXECUTE node rather than the access point.
+#
+#   condor_submit -i interactive.sub
+#
+# then, in the shell it drops you into:
+#   cd IBCDFO/GST_POUNDERS/seed_sweep_experiments/CHTC   (if you transferred the repo)
+#   CHTC_BUILD_ON_EXECUTE=1 bash build_env.sh
+
+universe                = vanilla
+requirements            = (OpSysMajorVer >= 8)
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+
+request_cpus            = 1
+request_memory          = 4GB
+request_disk            = 12GB
+
+log                     = logs/interactive.log
+queue

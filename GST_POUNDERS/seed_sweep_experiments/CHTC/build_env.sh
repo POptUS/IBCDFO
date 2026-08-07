@@ -33,10 +33,19 @@ else
 fi
 
 echo "== python: $($PYVER --version)"
+if [ -z "${CHTC_BUILD_ON_EXECUTE:-}" ]; then
+    echo "== NOTE: building on this machine. The venv is portable (--copies), but it is"
+    echo "         safest to build inside an interactive job so the OS matches the"
+    echo "         execute nodes:   condor_submit -i interactive.sub"
+    echo "         Set CHTC_BUILD_ON_EXECUTE=1 to silence this."
+fi
 echo "== glibc : $(ldd --version | head -1)"
 
 rm -rf rolenv rolenv.tar.gz code.tar.gz
-$PYVER -m venv rolenv
+# --copies, NOT the default symlink: a symlinked venv points at the interpreter
+# on the machine that built it. Ship that to an execute node where the path
+# does not exist (or is a different build) and every job dies immediately.
+$PYVER -m venv --copies rolenv
 ./rolenv/bin/pip install --upgrade pip wheel
 
 # PyROL: prebuilt manylinux_2_28 wheel, no compilation, no container.
@@ -58,6 +67,14 @@ except Exception:
 import pygsti, numpy, scipy
 print("   pygsti", pygsti.__version__, "| numpy", numpy.__version__, "| scipy", scipy.__version__)
 PY
+
+echo "== checking the venv is self-contained (no symlink to a system interpreter)"
+if [ -L rolenv/bin/python ] || [ -L rolenv/bin/python3 ]; then
+    echo "ERROR: rolenv/bin/python is a SYMLINK -- this venv is not portable." >&2
+    echo "       rebuild with: $PYVER -m venv --copies rolenv" >&2
+    exit 1
+fi
+file rolenv/bin/python3 | sed 's/^/     /'
 
 tar czf rolenv.tar.gz rolenv
 
