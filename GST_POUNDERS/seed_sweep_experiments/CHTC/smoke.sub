@@ -1,0 +1,28 @@
+# ONE real job on an execute node, to prove the whole chain works before
+# committing 120. Short: nfmax=40 instead of 500.
+#
+#   condor_submit smoke.sub
+#   condor_watch_q
+#   cat logs/smoke.out          <- expect a 4-row table and "TOTAL ...s"
+
+universe                = vanilla
+executable              = job.sh
+arguments               = 350 29999
+
+requirements            = (OpSysMajorVer >= 8)
+environment             = "SWEEP_ARGS=--budget 550000 --nfmax 40"
+
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files    = rolenv.tar.gz, code.tar.gz, run_one.py, experiment_config.json
+transfer_output_files   = out_p350_s29999.tar.gz
+
+request_cpus            = 1
+request_memory          = 4GB
+request_disk            = 6GB
+
+log                     = logs/smoke.log
+output                  = logs/smoke.out
+error                   = logs/smoke.err
+
+queue
