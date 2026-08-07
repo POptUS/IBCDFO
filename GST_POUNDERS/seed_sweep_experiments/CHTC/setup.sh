@@ -41,14 +41,17 @@ if [ -n "$OSVER" ]; then
     "$PY" - "$OSVER" <<'PY'
 import re, sys, pathlib
 osver = int(sys.argv[1])
-p = pathlib.Path("sweep.sub")
-s = p.read_text()
 new = f"requirements            = (OpSysMajorVer == {osver})"
-s2, n = re.subn(r"^requirements\s*=.*$", new, s, count=1, flags=re.M)
-if n:
-    p.write_text(s2)
-    print(f"  sweep.sub pinned to OpSysMajorVer == {osver} "
-          f"(the venv carries this machine's python binary)")
+for name in ("sweep.sub", "smoke.sub", "interactive.sub"):
+    p = pathlib.Path(name)
+    if not p.exists():
+        continue
+    s2, n = re.subn(r"^requirements\s*=.*$", new, p.read_text(), count=1, flags=re.M)
+    if n:
+        p.write_text(s2)
+        print(f"  {name} pinned to OpSysMajorVer == {osver}")
+print(f"  (the venv carries this machine's python binary, so the execute node's")
+print(f"   glibc must match -- an EL9-built venv cannot run on EL8)")
 PY
 fi
 
