@@ -10,7 +10,7 @@ executable              = job.sh
 arguments               = 350 29999
 
 requirements            = (OpSysMajorVer >= 8)
-environment             = "SWEEP_ARGS=--budget 550000 --nfmax 40"
+environment             = "SWEEP_ARGS='--budget 550000 --nfmax 40'"
 
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT

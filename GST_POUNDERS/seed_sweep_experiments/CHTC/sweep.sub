@@ -11,7 +11,7 @@ requirements            = (OpSysMajorVer >= 8)
 # TEST 1: pilot-shot sweep. Pin the total budget so the pilot is the ONLY variable.
 # Unpinned, the budget = fixed_fpr_shots x (circuits FPR reveals), which is
 # trajectory-dependent and swings 42% across seeds.
-environment             = "SWEEP_ARGS=--budget 550000"
+environment             = "SWEEP_ARGS='--budget 550000'"
 
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
