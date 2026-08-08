@@ -51,6 +51,10 @@ def parse_args():
                          "accounted cost. STRONGLY recommended for a pilot sweep, so "
                          "that pilot shots are the only variable across cells.")
     ap.add_argument("--nfmax", type=int, default=None, help="override config.nfmax")
+    ap.add_argument("--variance-smoothing", type=float, default=None,
+                    help="add-s smoothing on the WLS variance. 0.0 = historical "
+                         "behaviour (var can be 0 -> weight 1/variance_floor = 1e12); "
+                         "0.5 = Jeffreys, bounded away from 0 so the floor never binds.")
     ap.add_argument("--lm-maxiter", type=int, default=800)
     ap.add_argument("--lm-modes", default="CPTPLND")
     return ap.parse_args()
@@ -125,6 +129,8 @@ def main():
         over["fixed_fpr_shots"] = int(args.fixed_fpr_shots)
     if args.nfmax is not None:
         over["nfmax"] = int(args.nfmax)
+    if args.variance_smoothing is not None:
+        over["variance_smoothing"] = float(args.variance_smoothing)
     base = replace(base, **over)
 
     outdir = Path(args.outdir)

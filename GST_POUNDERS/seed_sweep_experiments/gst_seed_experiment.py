@@ -62,6 +62,19 @@ class ExperimentConfig:
     objective: str = "weighted_least_squares"
     variance_source: str = "data"
     variance_floor: float = 1e-12
+    # Add-s smoothing for the WLS variance ONLY (the residual keeps the raw
+    # observed frequency). 0.0 reproduces the historical behaviour exactly.
+    #
+    # Why it matters: var = f(1-f)/N is exactly 0 whenever a zero (or full) count
+    # comes back, so variance_floor takes over and that single residual enters the
+    # sum of squares with weight 1/variance_floor = 1e12. With spam_noise=0.005 the
+    # smallest truth probability is 0.0025, which returns a zero count 29% of the
+    # time at 500 shots -- about 5 outcomes per seed, a DIFFERENT set each seed.
+    # The objective being minimised is therefore randomly perturbed per seed.
+    #
+    # 0.5 is the Jeffreys/Krichevsky-Trofimov estimate (count+0.5)/(N+1), which is
+    # bounded away from 0 and 1, so the floor never binds.
+    variance_smoothing: float = 0.0
     nfmax: int = 200
     gtol: float = 1e-4
     initial_delta: float = 0.1
@@ -596,15 +609,25 @@ class GSTProblem:
         data = self.dataset if data is None else data
         circuits = self.circuits if circuits is None else list(circuits)
         f_values, var_values, counts, totals, labels = [], [], [], [], []
+        smoothing = float(getattr(self.config, "variance_smoothing", 0.0) or 0.0)
         for circuit in circuits:
             row = data[circuit]
             total = float(row.total)
             for outcome in row.outcomes:
                 f = float(row.fractions.get(outcome, 0.0))
                 f_clip = min(max(f, 0.0), 1.0)
+                count = float(row.counts.get(outcome, 0.0))
+                if total <= 0:
+                    var = np.nan
+                elif smoothing > 0.0:
+                    # smooth the VARIANCE only; the residual still uses the raw f
+                    f_var = (count + smoothing) / (total + 2.0 * smoothing)
+                    var = f_var * (1.0 - f_var) / total
+                else:
+                    var = f_clip * (1.0 - f_clip) / total
                 f_values.append(f)
-                var_values.append(f_clip * (1.0 - f_clip) / total if total > 0 else np.nan)
-                counts.append(float(row.counts.get(outcome, 0.0)))
+                var_values.append(var)
+                counts.append(count)
                 totals.append(total)
                 labels.append((circuit, outcome))
         return (
