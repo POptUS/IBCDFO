@@ -56,16 +56,22 @@ def main():
     old, new = load(a.old, a.pilot), load(a.new)
 
     print(f"=== effect of the change, paired by seed  ({a.old} -> {a.new}) ===")
-    print(f"{'method':<12}{'n':>4}{'old':>12}{'new':>12}{'ratio':>8}{'better':>8}{'p':>9}   note")
+    print(f"{'method':<12}{'n':>4}{'old':>12}{'new':>12}{'med/med':>9}{'med-ratio':>11}"
+          f"{'better':>8}{'p':>9}   note")
     for m in ORDER:
         if m not in old or m not in new:
             continue
         n, r, wins, p, note = paired(old[m], new[m])
         i = old[m].index.intersection(new[m].index)
-        ps = "  ident." if np.isnan(p) and note else f"{p:9.4f}"
-        print(f"{m:<12}{n:>4}{old[m].loc[i].median():12.3e}{new[m].loc[i].median():12.3e}"
-              f"{r:8.3f}{wins:>8}{ps}   {note}")
-    print("\n  ratio < 1 means the change IMPROVED that method; 'better' counts seeds improved.")
+        mo, mn = old[m].loc[i].median(), new[m].loc[i].median()
+        ps = "   ident." if np.isnan(p) and note else f"{p:9.4f}"
+        print(f"{m:<12}{n:>4}{mo:12.3e}{mn:12.3e}{mn/mo:9.3f}{r:11.3f}"
+              f"{wins:>8}{ps}   {note}")
+    print("\n  med/med   = median(new)/median(old)  -- compares the two DISTRIBUTIONS")
+    print("  med-ratio = median(new/old) per seed  -- the PAIRED effect, and the honest one")
+    print("  They disagree when the change helps some seeds and hurts others; when they")
+    print("  disagree, believe med-ratio and the 'better' count, not med/med.")
+    print("  ratio < 1 means the change IMPROVED that method.")
 
     print(f"\n=== method ranking in the NEW run, paired head-to-head ===")
     med = {m: v.median() for m, v in new.items() if m in ORDER}
