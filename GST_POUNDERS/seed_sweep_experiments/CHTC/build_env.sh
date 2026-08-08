@@ -89,12 +89,33 @@ tar czf rolenv.tar.gz rolenv
 if [ "$VENDORED" = "1" ]; then
     tar czf code.tar.gz --exclude='__pycache__' --exclude='*.pyc' -C "$HERE" code
 else
+    # NB: this CHTC folder is itself inside $IBCDFO, so its build artefacts and
+    # collected results would otherwise be tarred into the payload and shipped to
+    # every execute node. That is how jobs started blowing the 6 GB disk request:
+    # code.tar.gz had picked up rolenv/, rolenv.tar.gz and an archived run.
     tar czf code.tar.gz \
         --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' \
         --exclude='all_methods_comparison*' --exclude='matched_results' \
         --exclude='criterion_comparison' --exclude='pounders_ladder' \
         --exclude='standard_gst_checkpoints' --exclude='.Trash-0' \
+        --exclude='.ipynb_checkpoints' \
+        --exclude='rolenv' --exclude='rolenv.tar.gz' --exclude='code.tar.gz' \
+        --exclude='out_p*_s*.tar.gz' --exclude='collected' --exclude='by_pilot*' \
+        --exclude='run*_baseline' --exclude='smoke_archive' --exclude='testrun' \
+        --exclude='logs' --exclude='*.tar.gz' \
         -C "$(dirname "$IBCDFO")" "$(basename "$IBCDFO")"
+fi
+
+# guard: the payload is source code. If it is huge, an exclude is missing and the
+# jobs will die on disk at the execute node, which is a slow and confusing failure.
+CODE_MB=$(du -m code.tar.gz | cut -f1)
+echo "== code.tar.gz is ${CODE_MB} MB"
+if [ "$CODE_MB" -gt 300 ]; then
+    echo "ERROR: code.tar.gz is ${CODE_MB} MB -- far too big for a source payload." >&2
+    echo "  Something large got swept in. Find it with:" >&2
+    echo "     tar tzvf code.tar.gz | sort -k3 -n -r | head -20" >&2
+    echo "  then add an --exclude for it in build_env.sh." >&2
+    exit 1
 fi
 
 # use the frozen copy committed here; only fall back to the live one if absent.
