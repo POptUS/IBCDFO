@@ -99,6 +99,9 @@ def main():
     # ---- 3. does pilot matter at all? ----------------------------------------
     print(f"\n=== does pilot affect {a.method}? ===")
     groups = [g[a.method].dropna().to_numpy() for _, g in piv.groupby(level="pilot")]
+    if len(groups) < 2:
+        print(f"  only one pilot in this file -- nothing to compare across pilots")
+        return
     if stats is not None:
         h, p = stats.kruskal(*groups)
         print(f"  Kruskal-Wallis across all 6 pilots : p = {p:.3f}"
