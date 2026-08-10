@@ -47,7 +47,7 @@
   "adaptive_schedule_n0": 220,
   "adaptive_schedule_n_max": 12000,
   "adaptive_delta_inverse_square_constant": 0.005,
-  "adaptive_delta_inverse_square_n_min": 0,
+  "adaptive_delta_inverse_square_n_min": 8000,
   "adaptive_delta_inverse_fourth_constant": 0.0001,
   "adaptive_delta_inverse_fourth_n_min": 0,
   "adaptive_delta_floor": 1e-12,
