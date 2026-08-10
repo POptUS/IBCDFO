@@ -22,16 +22,6 @@ def _default_model_np_max(n):
     return 2 * n + 1
 
 
-def _default_prior():
-    Prior = {}
-    Prior["nfs"] = 0
-    Prior["X_init"] = []
-    Prior["F_init"] = []
-    Prior["xk_in"] = 0
-
-    return Prior
-
-
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     r"""
     This version of |pounders| calls ``Ffun`` with batches of model-building
@@ -71,15 +61,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             Model["np_max"] = _default_model_np_max(n)
 
     if Prior is None:
-        Prior = _default_prior()
-    else:
-        key_list = ["nfs", "X_init", "F_init", "xk_in"]
-        assert set(Prior.keys()) == set(key_list), f"Prior keys must be {key_list}"
-        Prior["X_init"] = np.atleast_2d(Prior["X_init"])
-        if Prior["X_init"].ndim == 2 and Prior["X_init"].shape[1] == 1:
-            Prior["X_init"] = Prior["X_init"].T
+        Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
+    VALID_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
+    if set(Prior) != VALID_PRIOR_KEYS:
+        print(f"Error: Prior must be a dictionary with the keys {VALID_PRIOR_KEYS}")
+        return [], [], [], -1, -1
 
-    nfs = Prior["nfs"]
     delta = delta_0
     spsolver = Options.get("spsolver", 2)
     delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
@@ -110,7 +97,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
         progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
-    if Prior["nfs"] == 0:
+
+    nfs = Prior["nfs"]
+    if nfs == 0:
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
         hF = np.zeros(nf_max)

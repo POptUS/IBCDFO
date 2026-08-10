@@ -117,13 +117,14 @@ class TestPounders(unittest.TestCase):
         delta = 0.1
         nfs = 1
         m = 1
-        F_init = Ffun(X_0)
+        X_init = np.atleast_2d(X_0)
+        F_init = np.atleast_2d(Ffun(X_0))
         xind = 0
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
-        Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
+        Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
@@ -154,8 +155,9 @@ class TestPounders(unittest.TestCase):
 
         Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
 
-        F_init = Ffun(X_0.T)
-        Prior = {"X_init": X_0, "F_init": F_init, "nfs": 1, "xk_in": 0}
+        X_init = np.atleast_2d(X_0.T)
+        F_init = np.atleast_2d(Ffun(X_0.T))
+        Prior = {"X_init": X_init, "F_init": F_init, "nfs": 1, "xk_in": 0}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")

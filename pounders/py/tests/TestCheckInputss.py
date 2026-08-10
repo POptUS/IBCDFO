@@ -76,18 +76,19 @@ class TestLotsOfFeatures(unittest.TestCase):
 
     def test_checkinputts8(self):
         F_init_to_error = np.zeros((3 * self.nfs, 1))
-        with self.assertRaises(AssertionError):
-            checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_error, self.xk_in, self.Low, self.Upp)
+        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_error, self.xk_in, self.Low, self.Upp)
+        self.__testCommonFinalConditions(out, "warn")
 
     def test_checkinputts9(self):
-        F_init_to_fail = np.nan * self.F_init
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_fail, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
+        for bad in [np.nan, np.inf, -np.inf]:
+            F_init_to_fail = np.full(self.F_init.shape, bad, float)
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_fail, self.xk_in, self.Low, self.Upp)
+            self.__testCommonFinalConditions(out, "fail")
 
     def test_checkinputts10(self):
-        xk_in_to_fail = -1
-        with self.assertRaises(AssertionError):
-            checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, xk_in_to_fail, self.Low, self.Upp)
+        for xk_in_to_fail in [-1, self.nfs]:
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, xk_in_to_fail, self.Low, self.Upp)
+            self.__testCommonFinalConditions(out, "fail")
 
     def test_checkinputts11(self):
         Low_to_fail = np.hstack((self.Low, self.Low))
