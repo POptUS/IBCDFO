@@ -22,28 +22,17 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         print("Error: Ffun is not a function handle")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    # Verify X_0 is the appropriate size
-    X_0 = np.atleast_2d(X_0)
-    assert X_0.shape == (1, n) or X_0.shape == (n, 1), "X_0 is not the right shape"
     Low = np.atleast_2d(Low)
     Upp = np.atleast_2d(Upp)
-    xk_in = int(xk_in)
-    [nfs2, n2] = np.shape(X_0)
-    if n != n2:
-        # Attempt to transpose:
-        if n2 == 1 and nfs2 == n:
-            X_0 = X_0.T
-            print("Warning: X_0 is n-by-1 column vector, using row vector X_0")
-            flag = 0
-        else:
-            print("Error: np.shape(X_0)[1] != n")
-            flag = -1
-            return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
+    if X_0.shape != (1, n):
+        print("Error: X_0 is not a 1 x n row vector")
+        flag = -1
+        return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
 
     # Check max number of interpolation points
     if np_max < n + 1 or np_max > int(0.5 * (n + 1) * (n + 2)):
         np_max = max(n + 1, min(np_max, int(0.5 * (n + 1) * (n + 2))))
-        print(f"Warning: np_max not in [n+1, 0.5 * (n+1) * (n+2) using {np_max}")
+        print(f"Warning: np_max not in [n+1, 0.5 * (n+1) * (n+2)] using {np_max}")
         flag = 0
     # Check standard positive quantities
     if nf_max < 1:
@@ -75,13 +64,10 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
     # Only check sizes and contents if values are provided
     if nfs > 0:
         nfs2, n2 = X_init.shape
-        if nfs2 < nfs:
-            print("Error: fewer than nfs function values in X_init")
+        if nfs2 != nfs:
+            print("Error: number of initial points nfs does not match input X_init")
             flag = -1
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-        elif nfs2 > nfs:
-            print("Warning: number of initial points nfs does not match input X_init")
-            flag = 0
         elif n != n2:
             print("Error: X_init does not contain the right number of coordinates")
             flag = -1
@@ -96,13 +82,10 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
 
         nfs2, m2 = F_init.shape
-        if nfs2 < nfs:
-            print("Error: fewer than nfs function values in F_init")
+        if nfs2 != nfs:
+            print("Error: number of starting f values nfs does not match input F_init")
             flag = -1
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-        elif nfs2 > nfs:
-            print("Warning: number of starting f values nfs does not match input F_init")
-            flag = 0
         elif m != m2:
             print("Error: F_init does not contain the right number of residuals")
             flag = -1

@@ -129,6 +129,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # choose your spsolver
     solve_trsp = create_trsp_solver(spsolver)
 
+    # POUNDERS is written for a 2D row vector.  However, we are flexible and
+    # allow users to pass in 1D or 2D row/column arrays.
+    X_0 = np.atleast_2d(np.squeeze(X_0))
+
     [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
     if flag == -1:
         X = []
