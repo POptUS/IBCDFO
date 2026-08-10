@@ -51,6 +51,11 @@ def parse_args():
                          "accounted cost. STRONGLY recommended for a pilot sweep, so "
                          "that pilot shots are the only variable across cells.")
     ap.add_argument("--nfmax", type=int, default=None, help="override config.nfmax")
+    ap.add_argument("--spam-noise", type=float, default=None,
+                    help="override config.spam_noise on the TRUTH model. NB 0.0 gives "
+                         "ideal SPAM, which puts 16 outcomes at truth probability "
+                         "exactly 0 or 1; those never produce an informative count at "
+                         "any shot budget. Keep --variance-smoothing on if you use it.")
     ap.add_argument("--variance-smoothing", type=float, default=None,
                     help="add-s smoothing on the WLS variance. 0.0 = historical "
                          "behaviour (var can be 0 -> weight 1/variance_floor = 1e12); "
@@ -131,6 +136,8 @@ def main():
         over["nfmax"] = int(args.nfmax)
     if args.variance_smoothing is not None:
         over["variance_smoothing"] = float(args.variance_smoothing)
+    if args.spam_noise is not None:
+        over["spam_noise"] = float(args.spam_noise)
     base = replace(base, **over)
 
     outdir = Path(args.outdir)
