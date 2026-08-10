@@ -1,40 +1,55 @@
 #!/usr/bin/env python
 """Write joblist.txt -- one line per (pilot, seed) cell.
 
-TEST 1: vary the pilot shots per circuit from 200 to 700 and see which wins.
+Each job runs EVERY method for its seed, because the matched-budget protocol
+requires it: fixed_FPR runs first and its accounted cost is the budget the other
+three are given. Splitting methods across jobs would break the matching.
 
-Each job runs EVERY method for its seed, so the matched-budget protocol stays
-intact. The total budget is pinned in sweep.sub (SWEEP_ARGS=--budget ...), so the
-pilot is the only variable across cells.
+WHY THE BUDGET IS NO LONGER PINNED
+  sweep.sub used to pass --budget, which constrained no_FPR, adaptive_D and LM but
+  NOT fixed_FPR -- fixed_FPR simply spent revealed_circuits x fixed_fpr_shots.
+  Measured on run 3 that left it 13% over budget on 19 of 20 seeds (worst +66%),
+  i.e. every comparison involving fixed_FPR was handing it extra shots.
 
-Why the budget must be pinned, and why 550,000:
-  budget = fixed_fpr_shots x (circuits FPR reveals), and the revealed count varies
-  533-755 across seeds -- a 42% swing. Left unpinned, changing the pilot changes
-  the trajectory, which changes what FPR reveals, which changes the budget, and
-  the result is unattributable.
+  With --budget dropped, run_one.py falls back to its intended behaviour:
 
-  550,000 is inside the observed anchor range (426k-604k) and leaves every seed
-  some steerable budget even at pilot 700. At 465,600 (the median anchor), pilot
-  700 would exhaust the whole budget on baseline alone for 3 of 13 seeds, making
-  those cells degenerate -- adaptive would be exactly uniform.
+      budget = fixed_FPR's accounted_revealed_shots
 
-Steerable fraction at budget 550,000, over the observed reveal range:
-     pilot 200 ->  73-81%      pilot 500 ->  31-52%
-     pilot 300 ->  59-71%      pilot 600 ->  18-42%
-     pilot 400 ->  45-61%      pilot 700 ->   4-32%
+  so all four methods match exactly within a seed. The budget then varies ACROSS
+  seeds (541k-915k observed). Harmless here because every test is paired by seed,
+  but do not compare raw medians between runs without pairing.
+
+WHY ONE PILOT VALUE
+  The pilot sweep was null on every test -- Kruskal p=0.92 across 200-700, chi2
+  p=0.56 on the failure rate, best-vs-worst paired p=0.93. Re-sweeping it would
+  cost 6x the jobs for nothing.
+
+SWEEPING variance_smoothing
+  Run it as two SEQUENTIAL submissions, changing only SWEEP_ARGS between them, and
+  archive the first before starting the second:
+
+      SWEEP_ARGS='--spam-noise 0.001 --variance-smoothing 0.01'
+      SWEEP_ARGS='--spam-noise 0.001 --variance-smoothing 0.5'
+
+  Then:  compare_runs.py <first>/sweep_summary.csv sweep_summary.csv --pilot 350
+
+  Do NOT try to run both values in one submission: the returned tarball is named
+  out_p<pilot>_s<seed>.tar.gz and cell_meta.json carries only pilot and seed, so the
+  two cells would collide in by_pilot/ and silently overwrite each other.
 """
 import itertools
 import pathlib
 
-PILOTS = [200, 300, 400, 500, 600, 700]
-SEEDS = list(range(20001, 20021))          # 20 fresh seeds
+PILOTS = [350]
+SEEDS = list(range(20001, 20021))          # 20 seeds
 
 lines = [f"{p} {s}" for p, s in itertools.product(PILOTS, SEEDS)]
 pathlib.Path("joblist.txt").write_text("\n".join(lines) + "\n")
 
-print(f"{len(lines)} jobs  ({len(PILOTS)} pilots x {len(SEEDS)} seeds)")
+print(f"{len(lines)} jobs  ({len(PILOTS)} pilot x {len(SEEDS)} seeds)")
 print(f"   pilots: {PILOTS}")
 print(f"   seeds : {SEEDS[0]}..{SEEDS[-1]}")
 print()
 print("each job runs all methods for its seed (fixed_fpr, no_FPR, adaptive_D, LM)")
-print("check sweep.sub has:  environment = \"SWEEP_ARGS=--budget 550000\"")
+print("check sweep.sub has NO --budget, e.g.:")
+print("   environment = \"SWEEP_ARGS='--spam-noise 0.001 --variance-smoothing 0.01'\"")
