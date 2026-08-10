@@ -43,7 +43,7 @@
   "adaptive_criterion": "D",
   "adaptive_total_shot_budget": 300000,
   "adaptive_schedule": "lazy_delta_inverse_square",
-  "adaptive_schedule_base": 1.03,
+  "adaptive_schedule_base": 1.04,
   "adaptive_schedule_n0": 220,
   "adaptive_schedule_n_max": 12000,
   "adaptive_delta_inverse_square_constant": 0.005,
