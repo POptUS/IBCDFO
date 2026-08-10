@@ -10,7 +10,7 @@ these extra shots."
 
 The state dict POUNDERS hands the hook (see gradient_pounders.py):
     state = {"x", "delta", "ng", "iteration", "nf", "xkin", "fpr_mask",
-             "previous_rho"}
+             "previous_rho", and optional cached center probabilities/Jacobian}
 The hook must return either None / {"data_changed": False} (nothing collected) or
 {"data_changed": True, "shots_added": <int>} so POUNDERS knows to re-evaluate the
 center on the updated dataset.
@@ -193,10 +193,36 @@ def make_adaptive_shot_hook(
                 }
 
         # 3. Model p, J at x_k, Bernoulli single-shot variances, cumulative shots.
+        #    A selection-aware GST oracle already computed these quantities for
+        #    POUNDERS' center model. Reuse them when the masks agree.
         x = np.asarray(state["x"], dtype=float)
-        p, J = probability_and_jacobian(x, circuits)
-        p = np.asarray(p, dtype=float).reshape(-1)
-        J = np.asarray(J, dtype=float)
+        requested_mask = state.get("fpr_mask")
+        cached_mask = state.get("center_probability_mask")
+        cached_p = np.asarray(state.get("center_probabilities", []), dtype=float).reshape(-1)
+        cached_J = np.asarray(
+            state.get("center_probability_jacobian", []), dtype=float
+        )
+        use_center_cache = (
+            requested_mask is not None
+            and cached_mask is not None
+            and np.array_equal(
+                np.asarray(requested_mask, dtype=bool).reshape(-1),
+                np.asarray(cached_mask, dtype=bool).reshape(-1),
+            )
+            and cached_p.shape == (row_index.size,)
+            and cached_J.ndim == 2
+            and cached_J.shape[0] == row_index.size
+        )
+        if use_center_cache:
+            p, J = cached_p, cached_J
+            _log(
+                f"iter {state.get('iteration')}: reused center probabilities/Jacobian "
+                "for adaptive allocation."
+            )
+        else:
+            p, J = probability_and_jacobian(x, circuits)
+            p = np.asarray(p, dtype=float).reshape(-1)
+            J = np.asarray(J, dtype=float)
         sigma2 = np.maximum(p * (1.0 - p), variance_floor)
         n_now = np.asarray(current_shots(circuits), dtype=float).reshape(-1)
 

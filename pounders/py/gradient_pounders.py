@@ -230,7 +230,10 @@ def pouders(
     Nuclear Energy Density Optimization. Phys. Rev. C, 82:024313, 2010.
 
     --INPUTS-----------------------------------------------------------------
-    fun     [f h] Function handle so that fun(x) evaluates F (@calfun)
+    fun     [f h] Function handle so that fun(x) evaluates F (@calfun). When
+                  FPR is enabled, a selection-aware function may also accept
+                  residual_mask and model_cache keyword arguments and return a
+                  compact n-by-sum(residual_mask) Jacobian.
     X0      [dbl] [max(nfs,1)-by-n] Set of initial points  (zeros(1,n))
     n       [int] Dimension (number of continuous variables)
     nfmax   [int] Maximum number of function evaluations (>n+1) (100)
@@ -381,11 +384,23 @@ def pouders(
         return keyword in signature.parameters
 
     fun_accepts_info = _fun_accepts_keyword("return_info")
+    fun_accepts_residual_mask = _fun_accepts_keyword("residual_mask")
+    fun_accepts_model_cache = _fun_accepts_keyword("model_cache")
 
-    def _evaluate_fun(x):
+    def _evaluate_fun(x, residual_mask=None, model_cache=None):
         kwargs = {}
-        if (hfun_uses_info or combinemodels_uses_info) and fun_accepts_info:
+        needs_info = (
+            hfun_uses_info
+            or combinemodels_uses_info
+            or fpr_reduction is not None
+            or iter_callback is not None
+        )
+        if needs_info and fun_accepts_info:
             kwargs["return_info"] = True
+        if residual_mask is not None and fun_accepts_residual_mask:
+            kwargs["residual_mask"] = np.asarray(residual_mask, dtype=bool).copy()
+        if model_cache is not None and fun_accepts_model_cache:
+            kwargs["model_cache"] = model_cache
 
         output = fun(x, **kwargs) if kwargs else fun(x)
         if not isinstance(output, tuple):
@@ -403,7 +418,21 @@ def pouders(
             info = dict(info)
             info.pop("jacobian", None)
             info.pop("jacobian_residuals_by_parameters", None)
+            cache_stats = info.get("model_cache_stats")
+            if isinstance(cache_stats, dict):
+                log(
+                    "GST model evaluation: Jacobian rows computed="
+                    f"{cache_stats.get('jacobian_rows_computed', '?')}, reused="
+                    f"{cache_stats.get('jacobian_rows_reused', '?')}, "
+                    "probabilities reused="
+                    f"{cache_stats.get('probabilities_reused', False)}."
+                )
         return Fval, Jval, info
+
+    def _model_cache_from_info(info):
+        if isinstance(info, dict):
+            return info.get("_model_cache")
+        return None
 
     fpr_history = []
     last_fpr_history = fpr_history
@@ -489,16 +518,56 @@ def pouders(
 
     def _apply_fpr_reduction(Fval, Jval, info, keep):
         Fflat = np.asarray(Fval, dtype=float).reshape(-1).copy()
-        Jarr = np.asarray(Jval, dtype=float).copy()
-        if Fflat.size != m or Jarr.shape != (n, m):
+        Jarr = np.asarray(Jval, dtype=float)
+        if Fflat.size != m or Jarr.ndim != 2 or Jarr.shape[0] != n:
             raise ValueError(
-                f"Objective returned F={Fflat.shape}, J={Jarr.shape}; expected F=({m},), J=({n}, {m})."
+                f"Objective returned F={Fflat.shape}, J={Jarr.shape}; expected "
+                f"F=({m},) and a Jacobian with {n} rows."
             )
+        active_count = m if keep is None else int(np.sum(keep))
+        compact_jacobian = Jarr.shape == (n, active_count)
+        full_jacobian = Jarr.shape == (n, m)
+        if not compact_jacobian and not full_jacobian:
+            raise ValueError(
+                f"Objective returned J={Jarr.shape}; expected ({n}, {m}) or "
+                f"the compact FPR shape ({n}, {active_count})."
+            )
+        if compact_jacobian and isinstance(info, dict):
+            returned_indices = info.get("jacobian_residual_indices")
+            if returned_indices is not None:
+                returned_indices = np.asarray(returned_indices, dtype=int).reshape(-1)
+                expected_indices = (
+                    np.arange(m, dtype=int) if keep is None else np.flatnonzero(keep)
+                )
+                if not np.array_equal(returned_indices, expected_indices):
+                    raise ValueError(
+                        "The compact Jacobian row indexing does not match the FPR mask."
+                    )
         if keep is not None:
             Fflat[~keep] = 0.0
-            Jarr[:, ~keep] = 0.0
+            if full_jacobian:
+                Jarr = Jarr.copy()
+                Jarr[:, ~keep] = 0.0
             info = _mask_info(info, keep)
         return Fflat, Jarr, info
+
+    def _compact_info_for_model(info, keep):
+        if info is None or not isinstance(info, dict):
+            return info
+        indices = np.arange(m, dtype=int) if keep is None else np.flatnonzero(keep)
+        compact = dict(info)
+        for key, value in info.items():
+            if key in ("_model_cache", "probability_jacobian"):
+                continue
+            try:
+                arr = np.asarray(value)
+            except Exception:
+                continue
+            if arr.shape == (m,):
+                compact[key] = arr[indices]
+        compact["jacobian_residual_indices"] = indices
+        compact["fpr_mask"] = np.ones(indices.size, dtype=bool)
+        return compact
 
     def _count_to_circuits(count):
         return int(np.ceil(float(count) / residuals_per_circuit))
@@ -611,8 +680,13 @@ def pouders(
     xkin = 0
 
     # first evaluation:
+    center_fpr_mask = _fpr_mask_for_x(X[nf])
+    center_fpr_x = np.asarray(X[nf], dtype=float).copy()
     t0 = time.perf_counter()
-    F0, J0, eval_info = _evaluate_fun(X[nf])
+    F0, J0, eval_info = _evaluate_fun(
+        X[nf],
+        residual_mask=center_fpr_mask,
+    )
     log(f"Initial residual/Jacobian evaluation took {time.perf_counter() - t0:.2f} seconds.")
     F0 = np.asarray(F0, dtype=float).reshape(-1)
     J0 = np.asarray(J0, dtype=float)
@@ -627,16 +701,25 @@ def pouders(
         log("Your residual is not m-dimensional.")
         return X, F, J, flag, xkin
 
-    if J0.shape[0] != n or J0.shape[1] != m:
+    expected_initial_columns = (
+        m if center_fpr_mask is None else int(np.sum(center_fpr_mask))
+    )
+    if (
+        J0.ndim != 2
+        or J0.shape[0] != n
+        or J0.shape[1] not in (m, expected_initial_columns)
+    ):
         # TODO: Should this use logger.warn or logger.error?
-        log("Your Jacobian is not n by m.")
+        log(
+            "Your Jacobian is neither full-sized nor compatible with the "
+            "FPR-selected residual set."
+        )
         X, F, J, flag = prepare_outputs_before_return(X, F, J, nf, -1)
         return X, F, J, flag, xkin
 
     center_raw_F = F0
     center_raw_J = J0
     center_raw_Info = eval_info
-    center_fpr_mask = _fpr_mask_for_x(X[nf])
     F[nf], J[nf], Info[nf] = _apply_fpr_reduction(
         center_raw_F, center_raw_J, center_raw_Info, center_fpr_mask
     )
@@ -688,12 +771,27 @@ def pouders(
     previous_rho = None  # rho_k is exposed to the callback at the start of iteration k+1.
 
     while nf + 1 < nfmax:
-        center_fpr_mask = _fpr_mask_for_x(X[xkin])
-        if center_fpr_mask is not None:
-            F[xkin], J[xkin], Info[xkin] = _apply_fpr_reduction(
-                center_raw_F, center_raw_J, center_raw_Info, center_fpr_mask
-            )
-            Fs[xkin] = _call_hfun(F[xkin], Info[xkin])
+        if fpr_reduction is not None and not np.array_equal(center_fpr_x, X[xkin]):
+            new_center_fpr_mask = _fpr_mask_for_x(X[xkin])
+            mask_changed = not np.array_equal(new_center_fpr_mask, center_fpr_mask)
+            center_fpr_mask = new_center_fpr_mask
+            center_fpr_x = np.asarray(X[xkin], dtype=float).copy()
+            if mask_changed:
+                t_refresh = time.perf_counter()
+                center_raw_F, center_raw_J, center_raw_Info = _evaluate_fun(
+                    X[xkin],
+                    residual_mask=center_fpr_mask,
+                    model_cache=_model_cache_from_info(center_raw_Info),
+                )
+                log(
+                    "Center FPR set changed; selected residual/Jacobian refresh took "
+                    f"{time.perf_counter() - t_refresh:.2f} seconds."
+                )
+
+        F[xkin], J[xkin], Info[xkin] = _apply_fpr_reduction(
+            center_raw_F, center_raw_J, center_raw_Info, center_fpr_mask
+        )
+        Fs[xkin] = _call_hfun(F[xkin], Info[xkin])
         FullFs[xkin] = _call_hfun(center_raw_F, center_raw_Info)
 
         # --- Adaptive-shot hook -------------------------------------------
@@ -718,6 +816,25 @@ def pouders(
                 "fpr_mask": None if center_fpr_mask is None else center_fpr_mask.copy(),
                 "previous_rho": previous_rho,
             }
+            center_model_cache = _model_cache_from_info(center_raw_Info)
+            if isinstance(center_model_cache, dict):
+                cache_mask = np.zeros(m, dtype=bool)
+                cache_indices = np.asarray(
+                    center_model_cache.get("active_residual_indices", []), dtype=int
+                )
+                cache_mask[cache_indices] = True
+                cb_state.update(
+                    {
+                        "center_probability_mask": cache_mask,
+                        "center_probabilities": np.asarray(
+                            center_model_cache.get("p", []), dtype=float
+                        )[cache_indices],
+                        "center_probability_jacobian": np.asarray(
+                            center_model_cache.get("probability_jacobian", []),
+                            dtype=float,
+                        ),
+                    }
+                )
             try:
                 cb_result = iter_callback(cb_state)
             except Exception as exc:  # never let shot bookkeeping crash the solve
@@ -734,7 +851,13 @@ def pouders(
             if isinstance(cb_result, dict) and cb_result.get("data_changed"):
                 # The dataset behind fun() changed; re-evaluate the center so the
                 # residuals/weights match the frozen dataset used this iteration.
-                center_raw_F, center_raw_J, center_raw_Info = _evaluate_fun(X[xkin])
+                # Model probabilities and derivatives are independent of the
+                # sampled data, so a selection-aware oracle can reuse them here.
+                center_raw_F, center_raw_J, center_raw_Info = _evaluate_fun(
+                    X[xkin],
+                    residual_mask=center_fpr_mask,
+                    model_cache=_model_cache_from_info(center_raw_Info),
+                )
                 F[xkin], J[xkin], Info[xkin] = _apply_fpr_reduction(
                     center_raw_F, center_raw_J, center_raw_Info, center_fpr_mask
                 )
@@ -749,13 +872,22 @@ def pouders(
 
         #  1a. Compute the "interpolation set".
         Res[xkin] = F[xkin]
-        Gres = J[xkin]
+        model_residual_indices = (
+            np.arange(m, dtype=int)
+            if center_fpr_mask is None
+            else np.flatnonzero(center_fpr_mask)
+        )
+        Gres = np.asarray(J[xkin], dtype=float)
+        if Gres.shape == (n, m) and model_residual_indices.size != m:
+            Gres = Gres[:, model_residual_indices]
 
         #  1b. Update the quadratic model
-        Cres = F[xkin]
+        Cres = np.asarray(F[xkin], dtype=float)[model_residual_indices]
+        Hres = (n, int(model_residual_indices.size))
+        model_info = _compact_info_for_model(Info[xkin], center_fpr_mask)
         #Hres = Hres + Hresdel
         t_model = time.perf_counter()
-        G, H = _call_combinemodels(Cres, Gres, Hres, Info[xkin])
+        G, H = _call_combinemodels(Cres, Gres, Hres, model_info)
         log_debug(f"Model combine took {time.perf_counter() - t_model:.2f} seconds.", 0)
         if np.shape(G) == np.shape(Gres):
             # Some notebook sessions may still hold a stale combiner that
@@ -833,7 +965,10 @@ def pouders(
             nf += 1
             X[nf] = Xsp
             t_eval = time.perf_counter()
-            trial_F, trial_J, eval_info = _evaluate_fun(X[nf])
+            trial_F, trial_J, eval_info = _evaluate_fun(
+                X[nf],
+                residual_mask=center_fpr_mask,
+            )
             trial_raw_F = np.asarray(trial_F, dtype=float).reshape(-1)
             trial_raw_J = np.asarray(trial_J, dtype=float)
             trial_raw_Info = eval_info
@@ -863,6 +998,10 @@ def pouders(
                 center_raw_J = trial_raw_J
                 center_raw_Info = trial_raw_Info
                 center_info = Info[nf]
+                # The trial Jacobian was computed on the previous center's FPR
+                # set. Re-run FPR once at the accepted parameters next iteration;
+                # the oracle cache will retain overlapping derivative rows.
+                center_fpr_x = np.empty(0, dtype=float)
             else:
                 J[nf] = None
                 trial_raw_F = None
