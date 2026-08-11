@@ -1,5 +1,5 @@
 """
-Unit test of compute function
+Unit test of checkinputss()
 """
 
 import unittest
@@ -39,7 +39,7 @@ class TestLotsOfFeatures(unittest.TestCase):
         out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
         self.__testCommonFinalConditions(out, "success")
 
-    def test_checkinputts1(self):
+    def testFfun(self):
         Ffun_to_fail = []
         out = checkinputss(Ffun_to_fail, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
         self.__testCommonFinalConditions(out, "fail")
@@ -61,22 +61,22 @@ class TestLotsOfFeatures(unittest.TestCase):
             out = checkinputss(self.Ffun, X_0_bad, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
             self.__testCommonFinalConditions(out, "fail")
 
-    def test_checkinputts3(self):
+    def testNpMax(self):
         np_max_to_warn = 1
         out = checkinputss(self.Ffun, self.X_0, self.n, np_max_to_warn, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
         self.__testCommonFinalConditions(out, "warn")
 
-    def test_checkinputts4(self):
+    def testNfMax(self):
         nf_max_to_fail = 0
         out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, nf_max_to_fail, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
         self.__testCommonFinalConditions(out, "fail")
 
-    def test_checkinputts5(self):
+    def testGTol(self):
         g_tol_to_fail = 0
         out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, g_tol_to_fail, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
         self.__testCommonFinalConditions(out, "fail")
 
-    def test_checkinputts6(self):
+    def testDelta(self):
         delta_to_fail = 0
         out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, delta_to_fail, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
         self.__testCommonFinalConditions(out, "fail")
@@ -147,37 +147,76 @@ class TestLotsOfFeatures(unittest.TestCase):
             out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, nfs_0, self.m, X_init_0, F_init_0, xk_in_to_fail, self.Low, self.Upp)
             self.__testCommonFinalConditions(out, "fail")
 
-        # Starting point doesn't match X_0
+        # TODO: Starting point doesn't match X_0
 
-    def test_checkinputts11(self):
-        Low_to_fail = np.hstack((self.Low, self.Low))
+    def testBounds(self):
+        EPS = np.finfo(float).eps
+
+        # Need to be 1D arrays
+        Low_to_fail = np.atleast_2d(self.Low)
         out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_fail, self.Upp)
         self.__testCommonFinalConditions(out, "fail")
 
-    def test_checkinputts12(self):
-        Low_to_warn = np.atleast_2d(self.Low).T
-        Upp_to_warn = np.atleast_2d(self.Upp).T
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_warn, Upp_to_warn)
-        self.__testCommonFinalConditions(out, "warn")
-
-    def test_checkinputts13(self):
-        Low_to_fail = np.zeros((2, self.n))
-        Upp_to_fail = np.zeros((2, self.n))
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_fail, Upp_to_fail)
+        Upp_to_fail = np.atleast_2d(self.Upp)
+        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, Upp_to_fail)
         self.__testCommonFinalConditions(out, "fail")
 
-    def test_checkinputts14(self):
-        Low_to_error = self.Upp
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
+        # Incorrect lengths
+        for Low_to_fail in [np.zeros(self.n - 1), np.zeros(self.n + 1)]:
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_fail, self.Upp)
+            self.__testCommonFinalConditions(out, "fail")
 
-    def test_checkinputts15(self):
-        Low_to_error = 0.9 * self.Upp
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
+        for Upp_to_fail in [np.ones(self.n - 1), np.ones(self.n + 1)]:
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, Upp_to_fail)
+            self.__testCommonFinalConditions(out, "fail")
 
-    def test_checkinputts16(self):
-        Low_to_error = self.Low
-        Low_to_error[0] = np.nan
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
+        # Sensible +/-Inf values are acceptable, ...
+        Low_to_pass = np.full(self.n, -np.inf, float)
+        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_pass, self.Upp)
+        self.__testCommonFinalConditions(out, "success")
+
+        Upp_to_pass = np.full(self.n, np.inf, float)
+        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, Upp_to_pass)
+        self.__testCommonFinalConditions(out, "success")
+
+        # NaN values, not so much.
+        for i in range(self.n):
+            Low_to_error = self.Low.copy()
+            Low_to_error[i] = np.nan
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
+            self.__testCommonFinalConditions(out, "fail")
+
+            Upp_to_error = self.Upp.copy()
+            Upp_to_error[i] = np.nan
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, Upp_to_fail)
+            self.__testCommonFinalConditions(out, "fail")
+
+        # Low >= Upp
+        # TODO: Check with +/-Inf as well.
+        for i in range(self.n):
+            Low_to_fail = self.Low.copy()
+            Low_to_fail[i] = self.Upp[i]
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_fail, self.Upp)
+            self.__testCommonFinalConditions(out, "fail")
+
+        # X_0 on bounds acceptable ...
+        for i in range(self.n):
+            Low_to_pass = np.squeeze(self.X_0.copy())
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_pass, self.Upp)
+            self.__testCommonFinalConditions(out, "success")
+
+            Upp_to_pass = np.squeeze(self.X_0.copy())
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, Upp_to_pass)
+            self.__testCommonFinalConditions(out, "success")
+
+        # outside is not
+        for i in range(self.n):
+            Low_to_fail = np.squeeze(self.X_0.copy())
+            Low_to_fail[i] = (1.0 + EPS) * Low_to_fail[i]
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_fail, self.Upp)
+            self.__testCommonFinalConditions(out, "fail")
+
+            Upp_to_fail = np.squeeze(self.X_0.copy())
+            Upp_to_fail[i] = (1.0 - EPS) * Upp_to_fail[i]
+            out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, Upp_to_fail)
+            self.__testCommonFinalConditions(out, "fail")

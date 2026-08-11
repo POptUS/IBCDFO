@@ -67,8 +67,8 @@ class TestPounders(unittest.TestCase):
                 return np.squeeze(out)
 
             X_0 = dfoxs(n, nprob, int(factor**factor_power))
-            Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
-            Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
+            Low = np.full(n, -np.inf, float)
+            Upp = np.full(n, np.inf, float)
             nfs = 1
             X_init = np.atleast_2d(X_0)
             F_init = np.zeros((1, m))

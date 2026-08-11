@@ -22,8 +22,8 @@ np.random.seed(8675309)
 n = 4  # Number of parameters to be optimized
 X_0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
 nf_max = int(100)  # Max number of evaluations to be used by optimizer
-Low = -1 * np.ones((1, n))  # 1-by-n Vector of lower bounds
-Upp = np.ones((1, n))  # 1-by-n Vector of upper bounds
+Low = -np.ones(n)
+Upp = np.ones(n)
 Ffun = call_beamline_simulation_batch  # Simulation function, accepting a matrix with rows of points to evaluate
 printf = True
 

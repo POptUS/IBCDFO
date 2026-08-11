@@ -22,8 +22,6 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         print("Error: Ffun is not a function handle")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    Low = np.atleast_2d(Low)
-    Upp = np.atleast_2d(Upp)
     if X_0.shape != (1, n):
         print("Error: X_0 is not a 1 x n row vector")
         flag = -1
@@ -61,8 +59,8 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         print("Error: X_init and F_init must be 2D arrays")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    # Only check sizes and contents if values are provided
     if nfs > 0:
+        # Only check sizes and contents if values are provided
         nfs2, n2 = X_init.shape
         if nfs2 != nfs:
             print("Error: number of initial points nfs does not match input X_init")
@@ -96,23 +94,20 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
 
     # Check the bounds
-    [nfs2, n2] = np.shape(Low)
-    [nfs3, n3] = np.shape(Upp)
-    if (n3 != n2) or (nfs2 != nfs3):
-        print("Error: bound dimensions inconsistent")
+    if (not isinstance(Low, np.ndarray)) or (not isinstance(Low, np.ndarray)):
+        print("Error: Low and Upp must be Numpy arrays")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    elif n2 != n and (n2 == 1 and nfs2 == n):
-        Low = Low.T
-        Upp = Upp.T
-        print("Warning: bounds are n-by-1, using transposed row vectors")
-        flag = 0
-    elif n2 != n or nfs2 != 1:
-        print("Error: bounds are not 1-by-n vectors")
+    if (Low.ndim != 1) or (Low.ndim != 1):
+        print("Error: Low and Upp must be 1D arrays")
+        flag = -1
+        return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
+    if (len(Low) != n) or len(Low) != len(Upp):
+        print("Error: Low and Upp are not n element 1D arrays")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     if np.any(np.isnan(Upp)) or np.any(np.isnan(Low)):
-        print("Error: Upp or Low bounds contain a NaN")
+        print("Error: Upp or Low bounds contain non-finite values")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     if np.min(Upp - Low) <= 0:
@@ -123,8 +118,4 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         print("Error: starting point outside of bounds (Low,Upp)")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    Upp = Upp.squeeze()
-    Low = Low.squeeze()
-    Upp = np.atleast_1d(Upp)
-    Low = np.atleast_1d(Low)
     return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
