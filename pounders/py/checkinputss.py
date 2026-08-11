@@ -41,11 +41,11 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         print("Error: max number of evaluations is less than 1")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    elif g_tol <= 0:
+    elif (g_tol <= 0.0) or (not np.isfinite(g_tol)):
         print("Error: g_tol must be positive")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    elif delta <= 0:
+    elif (delta <= 0.0) or (not np.isfinite(delta)):
         print("Error: delta must be positive")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]

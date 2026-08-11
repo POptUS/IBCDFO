@@ -7,21 +7,6 @@ from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
 
-def _default_model_par_values(n):
-    par = np.zeros(5)
-    par[0] = np.sqrt(n)
-    par[1] = np.maximum(10, np.sqrt(n))
-    par[2] = 10**-3
-    par[3] = 0.001
-    par[4] = 0
-
-    return par
-
-
-def _default_model_np_max(n):
-    return 2 * n + 1
-
-
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
     r"""
     This version of |pounders| calls ``Ffun`` with batches of model-building
@@ -56,8 +41,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     delta = delta_0
 
     # For arguments that are specified as X-element Numpy arrays, we can be
-    # flexible and accept 1D as well as 2D row/column arrays.  We convert here
-    # into final specification required by the algorithm's implementation.
+    # flexible and accept any iterables that can be converted to genuinely 1D
+    # arrays of the correct length.  We convert here into the final
+    # specification required by the algorithm's implementation.
     X_0 = np.atleast_1d(np.squeeze(X_0))
     Low = np.atleast_1d(np.squeeze(Low))
     Upp = np.atleast_1d(np.squeeze(Upp))
@@ -71,8 +57,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # arguments are error checked.
 
     # -- Options dictionary
-    # TODO: Add others here and to the inline docs
-    ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_min", "hfun", "combinemodels"}
+    # TODO: Many of these need to be added to the inline docs above.
+    ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_max", "delta_min", "delta_inact", "gamma_dec", "gamma_inc", "eta_1", "hfun", "combinemodels"}
     if Options is None:
         Options = {}
     if not set(Options).issubset(ALL_OPTIONS_KEYS):
@@ -125,6 +111,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     xk_in = Prior["xk_in"]
 
     # -- Strict error checking of local variables based on what the implementation requires
+    # This does not alter any of the local arguments.
     [flag, _, _, _, _, _, _] = checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
     if flag == -1:
         return [], [], [], flag, xk_in
@@ -135,7 +122,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         print("  nf   delta    fl  np       f0           g0       ierror")
         progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
 
-    nfs = Prior["nfs"]
     if nfs == 0:
         X = np.vstack((X_0, np.zeros((nf_max - 1, n))))
         F = np.zeros((nf_max, m))
@@ -152,8 +138,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         if printf:
             print("%4i    Initial point  %11.5e\n" % (nf, hfun(F[nf, :])))
     else:
-        X = np.vstack((Prior["X_init"], np.zeros((nf_max, n))))
-        F = np.vstack((Prior["F_init"], np.zeros((nf_max, m))))
+        X = np.vstack((X_init, np.zeros((nf_max, n))))
+        F = np.vstack((F_init, np.zeros((nf_max, m))))
         hF = np.zeros(nf_max + nfs)
         nf = nfs - 1
         nf_max = nf_max + nfs

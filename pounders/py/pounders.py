@@ -83,8 +83,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     delta = delta_0
 
     # For arguments that are specified as X-element Numpy arrays, we can be
-    # flexible and accept 1D as well as 2D row/column arrays.  We convert here
-    # into final specification required by the algorithm's implementation.
+    # flexible and accept any iterables that can be converted to genuinely 1D
+    # arrays of the correct length.  We convert here into the final
+    # specification required by the algorithm's implementation.
     X_0 = np.atleast_1d(np.squeeze(X_0))
     Low = np.atleast_1d(np.squeeze(Low))
     Upp = np.atleast_1d(np.squeeze(Upp))
@@ -98,8 +99,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # arguments are error checked.
 
     # -- Options dictionary
-    # TODO: Add others here and to the inline docs
-    ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_min", "hfun", "combinemodels"}
+    # TODO: Many of these need to be added to the inline docs above.
+    ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_max", "delta_min", "delta_inact", "gamma_dec", "gamma_inc", "eta_1", "hfun", "combinemodels"}
     if Options is None:
         Options = {}
     if not set(Options).issubset(ALL_OPTIONS_KEYS):
@@ -152,6 +153,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     xk_in = Prior["xk_in"]
 
     # -- Strict error checking of local variables based on what the implementation requires
+    # This does not alter any of the local arguments.
     [flag, _, _, _, _, _, _] = checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
     if flag == -1:
         return [], [], [], flag, xk_in
