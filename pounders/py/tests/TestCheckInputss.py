@@ -12,7 +12,7 @@ class TestLotsOfFeatures(unittest.TestCase):
     def setUp(self):
         self.Ffun = np.linalg.norm
         self.n = 3
-        self.X_0 = np.full((1, self.n), 0.5, float)
+        self.X_0 = np.full(self.n, 0.5, float)
         self.np_max = 2 * self.n + 1
         self.nf_max = 10
         self.g_tol = 1e-13
@@ -45,19 +45,14 @@ class TestLotsOfFeatures(unittest.TestCase):
         self.__testCommonFinalConditions(out, "fail")
 
     def testX0Errors(self):
-        # Expects 2D row vector
-        for bad in [self.n - 1, self.n, self.n + 1]:
-            X_0_bad = np.full(bad, 0.5, float)
-            out = checkinputss(self.Ffun, X_0_bad, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-            self.__testCommonFinalConditions(out, "fail")
+        # Expects 1D array ...
+        X_0_bad = np.atleast_2d(self.X_0)
+        out = checkinputss(self.Ffun, X_0_bad, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
+        self.__testCommonFinalConditions(out, "fail")
 
-            X_0_bad = np.full((bad, 1), 0.5, float)
-            out = checkinputss(self.Ffun, X_0_bad, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-            self.__testCommonFinalConditions(out, "fail")
-
-        # 2D row vector must have correct length
+        # of correct length
         for bad in [self.n - 1, self.n + 1]:
-            X_0_bad = np.full((1, bad), 0.5, float)
+            X_0_bad = np.full(bad, 0.5, float)
             out = checkinputss(self.Ffun, X_0_bad, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
             self.__testCommonFinalConditions(out, "fail")
 

@@ -87,7 +87,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
         pass
 
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
-    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, np.atleast_2d(x0), n, fq_pars["npmax"], nf_max, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
+    flag, x0, __, F0, L, U, xkin = checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, 1, len(F0), np.atleast_2d(x0), np.atleast_2d(F0), xkin, L, U)
     if flag == -1:
         print("MSP: Error with inputs. Exiting.")
         X = x0

@@ -16,17 +16,21 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
                 = 0 if a warning was produced (X_0,np_max,F_init,Low,Upp are changed)
                 = -1 if a fatal error was produced (pounders terminates)
     """
-
+    # Check Ffun
     flag = 1  # By default, everything is OK
     if not callable(Ffun):
         print("Error: Ffun is not a function handle")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    if X_0.shape != (1, n):
-        print("Error: X_0 is not a 1 x n row vector")
+    # Check starting point
+    if not isinstance(X_0, np.ndarray):
+        print("Error: X_0 must be a Numpy array")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-
+    elif (X_0.ndim != 1) or (len(X_0) != n):
+        print(f"Error: X_0 is not an {n} element Numpy array")
+        flag = -1
+        return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     # Check max number of interpolation points
     if np_max < n + 1 or np_max > int(0.5 * (n + 1) * (n + 2)):
         np_max = max(n + 1, min(np_max, int(0.5 * (n + 1) * (n + 2))))
@@ -75,7 +79,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
             flag = -1
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
         if not np.array_equiv(X_init[xk_in], X_0):
-            print("Error: Starting point X_0 doesn't match row in Prior['X_init']")
+            print("Error: Starting point X_0 doesn't match row in X_init[xk_in]")
             flag = -1
             return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
 
@@ -103,18 +107,18 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta, nfs, m, X_init, F_i
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     if (len(Low) != n) or len(Low) != len(Upp):
-        print("Error: Low and Upp are not n element 1D arrays")
+        print(f"Error: Low and Upp are not {n} element 1D arrays")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
     if np.any(np.isnan(Upp)) or np.any(np.isnan(Low)):
         print("Error: Upp or Low bounds contain non-finite values")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    if np.min(Upp - Low) <= 0:
+    if any(Low >= Upp):
         print("Error: must have Upp > Low")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]
-    if np.min([np.min(X_0[xk_in, :] - Low), np.min(Upp - X_0[xk_in, :])]) < 0:
+    if any(X_0 < Low) or any(X_0 > Upp):
         print("Error: starting point outside of bounds (Low,Upp)")
         flag = -1
         return [flag, X_0, np_max, F_init, Low, Upp, xk_in]

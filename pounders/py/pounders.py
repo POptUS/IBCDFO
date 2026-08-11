@@ -82,10 +82,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # determining default values and error checking.
     delta = delta_0
 
-    # For arguments that are specified as 1D Numpy arrays, we can be flexible
-    # and accept 1D as well as 2D row/column arrays.  We convert here into final
-    # specification required by the algorithm's implementation.
-    X_0 = np.atleast_2d(np.squeeze(X_0))
+    # For arguments that are specified as X-element Numpy arrays, we can be
+    # flexible and accept 1D as well as 2D row/column arrays.  We convert here
+    # into final specification required by the algorithm's implementation.
+    X_0 = np.atleast_1d(np.squeeze(X_0))
     Low = np.atleast_1d(np.squeeze(Low))
     Upp = np.atleast_1d(np.squeeze(Upp))
 
@@ -151,6 +151,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     F_init = Prior["F_init"]
     xk_in = Prior["xk_in"]
 
+    # -- Strict error checking of local variables based on what the implementation requires
     [flag, _, _, _, _, _, _] = checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
     if flag == -1:
         return [], [], [], flag, xk_in

@@ -47,35 +47,47 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     the standard |pounders| implementation.  Please refer to
     :py:func:`ibcdfo.run_pounders` for more information.
     """
+    # ----- HARDCODED VALUES
+    BAD_ARGS_RETURN = ([], [], [], -1, -1)
+
+    # ----- RENAME & SANITIZE GIVEN ARGUMENTS
+    # Perform this first so that the renamed variables are available for
+    # determining default values and error checking.
+    delta = delta_0
+
+    # For arguments that are specified as X-element Numpy arrays, we can be
+    # flexible and accept 1D as well as 2D row/column arrays.  We convert here
+    # into final specification required by the algorithm's implementation.
+    X_0 = np.atleast_1d(np.squeeze(X_0))
+    Low = np.atleast_1d(np.squeeze(Low))
+    Upp = np.atleast_1d(np.squeeze(Upp))
+
+    # ----- EXTRACT ARGUMENTS & DEFINE DEFAULTS
+    # Once the different fields in dictionary arguments are extracted into local
+    # variables, the dictionary arguments should no longer be used in favor of
+    # the local arguments, which are carefully checked.
+    #
+    # Note that some arguments are used to compute default values before the
+    # arguments are error checked.
+
+    # -- Options dictionary
+    # TODO: Add others here and to the inline docs
+    ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_min", "hfun", "combinemodels"}
     if Options is None:
         Options = {}
+    if not set(Options).issubset(ALL_OPTIONS_KEYS):
+        extras = set(Options).difference(ALL_OPTIONS_KEYS)
+        print(f"Error: Options dictionary contains unknown keys {extras}")
+        return BAD_ARGS_RETURN
 
-    if Model is None:
-        Model = {}
-        Model["Par"] = _default_model_par_values(n)
-        Model["np_max"] = _default_model_np_max(n)
-    else:
-        if "Par" not in Model:
-            Model["Par"] = _default_model_par_values(n)
-        if "np_max" not in Model:
-            Model["np_max"] = _default_model_np_max(n)
-
-    if Prior is None:
-        Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
-    VALID_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
-    if set(Prior) != VALID_PRIOR_KEYS:
-        print(f"Error: Prior must be a dictionary with the keys {VALID_PRIOR_KEYS}")
-        return [], [], [], -1, -1
-
-    delta = delta_0
+    printf = Options.get("printf", 0)
     spsolver = Options.get("spsolver", 2)
     delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
     delta_min = Options.get("delta_min", np.minimum(delta * (10**-13), g_tol / 10))
+    delta_inact = Options.get("delta_inact", 0.75)
     gamma_dec = Options.get("gamma_dec", 0.5)
     gamma_inc = Options.get("gamma_inc", 2)
     eta_1 = Options.get("eta1", 0.05)
-    printf = Options.get("printf", 0)
-    delta_inact = Options.get("delta_inact", 0.75)
 
     if "hfun" in Options:
         hfun = Options["hfun"]
@@ -84,19 +96,40 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         from .general_h_funs import h_leastsquares as hfun
         from .general_h_funs import combine_leastsquares as combinemodels
 
-    # choose your spsolver
     solve_trsp = create_trsp_solver(spsolver)
 
-    # POUNDERS is written for a 2D row vector.  However, we are flexible and
-    # allow users to pass in 1D or 2D row/column arrays.
-    X_0 = np.atleast_2d(np.squeeze(X_0))
+    # -- Model dictionary
+    ALL_MODEL_KEYS = {"np_max", "Par"}
+    DEFAULT_MODEL_PAR = [np.sqrt(n), np.maximum(10, np.sqrt(n)), 10**-3, 0.001, 0]
+    if Model is None:
+        Model = {}
+    if not set(Model).issubset(ALL_MODEL_KEYS):
+        extras = set(Model).difference(ALL_MODEL_KEYS)
+        print(f"Error: Model dictionary contains unknown keys {extras}")
+        return BAD_ARGS_RETURN
 
-    [flag, X_0, _, F_init, Low, Upp, xk_in] = checkinputss(Ffun, X_0, n, Model["np_max"], nf_max, g_tol, delta_0, Prior["nfs"], m, Prior["X_init"], Prior["F_init"], Prior["xk_in"], Low, Upp)
+    np_max = Model.get("np_max", 2 * n + 1)
+    Par = Model.get("Par", DEFAULT_MODEL_PAR)
+
+    # -- Prior dictionary
+    EXPECTED_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
+    if Prior is None:
+        Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
+    if set(Prior) != EXPECTED_PRIOR_KEYS:
+        print(f"Error: Prior must be a dictionary with the keys {EXPECTED_PRIOR_KEYS}")
+        return BAD_ARGS_RETURN
+
+    nfs = Prior["nfs"]
+    X_init = Prior["X_init"]
+    F_init = Prior["F_init"]
+    xk_in = Prior["xk_in"]
+
+    # -- Strict error checking of local variables based on what the implementation requires
+    [flag, _, _, _, _, _, _] = checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
     if flag == -1:
-        X = []
-        F = []
-        hF = []
-        return X, F, hF, flag, xk_in
+        return [], [], [], flag, xk_in
+
+    # ----- OPTIMIZE!
     eps = np.finfo(float).eps  # Define machine epsilon
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
@@ -134,9 +167,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         #  1a. Compute the interpolation set.
         D = X[: nf + 1] - X[xk_in]
         Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+        [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, np_max, Par, False)
         if mp < n:
-            [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+            [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Par[2])
             k_new = int(min(n - mp, nf_max - (nf + 1)))  # new geometry points to send to Ffun (while respecting nfmax)
             idx_new = nf + 1 + np.arange(k_new)  # absolute indices of these points
 
@@ -156,7 +189,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Res[nf, :] = (F[nf, :] - Cres) - 0.5 * D @ np.tensordot(D.T, Hres, 1)
             if nf + 1 >= nf_max:
                 break
-            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+            [_, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, np_max, Par, False)
             if mp < n:
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -5)
                 return X, F, hF, flag, xk_in
@@ -190,9 +223,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 2. Critically test invoked if the projected model gradient is small
         if ng < g_tol:
             delta = np.maximum(g_tol, np.max(np.abs(X[xk_in])) * eps)
-            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
+            [Mdir, _, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, np_max, Par, True)
             if not valid:
-                [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Model["Par"][2])
+                [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Par[2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
                     nf += 1
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
@@ -206,7 +239,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 if nf + 1 >= nf_max:
                     break
                 # Recalculate gradient based on a MFN model
-                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+                [_, _, valid, Gres, Hres, Mind] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, np_max, Par, False)
                 G, H = combinemodels(Cres, Gres, Hres)
                 ind_Lownotbinding = (X[xk_in] > Low) * (G.T > 0)
                 ind_Uppnotbinding = (X[xk_in] < Upp) * (G.T < 0)
@@ -289,26 +322,26 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 5. Evaluate a model-improving point if necessary
         if not valid and (nf + 1 < nf_max) and (rho < eta_1):  # Implies xk_in, delta unchanged
             # Need to check because model may be valid after Xsp evaluation
-            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], True)
+            [Mdir, mp, valid, _, _, _] = formquad(X[: nf + 1, :], F[: nf + 1, :], delta, xk_in, np_max, Par, True)
             if not valid:  # ! One strategy for choosing model-improving point:
                 # Update model (exists because delta & xk_in unchanged)
                 D = X[: nf + 1] - X[xk_in]
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
-                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
+                [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, np_max, Par, False)
                 if len(Mind) < n + 1:
                     # This is almost never triggered but is a safeguard for
                     # pathological cases where one needs to recover from
                     # unusual conditioning of recent interpolation sets
-                    Model["Par"][4] = 1
-                    [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, Model["np_max"], Model["Par"], False)
-                    Model["Par"][4] = 0
+                    Par[4] = 1
+                    [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, np_max, Par, False)
+                    Par[4] = 0
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
                 # Evaluate model-improving points to pick best one
                 # May eventually want to normalize Mdir first for infty norm
                 # Plus directions
-                [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+                [Mdir1, mp1] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Par[2])
                 for i in range(n - mp1):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
@@ -316,7 +349,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 a1 = np.min(Res[: n - mp1, 0:1])
                 Xsp = Mdir1[b, :]
                 # Minus directions
-                [Mdir1, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Model["Par"][2])
+                [Mdir1, mp2] = bmpts(X[xk_in], -Mdir[0 : n - mp, :], Low, Upp, delta, Par[2])
                 for i in range(n - mp2):
                     D = Mdir1[i, :]
                     Res[i, 0] = D @ (G + 0.5 * H @ D.T)
