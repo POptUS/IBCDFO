@@ -48,11 +48,8 @@ class TestCheckInputss(unittest.TestCase):
         for key, value in new_args.items():
             kwargs[key] = value
 
-        out = checkinputss(**kwargs)
-        self.assertEqual(len(out), 7)
-        out_flag = out[0]
         expected, err_msg = OUTPUTS[flag.lower()]
-        self.assertEqual(expected, out_flag, err_msg)
+        self.assertEqual(expected, checkinputss(**kwargs), err_msg)
 
     def testConfirmGoodArguments(self):
         self.__test({}, "success")
