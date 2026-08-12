@@ -28,6 +28,7 @@ class TestCheckInputss(unittest.TestCase):
         self.__NOT_REAL = (None, "", {}, [1.1], {1.1})
         self.__NOT_INT = (None, "", 1.0, 1.1, {}, [1], {1})
         self.__NOT_NUMPY_ARRAY = (None, "", 1, 1.1, {}, [1], {1})
+        self.__NOT_FUNCTION = (None, "", 1, 1.1, {}, [1], {1})
 
     def __test(self, new_args, expected_exception):
         kwargs = {
@@ -59,7 +60,8 @@ class TestCheckInputss(unittest.TestCase):
         self.__test({}, None)
 
     def testFfun(self):
-        self.__test({"Ffun": []}, TypeError)
+        for bad in self.__NOT_FUNCTION:
+            self.__test({"Ffun": bad}, TypeError)
 
     def testN(self):
         for bad in self.__NOT_INT:
@@ -74,17 +76,53 @@ class TestCheckInputss(unittest.TestCase):
             self.__test({"m": bad}, ValueError)
 
     def testNpMax(self):
+        self.assertEqual(self.n, 3)
+        MIN, MAX = 4, 10
+
         for bad in self.__NOT_INT:
             self.__test({"np_max": bad}, TypeError)
-        # TODO: Test on both sides of interval
-        self.__test({"np_max": 1}, ValueError)
+        for good in range(MIN, MAX + 1):
+            self.__test({"np_max": good}, None)
+        for bad in [MIN - 1, MAX + 1]:
+            self.__test({"np_max": bad}, ValueError)
 
     def testNfMax(self):
+        self.assertEqual(self.n, 3)
+        self.assertEqual(self.nfs, 2)
+
         for bad in self.__NOT_INT:
             self.__test({"nf_max": bad}, TypeError)
-        # TODO: Test on both sides of interval
+
+        # No prior evaluations given
+        min_required = 5
+        test_case = {"nfs": 0, "X_init": np.full((0, self.n), np.nan, float), "F_init": np.full((0, self.m), np.nan, float), "xk_in": 0}
+        for good in [0, 1, 10, 10_000]:
+            test_case["nf_max"] = min_required + good
+            self.__test(test_case, None)
+        for bad in range(min_required):
+            test_case["nf_max"] = bad
+            self.__test(test_case, ValueError)
+
+        # Two prior evaluation
+        min_required = 3
+        for good in [0, 1, 10, 10_000]:
+            self.__test({"nf_max": min_required + good}, None)
+        for bad in range(min_required):
+            self.__test({"nf_max": bad}, ValueError)
+
+        # n+2 or more prior evaluations
+        min_required = 1
+        for nfs in [5, 6, 10, 10_000]:
+            test_case = {"nfs": nfs, "X_init": np.full((nfs, self.n), 0.5, float), "F_init": np.zeros((nfs, self.m)), "xk_in": 0}
+            for good in [1, 2, 10, 10_000]:
+                test_case["nf_max"] = good
+                self.__test(test_case, None)
+            test_case["nf_max"] = 0
+            self.__test(test_case, ValueError)
 
     def testX0Errors(self):
+        EPS = np.finfo(float).eps
+
         # Expects 1D array ...
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"X_0": bad}, TypeError)
@@ -93,6 +131,23 @@ class TestCheckInputss(unittest.TestCase):
         # of correct length
         for bad in [self.n - 1, self.n + 1]:
             self.__test({"X_0": np.full(bad, 0.5, float)}, ValueError)
+
+        # X_0 on bounds acceptable ...
+        #
+        # Since the prior evaluations are already correctly set
+        # relative to X_0 it's easy and cleaner to change the bounds.
+        self.__test({"Low": self.X_0}, None)
+        self.__test({"Upp": self.X_0}, None)
+
+        # outside is not
+        for i in range(self.n):
+            Low_to_fail = np.squeeze(self.X_0.copy())
+            Low_to_fail[i] = (1.0 + EPS) * Low_to_fail[i]
+            self.__test({"Low": Low_to_fail}, ValueError)
+
+            Upp_to_fail = np.squeeze(self.X_0.copy())
+            Upp_to_fail[i] = (1.0 - EPS) * Upp_to_fail[i]
+            self.__test({"Upp": Upp_to_fail}, ValueError)
 
     def testGTol(self):
         for bad in self.__NOT_REAL:
@@ -119,14 +174,16 @@ class TestCheckInputss(unittest.TestCase):
         self.__test({"X_init": np.zeros(self.n)}, ValueError)
         self.__test({"X_init": np.zeros((self.nfs, self.n, 1))}, ValueError)
 
-        for bad in [self.n - 1, self.n + 1]:
-            self.__test({"X_init": np.zeros((self.nfs, bad))}, ValueError)
-
         for bad in [self.nfs - 1, self.nfs + 1]:
             self.__test({"X_init": np.zeros((bad, self.n))}, ValueError)
 
+        for bad in [self.n - 1, self.n + 1]:
+            self.__test({"X_init": np.zeros((self.nfs, bad))}, ValueError)
+
         for bad in [np.nan, np.inf, -np.inf]:
             self.__test({"X_init": np.full(self.X_init.shape, bad, float)}, ValueError)
+
+        # TODO: Check invalid xk_in
 
     def testFinitErrors(self):
         for bad in self.__NOT_NUMPY_ARRAY:
@@ -135,16 +192,20 @@ class TestCheckInputss(unittest.TestCase):
         self.__test({"F_init": np.zeros(self.m)}, ValueError)
         self.__test({"F_init": np.zeros((self.nfs, self.m, 1))}, ValueError)
 
-        for bad in [self.m - 1, self.m + 1]:
-            self.__test({"F_init": np.zeros((self.nfs, bad))}, ValueError)
-
         for bad in [self.nfs - 1, self.nfs + 1]:
             self.__test({"F_init": np.zeros((bad, self.m))}, ValueError)
+
+        for bad in [self.m - 1, self.m + 1]:
+            self.__test({"F_init": np.zeros((self.nfs, bad))}, ValueError)
 
         for bad in [np.nan, np.inf, -np.inf]:
             self.__test({"F_init": np.full(self.F_init.shape, bad, float)}, ValueError)
 
     def testXKinErrors(self):
+        MIN = np.finfo(float).min
+        MAX = np.finfo(float).max
+        EPS = np.finfo(float).eps
+
         for bad in self.__NOT_INT:
             self.__test({"xk_in": bad}, TypeError)
 
@@ -157,9 +218,39 @@ class TestCheckInputss(unittest.TestCase):
             bad_no_priors["xk_in"] = bad
             self.__test(bad_no_priors, ValueError)
 
-    def testBounds(self):
-        EPS = np.finfo(float).eps
+        # No priors provided
+        test_case = {"nfs": 0, "X_init": np.full((0, self.n), np.nan, float), "F_init": np.full((0, self.m), np.nan, float), "xk_in": 0}
+        self.__test(test_case, None)
+        for bad in [-1, 1, 2, 5]:
+            test_case["xk_in"] = bad
+            self.__test(test_case, ValueError)
 
+        # Starting point does not match given X_0
+        #
+        # Intentionally set other points outside bounds, which should be
+        # acceptable.
+        nfs = 3
+        test_case = {"nfs": nfs, "X_init": None, "F_init": np.zeros((nfs, self.m)), "xk_in": -1}
+        for xk_in in range(nfs):
+            test_case["xk_in"] = xk_in
+
+            i, j = sorted(set(range(nfs)).difference({xk_in}))
+
+            # See valid initial points pass ...
+            X_init = np.full((nfs, self.n), np.nan, float)
+            X_init[xk_in, :] = self.X_0.copy()
+            X_init[i, :] = np.full(self.n, MIN, float)
+            X_init[j, :] = np.full(self.n, MAX, float)
+            test_case["X_init"] = X_init
+            self.__test(test_case, None)
+
+            # and then let's make 'em fail.
+            for k in range(self.n):
+                X_init[xk_in, :] = self.X_0.copy()
+                X_init[xk_in, k] = (1.0 + EPS) * X_init[xk_in, k]
+                self.__test(test_case, ValueError)
+
+    def testBounds(self):
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"Low": bad}, TypeError)
             self.__test({"Upp": bad}, TypeError)
@@ -188,23 +279,7 @@ class TestCheckInputss(unittest.TestCase):
             self.__test({"Upp": Upp_to_fail}, ValueError)
 
         # Low >= Upp
-        # TODO: Check with +/-Inf as well.
         for i in range(self.n):
             Low_to_fail = self.Low.copy()
             Low_to_fail[i] = self.Upp[i]
             self.__test({"Low": Low_to_fail}, ValueError)
-
-        # X_0 on bounds acceptable ...
-        for i in range(self.n):
-            self.__test({"Low": self.X_0}, None)
-            self.__test({"Upp": self.X_0}, None)
-
-        # outside is not
-        for i in range(self.n):
-            Low_to_fail = np.squeeze(self.X_0.copy())
-            Low_to_fail[i] = (1.0 + EPS) * Low_to_fail[i]
-            self.__test({"Low": Low_to_fail}, ValueError)
-
-            Upp_to_fail = np.squeeze(self.X_0.copy())
-            Upp_to_fail[i] = (1.0 - EPS) * Upp_to_fail[i]
-            self.__test({"Upp": Upp_to_fail}, ValueError)

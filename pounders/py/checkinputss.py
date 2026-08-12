@@ -50,7 +50,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise TypeError(f"Error: nf_max is not an integer ({nf_max})")
     min_required_evals = np.max((n - nfs + 2, 1))
     if nf_max < min_required_evals:
-        raise TypeError(f"Error: max number of evaluations ({nf_max}) should be >= {min_required_evals}")
+        raise ValueError(f"Error: nf_max ({nf_max}) should be >= {min_required_evals}")
 
     if not isinstance(g_tol, numbers.Real):
         raise TypeError(f"Error: g_tol is not a real ({g_tol})")
@@ -106,7 +106,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         if not np.all(np.isfinite(X_init)):
             raise ValueError("Error: X_init contains non-finite values")
         if not np.array_equiv(X_init[xk_in], X_0):
-            raise ValueError("Error: Starting point X_0 doesn't match row in X_init[xk_in]")
+            raise ValueError("Error: X_0 doesn't match X_init[xk_in, :]")
 
     if not isinstance(F_init, np.ndarray):
         raise TypeError("Error: F_init must be a 2D Numpy array")
