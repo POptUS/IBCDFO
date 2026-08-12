@@ -16,7 +16,7 @@ class TestCheckInputss(unittest.TestCase):
         self.np_max = 2 * self.n + 1
         self.nf_max = 10
         self.g_tol = 1e-13
-        self.delta = 0.1
+        self.delta_0 = 0.1
         self.nfs = 2
         self.m = 1
         self.X_init = np.vstack((0.5 * np.ones(self.n), np.zeros(self.n)))
@@ -36,7 +36,7 @@ class TestCheckInputss(unittest.TestCase):
             "np_max": self.np_max,
             "nf_max": self.nf_max,
             "g_tol": self.g_tol,
-            "delta": self.delta,
+            "delta_0": self.delta_0,
             "nfs": self.nfs,
             "m": self.m,
             "X_init": self.X_init,
@@ -66,7 +66,7 @@ class TestCheckInputss(unittest.TestCase):
             self.__test({"X_0": np.full(bad, 0.5, float)}, "fail")
 
     def testNpMax(self):
-        self.__test({"np_max": 1}, "warn")
+        self.__test({"np_max": 1}, "fail")
 
     def testNfMax(self):
         self.__test({"nf_max": 0}, "fail")
@@ -77,7 +77,7 @@ class TestCheckInputss(unittest.TestCase):
 
     def testDelta(self):
         for bad in [-np.inf, -1.0, -np.finfo(float).smallest_normal, 0.0, np.nan, np.inf]:
-            self.__test({"delta": bad}, "fail")
+            self.__test({"delta_0": bad}, "fail")
 
     def testXinitErrors(self):
         self.__test({"X_init": np.zeros(self.n)}, "fail")
