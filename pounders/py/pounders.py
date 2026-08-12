@@ -146,9 +146,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # -- Strict error checking of local variables based on what the implementation requires
     # This does not alter any of the local arguments.
-    flag = checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
-    if flag == -1:
-        return [], [], [], flag, xk_in
+    try:
+        checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
+    except Exception as e:
+        print(e)
+        return BAD_ARGS_RETURN
 
     # ----- OPTIMIZE!
     eps = np.finfo(float).eps  # Define machine epsilon

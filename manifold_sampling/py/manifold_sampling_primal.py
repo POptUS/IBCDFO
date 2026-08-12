@@ -92,13 +92,15 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
     F_init = np.atleast_2d(F0)
 
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
-    flag = checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xkin, L, U)
-    if flag == -1:
+    try:
+        checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xkin, L, U)
+    except Exception as e:
+        print(e)
         print("MSP: Error with inputs. Exiting.")
         X = x0
         F = F0
         h = []
-        return X, F, h, xkin, flag
+        return X, F, h, xkin, -1
 
     # Evaluate user scripts at x_0
     h[nf], __, hashes_at_nf = hfun(F[nf])
