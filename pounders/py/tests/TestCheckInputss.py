@@ -168,6 +168,12 @@ class TestCheckInputss(unittest.TestCase):
             self.__test({"nfs": bad}, ValueError)
 
     def testXinitErrors(self):
+        MIN = np.finfo(float).min
+        MAX = np.finfo(float).max
+        EPS = np.finfo(float).eps
+
+        NFS = 3
+
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"X_init": bad}, TypeError)
 
@@ -183,7 +189,29 @@ class TestCheckInputss(unittest.TestCase):
         for bad in [np.nan, np.inf, -np.inf]:
             self.__test({"X_init": np.full(self.X_init.shape, bad, float)}, ValueError)
 
-        # TODO: Check invalid xk_in
+        # X_init[xk_in, :] does not match given X_0
+        #
+        # Intentionally set other points outside bounds, which should be
+        # acceptable.
+        test_case = {"nfs": NFS, "X_init": None, "F_init": np.zeros((NFS, self.m)), "xk_in": -1}
+        for xk_in in range(NFS):
+            i, j = sorted(set(range(NFS)).difference({xk_in}))
+
+            X_init = np.full((NFS, self.n), np.nan, float)
+            test_case["xk_in"] = xk_in
+            test_case["X_init"] = X_init
+
+            # See valid initial points pass ...
+            X_init[xk_in, :] = self.X_0.copy()
+            X_init[i, :] = np.full(self.n, MIN, float)
+            X_init[j, :] = np.full(self.n, MAX, float)
+            self.__test(test_case, None)
+
+            # and then let's make 'em fail.
+            for k in range(self.n):
+                X_init[xk_in, :] = self.X_0.copy()
+                X_init[xk_in, k] = (1.0 + EPS) * X_init[xk_in, k]
+                self.__test(test_case, ValueError)
 
     def testFinitErrors(self):
         for bad in self.__NOT_NUMPY_ARRAY:
@@ -202,21 +230,8 @@ class TestCheckInputss(unittest.TestCase):
             self.__test({"F_init": np.full(self.F_init.shape, bad, float)}, ValueError)
 
     def testXKinErrors(self):
-        MIN = np.finfo(float).min
-        MAX = np.finfo(float).max
-        EPS = np.finfo(float).eps
-
         for bad in self.__NOT_INT:
             self.__test({"xk_in": bad}, TypeError)
-
-        # Invalid integer index
-        for bad in [-1, self.nfs]:
-            self.__test({"xk_in": bad}, ValueError)
-
-        bad_no_priors = {"nfs": -0, "X_init": np.full((0, self.n), 0.0, float), "F_init": np.full((0, self.m), 0.0, float), "xk_in": -1}
-        for bad in [-1, 1]:
-            bad_no_priors["xk_in"] = bad
-            self.__test(bad_no_priors, ValueError)
 
         # No priors provided
         test_case = {"nfs": 0, "X_init": np.full((0, self.n), np.nan, float), "F_init": np.full((0, self.m), np.nan, float), "xk_in": 0}
@@ -225,30 +240,14 @@ class TestCheckInputss(unittest.TestCase):
             test_case["xk_in"] = bad
             self.__test(test_case, ValueError)
 
-        # Starting point does not match given X_0
-        #
-        # Intentionally set other points outside bounds, which should be
-        # acceptable.
-        nfs = 3
-        test_case = {"nfs": nfs, "X_init": None, "F_init": np.zeros((nfs, self.m)), "xk_in": -1}
-        for xk_in in range(nfs):
-            test_case["xk_in"] = xk_in
+        # Invalid integer index with priors provided
+        for bad in [-1, self.nfs]:
+            self.__test({"xk_in": bad}, ValueError)
 
-            i, j = sorted(set(range(nfs)).difference({xk_in}))
-
-            # See valid initial points pass ...
-            X_init = np.full((nfs, self.n), np.nan, float)
-            X_init[xk_in, :] = self.X_0.copy()
-            X_init[i, :] = np.full(self.n, MIN, float)
-            X_init[j, :] = np.full(self.n, MAX, float)
-            test_case["X_init"] = X_init
-            self.__test(test_case, None)
-
-            # and then let's make 'em fail.
-            for k in range(self.n):
-                X_init[xk_in, :] = self.X_0.copy()
-                X_init[xk_in, k] = (1.0 + EPS) * X_init[xk_in, k]
-                self.__test(test_case, ValueError)
+        bad_no_priors = {"nfs": -0, "X_init": np.full((0, self.n), 0.0, float), "F_init": np.full((0, self.m), 0.0, float), "xk_in": -1}
+        for bad in [-1, 1]:
+            bad_no_priors["xk_in"] = bad
+            self.__test(bad_no_priors, ValueError)
 
     def testBounds(self):
         for bad in self.__NOT_NUMPY_ARRAY:
