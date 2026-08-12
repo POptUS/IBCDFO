@@ -14,15 +14,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
         element NumPy array for given :math:`\psp`
-    :param X_0:     :math:`\np` element NumPy array that specifies the initial
-        point
+    :param X_0:     :math:`\np` element 1D NumPy array that specifies the
+        initial point
     :param n:       Dimension (number of continuous, real-valued input variables)
     :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
     :param g_tol:   Tolerance for the 2-norm of the model gradient
     :param delta_0: Positive initial trust region radius
     :param m:       Dimension of output of ``Ffun`` (number of component functions)
-    :param Low:     :math:`\np` element NumPy array of lower bounds
-    :param Upp:     :math:`\np` element NumPy array of upper bounds
+    :param Low:     :math:`\np` element 1D NumPy array of lower bounds
+    :param Upp:     :math:`\np` element 1D NumPy array of upper bounds
     :param Prior:   ``dict`` describing  past evaluations of ``Ffun``.  Set to ``None`` to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
 
         * **nfs** - Number of past function evaluations
@@ -81,14 +81,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # Perform this first so that the renamed variables are available for
     # determining default values and error checking.
     delta = delta_0
-
-    # For arguments that are specified as X-element Numpy arrays, we can be
-    # flexible and accept any iterables that can be converted to genuinely 1D
-    # arrays of the correct length.  We convert here into the final
-    # specification required by the algorithm's implementation.
-    X_0 = np.atleast_1d(np.squeeze(X_0))
-    Low = np.atleast_1d(np.squeeze(Low))
-    Upp = np.atleast_1d(np.squeeze(Upp))
 
     # ----- EXTRACT ARGUMENTS & DEFINE DEFAULTS
     # Once the different fields in dictionary arguments are extracted into local

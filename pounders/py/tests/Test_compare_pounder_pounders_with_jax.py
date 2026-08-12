@@ -32,9 +32,8 @@ nf_max = 500
 g_tol = 1e-5
 n = 5
 X_0 = np.array([0.1, 0.2, 0.3, 0.4, 0.5])
-Low = -2 * np.ones((1, n))
-Upp = 2 * np.ones((1, n))
-nfs = 1
+Low = -2 * np.ones(n)
+Upp = 2 * np.ones(n)
 delta = 0.1
 
 hF = {}

@@ -145,7 +145,7 @@ class TestPounders(unittest.TestCase):
         Ffun = lambda x: x
         n = 16
 
-        X_0 = 0.4 * np.ones((n, 1))  # Test giving of column vector
+        X_0 = 0.4 * np.ones(n)  # Test giving of column vector
         nf_max = 200
         g_tol = 10**-13
         delta = 0.1
@@ -175,7 +175,7 @@ class TestPounders(unittest.TestCase):
         # Sample calling syntax for pounders
         n = 1
 
-        X_0 = 0.4 * np.ones((n, 1))  # Test giving of column vector
+        X_0 = 0.4 * np.ones(n)  # Test giving of column vector
         nf_max = 200
         g_tol = 10**-13
         delta = 0.1

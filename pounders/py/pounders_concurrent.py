@@ -40,14 +40,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # determining default values and error checking.
     delta = delta_0
 
-    # For arguments that are specified as X-element Numpy arrays, we can be
-    # flexible and accept any iterables that can be converted to genuinely 1D
-    # arrays of the correct length.  We convert here into the final
-    # specification required by the algorithm's implementation.
-    X_0 = np.atleast_1d(np.squeeze(X_0))
-    Low = np.atleast_1d(np.squeeze(Low))
-    Upp = np.atleast_1d(np.squeeze(Upp))
-
     # ----- EXTRACT ARGUMENTS & DEFINE DEFAULTS
     # Once the different fields in dictionary arguments are extracted into local
     # variables, the dictionary arguments should no longer be used in favor of
