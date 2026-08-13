@@ -12,6 +12,9 @@ import numpy as np
 from contextlib import redirect_stdout
 
 import ibcdfo
+from ibcdfo.pounders.constants import ALL_MODEL_KEYS, EXPECTED_PRIOR_KEYS, ALL_OPTIONS_KEYS
+from ibcdfo.pounders.compute_default_model import compute_default_model
+from ibcdfo.pounders.compute_default_options import compute_default_options
 
 
 class TestPoundersInterface(unittest.TestCase):
@@ -47,11 +50,12 @@ class TestPoundersInterface(unittest.TestCase):
                 "F_init": F_init,
                 "xk_in": xk_in,
             },
-            "Options": None,
-            "Model": {
-                "np_max": 2 * n + 1,
-            },
         }
+        self.__kwargs["Model"] = compute_default_model(self.__kwargs["n"])
+        self.__kwargs["Options"] = compute_default_options(self.__kwargs["delta_0"], self.__kwargs["g_tol"], self.__kwargs["Low"], self.__kwargs["Upp"])
+        self.assertEqual(set(self.__kwargs["Prior"]), EXPECTED_PRIOR_KEYS)
+        self.assertEqual(set(self.__kwargs["Model"]), ALL_MODEL_KEYS)
+        self.assertEqual(set(self.__kwargs["Options"]), ALL_OPTIONS_KEYS)
 
         self.__NOT_REAL = (None, "", {}, [1.1], {1.1})
         self.__NOT_INT = (None, "", 1.0, 1.1, {}, [1], {1})
@@ -67,10 +71,12 @@ class TestPoundersInterface(unittest.TestCase):
         # ----- ALTER CONFIGURATION
         kwargs = copy.deepcopy(self.__kwargs)
         for key, value in new_args.items():
-            if key in ["nfs", "X_init", "F_init", "xk_in"]:
+            if key in EXPECTED_PRIOR_KEYS:
                 kwargs["Prior"][key] = value
-            elif key in ["np_max"]:
+            elif key in ALL_MODEL_KEYS:
                 kwargs["Model"][key] = value
+            elif key in ALL_OPTIONS_KEYS:
+                kwargs["Options"][key] = value
             else:
                 kwargs[key] = value
 
@@ -112,6 +118,49 @@ class TestPoundersInterface(unittest.TestCase):
 
     def testConfirmGoodArguments(self):
         self.__test({}, None)
+
+    def testModelKeys(self):
+        for bad in [set(), []]:
+            self.__test({"Model": bad}, TypeError)
+
+        for good in [None, {}]:
+            self.__test({"Model": good}, None)
+
+        for key in ALL_MODEL_KEYS:
+            self.__test({key: self.__kwargs["Model"][key]}, None)
+
+    def testPriorKeys(self):
+        # None is fine, ...
+        self.__test({"Prior": None}, None)
+        # but not empty containers
+        for bad in [set(), []]:
+            self.__test({"Prior": bad}, TypeError)
+
+        self.__test({"Prior": {}}, ValueError)
+
+        # Can't take any away
+        for key in EXPECTED_PRIOR_KEYS:
+            bad = copy.deepcopy(self.__kwargs["Prior"])
+            del bad[key]
+            self.assertTrue(set(bad).issubset(EXPECTED_PRIOR_KEYS))
+            self.assertNotEqual(set(bad), EXPECTED_PRIOR_KEYS)
+            self.__test({"Prior": bad}, ValueError)
+
+        # Can't add any extras
+        bad = copy.deepcopy(self.__kwargs["Prior"])
+        bad["!NOT A KEY!"] = 1.1
+        self.assertNotEqual(set(bad), EXPECTED_PRIOR_KEYS)
+        self.__test({"Prior": bad}, ValueError)
+
+    def testOptionsKeys(self):
+        for bad in [set(), []]:
+            self.__test({"Options": bad}, TypeError)
+
+        for good in [None, {}]:
+            self.__test({"Options": good}, None)
+
+        for key in ALL_OPTIONS_KEYS:
+            self.__test({key: self.__kwargs["Options"][key]}, None)
 
     def testFfun(self):
         for bad in self.__NOT_FUNCTION:

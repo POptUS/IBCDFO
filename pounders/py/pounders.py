@@ -2,6 +2,9 @@ import numbers
 
 import numpy as np
 
+from .constants import ALL_MODEL_KEYS, EXPECTED_PRIOR_KEYS, ALL_OPTIONS_KEYS
+from .compute_default_model import compute_default_model
+from .compute_default_options import compute_default_options
 from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
 from .checkinputss import checkinputss
@@ -89,21 +92,27 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # the local arguments, which are carefully checked.
 
     # -- Model dictionary
-    ALL_MODEL_KEYS = {"np_max", "Par"}
-    DEFAULT_MODEL_PAR = [np.sqrt(n), np.maximum(10, np.sqrt(n)), 10**-3, 0.001, 0]
     if Model is None:
         Model = {}
+    elif not isinstance(Model, dict):
+        raise TypeError("Error: Model argument must be a dictionary")
     if not set(Model).issubset(ALL_MODEL_KEYS):
         extras = set(Model).difference(ALL_MODEL_KEYS)
         raise ValueError(f"Error: Model dictionary contains unknown keys {extras}")
 
-    np_max = Model.get("np_max", 2 * n + 1)
-    Par = Model.get("Par", DEFAULT_MODEL_PAR)
+    defaults = compute_default_model(n)
+    assert set(defaults) == ALL_MODEL_KEYS
+    for key, value in Model.items():
+        defaults[key] = value
+
+    np_max = defaults["np_max"]
+    Par = defaults["Par"]
 
     # -- Prior dictionary
-    EXPECTED_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
     if Prior is None:
         Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
+    elif not isinstance(Prior, dict):
+        raise TypeError("Error: Prior argument must be a dictionary")
     if set(Prior) != EXPECTED_PRIOR_KEYS:
         raise ValueError(f"Error: Prior must be a dictionary with the keys {EXPECTED_PRIOR_KEYS}")
 
@@ -118,28 +127,32 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # ------ FINALIZE OPTION LOCAL VARIABLES
     # This must be run after error checking main local variables, some of which set default values for options
-    ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_max", "delta_min", "delta_inact", "gamma_dec", "gamma_inc", "eta_1", "hfun", "combinemodels"}
+    # NOTE: None of these local variables are submitted to error checking.
     if Options is None:
         Options = {}
+    elif not isinstance(Options, dict):
+        raise TypeError("Error: Options argument must be a dictionary")
     if not set(Options).issubset(ALL_OPTIONS_KEYS):
         extras = set(Options).difference(ALL_OPTIONS_KEYS)
         raise ValueError(f"Error: Options dictionary contains unknown keys {extras}")
+    if (("hfun" in Options) and ("combinemodels" not in Options)) or (("hfun" not in Options) and ("combinemodels" in Options)):
+        raise ValueError("Error: Cannot provide only hfun or only combinemodels")
 
-    printf = Options.get("printf", 0)
-    spsolver = Options.get("spsolver", 2)
-    delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta_0))
-    delta_min = Options.get("delta_min", np.minimum(delta_0 * (10**-13), g_tol / 10))
-    delta_inact = Options.get("delta_inact", 0.75)
-    gamma_dec = Options.get("gamma_dec", 0.5)
-    gamma_inc = Options.get("gamma_inc", 2)
-    eta_1 = Options.get("eta1", 0.05)
+    defaults = compute_default_options(delta_0, g_tol, Low, Upp)
+    assert set(defaults) == ALL_OPTIONS_KEYS
+    for key, value in Options.items():
+        defaults[key] = value
 
-    if "hfun" in Options:
-        hfun = Options["hfun"]
-        combinemodels = Options["combinemodels"]
-    else:
-        from .general_h_funs import h_leastsquares as hfun
-        from .general_h_funs import combine_leastsquares as combinemodels
+    printf = defaults["printf"]
+    spsolver = defaults["spsolver"]
+    delta_max = defaults["delta_max"]
+    delta_min = defaults["delta_min"]
+    delta_inact = defaults["delta_inact"]
+    gamma_dec = defaults["gamma_dec"]
+    gamma_inc = defaults["gamma_inc"]
+    eta_1 = defaults["eta1"]
+    hfun = defaults["hfun"]
+    combinemodels = defaults["combinemodels"]
 
     solve_trsp = create_trsp_solver(spsolver)
 

@@ -10,3 +10,10 @@ TRSP_SOLVER_MINQ8 = 3
 
 # ----- ERROR & WARNING MESSAGES
 WARNING_SIMPLE_TRSP = "The simple TRSP solver should only be used for testing or debugging"
+
+# ----- SETS OF DICT CONFIG KEYS
+# * ALL_* implies that users can at most provide this set of keys
+# * EXPECTED_* implies that users have to provide this and only this set of keys
+ALL_MODEL_KEYS = {"np_max", "Par"}
+EXPECTED_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
+ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_max", "delta_min", "delta_inact", "gamma_dec", "gamma_inc", "eta1", "hfun", "combinemodels"}
