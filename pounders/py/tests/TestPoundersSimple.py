@@ -52,10 +52,6 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -1, f"Dimension error should have occurred on first eval. (flag={flag})")
 
-        # Intentionally crashing pounders
-        [X, F, hF, flag, xk_best] = both_pounders({}, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
-        self.assertEqual(flag, -1, f"We are testing proper failure of pounders. (flag={flag})")
-
     def test_basic_pounders_usage(self):
         def vecFun(x):
             """
@@ -90,9 +86,9 @@ class TestPounders(unittest.TestCase):
         # xind [int] Index of point in X_0 at which to start from (1)
         xind = 0
         # Low [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
-        Low = np.zeros((1, n))
+        Low = np.zeros(n)
         # Upp [dbl] [1-by-n] Vector of upper bounds (Inf(1,n))
-        Upp = np.ones((1, n))
+        Upp = np.ones(n)
 
         np.random.seed(1)
         F_init[0, :] = Ffun(X_0[0, :])

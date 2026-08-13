@@ -1,3 +1,5 @@
+import numbers
+
 import numpy as np
 
 from .create_trsp_solver import create_trsp_solver
@@ -32,36 +34,59 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     the standard |pounders| implementation.  Please refer to
     :py:func:`ibcdfo.run_pounders` for more information.
     """
-    # ----- HARDCODED VALUES
-    BAD_ARGS_RETURN = ([], [], [], -1, -1)
-
-    # ----- RENAME & SANITIZE GIVEN ARGUMENTS
-    # Perform this first so that the renamed variables are available for
-    # determining default values and error checking.
-    delta = delta_0
+    # ----- UPFRONT ERROR CHECKING
+    # n is used to set defaults before official error checking
+    if not isinstance(n, numbers.Integral):
+        raise TypeError(f"Error: n dimension is not an integer ({n})")
+    if n < 1:
+        raise ValueError(f"Error: n dimension is not positive integer ({n})")
 
     # ----- EXTRACT ARGUMENTS & DEFINE DEFAULTS
     # Once the different fields in dictionary arguments are extracted into local
     # variables, the dictionary arguments should no longer be used in favor of
     # the local arguments, which are carefully checked.
-    #
-    # Note that some arguments are used to compute default values before the
-    # arguments are error checked.
 
-    # -- Options dictionary
-    # TODO: Many of these need to be added to the inline docs above.
+    # -- Model dictionary
+    ALL_MODEL_KEYS = {"np_max", "Par"}
+    DEFAULT_MODEL_PAR = [np.sqrt(n), np.maximum(10, np.sqrt(n)), 10**-3, 0.001, 0]
+    if Model is None:
+        Model = {}
+    if not set(Model).issubset(ALL_MODEL_KEYS):
+        extras = set(Model).difference(ALL_MODEL_KEYS)
+        raise ValueError(f"Error: Model dictionary contains unknown keys {extras}")
+
+    np_max = Model.get("np_max", 2 * n + 1)
+    Par = Model.get("Par", DEFAULT_MODEL_PAR)
+
+    # -- Prior dictionary
+    EXPECTED_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
+    if Prior is None:
+        Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
+    if set(Prior) != EXPECTED_PRIOR_KEYS:
+        raise ValueError(f"Error: Prior must be a dictionary with the keys {EXPECTED_PRIOR_KEYS}")
+
+    nfs = Prior["nfs"]
+    X_init = Prior["X_init"]
+    F_init = Prior["F_init"]
+    xk_in = Prior["xk_in"]
+
+    # ----- STRICT ERROR CHECKING OF LOCAL VARIABLES
+    # This raises exceptions on bad inputs and does not alter any arguments.
+    checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
+
+    # ------ FINALIZE OPTION LOCAL VARIABLES
+    # This must be run after error checking main local variables, some of which set default values for options
     ALL_OPTIONS_KEYS = {"printf", "spsolver", "delta_max", "delta_min", "delta_inact", "gamma_dec", "gamma_inc", "eta_1", "hfun", "combinemodels"}
     if Options is None:
         Options = {}
     if not set(Options).issubset(ALL_OPTIONS_KEYS):
         extras = set(Options).difference(ALL_OPTIONS_KEYS)
-        print(f"Error: Options dictionary contains unknown keys {extras}")
-        return BAD_ARGS_RETURN
+        raise ValueError(f"Error: Options dictionary contains unknown keys {extras}")
 
     printf = Options.get("printf", 0)
     spsolver = Options.get("spsolver", 2)
-    delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta))
-    delta_min = Options.get("delta_min", np.minimum(delta * (10**-13), g_tol / 10))
+    delta_max = Options.get("delta_max", np.minimum(0.5 * np.min(Upp - Low), (10**3) * delta_0))
+    delta_min = Options.get("delta_min", np.minimum(delta_0 * (10**-13), g_tol / 10))
     delta_inact = Options.get("delta_inact", 0.75)
     gamma_dec = Options.get("gamma_dec", 0.5)
     gamma_inc = Options.get("gamma_inc", 2)
@@ -76,42 +101,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     solve_trsp = create_trsp_solver(spsolver)
 
-    # -- Model dictionary
-    ALL_MODEL_KEYS = {"np_max", "Par"}
-    DEFAULT_MODEL_PAR = [np.sqrt(n), np.maximum(10, np.sqrt(n)), 10**-3, 0.001, 0]
-    if Model is None:
-        Model = {}
-    if not set(Model).issubset(ALL_MODEL_KEYS):
-        extras = set(Model).difference(ALL_MODEL_KEYS)
-        print(f"Error: Model dictionary contains unknown keys {extras}")
-        return BAD_ARGS_RETURN
-
-    np_max = Model.get("np_max", 2 * n + 1)
-    Par = Model.get("Par", DEFAULT_MODEL_PAR)
-
-    # -- Prior dictionary
-    EXPECTED_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
-    if Prior is None:
-        Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
-    if set(Prior) != EXPECTED_PRIOR_KEYS:
-        print(f"Error: Prior must be a dictionary with the keys {EXPECTED_PRIOR_KEYS}")
-        return BAD_ARGS_RETURN
-
-    nfs = Prior["nfs"]
-    X_init = Prior["X_init"]
-    F_init = Prior["F_init"]
-    xk_in = Prior["xk_in"]
-
-    # -- Strict error checking of local variables based on what the implementation requires
-    # This does not alter any of the local arguments.
-    try:
-        checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
-    except Exception as e:
-        print(e)
-        return BAD_ARGS_RETURN
-
     # ----- OPTIMIZE!
     eps = np.finfo(float).eps  # Define machine epsilon
+
+    delta = delta_0
     if printf:
         print("  nf   delta    fl  np       f0           g0       ierror")
         progstr = "%4i %9.2e %2i %3i  %11.5e %12.4e %11.3e\n"  # Line-by-line
