@@ -2,9 +2,14 @@ import numbers
 
 import numpy as np
 
-from .constants import ALL_MODEL_KEYS, EXPECTED_PRIOR_KEYS, ALL_OPTIONS_KEYS
-from .compute_default_model import compute_default_model
-from .compute_default_options import compute_default_options
+from .defaults import (
+    ALL_MODEL_KEYS,
+    ALL_OPTIONS_KEYS,
+    EXPECTED_PRIOR_KEYS,
+    compute_default_prior,
+    compute_default_model,
+    compute_default_options,
+)
 from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
 from .checkinputss import checkinputss
@@ -16,6 +21,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     r"""
     Run |pounders| on the optimization problem specified by the given
     arguments.
+
+    .. todo::
+        * Optimizers to add in missing documentation for ``Options``
 
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
         element NumPy array for given :math:`\psp`
@@ -80,11 +88,27 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           incumbent at termination (approximate local minimizer if `flag=0`)
     """
     # ----- UPFRONT ERROR CHECKING
-    # n is used to set defaults before official error checking
+    # These are used to set defaults before official error checking
     if not isinstance(n, numbers.Integral):
         raise TypeError(f"Error: n dimension is not an integer ({n})")
     if n < 1:
         raise ValueError(f"Error: n dimension is not positive integer ({n})")
+
+    if not isinstance(m, numbers.Integral):
+        raise TypeError(f"Error: m dimension is not an integer ({m})")
+    if m < 1:
+        raise ValueError(f"Error: m dimension is not positive integer ({m})")
+
+    # ----- ALLOW "1D" NUMPY ARRAY FLEXIBILITY
+    # For arguments that are specified as X-element Numpy arrays, we can be
+    # flexible and accept any iterables that can be converted to genuinely 1D
+    # arrays of the correct length.  We eagerly convert here into the final
+    # specification required by the algorithm's implementation.
+    # TODO: Uncomment this once we add in tests to confirm this.  Ensure that we
+    # test n=1/m=1 case as well.  Update docstrings as well to de-emphasize 1D.
+    # X_0 = np.atleast_1d(np.squeeze(X_0))
+    # Low = np.atleast_1d(np.squeeze(Low))
+    # Upp = np.atleast_1d(np.squeeze(Upp))
 
     # ----- EXTRACT ARGUMENTS & DEFINE DEFAULTS
     # Once the different fields in dictionary arguments are extracted into local
@@ -94,7 +118,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # -- Model dictionary
     if Model is None:
         Model = {}
-    elif not isinstance(Model, dict):
+    if not isinstance(Model, dict):
         raise TypeError("Error: Model argument must be a dictionary")
     if not set(Model).issubset(ALL_MODEL_KEYS):
         extras = set(Model).difference(ALL_MODEL_KEYS)
@@ -110,8 +134,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # -- Prior dictionary
     if Prior is None:
-        Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
-    elif not isinstance(Prior, dict):
+        Prior = compute_default_prior(n, m)
+    if not isinstance(Prior, dict):
         raise TypeError("Error: Prior argument must be a dictionary")
     if set(Prior) != EXPECTED_PRIOR_KEYS:
         raise ValueError(f"Error: Prior must be a dictionary with the keys {EXPECTED_PRIOR_KEYS}")
@@ -130,7 +154,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # NOTE: None of these local variables are submitted to error checking.
     if Options is None:
         Options = {}
-    elif not isinstance(Options, dict):
+    if not isinstance(Options, dict):
         raise TypeError("Error: Options argument must be a dictionary")
     if not set(Options).issubset(ALL_OPTIONS_KEYS):
         extras = set(Options).difference(ALL_OPTIONS_KEYS)

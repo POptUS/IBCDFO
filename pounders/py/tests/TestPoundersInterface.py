@@ -12,9 +12,13 @@ import numpy as np
 from contextlib import redirect_stdout
 
 import ibcdfo
-from ibcdfo.pounders.constants import ALL_MODEL_KEYS, EXPECTED_PRIOR_KEYS, ALL_OPTIONS_KEYS
-from ibcdfo.pounders.compute_default_model import compute_default_model
-from ibcdfo.pounders.compute_default_options import compute_default_options
+from ibcdfo.pounders.defaults import (
+    ALL_MODEL_KEYS,
+    ALL_OPTIONS_KEYS,
+    EXPECTED_PRIOR_KEYS,
+    compute_default_model,
+    compute_default_options,
+)
 
 
 class TestPoundersInterface(unittest.TestCase):
