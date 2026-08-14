@@ -39,8 +39,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     :param Prior:   ``dict`` describing  past evaluations of ``Ffun``.  Set to ``None`` to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
 
         * **nfs** - Number of past function evaluations
-        * **X_init** - :math:`\mathrm{nfs} \times \np` NumPy array of points
-          :math:`\psp_k`
+        * **X_init** - :math:`\mathrm{nfs} \times \np` NumPy array of distinct
+          points :math:`\psp_k`
         * **F_init** - :math:`\mathrm{nfs} \times \nd` NumPy array of values
           :math:`\Ffun(\psp_k)` computed with ``Ffun``
         * **xk_in** -  Zero-based index into ``X_init`` and ``F_init`` that

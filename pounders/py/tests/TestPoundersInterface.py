@@ -23,6 +23,9 @@ from ibcdfo.pounders.defaults import (
 
 class TestPoundersInterface(unittest.TestCase):
     def setUp(self):
+        self.__SUCCESS_MSG = "g is sufficiently small."
+        self.__ERROR_HDR = "Error: "
+
         self.__THETA_STAR = np.array([2.1, -0.4, 3.4])
         x_all = np.array([-1.1, 0.2, 1.3, 2.1])
         M = np.array([(1.0, x, x**2) for x in x_all])
@@ -56,7 +59,12 @@ class TestPoundersInterface(unittest.TestCase):
             },
         }
         self.__kwargs["Model"] = compute_default_model(self.__kwargs["n"])
-        self.__kwargs["Options"] = compute_default_options(self.__kwargs["delta_0"], self.__kwargs["g_tol"], self.__kwargs["Low"], self.__kwargs["Upp"])
+        self.__kwargs["Options"] = compute_default_options(
+            self.__kwargs["delta_0"],
+            self.__kwargs["g_tol"],
+            self.__kwargs["Low"],
+            self.__kwargs["Upp"],
+        )
         self.assertEqual(set(self.__kwargs["Prior"]), EXPECTED_PRIOR_KEYS)
         self.assertEqual(set(self.__kwargs["Model"]), ALL_MODEL_KEYS)
         self.assertEqual(set(self.__kwargs["Options"]), ALL_OPTIONS_KEYS)
@@ -67,10 +75,16 @@ class TestPoundersInterface(unittest.TestCase):
         self.__NOT_FUNCTION = (None, "", 1, 1.1, {}, [1], {1})
 
     def __test(self, new_args, expected_exception):
+        # For `expected_exception`, pass
+        # - a Python Exception object to confirm that an expectation of that
+        #   type was raised
+        # - self.__SUCCESS_MSG to confirm that the optimization ran successfully
+        #   to completion
+        # - "" to confirm that the optimization terminated upon hitting the
+        #   evaluation budget
+
         # ----- HARDCODED VALUE
         EPS = np.finfo(float).eps
-        SUCCESS_MSG = "g is sufficiently small."
-        ERROR_HDR = "Error: "
 
         # ----- ALTER CONFIGURATION
         kwargs = copy.deepcopy(self.__kwargs)
@@ -86,10 +100,10 @@ class TestPoundersInterface(unittest.TestCase):
 
         # ----- OPTIMIZE & ERROR CHECK
         for solver in [ibcdfo.run_pounders]:
-            if expected_exception is None:
+            if isinstance(expected_exception, str):
                 with redirect_stdout(io.StringIO()) as buffer:
                     X, F, hF, flag, xk_in = solver(**kwargs)
-                self.assertEqual(buffer.getvalue().strip(), SUCCESS_MSG)
+                self.assertEqual(buffer.getvalue().strip(), expected_exception)
 
                 self.assertTrue(isinstance(X, np.ndarray))
                 self.assertEqual(X.ndim, 2)
@@ -103,39 +117,44 @@ class TestPoundersInterface(unittest.TestCase):
                 self.assertEqual(hF.ndim, 1)
                 # self.assertEqual(len(hF), self.nf_max)
 
-                self.assertTrue(isinstance(flag, numbers.Integral))
-                self.assertEqual(flag, 0)
-
                 self.assertTrue(isinstance(xk_in, numbers.Integral))
                 # self.assertTrue(0 <= xk_in < self.nf_max)
 
                 max_rel_err = np.max(np.fabs(1.0 - X[xk_in, :] / self.__THETA_STAR))
-                self.assertTrue(max_rel_err <= 4.0 * EPS)
-                self.assertTrue(np.max(np.fabs(F[xk_in, :])) <= 4.0 * EPS)
-                self.assertTrue(np.fabs(hF[xk_in]) <= 4.0 * EPS)
+
+                if expected_exception == self.__SUCCESS_MSG:
+                    self.assertTrue(isinstance(flag, numbers.Integral))
+                    self.assertEqual(flag, 0)
+
+                    self.assertTrue(max_rel_err <= 4.0 * EPS)
+                    self.assertTrue(np.max(np.fabs(F[xk_in, :])) <= 4.0 * EPS)
+                    self.assertTrue(np.fabs(hF[xk_in]) <= 4.0 * EPS)
+                else:
+                    self.assertTrue(isinstance(flag, numbers.Real))
+                    self.assertTrue(flag > 0.0)
             else:
                 with self.assertRaises(expected_exception) as err:
                     solver(**kwargs)
                 err_msg = str(err.exception)
                 # print(err_msg)
-                self.assertTrue(err_msg.startswith(ERROR_HDR))
+                self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
 
     def testConfirmGoodArguments(self):
-        self.__test({}, None)
+        self.__test({}, self.__SUCCESS_MSG)
 
     def testModelKeys(self):
         for bad in [set(), []]:
             self.__test({"Model": bad}, TypeError)
 
         for good in [None, {}]:
-            self.__test({"Model": good}, None)
+            self.__test({"Model": good}, self.__SUCCESS_MSG)
 
         for key in ALL_MODEL_KEYS:
-            self.__test({key: self.__kwargs["Model"][key]}, None)
+            self.__test({key: self.__kwargs["Model"][key]}, self.__SUCCESS_MSG)
 
     def testPriorKeys(self):
         # None is fine, ...
-        self.__test({"Prior": None}, None)
+        self.__test({"Prior": None}, self.__SUCCESS_MSG)
         # but not empty containers
         for bad in [set(), []]:
             self.__test({"Prior": bad}, TypeError)
@@ -161,10 +180,10 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Options": bad}, TypeError)
 
         for good in [None, {}]:
-            self.__test({"Options": good}, None)
+            self.__test({"Options": good}, self.__SUCCESS_MSG)
 
         for key in ALL_OPTIONS_KEYS:
-            self.__test({key: self.__kwargs["Options"][key]}, None)
+            self.__test({key: self.__kwargs["Options"][key]}, self.__SUCCESS_MSG)
 
     def testFfun(self):
         for bad in self.__NOT_FUNCTION:
@@ -189,7 +208,7 @@ class TestPoundersInterface(unittest.TestCase):
         for bad in self.__NOT_INT:
             self.__test({"np_max": bad}, TypeError)
         for good in range(MIN, MAX + 1):
-            self.__test({"np_max": good}, None)
+            self.__test({"np_max": good}, self.__SUCCESS_MSG)
         for bad in [MIN - 1, MAX + 1]:
             self.__test({"np_max": bad}, ValueError)
 
@@ -205,32 +224,49 @@ class TestPoundersInterface(unittest.TestCase):
 
         # No prior evaluations given
         min_required = 5
-        test_case = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
-        # TODO: What to do for this test?!
-        # for good in [0, 1, 10, 10_000]:
-        #     test_case["nf_max"] = min_required + good
-        #     print(test_case["nf_max"])
-        #     self.__test(test_case, None)
+        test_case = {
+            "nfs": 0,
+            "X_init": np.full((0, n), np.nan, float),
+            "F_init": np.full((0, m), np.nan, float),
+            "xk_in": 0,
+        }
+        for good in [0, 1, 2]:
+            # Too few evaluations to converge to solution
+            test_case["nf_max"] = min_required + good
+            self.__test(test_case, "")
+        for good in [10, 10_000]:
+            test_case["nf_max"] = min_required + good
+            self.__test(test_case, self.__SUCCESS_MSG)
         for bad in range(min_required):
             test_case["nf_max"] = bad
             self.__test(test_case, ValueError)
 
         # Two prior evaluation
         min_required = 3
-        # TODO: What to do for this test?!
-        # for good in [0, 1, 10, 10_000]:
-        #     self.__test({"nf_max": min_required + good}, None)
+        for good in [0, 1, 2]:
+            self.__test({"nf_max": min_required + good}, "")
+        for good in [10, 10_000]:
+            self.__test({"nf_max": min_required + good}, self.__SUCCESS_MSG)
         for bad in range(min_required):
             self.__test({"nf_max": bad}, ValueError)
 
         # n+2 or more prior evaluations
         min_required = 1
         for nfs in [5, 6, 10, 10_000]:
-            test_case = {"nfs": nfs, "X_init": np.full((nfs, n), 0.5, float), "F_init": np.zeros((nfs, m)), "xk_in": 0}
-            # TODO: What to do for this test?!
-            # for good in [1, 2, 10, 10_000]:
+            test_case = {
+                "nfs": nfs,
+                "X_init": np.full((nfs, n), 0.5, float),
+                "F_init": np.zeros((nfs, m)),
+                "xk_in": 0,
+            }
+            # TODO: What to do about this?!
+            # for good in [1, 2]:
             #     test_case["nf_max"] = good
-            #     self.__test(test_case, None)
+            #     print(nfs, good)
+            #     self.__test(test_case, "")
+            # for good in [10, 10_000]:
+            #     test_case["nf_max"] = good
+            #     self.__test(test_case, self.__SUCCESS_MSG)
             test_case["nf_max"] = 0
             self.__test(test_case, ValueError)
 
@@ -253,9 +289,9 @@ class TestPoundersInterface(unittest.TestCase):
         #
         # Since the prior evaluations are already correctly set
         # relative to X_0 it's easy and cleaner to change the bounds.
-        # TODO: What to do about these?!
-        # self.__test({"Low": X_0}, None)
-        # self.__test({"Upp": X_0}, None)
+        # TODO: What to do about this?
+        # self.__test({"Low": X_0}, self.__SUCCESS_MSG)
+        # self.__test({"Upp": X_0}, self.__SUCCESS_MSG)
 
         # outside is not
         for i in range(n):
@@ -286,14 +322,11 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"nfs": bad}, ValueError)
 
     def testXinitErrors(self):
-        # MIN = np.finfo(float).min
-        # MAX = np.finfo(float).max
         EPS = np.finfo(float).eps
-
         NFS_NEW = 3
 
+        Ffun = self.__kwargs["Ffun"]
         n = self.__kwargs["n"]
-        m = self.__kwargs["m"]
         nfs = self.__kwargs["Prior"]["nfs"]
         X_init = self.__kwargs["Prior"]["X_init"].copy()
 
@@ -316,7 +349,12 @@ class TestPoundersInterface(unittest.TestCase):
         #
         # Intentionally set other points outside bounds, which should be
         # acceptable.
-        test_case = {"nfs": NFS_NEW, "X_init": None, "F_init": np.zeros((NFS_NEW, m)), "xk_in": -1}
+        test_case = {
+            "nfs": NFS_NEW,
+            "X_init": None,
+            "F_init": None,
+            "xk_in": -1,
+        }
         for xk_in in range(NFS_NEW):
             i, j = sorted(set(range(NFS_NEW)).difference({xk_in}))
 
@@ -325,17 +363,27 @@ class TestPoundersInterface(unittest.TestCase):
             test_case["X_init"] = X_init
 
             # See valid initial points pass ...
-            # TODO: What to do about this?
-            # X_init[xk_in, :] = self.__kwargs["X_0"].copy()
-            # X_init[i, :] = np.full(n, MIN, float)
-            # X_init[j, :] = np.full(n, MAX, float)
-            # self.__test(test_case, None)
+            X_init[xk_in, :] = self.__kwargs["X_0"].copy()
+            X_init[i, :] = self.__kwargs["Low"] - 0.1
+            X_init[j, :] = self.__kwargs["Upp"] + 0.1
+            test_case["F_init"] = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
+            self.__test(test_case, self.__SUCCESS_MSG)
 
             # and then let's make 'em fail.
             for k in range(n):
                 X_init[xk_in, :] = self.__kwargs["X_0"].copy()
                 X_init[xk_in, k] = (1.0 + EPS) * X_init[xk_in, k]
                 self.__test(test_case, ValueError)
+
+            # Confirm no repeated points even if they have the same F values
+            X_init[xk_in, :] = self.__kwargs["X_0"].copy()
+            X_init[j, :] = X_init[i, :]
+            test_case["F_init"] = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
+            self.__test(test_case, ValueError)
+
+            X_init[j, :] = X_init[xk_in, :]
+            test_case["F_init"] = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
+            self.__test(test_case, ValueError)
 
     def testFinitErrors(self):
         m = self.__kwargs["m"]
@@ -365,8 +413,13 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"xk_in": bad}, TypeError)
 
         # No priors provided
-        test_case = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
-        self.__test(test_case, None)
+        test_case = {
+            "nfs": 0,
+            "X_init": np.full((0, n), np.nan, float),
+            "F_init": np.full((0, m), np.nan, float),
+            "xk_in": 0,
+        }
+        self.__test(test_case, self.__SUCCESS_MSG)
         for bad in [-1, 1, 2, 5]:
             test_case["xk_in"] = bad
             self.__test(test_case, ValueError)
@@ -374,11 +427,6 @@ class TestPoundersInterface(unittest.TestCase):
         # Invalid integer index with priors provided
         for bad in [-1, self.__kwargs["Prior"]["nfs"]]:
             self.__test({"xk_in": bad}, ValueError)
-
-        bad_no_priors = {"nfs": -0, "X_init": np.full((0, n), 0.0, float), "F_init": np.full((0, m), 0.0, float), "xk_in": -1}
-        for bad in [-1, 1]:
-            bad_no_priors["xk_in"] = bad
-            self.__test(bad_no_priors, ValueError)
 
     def testBounds(self):
         n = self.__kwargs["n"]
@@ -399,8 +447,8 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Upp": bad}, ValueError)
 
         # Sensible +/-Inf values are acceptable, ...
-        self.__test({"Low": np.full(n, -np.inf, float)}, None)
-        self.__test({"Upp": np.full(n, np.inf, float)}, None)
+        self.__test({"Low": np.full(n, -np.inf, float)}, self.__SUCCESS_MSG)
+        self.__test({"Upp": np.full(n, np.inf, float)}, self.__SUCCESS_MSG)
 
         # NaN values, not so much.
         for i in range(n):

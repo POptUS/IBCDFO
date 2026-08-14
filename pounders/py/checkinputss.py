@@ -108,6 +108,16 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         if not np.array_equiv(X_init[xk_in], X_0):
             raise ValueError("Error: X_0 doesn't match X_init[xk_in, :]")
 
+        _, counts = np.unique(
+            X_init,
+            axis=0,
+            return_index=False,
+            return_inverse=False,
+            return_counts=True,
+        )
+        if any(counts != 1):
+            raise ValueError("Error: X_init contains repeated points")
+
     if not isinstance(F_init, np.ndarray):
         raise TypeError("Error: F_init must be a 2D Numpy array")
     if F_init.ndim != 2:
