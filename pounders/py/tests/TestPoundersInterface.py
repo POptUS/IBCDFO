@@ -8,6 +8,7 @@ import numbers
 import unittest
 
 import numpy as np
+import itertools as it
 
 from contextlib import redirect_stdout
 
@@ -157,16 +158,6 @@ class TestPoundersInterface(unittest.TestCase):
     def testConfirmGoodArguments(self):
         self.__test({}, self.__SUCCESS_MSG)
 
-    def testModelKeys(self):
-        for bad in [set(), []]:
-            self.__test({"Model": bad}, TypeError)
-
-        for good in [None, {}]:
-            self.__test({"Model": good}, self.__SUCCESS_MSG)
-
-        for key in ALL_MODEL_KEYS:
-            self.__test({key: self.__KWARGS["Model"][key]}, self.__SUCCESS_MSG)
-
     def testPriorKeys(self):
         # None is fine, ...
         self.__test({"Prior": None}, self.__SUCCESS_MSG)
@@ -190,15 +181,99 @@ class TestPoundersInterface(unittest.TestCase):
         self.assertNotEqual(set(bad), EXPECTED_PRIOR_KEYS)
         self.__test({"Prior": bad}, ValueError)
 
-    def testOptionsKeys(self):
-        for bad in [set(), []]:
-            self.__test({"Options": bad}, TypeError)
+    def testModelKeys(self):
+        for good in [None, {}]:
+            self.__test({"Model": good}, self.__SUCCESS_MSG)
 
+        # Get benchmark result with all arguments passed with default values
+        kwargs = copy.deepcopy(self.__KWARGS)
+        with redirect_stdout(io.StringIO()) as buffer:
+            X_full, F_full, hF_full, flag, xk_in_full = ibcdfo.run_pounders(**kwargs)
+        self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
+        self.assertEqual(flag, 0)
+
+        # Confirm identical results when all proper subsets passed.
+        params_fixed = sorted(set(self.__KWARGS["Model"]))
+        for i in range(1, len(params_fixed)):
+            for subset in it.combinations(params_fixed, i):
+                # print(i, subset)
+                kwargs["Model"] = {key: self.__KWARGS["Model"][key] for key in subset}
+                with redirect_stdout(io.StringIO()) as buffer:
+                    X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
+                self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
+                self.assertEqual(flag, 0)
+                self.assertTrue(np.array_equal(X, X_full))
+                self.assertTrue(np.array_equal(F, F_full))
+                self.assertTrue(np.array_equal(hF, hF_full))
+                self.assertEqual(xk_in, xk_in_full)
+
+        for bad in [set(), []]:
+            self.__test({"Model": bad}, TypeError)
+
+        # Can't add any extras
+        bad = copy.deepcopy(self.__KWARGS["Model"])
+        bad["!NOT A KEY!"] = 1.1
+        self.assertNotEqual(set(bad), ALL_MODEL_KEYS)
+        self.__test({"Model": bad}, ValueError)
+
+    def testOptionsKeys(self):
         for good in [None, {}]:
             self.__test({"Options": good}, self.__SUCCESS_MSG)
 
+        # Get benchmark result with all arguments passed with default values
+        kwargs = copy.deepcopy(self.__KWARGS)
+        with redirect_stdout(io.StringIO()) as buffer:
+            X_full, F_full, hF_full, flag, xk_in_full = ibcdfo.run_pounders(**kwargs)
+        self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
+        self.assertEqual(flag, 0)
+
+        # Confirm identical results when all proper subsets passed.
+        defaults = copy.deepcopy(self.__KWARGS["Options"])
+        params_fixed = sorted(set(defaults).difference({"hfun", "combinemodels"}))
+        for i in range(1, len(params_fixed)):
+            for subset in it.combinations(params_fixed, i):
+                # print(i, subset)
+                kwargs["Options"] = {key: defaults[key] for key in subset}
+                with redirect_stdout(io.StringIO()) as buffer:
+                    X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
+                self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
+                self.assertEqual(flag, 0)
+                self.assertTrue(np.array_equal(X, X_full))
+                self.assertTrue(np.array_equal(F, F_full))
+                self.assertTrue(np.array_equal(hF, hF_full))
+                self.assertEqual(xk_in, xk_in_full)
+
+                kwargs["Options"]["hfun"] = defaults["hfun"]
+                kwargs["Options"]["combinemodels"] = defaults["combinemodels"]
+                with redirect_stdout(io.StringIO()) as buffer:
+                    X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
+                self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
+                self.assertEqual(flag, 0)
+                self.assertTrue(np.array_equal(X, X_full))
+                self.assertTrue(np.array_equal(F, F_full))
+                self.assertTrue(np.array_equal(hF, hF_full))
+                self.assertEqual(xk_in, xk_in_full)
+
         for key in ALL_OPTIONS_KEYS:
             self.__test({key: self.__KWARGS["Options"][key]}, self.__SUCCESS_MSG)
+
+        for bad in [set(), []]:
+            self.__test({"Options": bad}, TypeError)
+
+        # Can't add any extras
+        bad = copy.deepcopy(self.__KWARGS["Options"])
+        bad["!NOT A KEY!"] = 1.1
+        self.assertNotEqual(set(bad), ALL_OPTIONS_KEYS)
+        self.__test({"Options": bad}, ValueError)
+
+        # We either don't pass hfun/combinemodels or we pass both
+        bad = copy.deepcopy(self.__KWARGS["Options"])
+        del bad["hfun"]
+        self.__test({"Options": bad}, ValueError)
+
+        bad = copy.deepcopy(self.__KWARGS["Options"])
+        del bad["combinemodels"]
+        self.__test({"Options": bad}, ValueError)
 
     def testFfun(self):
         for bad in self.__NOT_FUNCTION:
