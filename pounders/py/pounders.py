@@ -76,13 +76,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         * **Par** - Five element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
 
     :return:
-        * **X** - :math:`\mathrm{nf\_max+nfs}\times \np` NumPy array containing
-          locations of evaluated points in the order in which they were
-          evaluated
-        * **F** - :math:`\mathrm{nf\_max+nfs}\times \nd` NumPy array containing
-          the function values at ``X`` with matching ordering
-        * **hF** - :math:`\mathrm{nf\_max+nfs}\times 1` Composed values
-          ``hfun(Ffun(x))`` for evaluated points ``x`` in ``X``
+        * **X** - :math:`k \times \np` NumPy array containing locations of
+          evaluated points (including those provided in ``Prior``) in the order
+          in which they were evaluated, where
+          :math:`\mathrm{nfs} < k \le \mathrm{nf\_max+nfs}`.
+        * **F** - :math:`k \times \nd` NumPy array containing the function
+          values at ``X`` with matching ordering.
+        * **hF** - :math:`k` element 1D Numpy array of composed values
+          ``hfun(Ffun(x))`` at ``X`` with matching ordering.
         * **flag** - Termination criteria flag (See general |pounders| documentation)
         * **xk_in** - Zero-based index of point in ``X`` representing
           incumbent at termination (approximate local minimizer if `flag=0`)

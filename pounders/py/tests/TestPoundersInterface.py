@@ -82,9 +82,9 @@ class TestPoundersInterface(unittest.TestCase):
         # - a Python Exception object to confirm that an expectation of that
         #   type was raised
         # - self.__SUCCESS_MSG to confirm that the optimization ran successfully
-        #   to completion
-        # - "" to confirm that the optimization terminated upon hitting the
-        #   evaluation budget
+        #   to completion (flag = 0)
+        # - a different string (including "") to confirm that the optimization
+        #   terminated with different (or no) output and with flag >= 0.0
 
         # ----- HARDCODED VALUE
         EPS = np.finfo(float).eps
@@ -110,31 +110,43 @@ class TestPoundersInterface(unittest.TestCase):
 
                 self.assertTrue(isinstance(X, np.ndarray))
                 self.assertEqual(X.ndim, 2)
-                # self.assertEqual(X.shape, (self.nf_max, self.n))
+                # X.shape[0] checked below
+                self.assertEqual(X.shape[1], kwargs["n"])
 
                 self.assertTrue(isinstance(F, np.ndarray))
                 self.assertEqual(F.ndim, 2)
-                # self.assertEqual(F.shape, (self.nf_max, self.m))
+                self.assertEqual(F.shape[0], X.shape[0])
+                self.assertEqual(F.shape[1], kwargs["m"])
 
                 self.assertTrue(isinstance(hF, np.ndarray))
                 self.assertEqual(hF.ndim, 1)
-                # self.assertEqual(len(hF), self.nf_max)
+                self.assertEqual(len(hF), X.shape[0])
 
                 self.assertTrue(isinstance(xk_in, numbers.Integral))
-                # self.assertTrue(0 <= xk_in < self.nf_max)
+                self.assertTrue(0 <= xk_in < X.shape[0])
 
-                max_rel_err = np.max(np.fabs(1.0 - X[xk_in, :] / self.__THETA_STAR))
-
+                nfs = 0 if kwargs["Prior"] is None else kwargs["Prior"]["nfs"]
+                budget = kwargs["nf_max"] + nfs
                 if expected_exception == self.__SUCCESS_MSG:
                     self.assertTrue(isinstance(flag, numbers.Integral))
                     self.assertEqual(flag, 0)
 
+                    self.assertTrue(nfs < X.shape[0] <= budget)
+
+                    max_rel_err = np.max(np.fabs(1.0 - X[xk_in, :] / self.__THETA_STAR))
                     self.assertTrue(max_rel_err <= 4.0 * EPS)
                     self.assertTrue(np.max(np.fabs(F[xk_in, :])) <= 4.0 * EPS)
                     self.assertTrue(np.fabs(hF[xk_in]) <= 4.0 * EPS)
                 else:
                     self.assertTrue(isinstance(flag, numbers.Real))
-                    self.assertTrue(flag > 0.0)
+                    if flag > 0.0:
+                        self.assertTrue(flag < 165.0)
+                        self.assertEqual(X.shape[0], budget)
+                    elif flag == 0.0:
+                        self.assertTrue(nfs < X.shape[0] <= budget)
+                    else:
+                        # Hopefully tests never hit this.
+                        self.assertTrue(flag >= 0.0)
             else:
                 with self.assertRaises(expected_exception) as err:
                     solver(**kwargs)
@@ -275,6 +287,7 @@ class TestPoundersInterface(unittest.TestCase):
 
     def testX0Errors(self):
         EPS = np.finfo(float).eps
+        WARNING = "Note: Geometry points need to be coordinate directions!"
 
         n = self.__KWARGS["n"]
         X_0 = self.__KWARGS["X_0"].copy()
@@ -292,9 +305,8 @@ class TestPoundersInterface(unittest.TestCase):
         #
         # Since the prior evaluations are already correctly set
         # relative to X_0 it's easy and cleaner to change the bounds.
-        # TODO: What to do about this?
-        # self.__test({"Low": X_0}, self.__SUCCESS_MSG)
-        # self.__test({"Upp": X_0}, self.__SUCCESS_MSG)
+        self.__test({"Low": X_0}, WARNING)
+        self.__test({"Upp": X_0}, f"{WARNING}\n{self.__SUCCESS_MSG}")
 
         # outside is not
         for i in range(n):
