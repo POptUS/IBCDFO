@@ -41,7 +41,10 @@ class TestPoundersInterface(unittest.TestCase):
         F_init = np.array([Ffun(X_init[i, :]) for i in range(nfs)])
 
         # These should yield a good solution
-        self.__kwargs = {
+        #
+        # Tests that need to change values should make a deepcopy and alter that
+        # dictionary.
+        self.__KWARGS = {
             "Ffun": Ffun,
             "X_0": X_init[xk_in, :],
             "n": n,
@@ -58,16 +61,16 @@ class TestPoundersInterface(unittest.TestCase):
                 "xk_in": xk_in,
             },
         }
-        self.__kwargs["Model"] = compute_default_model(self.__kwargs["n"])
-        self.__kwargs["Options"] = compute_default_options(
-            self.__kwargs["delta_0"],
-            self.__kwargs["g_tol"],
-            self.__kwargs["Low"],
-            self.__kwargs["Upp"],
+        self.__KWARGS["Model"] = compute_default_model(self.__KWARGS["n"])
+        self.__KWARGS["Options"] = compute_default_options(
+            self.__KWARGS["delta_0"],
+            self.__KWARGS["g_tol"],
+            self.__KWARGS["Low"],
+            self.__KWARGS["Upp"],
         )
-        self.assertEqual(set(self.__kwargs["Prior"]), EXPECTED_PRIOR_KEYS)
-        self.assertEqual(set(self.__kwargs["Model"]), ALL_MODEL_KEYS)
-        self.assertEqual(set(self.__kwargs["Options"]), ALL_OPTIONS_KEYS)
+        self.assertEqual(set(self.__KWARGS["Prior"]), EXPECTED_PRIOR_KEYS)
+        self.assertEqual(set(self.__KWARGS["Model"]), ALL_MODEL_KEYS)
+        self.assertEqual(set(self.__KWARGS["Options"]), ALL_OPTIONS_KEYS)
 
         self.__NOT_REAL = (None, "", {}, [1.1], {1.1})
         self.__NOT_INT = (None, "", 1.0, 1.1, {}, [1], {1})
@@ -87,7 +90,7 @@ class TestPoundersInterface(unittest.TestCase):
         EPS = np.finfo(float).eps
 
         # ----- ALTER CONFIGURATION
-        kwargs = copy.deepcopy(self.__kwargs)
+        kwargs = copy.deepcopy(self.__KWARGS)
         for key, value in new_args.items():
             if key in EXPECTED_PRIOR_KEYS:
                 kwargs["Prior"][key] = value
@@ -150,7 +153,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Model": good}, self.__SUCCESS_MSG)
 
         for key in ALL_MODEL_KEYS:
-            self.__test({key: self.__kwargs["Model"][key]}, self.__SUCCESS_MSG)
+            self.__test({key: self.__KWARGS["Model"][key]}, self.__SUCCESS_MSG)
 
     def testPriorKeys(self):
         # None is fine, ...
@@ -163,14 +166,14 @@ class TestPoundersInterface(unittest.TestCase):
 
         # Can't take any away
         for key in EXPECTED_PRIOR_KEYS:
-            bad = copy.deepcopy(self.__kwargs["Prior"])
+            bad = copy.deepcopy(self.__KWARGS["Prior"])
             del bad[key]
             self.assertTrue(set(bad).issubset(EXPECTED_PRIOR_KEYS))
             self.assertNotEqual(set(bad), EXPECTED_PRIOR_KEYS)
             self.__test({"Prior": bad}, ValueError)
 
         # Can't add any extras
-        bad = copy.deepcopy(self.__kwargs["Prior"])
+        bad = copy.deepcopy(self.__KWARGS["Prior"])
         bad["!NOT A KEY!"] = 1.1
         self.assertNotEqual(set(bad), EXPECTED_PRIOR_KEYS)
         self.__test({"Prior": bad}, ValueError)
@@ -183,7 +186,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Options": good}, self.__SUCCESS_MSG)
 
         for key in ALL_OPTIONS_KEYS:
-            self.__test({key: self.__kwargs["Options"][key]}, self.__SUCCESS_MSG)
+            self.__test({key: self.__KWARGS["Options"][key]}, self.__SUCCESS_MSG)
 
     def testFfun(self):
         for bad in self.__NOT_FUNCTION:
@@ -202,7 +205,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"m": bad}, ValueError)
 
     def testNpMax(self):
-        self.assertEqual(self.__kwargs["n"], 3)
+        self.assertEqual(self.__KWARGS["n"], 3)
         MIN, MAX = 4, 10
 
         for bad in self.__NOT_INT:
@@ -213,11 +216,11 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"np_max": bad}, ValueError)
 
     def testNfMax(self):
-        n = self.__kwargs["n"]
-        m = self.__kwargs["m"]
+        n = self.__KWARGS["n"]
+        m = self.__KWARGS["m"]
 
         self.assertEqual(n, 3)
-        self.assertEqual(self.__kwargs["Prior"]["nfs"], 2)
+        self.assertEqual(self.__KWARGS["Prior"]["nfs"], 2)
 
         for bad in self.__NOT_INT:
             self.__test({"nf_max": bad}, TypeError)
@@ -273,8 +276,8 @@ class TestPoundersInterface(unittest.TestCase):
     def testX0Errors(self):
         EPS = np.finfo(float).eps
 
-        n = self.__kwargs["n"]
-        X_0 = self.__kwargs["X_0"].copy()
+        n = self.__KWARGS["n"]
+        X_0 = self.__KWARGS["X_0"].copy()
 
         # Expects 1D array ...
         for bad in self.__NOT_NUMPY_ARRAY:
@@ -325,10 +328,10 @@ class TestPoundersInterface(unittest.TestCase):
         EPS = np.finfo(float).eps
         NFS_NEW = 3
 
-        Ffun = self.__kwargs["Ffun"]
-        n = self.__kwargs["n"]
-        nfs = self.__kwargs["Prior"]["nfs"]
-        X_init = self.__kwargs["Prior"]["X_init"].copy()
+        Ffun = self.__KWARGS["Ffun"]
+        n = self.__KWARGS["n"]
+        nfs = self.__KWARGS["Prior"]["nfs"]
+        X_init = self.__KWARGS["Prior"]["X_init"].copy()
 
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"X_init": bad}, TypeError)
@@ -363,20 +366,20 @@ class TestPoundersInterface(unittest.TestCase):
             test_case["X_init"] = X_init
 
             # See valid initial points pass ...
-            X_init[xk_in, :] = self.__kwargs["X_0"].copy()
-            X_init[i, :] = self.__kwargs["Low"] - 0.1
-            X_init[j, :] = self.__kwargs["Upp"] + 0.1
+            X_init[xk_in, :] = self.__KWARGS["X_0"].copy()
+            X_init[i, :] = self.__KWARGS["Low"] - 0.1
+            X_init[j, :] = self.__KWARGS["Upp"] + 0.1
             test_case["F_init"] = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
             self.__test(test_case, self.__SUCCESS_MSG)
 
             # and then let's make 'em fail.
             for k in range(n):
-                X_init[xk_in, :] = self.__kwargs["X_0"].copy()
+                X_init[xk_in, :] = self.__KWARGS["X_0"].copy()
                 X_init[xk_in, k] = (1.0 + EPS) * X_init[xk_in, k]
                 self.__test(test_case, ValueError)
 
             # Confirm no repeated points even if they have the same F values
-            X_init[xk_in, :] = self.__kwargs["X_0"].copy()
+            X_init[xk_in, :] = self.__KWARGS["X_0"].copy()
             X_init[j, :] = X_init[i, :]
             test_case["F_init"] = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
             self.__test(test_case, ValueError)
@@ -386,9 +389,9 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test(test_case, ValueError)
 
     def testFinitErrors(self):
-        m = self.__kwargs["m"]
-        nfs = self.__kwargs["Prior"]["nfs"]
-        F_init = self.__kwargs["Prior"]["F_init"].copy()
+        m = self.__KWARGS["m"]
+        nfs = self.__KWARGS["Prior"]["nfs"]
+        F_init = self.__KWARGS["Prior"]["F_init"].copy()
 
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"F_init": bad}, TypeError)
@@ -406,8 +409,8 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"F_init": np.full(F_init.shape, bad, float)}, ValueError)
 
     def testXKinErrors(self):
-        n = self.__kwargs["n"]
-        m = self.__kwargs["m"]
+        n = self.__KWARGS["n"]
+        m = self.__KWARGS["m"]
 
         for bad in self.__NOT_INT:
             self.__test({"xk_in": bad}, TypeError)
@@ -425,13 +428,13 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test(test_case, ValueError)
 
         # Invalid integer index with priors provided
-        for bad in [-1, self.__kwargs["Prior"]["nfs"]]:
+        for bad in [-1, self.__KWARGS["Prior"]["nfs"]]:
             self.__test({"xk_in": bad}, ValueError)
 
     def testBounds(self):
-        n = self.__kwargs["n"]
-        Low = self.__kwargs["Low"]
-        Upp = self.__kwargs["Upp"]
+        n = self.__KWARGS["n"]
+        Low = self.__KWARGS["Low"].copy()
+        Upp = self.__KWARGS["Upp"].copy()
 
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"Low": bad}, TypeError)
