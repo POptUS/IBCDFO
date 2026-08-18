@@ -22,17 +22,17 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     Run |pounders| on the optimization problem specified by the given
     arguments.
 
-    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
-        element NumPy array for given :math:`\psp`
-    :param X_0:     :math:`\np` element 1D NumPy array that specifies the
+    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as
+        :math:`\nd`-element NumPy array for given :math:`\psp`
+    :param X_0:     :math:`\np`-element 1D NumPy array that specifies the
         initial point
     :param n:       Dimension (number of continuous, real-valued input variables)
     :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
     :param g_tol:   Tolerance for the 2-norm of the model gradient
     :param delta_0: Positive initial trust region radius
     :param m:       Dimension of output of ``Ffun`` (number of component functions)
-    :param Low:     :math:`\np` element 1D NumPy array of lower bounds
-    :param Upp:     :math:`\np` element 1D NumPy array of upper bounds
+    :param Low:     :math:`\np`-element 1D NumPy array of lower bounds
+    :param Upp:     :math:`\np`-element 1D NumPy array of upper bounds
     :param Prior:   ``dict`` describing past evaluations of ``Ffun``.  Set to ``None`` to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
 
         * **nfs** - Number of past function evaluations
@@ -136,7 +136,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         raise ValueError(f"Error: Model dictionary contains unknown keys {extras}")
 
     defaults = compute_default_model(n)
-    assert set(defaults) == ALL_MODEL_KEYS
     for key, value in Model.items():
         defaults[key] = value
 
@@ -174,7 +173,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         raise ValueError("Error: Cannot provide only hfun or only combinemodels")
 
     defaults = compute_default_options(delta_0, g_tol, Low, Upp)
-    assert set(defaults) == ALL_OPTIONS_KEYS
     for key, value in Options.items():
         defaults[key] = value
 

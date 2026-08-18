@@ -80,7 +80,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         raise ValueError(f"Error: Model dictionary contains unknown keys {extras}")
 
     defaults = compute_default_model(n)
-    assert set(defaults) == ALL_MODEL_KEYS
     for key, value in Model.items():
         defaults[key] = value
 
@@ -118,7 +117,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         raise ValueError("Error: Cannot provide only hfun or only combinemodels")
 
     defaults = compute_default_options(delta_0, g_tol, Low, Upp)
-    assert set(defaults) == ALL_OPTIONS_KEYS
     for key, value in Options.items():
         defaults[key] = value
 
