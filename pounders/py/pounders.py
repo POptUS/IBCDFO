@@ -59,10 +59,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver (default)
 
         * **delta_max** - Maximum allowed trust-region radius (default is
-          :math:`\min(0.5 \min(\mathrm{Upp}-\mathrm{Low}), 10^3 \delta_0)`)
+          :math:`\min(\min(\mathrm{Upp}-\mathrm{Low})/2, 10^3\cdot\mathrm{delta\_0})`)
         * **delta_min** - Minimum allowed trust-region radius; falling at or
           below this triggers termination (default is
-          :math:`\min(10^{-13} \delta_0, 0.1 \cdot \mathtt{g\_tol})`)
+          :math:`\min(10^{-13}\cdot\mathrm{delta\_0}, \mathrm{g\_tol}/10)`)
         * **delta_inact** - Fraction of the trust-region radius the step norm
           must exceed for a successful step to also grow the radius (default is 0.75)
         * **gamma_dec** - Factor by which the trust-region radius is

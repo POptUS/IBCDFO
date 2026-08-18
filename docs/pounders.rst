@@ -66,7 +66,7 @@ interpretation of the value of the flag is identical across both implementations
 
 * 0 - normal termination because norm of :math:`\gradf(\psp)` at final
   :math:`\psp` satisfied user-provided gradient tolerance,
-* > 0 - the budget specified in `nf_max` was reached; the value of the flag is the 2-norm of
+* > 0 - the budget specified in **nf_max** was reached; the value of the flag is the 2-norm of
   :math:`\gradf` at final :math:`\psp`
 * -1 - input was fatally incorrect (error message shown)
 * -2 - a valid model produced ``X[nf] == X[xk_in]`` or ``(mdec == 0, hF[nf] == hF[xk_in])``
@@ -74,7 +74,7 @@ interpretation of the value of the flag is identical across both implementations
 * -3 - a ``NaN`` was encountered
 * -4 - error in trust-region subproblem solver
 * -5 - an attempt at model improvement failed
-* -6 - the trust-region radius `delta` has shrunk to`delta_min`, and the model is valid
+* -6 - the trust-region radius `delta` has shrunk to **delta_min**, and the model is valid
 
 The programmatic interface is generally maintained identical between both
 implementations.  Nevertheless, we provide the interface for each implementation
