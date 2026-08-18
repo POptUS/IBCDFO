@@ -35,5 +35,5 @@ class TestMSPLeastSquares(unittest.TestCase):
                 return np.squeeze(out)
 
             _, _, hF, xkin, flag = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
-            self.assertTrue(flag >= 0.0)
+            self.assertTrue(flag > 0.0)
             self.assertTrue(hF[xkin] <= 36.0 + 1.0e-8)
