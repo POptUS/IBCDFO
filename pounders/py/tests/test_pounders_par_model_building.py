@@ -32,11 +32,14 @@ g_tol = 1e-8  # Stopping tolerance
 delta_0 = 0.1  # Initial trust-region radius
 nfs = 1  # Number of initial evaluations
 xk_in = 0  # Index in F_0 for starting the optimization (usually the point with minimal emittance)
-F_init = np.zeros((nfs, m))  # Initial evaluations (parameters with completed simulations)
-F_init[xk_in, :] = Ffun(X_0)
 X_init = np.atleast_2d(X_0)
+F_init = np.atleast_2d(Ffun(X_0))
 
-Options = {"printf": True, "hfun": ibcdfo.pounders.h_emittance, "combinemodels": ibcdfo.pounders.combine_emittance}
+Options = {
+    "printf": True,
+    "hfun": ibcdfo.pounders.h_emittance,
+    "combinemodels": ibcdfo.pounders.combine_emittance,
+}
 Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
