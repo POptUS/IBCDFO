@@ -43,9 +43,16 @@ def create_piecewise_quadratic_hfun_jax(Qs, zs, cs):
     Qs = jnp.asarray(Qs)
     zs = jnp.asarray(zs)
     cs = jnp.asarray(np.squeeze(cs))
-    J = zs.shape[1]
 
-    return _hfun_jax(lambda z: jnp_h.max(jnp.stack([jnp.dot(jnp.dot((z - zs[:, j]), Qs[:, :, j]), (z - zs[:, j])) + cs[j] for j in range(J)])))
+    # Vectorized over the J pieces (single fused dispatch) instead of a Python loop over
+    # J individual jnp.dot calls -- each un-jitted dispatch costs ~10ms, so for J~90
+    # pieces (e.g. dfo rows 0/1) the loop version costs >1s per hfun call.
+    def f(z):
+        diffs = z[:, None] - zs
+        quad = jnp.einsum("mj,mnj,nj->j", diffs, Qs, diffs)
+        return jnp_h.max(quad + cs)
+
+    return _hfun_jax(f)
 
 
 def create_censored_L1_loss_hfun_jax(C, D):
