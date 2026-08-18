@@ -1,3 +1,9 @@
+"""
+IMPORTANT: If any changes are made to default values here or to the set of
+configuration arguments, please review and update |pounders| inline
+documentation to confirm that it remains consistent.
+"""
+
 import numpy as np
 
 from .constants import TRSP_SOLVER_MINQ5

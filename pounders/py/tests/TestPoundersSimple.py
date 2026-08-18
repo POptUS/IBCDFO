@@ -134,9 +134,6 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
-        hfun = ibcdfo.pounders.h_neg_leastsquares
-        combinemodels = ibcdfo.pounders.combine_neg_leastsquares
-
         # Sample calling syntax for pounders
         Ffun = lambda x: x
         n = 16
@@ -149,11 +146,19 @@ class TestPounders(unittest.TestCase):
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "printf": 2}
+        Opts = {
+            "spsolver": ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE,
+            "hfun": ibcdfo.pounders.h_neg_leastsquares,
+            "combinemodels": ibcdfo.pounders.combine_neg_leastsquares,
+            "printf": 2,
+        }
+        Prior = {
+            "X_init": np.atleast_2d(X_0.T),
+            "F_init": np.atleast_2d(Ffun(X_0.T)),
+            "nfs": 1,
+            "xk_in": 0,
+        }
 
-        X_init = np.atleast_2d(X_0.T)
-        F_init = np.atleast_2d(Ffun(X_0.T))
-        Prior = {"X_init": X_init, "F_init": F_init, "nfs": 1, "xk_in": 0}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
         self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")

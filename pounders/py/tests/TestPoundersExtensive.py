@@ -37,6 +37,7 @@ class TestPounders(unittest.TestCase):
         nf_max = 100
         g_tol = 1e-13
         factor = 10
+        delta = 0.1
 
         n_delta_min = 0
         for row, (nprob, n, m, factor_power) in enumerate(dfo):
@@ -71,10 +72,8 @@ class TestPounders(unittest.TestCase):
             Upp = np.full(n, np.inf, float)
             nfs = 1
             X_init = np.atleast_2d(X_0)
-            F_init = np.zeros((1, m))
-            F_init[0] = Ffun_batch(X_0)
+            F_init = np.atleast_2d(Ffun_batch(X_0))
             xind = 0
-            delta = 0.1
             if row in [8, 9]:
                 printf = True
             else:
@@ -101,7 +100,7 @@ class TestPounders(unittest.TestCase):
                 # Below, we make the saved "row" or "prob" match the 1-based numbering scheme in MATLAB
                 filename = RESULT_PATH.joinpath("pounders_nf_max=" + str(nf_max) + "_prob=" + str(row + 1) + "_spsolver=" + str(spsolver) + "_hfun=" + hfun_name + ".mat")
                 Opts = {"printf": printf, "spsolver": spsolver, "hfun": hfun, "combinemodels": combinemodels}
-                Prior = {"nfs": 1, "F_init": F_init, "X_init": X_init, "xk_in": xind}
+                Prior = {"nfs": nfs, "F_init": F_init, "X_init": X_init, "xk_in": xind}
 
                 X, F, hF, flag, xk_best = ibcdfo.run_pounders(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
                 Xc, Fc, hFc, flagc, xk_bestc = ibcdfo.run_pounders_concurrent(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, Options=Opts, Model={})
