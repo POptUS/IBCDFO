@@ -22,9 +22,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     Run |pounders| on the optimization problem specified by the given
     arguments.
 
-    .. todo::
-        * Optimizers to add in missing documentation for ``Options``
-
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as :math:`\nd`
         element NumPy array for given :math:`\psp`
     :param X_0:     :math:`\np` element 1D NumPy array that specifies the
@@ -36,15 +33,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     :param m:       Dimension of output of ``Ffun`` (number of component functions)
     :param Low:     :math:`\np` element 1D NumPy array of lower bounds
     :param Upp:     :math:`\np` element 1D NumPy array of upper bounds
-    :param Prior:   ``dict`` describing  past evaluations of ``Ffun``.  Set to ``None`` to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
+    :param Prior:   ``dict`` describing past evaluations of ``Ffun``.  Set to ``None`` to run optimization assuming no past evaluations. A nonempty **Prior** must contain entries:
 
         * **nfs** - Number of past function evaluations
         * **X_init** - :math:`\mathrm{nfs} \times \np` NumPy array of distinct
           points :math:`\psp_k`
         * **F_init** - :math:`\mathrm{nfs} \times \nd` NumPy array of values
           :math:`\Ffun(\psp_k)` computed with ``Ffun``
-        * **xk_in** -  Zero-based index into ``X_init`` and ``F_init`` that
-          corresponds to the point and value to use as initial point for
+        * **xk_in** - Zero-based index into ``X_init`` and ``F_init`` that
+          corresponds to the point and value to use as the initial point for
           optimization. Note that if **Prior** is nonempty, this will override
           the previously specified **X_0**.
 
@@ -61,6 +58,19 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
             * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver (default)
 
+        * **delta_max** - Maximum allowed trust-region radius (default is
+          :math:`\min(0.5 \min(\mathrm{Upp}-\mathrm{Low}), 10^3 \delta_0)`)
+        * **delta_min** - Minimum allowed trust-region radius; falling at or
+          below this triggers termination (default is
+          :math:`\min(10^{-13} \delta_0, 0.1 \cdot \mathtt{g\_tol})`)
+        * **delta_inact** - Fraction of the trust-region radius the step norm
+          must exceed for a successful step to also grow the radius (default is 0.75)
+        * **gamma_dec** - Factor by which the trust-region radius is
+          decreased on an unsuccessful step (default is 0.5)
+        * **gamma_inc** - Factor by which the trust-region radius is
+          increased on a successful, sufficiently long step (default is 2)
+        * **eta1** - Minimum ratio of actual to predicted reduction required
+          to accept a step and update the center (default is 0.05)
         * **hfun** - Outer function :math:`\hfun` that maps given
           :math:`\Ffun(\psp)` to scalars for minimization (default is
           sum-of-squares that yields :math:`f`)
@@ -71,9 +81,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     :param Model: ``dict`` of model building options.  Set to ``None`` to use
         default values.
 
-        * **np_max** -  Maximum number of interpolation points (:math:`>\np+1`)
+        * **np_max** - Maximum number of interpolation points (:math:`>\np+1`)
           (default is :math:`2\np+1`)
-        * **Par** - Five element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
+        * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
 
     :return:
         * **X** - :math:`k \times \np` NumPy array containing locations of
@@ -82,26 +92,26 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           :math:`\mathrm{nfs} < k \le \mathrm{nf\_max+nfs}`.
         * **F** - :math:`k \times \nd` NumPy array containing the function
           values at ``X`` with matching ordering.
-        * **hF** - :math:`k` element 1D Numpy array of composed values
+        * **hF** - :math:`k`-element 1D NumPy array of composed values
           ``hfun(Ffun(x))`` at ``X`` with matching ordering.
-        * **flag** - Termination criteria flag (See general |pounders| documentation)
-        * **xk_in** - Zero-based index of point in ``X`` representing
-          incumbent at termination (approximate local minimizer if `flag=0`)
+        * **flag** - Termination criteria flag (see general |pounders| documentation)
+        * **xk_in** - Zero-based index of point in ``X`` representing the
+          incumbent at termination (approximate local minimizer if ``flag=0``)
     """
     # ----- UPFRONT ERROR CHECKING
     # These are used to set defaults before official error checking
     if not isinstance(n, numbers.Integral):
-        raise TypeError(f"Error: n dimension is not an integer ({n})")
+        raise TypeError(f"Error: dimension n is not an integer ({n})")
     if n < 1:
-        raise ValueError(f"Error: n dimension is not positive integer ({n})")
+        raise ValueError(f"Error: dimension n is not a positive integer ({n})")
 
     if not isinstance(m, numbers.Integral):
-        raise TypeError(f"Error: m dimension is not an integer ({m})")
+        raise TypeError(f"Error: dimension m is not an integer ({m})")
     if m < 1:
-        raise ValueError(f"Error: m dimension is not positive integer ({m})")
+        raise ValueError(f"Error: dimension m is not a positive integer ({m})")
 
     # ----- ALLOW "1D" NUMPY ARRAY FLEXIBILITY
-    # For arguments that are specified as X-element Numpy arrays, we can be
+    # For arguments that are specified as X-element NumPy arrays, we can be
     # flexible and accept any iterables that can be converted to genuinely 1D
     # arrays of the correct length.  We eagerly convert here into the final
     # specification required by the algorithm's implementation.
