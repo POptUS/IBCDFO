@@ -45,17 +45,17 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # ----- UPFRONT ERROR CHECKING
     # These are used to set defaults before official error checking
     if not isinstance(n, numbers.Integral):
-        raise TypeError(f"Error: n dimension is not an integer ({n})")
+        raise TypeError(f"Error: dimension n is not an integer ({n})")
     if n < 1:
-        raise ValueError(f"Error: n dimension is not positive integer ({n})")
+        raise ValueError(f"Error: dimension n is not a positive integer ({n})")
 
     if not isinstance(m, numbers.Integral):
-        raise TypeError(f"Error: m dimension is not an integer ({m})")
+        raise TypeError(f"Error: dimension m is not an integer ({m})")
     if m < 1:
-        raise ValueError(f"Error: m dimension is not positive integer ({m})")
+        raise ValueError(f"Error: dimension m is not a positive integer ({m})")
 
     # ----- ALLOW "1D" NUMPY ARRAY FLEXIBILITY
-    # For arguments that are specified as X-element Numpy arrays, we can be
+    # For arguments that are specified as X-element NumPy arrays, we can be
     # flexible and accept any iterables that can be converted to genuinely 1D
     # arrays of the correct length.  We eagerly convert here into the final
     # specification required by the algorithm's implementation.
