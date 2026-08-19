@@ -38,6 +38,7 @@ import numpy as np
 __all__ = [
     "bernoulli_single_shot_variance",
     "fisher_information",
+    "stable_inverse",
     "allocate_shots",
     "allocate_shots_per_circuit",
     "infidelity_metric_hessian",
@@ -72,6 +73,85 @@ def fisher_information(J, w, ridge=0.0):
     if ridge:
         H = H + ridge * np.eye(H.shape[0])
     return H
+
+
+# Directions whose eigenvalue is below RANK_CUTOFF * lambda_max are treated as
+# unidentifiable and dropped.  GST's gauge freedom makes H exactly rank-deficient,
+# and 1/p weights up to ~1e5 push the identifiable spectrum over ~1e9, so H as
+# assembled is indefinite at the 1e-7 level from roundoff alone.  1e-10 sits well
+# below the smallest genuinely-informative eigenvalue and well above the gauge
+# block.  allocate_shots_per_circuit reports the surviving rank as info["rank"],
+# so a cutoff that is eating real directions shows up there.
+RANK_CUTOFF = 1e-10
+
+
+def stable_inverse(H, cutoff=RANK_CUTOFF, with_logdet=False):
+    """Pseudo-inverse of H restricted to its identifiable (non-gauge) subspace.
+
+    ``np.linalg.inv(H + ridge*I)`` is not usable here.  H is rank-deficient by the
+    gauge dimension, so a flat ridge leaves those directions at ~ridge and the
+    inverse blows them up by 1/ridge.  D-optimality survives that (its score
+    ``J_i H^-1 J_i^T`` applies H^-1 once, and J_i is orthogonal to the null space
+    in exact arithmetic), but A- and L-optimality apply H^-1 *twice* and so square
+    an already ~1e16 condition number -- their circuit rankings decorrelate from
+    the true ones entirely.
+
+    Symmetrizing and truncating at a relative cutoff restricts every criterion to
+    the identifiable subspace, which is what D/A/L are meant to score over anyway
+    (this is Ds-optimality treating the gauge block as nuisance parameters).
+
+    Returns Hinv, or (Hinv, pseudo_logdet, rank) when ``with_logdet``.  The
+    pseudo-determinant is the product of the KEPT eigenvalues only -- using
+    slogdet(H) instead would add a constant ~rank_deficiency*log(ridge) and go to
+    -inf once the ridge is removed.
+    """
+    H = np.asarray(H, dtype=float)
+    H = 0.5 * (H + H.T)
+    ev, V = np.linalg.eigh(H)
+    ev_max = ev[-1]
+    if not np.isfinite(ev_max) or ev_max <= 0.0:
+        # Degenerate design (no information at all); fall back to zeros so the
+        # caller's argmax stays well-defined instead of raising.
+        Hinv = np.zeros_like(H)
+        return (Hinv, -np.inf, 0) if with_logdet else Hinv
+    keep = ev > cutoff * ev_max
+    Vk, evk = V[:, keep], ev[keep]
+    Hinv = (Vk / evk) @ Vk.T
+    if with_logdet:
+        return Hinv, float(np.sum(np.log(evk))), int(keep.sum())
+    return Hinv
+
+
+def _kept_eigenvalues(H, cutoff=RANK_CUTOFF):
+    """Eigenvalues of sym(H) above the relative cutoff, via eigvalsh (no vectors)."""
+    H = np.asarray(H, dtype=float)
+    ev = np.linalg.eigvalsh(0.5 * (H + H.T))
+    ev_max = ev[-1]
+    if not np.isfinite(ev_max) or ev_max <= 0.0:
+        return None
+    return ev[ev > cutoff * ev_max]
+
+
+def stable_pseudo_logdet(H, cutoff=RANK_CUTOFF):
+    """log-pseudo-determinant of H over its identifiable subspace.
+
+    Same truncation as ``stable_inverse`` but via ``eigvalsh`` (no eigenvectors),
+    which is several times cheaper.  The D-optimality objective is evaluated once
+    per Frank-Wolfe line-search trial, so it must not build a full inverse.
+    """
+    evk = _kept_eigenvalues(H, cutoff)
+    return -np.inf if evk is None else float(np.sum(np.log(evk)))
+
+
+def stable_pseudo_trace_inv(H, cutoff=RANK_CUTOFF):
+    """Tr(H^+) over the identifiable subspace -- the A-optimality objective.
+
+    Trace is basis-independent, so this needs eigenvalues only; same eigvalsh
+    shortcut as the D objective.  L-optimality cannot use it (Tr(M H^+) depends
+    on how M sits relative to H's eigenbasis, so it needs the eigenvectors).
+    """
+    evk = _kept_eigenvalues(H, cutoff)
+    return np.inf if evk is None else float(np.sum(1.0 / evk))
 
 
 def row_quadratic_forms(J, Hinv):
@@ -130,19 +210,27 @@ def frank_wolfe_relaxed(J, sigma2, N, H0, criterion="D", max_iter=200, gap_tol=1
     m = J.shape[0]
     rho = np.full(m, N / m) if rho0 is None else np.array(rho0, dtype=float)
 
-    def objective(rv):
-        H = H0 + fisher_information(J, rv * inv_sigma2)
-        if criterion == "D":
-            sign, logdet = np.linalg.slogdet(H)
-            return logdet if sign > 0 else -np.inf
-        Hinv = np.linalg.inv(H)
-        if criterion == "L":               # minimize Tr(M H^{-1}) -> maximize its negative
-            return -np.trace(Mmat @ Hinv)
-        return -np.trace(Hinv)             # A-opt: minimize Tr(H^{-1})
+    def objective_H(H):
+        """Criterion value given an already-assembled H (higher is better)."""
+        if criterion == "D":               # pseudo-determinant over kept directions
+            return stable_pseudo_logdet(H)
+        if criterion == "A":               # minimize Tr(H^{-1}) -> maximize its negative
+            return -stable_pseudo_trace_inv(H)
+        return -np.trace(Mmat @ stable_inverse(H))   # L-opt needs the eigenvectors
 
-    history = []; gap = np.inf; obj = objective(rho)
+    history = []; gap = np.inf
+    # Fisher info is LINEAR in the weight vector, so H along the line-search ray
+    # rho + gamma*d is H_rho + gamma*H_d with both endpoints assembled once per FW
+    # iteration.  Re-running fisher_information() per trial dominated the runtime.
+    H_fisher = fisher_information(J, rho * inv_sigma2)
+    obj = objective_H(H0 + H_fisher)
     for l in range(max_iter):
-        Hinv = np.linalg.inv(H0 + fisher_information(J, rho * inv_sigma2))
+        if l and l % 25 == 0:
+            # Resync the incrementally-updated H against an exact rebuild; entries
+            # reach ~1e9 here, so accumulating gamma*H_d drifts over many steps.
+            H_fisher = fisher_information(J, rho * inv_sigma2)
+        H_rho = H0 + H_fisher
+        Hinv = stable_inverse(H_rho)
         g = score_func(J, Hinv, inv_sigma2)
         i_star = int(np.argmax(g)); s = np.zeros(m); s[i_star] = N
         gap = float(g @ (s - rho))
@@ -150,31 +238,51 @@ def frank_wolfe_relaxed(J, sigma2, N, H0, criterion="D", max_iter=200, gap_tol=1
         if gap <= gap_tol:
             break
         d = s - rho
+        # H(s) is rank one: s puts the whole budget N on row i_star.
+        a = J[i_star]
+        H_s = (N * inv_sigma2[i_star]) * np.outer(a, a)
+        H_d = H_s - H_fisher
         if step == "classic":
-            gamma = 2.0 / (l + 2.0); rho = rho + gamma * d; obj = objective(rho)
+            gamma = 2.0 / (l + 2.0)
+            rho = rho + gamma * d
+            H_fisher = H_fisher + gamma * H_d
+            obj = objective_H(H0 + H_fisher)
         else:
             gamma = 1.0; base = obj
             while gamma > 1e-10:
-                cand = rho + gamma * d; cand_obj = objective(cand)
+                cand_obj = objective_H(H_rho + gamma * H_d)
                 if cand_obj > base + 1e-12 * abs(base):
-                    rho, obj = cand, cand_obj; break
+                    rho = rho + gamma * d
+                    H_fisher = H_fisher + gamma * H_d
+                    obj = cand_obj
+                    break
                 gamma *= 0.5
             else:
                 break
     return rho, {"objective": obj, "gap": gap, "n_iter": len(history), "history": history}
 
 
-def round_allocation_greedy(rho_star, J, sigma2, N, H0, criterion="D", metric_M=None):
-    """Floor + greedy completion with Sherman-Morrison rank-1 updates."""
+def round_allocation_greedy(rho_star, J, sigma2, N, H0, criterion="D", metric_M=None,
+                            refactor_every=50):
+    """Floor + greedy completion with Sherman-Morrison rank-1 updates.
+
+    ``refactor_every`` rebuilds Hinv from scratch periodically.  The rank-1
+    downdates are valid on the truncated pseudo-inverse (each update direction
+    J_i lies in the identifiable subspace, so iterates stay there) but roundoff
+    accumulates over hundreds of steps on a spectrum spanning ~1e16.
+    """
     score_func = _make_score_func(criterion, metric_M)
     J = np.asarray(J, dtype=float); sigma2 = np.asarray(sigma2, dtype=float)
     inv_sigma2 = 1.0 / sigma2
     m = np.floor(np.asarray(rho_star, dtype=float)).astype(int)
     R = int(round(N - m.sum()))
-    Hinv = np.linalg.inv(H0 + fisher_information(J, m * inv_sigma2))
-    for _ in range(max(R, 0)):
+    Hinv = stable_inverse(H0 + fisher_information(J, m * inv_sigma2))
+    for step in range(max(R, 0)):
         g = score_func(J, Hinv, inv_sigma2)
         i_star = int(np.argmax(g)); m[i_star] += 1
+        if refactor_every and (step + 1) % refactor_every == 0:
+            Hinv = stable_inverse(H0 + fisher_information(J, m * inv_sigma2))
+            continue
         a = J[i_star]; alpha = inv_sigma2[i_star]; Hinv_a = Hinv @ a
         denom = 1.0 + alpha * (a @ Hinv_a)
         Hinv = Hinv - (alpha / denom) * np.outer(Hinv_a, Hinv_a)
@@ -204,7 +312,8 @@ def allocate_shots(J, sigma2, N, n=None, H0=None, criterion="D", ridge=1e-9,
 
 def allocate_shots_per_circuit(J, p, N, circuit_of_row, n_circuit=None, H0=None,
                                criterion="D", ridge=1e-9, prob_floor=1e-9,
-                               max_iter=200, gap_tol=1e-8, metric_M=None):
+                               max_iter=200, gap_tol=1e-8, metric_M=None,
+                               refactor_every=50):
     """Per-CIRCUIT D/A-optimal shot allocation with MULTINOMIAL Fisher blocks.
 
     A single circuit-shot samples all of a circuit's outcomes jointly, so the design
@@ -256,8 +365,9 @@ def allocate_shots_per_circuit(J, p, N, circuit_of_row, n_circuit=None, H0=None,
     # Frank-Wolfe over the circuit simplex {rho >= 0, sum rho_s = N}
     rho = np.full(n_circuits, N / n_circuits)
     gap = np.inf
+    rank = d
     for _l in range(max_iter):
-        Hinv = np.linalg.inv(H0 + _H_design(rho))
+        Hinv, _logdet, rank = stable_inverse(H0 + _H_design(rho), with_logdet=True)
         g = _scores(Hinv)
         i_star = int(np.argmax(g))
         gap = float(N * g[i_star] - g @ rho)
@@ -269,17 +379,20 @@ def allocate_shots_per_circuit(J, p, N, circuit_of_row, n_circuit=None, H0=None,
     # floor + greedy completion (R = N - sum(floor) < n_circuits); block Woodbury updates
     m_int = np.floor(rho).astype(int)
     R = int(round(N - m_int.sum()))
-    Hinv = np.linalg.inv(H0 + _H_design(m_int.astype(float)))
-    for _ in range(max(R, 0)):
+    Hinv = stable_inverse(H0 + _H_design(m_int.astype(float)))
+    for step in range(max(R, 0)):
         g = _scores(Hinv)
         i_star = int(np.argmax(g))
         m_int[i_star] += 1
+        if refactor_every and (step + 1) % refactor_every == 0:
+            Hinv = stable_inverse(H0 + _H_design(m_int.astype(float)))
+            continue
         rows = np.where(circuit_of_row == i_star)[0]
         Js = J[rows]                              # (k, d)
         HJt = Hinv @ Js.T                         # (d, k)
-        M = np.diag(p[rows]) + Js @ HJt           # (k, k): diag(1/inv_p) + Js Hinv Js^T
-        Hinv = Hinv - HJt @ np.linalg.solve(M, HJt.T)
-    return m_int, {"rho": rho, "gap": gap, "R": R}
+        Mw = np.diag(p[rows]) + Js @ HJt          # (k, k): diag(1/inv_p) + Js Hinv Js^T
+        Hinv = Hinv - HJt @ np.linalg.solve(Mw, HJt.T)
+    return m_int, {"rho": rho, "gap": gap, "R": R, "rank": int(rank), "d": int(d)}
 
 
 

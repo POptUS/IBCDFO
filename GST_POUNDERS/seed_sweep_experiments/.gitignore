@@ -13,3 +13,15 @@ seed_*/
 *.png
 *.pdf
 *.npy
+
+# Generated run output and caches (npy/npz already ignored above; these are the folders)
+all_methods_comparison*/
+runs_from_CHTC/
+lm_standalone/
+lm_standalone_cache/
+lm_variants_cache/
+lm_fpr_builtin/
+fpr_builtin/
+polish_cache/
+diamond_cache/
+estimator_comparison/

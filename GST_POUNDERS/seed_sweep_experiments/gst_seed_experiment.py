@@ -35,6 +35,16 @@ for _path in (POUNDERS_PY, GST_POUNDERS_DIR):
 
 METHODS = ("adaptive_fpr", "fixed_fpr", "fixed_no_fpr")
 
+# Optional per-iteration hook, off by default. When set to a callable it is invoked from
+# _run_pounders' iteration_callback with keyword arguments:
+#     state, problem, config, method, iteration, cumulative_shots, running_shots
+# `problem.dataset` is live at that moment, which is the entire point -- it lets a caller fit
+# a comparison estimator (e.g. pyGSTi LM) on exactly the shots and circuits POUNDERS has
+# consumed so far, with no redraw and no reconstruction from disk. The return value is ignored.
+# Exceptions are caught and printed rather than propagated, so a broken hook cannot kill an
+# expensive POUNDERS run. Leave as None for the original behaviour.
+LM_CHECKPOINT_HOOK = None
+
 
 @dataclass(frozen=True)
 class ExperimentConfig:
@@ -906,8 +916,16 @@ def _build_infidelity_metric(problem, config):
 
 
 def _build_adaptive_hook(problem, config, fpr_reduction, running_shots, event_history):
+    import adaptive_shots
     import adaptive_shot_hook
 
+    # Reload adaptive_shots BEFORE the hook.  adaptive_shot_hook does
+    # `import adaptive_shots as ashots` at module level, so reloading only the hook
+    # re-runs that import against the module already cached in sys.modules and picks
+    # up nothing.  In a long-running kernel that silently keeps stale allocator code
+    # while the run otherwise looks completely normal.  Same order as
+    # notebook_adaptive_shot_cell.py.
+    adaptive_shots = importlib.reload(adaptive_shots)
     adaptive_shot_hook = importlib.reload(adaptive_shot_hook)
     circuit_to_index = {circuit: i for i, circuit in enumerate(problem.circuits)}
     outcome_labels = list(problem.dataset.outcome_labels)
@@ -1176,6 +1194,24 @@ def _run_pounders(problem: GSTProblem, config: ExperimentConfig, method: str):
                 f"[SHOTS] {method} iter {iteration}: "
                 f"{cumulative_shots} cumulative revealed shots"
             )
+
+        # Opt-in comparison hook (see LM_CHECKPOINT_HOOK at the top of this module). Off by
+        # default. problem.dataset is live here, so a caller can fit another estimator on
+        # exactly the data POUNDERS has right now. Never allowed to break the run.
+        if LM_CHECKPOINT_HOOK is not None:
+            try:
+                LM_CHECKPOINT_HOOK(
+                    state=state,
+                    problem=problem,
+                    config=config,
+                    method=method,
+                    iteration=iteration,
+                    cumulative_shots=cumulative_shots,
+                    running_shots=running_shots,
+                )
+            except Exception as exc:  # noqa: BLE001 - a hook must never kill the run
+                print(f"[LM-CKPT] hook failed at iter {iteration}: {exc!r}")
+
         return result
 
     lower = np.full(problem.n, float(config.lower_bound))

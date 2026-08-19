@@ -63,3 +63,13 @@ venv.bak/
 # Jupyter/GST generated files
 .ipynb_checkpoints/
 GST_POUNDERS/standard_gst_checkpoints/
+
+# Trash folder created by the desktop file manager (hundreds of MB, never belongs in git)
+.Trash-0/
+
+# Ad-hoc editor/session backups
+*.bak
+*.bak-*
+*.original-HEAD
+*.pre-*
+*.with-all-fixes
