@@ -1,5 +1,9 @@
 """
-Unit test of POUNDERS interface.
+Unit test of |pounders| interface.  It should test the full programmatic
+interface as elucidated in the contents of the pounders.py inline docs and the
+general |pounders| documentation.  This includes any logical conclusions about
+the interface as drawn from the contents of the docs.  This, therefore, tests
+most of checkinputss() indirectly.
 """
 
 import io
@@ -35,9 +39,9 @@ class TestPoundersInterface(unittest.TestCase):
             return M @ (theta - self.__THETA_STAR)
 
         n = len(self.__THETA_STAR)
+        nfs = 2
+        X_init = np.zeros((nfs, n))
         xk_in = 1
-        X_init = np.zeros((2, n))
-        nfs = X_init.shape[0]
         X_init[xk_in, :] = np.full(n, 0.5, float)
         F_init = np.array([Ffun(X_init[i, :]) for i in range(nfs)])
 
@@ -80,7 +84,7 @@ class TestPoundersInterface(unittest.TestCase):
 
     def __test(self, new_args, expected_exception):
         # For `expected_exception`, pass
-        # - a Python Exception object to confirm that an expectation of that
+        # - a Python Exception object to confirm that an exception of that
         #   type was raised
         # - self.__SUCCESS_MSG to confirm that the optimization ran successfully
         #   to completion (flag = 0)
@@ -93,6 +97,9 @@ class TestPoundersInterface(unittest.TestCase):
         # ----- ALTER CONFIGURATION
         kwargs = copy.deepcopy(self.__KWARGS)
         for key, value in new_args.items():
+            # This assumes that none of the subargument names used in the dict
+            # arguments are also names of main arguments.  It also assumes that
+            # no subargument name is used in more than one dict argument.
             if key in EXPECTED_PRIOR_KEYS:
                 kwargs["Prior"][key] = value
             elif key in ALL_MODEL_KEYS:
@@ -100,6 +107,7 @@ class TestPoundersInterface(unittest.TestCase):
             elif key in ALL_OPTIONS_KEYS:
                 kwargs["Options"][key] = value
             else:
+                self.assertTrue(key in kwargs)
                 kwargs[key] = value
 
         # ----- OPTIMIZE & ERROR CHECK
@@ -159,6 +167,9 @@ class TestPoundersInterface(unittest.TestCase):
         self.__test({}, self.__SUCCESS_MSG)
 
     def testPriorKeys(self):
+        # Correct values for each subargument are checked later in dedicated
+        # test routines.
+
         n = self.__KWARGS["n"]
         X_0 = self.__KWARGS["X_0"].copy()
         Ffun = self.__KWARGS["Ffun"]
@@ -216,9 +227,6 @@ class TestPoundersInterface(unittest.TestCase):
         self.assertEqual(xk_in, xk_in_1)
 
     def testModelKeys(self):
-        for good in [None, {}]:
-            self.__test({"Model": good}, self.__SUCCESS_MSG)
-
         # Get benchmark result with all arguments passed with default values
         kwargs = copy.deepcopy(self.__KWARGS)
         with redirect_stdout(io.StringIO()) as buffer:
@@ -226,20 +234,33 @@ class TestPoundersInterface(unittest.TestCase):
         self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
         self.assertEqual(flag, 0)
 
-        # Confirm identical results when all proper subsets passed.
+        # Confirm identical results when no arguments passed
+        for no_args in [None, {}]:
+            kwargs["Model"] = no_args
+            with redirect_stdout(io.StringIO()) as buffer:
+                X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
+            self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
+            self.assertEqual(flag, 0)
+            self.assertEqual(xk_in, xk_in_full)
+            self.assertTrue(np.array_equal(X, X_full))
+            self.assertTrue(np.array_equal(F, F_full))
+            self.assertTrue(np.array_equal(hF, hF_full))
+
+        # Confirm identical results when all nonempty proper subsets passed.
+        defaults = copy.deepcopy(self.__KWARGS["Model"])
         params_fixed = sorted(set(self.__KWARGS["Model"]))
         for i in range(1, len(params_fixed)):
             for subset in it.combinations(params_fixed, i):
-                # print(i, subset)
-                kwargs["Model"] = {key: self.__KWARGS["Model"][key] for key in subset}
+                kwargs["Model"] = {key: defaults[key] for key in subset}
+                # print(i, subset, kwargs["Model"])
                 with redirect_stdout(io.StringIO()) as buffer:
                     X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
                 self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
                 self.assertEqual(flag, 0)
+                self.assertEqual(xk_in, xk_in_full)
                 self.assertTrue(np.array_equal(X, X_full))
                 self.assertTrue(np.array_equal(F, F_full))
                 self.assertTrue(np.array_equal(hF, hF_full))
-                self.assertEqual(xk_in, xk_in_full)
 
         for bad in [set(), []]:
             self.__test({"Model": bad}, TypeError)
@@ -251,9 +272,6 @@ class TestPoundersInterface(unittest.TestCase):
         self.__test({"Model": bad}, ValueError)
 
     def testOptionsKeys(self):
-        for good in [None, {}]:
-            self.__test({"Options": good}, self.__SUCCESS_MSG)
-
         # Get benchmark result with all arguments passed with default values
         kwargs = copy.deepcopy(self.__KWARGS)
         with redirect_stdout(io.StringIO()) as buffer:
@@ -261,35 +279,45 @@ class TestPoundersInterface(unittest.TestCase):
         self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
         self.assertEqual(flag, 0)
 
+        # Confirm identical results when no arguments passed
+        for no_args in [None, {}]:
+            kwargs["Options"] = no_args
+            with redirect_stdout(io.StringIO()) as buffer:
+                X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
+            self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
+            self.assertEqual(flag, 0)
+            self.assertEqual(xk_in, xk_in_full)
+            self.assertTrue(np.array_equal(X, X_full))
+            self.assertTrue(np.array_equal(F, F_full))
+            self.assertTrue(np.array_equal(hF, hF_full))
+
         # Confirm identical results when all proper subsets passed.
         defaults = copy.deepcopy(self.__KWARGS["Options"])
         params_fixed = sorted(set(defaults).difference({"hfun", "combinemodels"}))
         for i in range(1, len(params_fixed)):
             for subset in it.combinations(params_fixed, i):
-                # print(i, subset)
                 kwargs["Options"] = {key: defaults[key] for key in subset}
+                # print(i, subset, kwargs["Options"])
                 with redirect_stdout(io.StringIO()) as buffer:
                     X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
                 self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
                 self.assertEqual(flag, 0)
+                self.assertEqual(xk_in, xk_in_full)
                 self.assertTrue(np.array_equal(X, X_full))
                 self.assertTrue(np.array_equal(F, F_full))
                 self.assertTrue(np.array_equal(hF, hF_full))
-                self.assertEqual(xk_in, xk_in_full)
 
                 kwargs["Options"]["hfun"] = defaults["hfun"]
                 kwargs["Options"]["combinemodels"] = defaults["combinemodels"]
+                # print(i, subset, kwargs["Options"])
                 with redirect_stdout(io.StringIO()) as buffer:
                     X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
                 self.assertEqual(buffer.getvalue().strip(), self.__SUCCESS_MSG)
                 self.assertEqual(flag, 0)
+                self.assertEqual(xk_in, xk_in_full)
                 self.assertTrue(np.array_equal(X, X_full))
                 self.assertTrue(np.array_equal(F, F_full))
                 self.assertTrue(np.array_equal(hF, hF_full))
-                self.assertEqual(xk_in, xk_in_full)
-
-        for key in ALL_OPTIONS_KEYS:
-            self.__test({key: self.__KWARGS["Options"][key]}, self.__SUCCESS_MSG)
 
         for bad in [set(), []]:
             self.__test({"Options": bad}, TypeError)
@@ -338,7 +366,6 @@ class TestPoundersInterface(unittest.TestCase):
 
     def testNfMax(self):
         n = self.__KWARGS["n"]
-        m = self.__KWARGS["m"]
         X_0 = self.__KWARGS["X_0"].copy()
         Ffun = self.__KWARGS["Ffun"]
 
@@ -350,12 +377,7 @@ class TestPoundersInterface(unittest.TestCase):
 
         # No prior evaluations given
         min_required = n + 2
-        test_case = {
-            "nfs": 0,
-            "X_init": np.full((0, n), np.nan, float),
-            "F_init": np.full((0, m), np.nan, float),
-            "xk_in": 0,
-        }
+        test_case = {"Prior": None}
         for good in [0, 1, 2]:
             # Too few evaluations to converge to solution
             test_case["nf_max"] = min_required + good
