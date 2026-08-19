@@ -51,11 +51,13 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if any(Upp <= Low):
         raise ValueError("Error: must have Upp > Low")
 
-    # Check starting point - must be in feasible set
+    # Check starting point - must be finite and in feasible set
     if not isinstance(X_0, np.ndarray):
         raise TypeError("Error: X_0 must be a 1D NumPy array")
     if (X_0.ndim != 1) or (len(X_0) != n):
         raise ValueError(f"Error: X_0 is not an {n}-element 1D NumPy array")
+    if (not np.all(np.isfinite(X_0))) or (not np.all(np.isreal(X_0))):
+        raise ValueError("Error: X_init must contain only finite, real values")
     if any(X_0 < Low) or any(X_0 > Upp):
         raise ValueError("Error: X_0 outside of Low/Upp bounds")
 

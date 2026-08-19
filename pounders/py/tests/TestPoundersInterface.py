@@ -368,9 +368,7 @@ class TestPoundersInterface(unittest.TestCase):
         n = self.__KWARGS["n"]
         X_0 = self.__KWARGS["X_0"].copy()
         Ffun = self.__KWARGS["Ffun"]
-
         self.assertEqual(n, 3)
-        self.assertEqual(self.__KWARGS["Prior"]["nfs"], 2)
 
         for bad in self.__NOT_INT:
             self.__test({"nf_max": bad}, TypeError)
@@ -409,8 +407,10 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test(test_case, ValueError)
 
         # Two prior evaluation
+        self.assertEqual(self.__KWARGS["Prior"]["nfs"], 2)
         min_required = n + 1
         for good in [0, 1, 2]:
+            # Too few evaluations to converge to solution
             self.__test({"nf_max": min_required + good}, "")
         for good in [10, 10_000]:
             self.__test({"nf_max": min_required + good}, self.__SUCCESS_MSG)
@@ -427,13 +427,13 @@ class TestPoundersInterface(unittest.TestCase):
         # Expects 1D array ...
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"X_0": bad}, TypeError)
-        self.__test({"X_0": np.atleast_2d(X_0)}, ValueError)
 
         # of correct length
+        self.__test({"X_0": np.atleast_2d(X_0)}, ValueError)
         for bad in [n - 1, n + 1]:
             self.__test({"X_0": np.full(bad, 0.5, float)}, ValueError)
 
-        # X_0 on bounds acceptable ...
+        # X_0 on finite bounds acceptable ...
         #
         # Since the prior evaluations are already correctly set
         # relative to X_0 it's easy and cleaner to change the bounds.
@@ -449,6 +449,10 @@ class TestPoundersInterface(unittest.TestCase):
             Upp_to_fail = X_0.copy()
             Upp_to_fail[i] = (1.0 - EPS) * Upp_to_fail[i]
             self.__test({"Upp": Upp_to_fail}, ValueError)
+
+        # X_0 must be finite, even if problem is unconstrained.
+        # TODO: Change to unconstrained and confirm that X_0 must be finite
+        # real.
 
     def testGTol(self):
         for bad in self.__NOT_REAL:
