@@ -72,11 +72,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         * **eta1** - Minimum ratio of actual to predicted reduction required
           to accept a step and update the center (default is 0.05)
         * **hfun** - Outer function :math:`\hfun` that maps given
-          :math:`\Ffun(\psp)` to scalars for minimization (default is
-          sum-of-squares that yields :math:`f`)
+          :math:`\Ffun(\psp)` to scalars for minimization (default
+          :py:func:`ibcdfo.pounders.h_leastsquares` yields ordinary least
+          squares)
         * **combinemodels** - Function that maps the linear and quadratic terms
           from the models of :math:`\Ffun` into a single quadratic model
-          (default is ordinary least squares)
+          (default is ``ibcdfo.pounders.combine_leastsquares`` to match
+          the default **hfun**)
 
     :param Model: ``dict`` of model building options.  Set to ``None`` to use
         default values.

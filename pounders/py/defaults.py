@@ -36,8 +36,8 @@ def compute_default_prior(n, m):
     These default values are unlikely to change in the future.
 
     :param n: Dimension (number of continuous, real-valued input variables)
-    :param m: Dimension of output of ``Ffun`` (number of component functions)
-    :return: ``dict`` of full set of ``Prior`` configuration values set to
+    :param m: Dimension of output of **Ffun** (number of component functions)
+    :return: ``dict`` of full set of **Prior** configuration values set to
         default values derived from given inputs
     """
     defaults = {
@@ -58,12 +58,12 @@ def compute_default_model(n):
     These default values are unlikely to change in the future.
 
     :param n: Dimension (number of continuous, real-valued input variables)
-    :return: ``dict`` of full set of ``Model`` configuration values set to
+    :return: ``dict`` of full set of **Model** configuration values set to
         default values derived from given input
     """
     defaults = {
         "np_max": 2 * n + 1,
-        "Par": [np.sqrt(n), np.maximum(10, np.sqrt(n)), 10**-3, 0.001, 0],
+        "Par": [np.sqrt(n), np.maximum(10, np.sqrt(n)), 1.0e-3, 1.0e-3, 0],
     }
     assert set(defaults) == ALL_MODEL_KEYS
     return defaults
@@ -74,14 +74,13 @@ def compute_default_options(delta_0, g_tol, Low, Upp):
     This is intended for private, internal use only.  No error checking of
     inputs or returned values is performed by this function.
 
-    Except for the default ``spsolver`` these default values are unlikely to
+    Except for the default **spsolver** these default values are unlikely to
     change in the future.
 
-    These default values are unlikely to change in the future.
     :param delta_0: Positive initial trust region radius
     :param g_tol: Tolerance for the 2-norm of the model gradient
-    :param Low: :math:`\np` element 1D NumPy array of lower bounds
-    :param Upp: :math:`\np` element 1D NumPy array of upper bounds
+    :param Low: :math:`\np`-element 1D NumPy array of lower bounds
+    :param Upp: :math:`\np`-element 1D NumPy array of upper bounds
     :return: ``dict`` of full set of ``Options`` values set to default values
         derived from given inputs
     """
