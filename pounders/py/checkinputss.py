@@ -54,7 +54,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     # Check starting point - must be in feasible set
     if not isinstance(X_0, np.ndarray):
         raise TypeError("Error: X_0 must be a 1D NumPy array")
-    elif (X_0.ndim != 1) or (len(X_0) != n):
+    if (X_0.ndim != 1) or (len(X_0) != n):
         raise ValueError(f"Error: X_0 is not an {n}-element 1D NumPy array")
     if any(X_0 < Low) or any(X_0 > Upp):
         raise ValueError("Error: X_0 outside of Low/Upp bounds")
@@ -77,9 +77,10 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     # There is no sense in running an optimization without evaluating at least
     # once at a non-geometry point chosen by POUNDERS.  If users provide any
     # number of preexisting evaluations, there's no guarantee that any of those
-    # values (other than at the starting point) can be used by POUNDERS to start
-    # an optimization.  Even if they did, we still want POUNDERS to perform one
-    # evaluation at a point determined by POUNDERS using those values.
+    # values (other than at the starting point) will be used by POUNDERS to
+    # start the optimization.  Even if they did, we still want POUNDERS to
+    # perform one evaluation at a point determined by POUNDERS using those
+    # values.
     #
     # We, therefore, establish a lower bound on nf_max assuming that users can
     # only know with certainty that a given starting point value can be used by
@@ -107,11 +108,11 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
 
     # Check prior evaluations
     if not isinstance(xk_in, numbers.Integral):
-        raise TypeError(f"Error: starting point index is not an integer ({xk_in})")
+        raise TypeError(f"Error: xk_in is not an integer ({xk_in})")
     elif (xk_in < 0) or ((nfs == 0) and (xk_in != 0)) or ((nfs > 0) and (xk_in >= nfs)):
-        raise ValueError(f"Error: Invalid starting point index ({xk_in})")
+        raise ValueError(f"Error: Invalid xk_in ({xk_in})")
 
-    # As per the docs, we allow all non-X_init[xk_in] points to be infeasible.
+    # As per the docs, we allow all non-X_init[xk_in, :] points to be infeasible.
     if not isinstance(X_init, np.ndarray):
         raise TypeError("Error: X_init must be a 2D NumPy array")
     if X_init.ndim != 2:
@@ -121,7 +122,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if nfs > 0:
         if (not np.all(np.isfinite(X_init))) or (not np.all(np.isreal(X_init))):
             raise ValueError("Error: X_init must contain only finite, real values")
-        if not np.array_equiv(X_init[xk_in], X_0):
+        if not np.array_equal(X_init[xk_in, :], X_0, equal_nan=False):
             raise ValueError("Error: X_0 doesn't match X_init[xk_in, :]")
 
         # While one could argue that including a point more than once in X_init
@@ -129,7 +130,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         # prefer to consider it as a logic error in calling code.  We,
         # therefore, inform calling code explicitly of this issue (rather than
         # post a warning or fix it for them) to allow them to assess why this
-        # error was made.
+        # error was made and fix it.
         _, counts = np.unique(
             X_init,
             axis=0,
@@ -137,7 +138,6 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
             return_inverse=False,
             return_counts=True,
             equal_nan=False,
-            sorted=False,
         )
         if any(counts != 1):
             raise ValueError("Error: X_init contains repeated points")
