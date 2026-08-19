@@ -159,6 +159,10 @@ class TestPoundersInterface(unittest.TestCase):
         self.__test({}, self.__SUCCESS_MSG)
 
     def testPriorKeys(self):
+        n = self.__KWARGS["n"]
+        X_0 = self.__KWARGS["X_0"].copy()
+        Ffun = self.__KWARGS["Ffun"]
+
         # None is fine, ...
         self.__test({"Prior": None}, self.__SUCCESS_MSG)
         # but not empty containers
@@ -180,6 +184,36 @@ class TestPoundersInterface(unittest.TestCase):
         bad["!NOT A KEY!"] = 1.1
         self.assertNotEqual(set(bad), EXPECTED_PRIOR_KEYS)
         self.__test({"Prior": bad}, ValueError)
+
+        # Confirm that providing starting point value doesn't change outputs.
+        #
+        # NOTE: Unfortunately this doesn't confirm that POUNDERS used the
+        # starting point since it could have just ignored the provided value and
+        # continued as usual.  This test could potentially be useful during
+        # manual testing if the POUNDERS log output makes it clear that it
+        # didn't evaluate the starting point and, therefore, performed one less
+        # evaluation.
+        kwargs = copy.deepcopy(self.__KWARGS)
+        kwargs["Prior"] = None
+        kwargs["nf_max"] = n + 2
+        X, F, hF, flag, xk_in = ibcdfo.run_pounders(**kwargs)
+        self.assertTrue(flag > 0.0)
+        self.assertEqual(len(hF), kwargs["nf_max"])
+
+        kwargs["Prior"] = {
+            "nfs": 1,
+            "X_init": np.atleast_2d(X_0),
+            "F_init": np.atleast_2d(Ffun(X_0)),
+            "xk_in": 0,
+        }
+        kwargs["nf_max"] = n + 1
+        X_1, F_1, hF_1, flag_1, xk_in_1 = ibcdfo.run_pounders(**kwargs)
+        self.assertEqual(flag, flag_1)
+        self.assertEqual(len(hF), kwargs["nf_max"] + kwargs["Prior"]["nfs"])
+        self.assertTrue(np.array_equal(X, X_1))
+        self.assertTrue(np.array_equal(F, F_1))
+        self.assertTrue(np.array_equal(hF, hF_1))
+        self.assertEqual(xk_in, xk_in_1)
 
     def testModelKeys(self):
         for good in [None, {}]:
@@ -305,6 +339,7 @@ class TestPoundersInterface(unittest.TestCase):
     def testNfMax(self):
         n = self.__KWARGS["n"]
         m = self.__KWARGS["m"]
+        X_0 = self.__KWARGS["X_0"].copy()
         Ffun = self.__KWARGS["Ffun"]
 
         self.assertEqual(n, 3)
@@ -314,7 +349,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"nf_max": bad}, TypeError)
 
         # No prior evaluations given
-        min_required = 5
+        min_required = n + 2
         test_case = {
             "nfs": 0,
             "X_init": np.full((0, n), np.nan, float),
@@ -332,32 +367,33 @@ class TestPoundersInterface(unittest.TestCase):
             test_case["nf_max"] = bad
             self.__test(test_case, ValueError)
 
+        # Starting point value provided
+        min_required = n + 1
+        test_case = {
+            "nfs": 1,
+            "X_init": np.atleast_2d(X_0),
+            "F_init": np.atleast_2d(Ffun(X_0)),
+            "xk_in": 0,
+        }
+        for good in [0, 1, 2]:
+            # Too few evaluations to converge to solution
+            test_case["nf_max"] = min_required + good
+            self.__test(test_case, "")
+        for good in [10, 10_000]:
+            test_case["nf_max"] = min_required + good
+            self.__test(test_case, self.__SUCCESS_MSG)
+        for bad in range(min_required):
+            test_case["nf_max"] = bad
+            self.__test(test_case, ValueError)
+
         # Two prior evaluation
-        min_required = 3
+        min_required = n + 1
         for good in [0, 1, 2]:
             self.__test({"nf_max": min_required + good}, "")
         for good in [10, 10_000]:
             self.__test({"nf_max": min_required + good}, self.__SUCCESS_MSG)
         for bad in range(min_required):
             self.__test({"nf_max": bad}, ValueError)
-
-        # n+2 or more prior evaluations
-        min_required = 1
-        rng = np.random.default_rng(1234)
-        for nfs in [5, 6, 10]:
-            X_init = rng.uniform(0.0, 1.0, size=(nfs, n))
-            X_init[0, :] = self.__KWARGS["X_0"].copy()
-            F_init = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
-            test_case = {"nfs": nfs, "X_init": X_init, "F_init": F_init, "xk_in": 0}
-            test_case["nf_max"] = 0
-            self.__test(test_case, ValueError)
-            for good in [1, 2, 10]:
-                # Too few evaluations to converge
-                test_case["nf_max"] = good
-                self.__test(test_case, "")
-            for good in [20, 100]:
-                test_case["nf_max"] = good
-                self.__test(test_case, self.__SUCCESS_MSG)
 
     def testX0Errors(self):
         EPS = np.finfo(float).eps

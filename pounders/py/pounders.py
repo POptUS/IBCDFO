@@ -25,9 +25,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as
         :math:`\nd`-element NumPy array for given :math:`\psp`
     :param X_0:     :math:`\np`-element 1D NumPy array that specifies the
-        initial point
+        initial point, which must satisfy the boundary constraints
     :param n:       Dimension (number of continuous, real-valued input variables)
-    :param nf_max:  Maximum number of function evaluations (:math:`> \np+1`)
+    :param nf_max:  Maximum number of function evaluations (:math:`> \np+1` if
+        **Prior** not provided or **nfs** = 0; :math:`\ge \np+1`, if **nfs** > 0)
     :param g_tol:   Tolerance for the 2-norm of the model gradient
     :param delta_0: Positive initial trust region radius
     :param m:       Dimension of output of ``Ffun`` (number of component functions)
@@ -42,8 +43,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           :math:`\Ffun(\psp_k)` computed with ``Ffun``
         * **xk_in** - Zero-based index into ``X_init`` and ``F_init`` that
           corresponds to the point and value to use as the initial point for
-          optimization. Note that if **Prior** is nonempty, this will override
-          the previously specified **X_0**.
+          optimization. Note that if **Prior** is nonempty, **X_init[xk_in]**
+          and **X_0** must be identical and still satisfy the boundary
+          constraints.
 
     :param Options: ``dict`` of method options.  Set to ``None`` to use default
         values.
@@ -83,8 +85,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     :param Model: ``dict`` of model building options.  Set to ``None`` to use
         default values.
 
-        * **np_max** - Maximum number of interpolation points (:math:`>\np+1`)
-          (default is :math:`2\np+1`)
+        * **np_max** - Integer in :math:`\Z[\np+1, (n+1)(n+2)/2]` that specifies
+          the maximum number of interpolation points (default is :math:`2\np+1`)
         * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
 
     :return:
