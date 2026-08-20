@@ -465,15 +465,20 @@ class TestPoundersInterface(unittest.TestCase):
                 self.__test(test_case, ValueError)
 
     def testGTol(self):
+        SMALLEST_POSITIVE = np.finfo(float).smallest_normal
+
         for bad in self.__NOT_REAL:
             self.__test({"g_tol": bad}, TypeError)
-        for bad in [-np.inf, -1.0, -np.finfo(float).smallest_normal, 0.0, np.nan, np.inf]:
+        for bad in [-np.inf, -1.0, -SMALLEST_POSITIVE, 0.0, np.nan, np.inf]:
             self.__test({"g_tol": bad}, ValueError)
+        self.__test({"g_tol": SMALLEST_POSITIVE}, self.__SUCCESS_MSG)
 
-    def testDelta(self):
+    def testDelta0(self):
+        SMALLEST_POSITIVE = np.finfo(float).smallest_normal
+
         for bad in self.__NOT_REAL:
             self.__test({"delta_0": bad}, TypeError)
-        for bad in [-np.inf, -1.0, -np.finfo(float).smallest_normal, 0.0, np.nan, np.inf]:
+        for bad in [-np.inf, -1.0, -SMALLEST_POSITIVE, 0.0, np.nan, np.inf]:
             self.__test({"delta_0": bad}, ValueError)
 
     def testNfs(self):
@@ -484,7 +489,6 @@ class TestPoundersInterface(unittest.TestCase):
 
     def testXinitErrors(self):
         EPS = np.finfo(float).eps
-        NFS_NEW = 3
 
         Ffun = self.__KWARGS["Ffun"]
         n = self.__KWARGS["n"]
@@ -511,20 +515,21 @@ class TestPoundersInterface(unittest.TestCase):
         # Intentionally set other points outside bounds, which should be
         # acceptable.
         test_case = {
-            "nfs": NFS_NEW,
+            "X_0": self.__KWARGS["X_0"].copy(),
+            "nfs": 3,
             "X_init": None,
             "F_init": None,
             "xk_in": -1,
         }
-        for xk_in in range(NFS_NEW):
-            i, j = sorted(set(range(NFS_NEW)).difference({xk_in}))
+        for xk_in in {0, 1, 2}:
+            i, j = sorted({0, 1, 2}.difference({xk_in}))
 
-            X_init = np.full((NFS_NEW, n), np.nan, float)
+            X_init = np.full((test_case["nfs"], n), np.nan, float)
             test_case["xk_in"] = xk_in
             test_case["X_init"] = X_init
 
             # See valid initial points pass ...
-            X_init[xk_in, :] = self.__KWARGS["X_0"].copy()
+            X_init[xk_in, :] = test_case["X_0"].copy()
             X_init[i, :] = self.__KWARGS["Low"] - 0.1
             X_init[j, :] = self.__KWARGS["Upp"] + 0.1
             test_case["F_init"] = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
@@ -532,12 +537,12 @@ class TestPoundersInterface(unittest.TestCase):
 
             # and then let's make 'em fail.
             for k in range(n):
-                X_init[xk_in, :] = self.__KWARGS["X_0"].copy()
+                X_init[xk_in, :] = test_case["X_0"].copy()
                 X_init[xk_in, k] = (1.0 + EPS) * X_init[xk_in, k]
                 self.__test(test_case, ValueError)
 
             # Confirm no repeated points even if they have the same F values
-            X_init[xk_in, :] = self.__KWARGS["X_0"].copy()
+            X_init[xk_in, :] = test_case["X_0"].copy()
             X_init[j, :] = X_init[i, :]
             test_case["F_init"] = np.array([Ffun(X_init[i, :]) for i in range(X_init.shape[0])])
             self.__test(test_case, ValueError)
@@ -590,6 +595,8 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"xk_in": bad}, ValueError)
 
     def testBounds(self):
+        EPS = np.finfo(float).eps
+
         n = self.__KWARGS["n"]
         Low = self.__KWARGS["Low"].copy()
         Upp = self.__KWARGS["Upp"].copy()
@@ -607,7 +614,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Low": bad}, ValueError)
             self.__test({"Upp": bad}, ValueError)
 
-        # Sensible +/-Inf values are acceptable, ...
+        # Sensible +/-Inf values are acceptable; ...
         self.__test({"Low": np.full(n, -np.inf, float)}, self.__SUCCESS_MSG)
         self.__test({"Upp": np.full(n, np.inf, float)}, self.__SUCCESS_MSG)
 
@@ -625,4 +632,6 @@ class TestPoundersInterface(unittest.TestCase):
         for i in range(n):
             Low_to_fail = Low.copy()
             Low_to_fail[i] = Upp[i]
+            self.__test({"Low": Low_to_fail}, ValueError)
+            Low_to_fail[i] = (1.0 + EPS) * Upp[i]
             self.__test({"Low": Low_to_fail}, ValueError)

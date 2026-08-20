@@ -139,7 +139,6 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
             return_index=False,
             return_inverse=False,
             return_counts=True,
-            equal_nan=False,
         )
         if any(counts != 1):
             raise ValueError("Error: X_init contains repeated points")
