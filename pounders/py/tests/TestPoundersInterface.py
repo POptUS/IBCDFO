@@ -424,23 +424,23 @@ class TestPoundersInterface(unittest.TestCase):
         n = self.__KWARGS["n"]
         X_0 = self.__KWARGS["X_0"].copy()
 
-        # Expects 1D array ...
+        # Expects array ...
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"X_0": bad}, TypeError)
 
-        # of correct length
+        # that is 1D and of correct length
         self.__test({"X_0": np.atleast_2d(X_0)}, ValueError)
         for bad in [n - 1, n + 1]:
             self.__test({"X_0": np.full(bad, 0.5, float)}, ValueError)
 
-        # X_0 on finite bounds acceptable ...
+        # X_0 on finite bounds acceptable, ...
         #
-        # Since the prior evaluations are already correctly set
-        # relative to X_0 it's easy and cleaner to change the bounds.
+        # Since the prior evaluations are already correctly set relative to X_0
+        # it's easier and cleaner to change the bounds.
         self.__test({"Low": X_0}, WARNING)
         self.__test({"Upp": X_0}, f"{WARNING}\n{self.__SUCCESS_MSG}")
 
-        # outside is not
+        # but outside is not.
         for i in range(n):
             Low_to_fail = X_0.copy()
             Low_to_fail[i] = (1.0 + EPS) * Low_to_fail[i]
@@ -450,9 +450,19 @@ class TestPoundersInterface(unittest.TestCase):
             Upp_to_fail[i] = (1.0 - EPS) * Upp_to_fail[i]
             self.__test({"Upp": Upp_to_fail}, ValueError)
 
-        # X_0 must be finite, even if problem is unconstrained.
-        # TODO: Change to unconstrained and confirm that X_0 must be finite
-        # real.
+        # However, X_0 must be finite, even if problem is unconstrained.
+        test_case = {
+            "Low": np.full(n, -np.inf, float),
+            "Upp": np.full(n, np.inf, float),
+            "X_0": X_0.copy(),
+            "Prior": None,
+        }
+        self.__test(test_case, self.__SUCCESS_MSG)
+        for bad in [-np.inf, np.inf, np.nan]:
+            for i in range(n):
+                test_case["X_0"] = X_0.copy()
+                test_case["X_0"][i] = bad
+                self.__test(test_case, ValueError)
 
     def testGTol(self):
         for bad in self.__NOT_REAL:
