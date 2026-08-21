@@ -13,6 +13,15 @@ def _is_real(x):
     return isinstance(x, numbers.Real) and not isinstance(x, bool)
 
 
+def _is_finite_real(x):
+    # np.isreal does not raise on a non-numeric dtype (e.g. it evaluates to
+    # False elementwise for an array of strings), whereas np.isfinite raises
+    # a TypeError on such dtypes.  Checking isreal first, and relying on
+    # short-circuit evaluation, means a non-numeric array fails this check
+    # with our own error message instead of a confusing raw TypeError.
+    return np.all(np.isreal(x)) and np.all(np.isfinite(x))
+
+
 def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp):
     """
     Raise an exception if any of the given POUNDERS specification variables do
@@ -70,9 +79,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise TypeError("Error: X_0 must be a 1D NumPy array")
     if (X_0.ndim != 1) or (len(X_0) != n):
         raise ValueError(f"Error: X_0 is not an {n}-element 1D NumPy array")
-    if not np.issubdtype(X_0.dtype, np.number):
-        raise TypeError(f"Error: X_0 must have a numeric dtype ({X_0.dtype})")
-    if (not np.all(np.isfinite(X_0))) or (not np.all(np.isreal(X_0))):
+    if not _is_finite_real(X_0):
         raise ValueError("Error: X_0 must contain only finite, real values")
     if any(X_0 < Low) or any(X_0 > Upp):
         raise ValueError("Error: X_0 outside of Low/Upp bounds")
@@ -138,9 +145,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if X_init.shape != (nfs, n):
         raise ValueError(f"Error: X_init has shape {X_init.shape} instead of ({nfs}, {n})")
     if nfs > 0:
-        if not np.issubdtype(X_init.dtype, np.number):
-            raise TypeError(f"Error: X_init must have a numeric dtype ({X_init.dtype})")
-        if (not np.all(np.isfinite(X_init))) or (not np.all(np.isreal(X_init))):
+        if not _is_finite_real(X_init):
             raise ValueError("Error: X_init must contain only finite, real values")
         if not np.array_equal(X_init[xk_in, :], X_0, equal_nan=False):
             raise ValueError("Error: X_0 doesn't match X_init[xk_in, :]")
@@ -162,7 +167,5 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if F_init.shape != (nfs, m):
         raise ValueError(f"Error: Invalid F_init shape {F_init.shape}.  Expected ({nfs}, {m})")
     if nfs > 0:
-        if not np.issubdtype(F_init.dtype, np.number):
-            raise TypeError(f"Error: F_init must have a numeric dtype ({F_init.dtype})")
-        if (not np.all(np.isfinite(F_init))) or (not np.all(np.isreal(F_init))):
+        if not _is_finite_real(F_init):
             raise ValueError("Error: F_init must contain only finite, real values")
