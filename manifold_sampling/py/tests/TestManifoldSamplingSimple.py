@@ -20,7 +20,7 @@ class TestManifoldSampling(unittest.TestCase):
 
         subprob_switch = "linprog"
         nf_max = 1000
-        X0 = np.array([10, 20, 30])
+        X0 = np.array([10.0, 20.0, 30.0])
         L = -np.inf * np.ones(3)
         U = np.inf * np.ones(3)
 

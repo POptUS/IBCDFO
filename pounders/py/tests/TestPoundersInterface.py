@@ -424,12 +424,12 @@ class TestPoundersInterface(unittest.TestCase):
         n = self.__KWARGS["n"]
         X_0 = self.__KWARGS["X_0"].copy()
 
-        # Expects array ...
+        # Expects 1D arrays ...
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"X_0": bad}, TypeError)
+        self.__test({"X_0": np.atleast_2d(X_0)}, TypeError)
 
         # that is 1D and of correct length
-        self.__test({"X_0": np.atleast_2d(X_0)}, ValueError)
         for bad in [n - 1, n + 1]:
             self.__test({"X_0": np.full(bad, 0.5, float)}, ValueError)
 
@@ -462,14 +462,16 @@ class TestPoundersInterface(unittest.TestCase):
             for i in range(n):
                 test_case["X_0"] = X_0.copy()
                 test_case["X_0"][i] = bad
-                self.__test(test_case, ValueError)
+                self.__test(test_case, TypeError)
 
     def testGTol(self):
         SMALLEST_POSITIVE = np.finfo(float).smallest_normal
 
         for bad in self.__NOT_REAL:
             self.__test({"g_tol": bad}, TypeError)
-        for bad in [-np.inf, -1.0, -SMALLEST_POSITIVE, 0.0, np.nan, np.inf]:
+        for bad in [-np.inf, np.nan, np.inf]:
+            self.__test({"g_tol": bad}, TypeError)
+        for bad in [-1.0, -SMALLEST_POSITIVE, 0.0]:
             self.__test({"g_tol": bad}, ValueError)
         self.__test({"g_tol": SMALLEST_POSITIVE}, self.__SUCCESS_MSG)
 
@@ -478,7 +480,9 @@ class TestPoundersInterface(unittest.TestCase):
 
         for bad in self.__NOT_REAL:
             self.__test({"delta_0": bad}, TypeError)
-        for bad in [-np.inf, -1.0, -SMALLEST_POSITIVE, 0.0, np.nan, np.inf]:
+        for bad in [-np.inf, np.nan, np.inf]:
+            self.__test({"delta_0": bad}, TypeError)
+        for bad in [-1.0, -SMALLEST_POSITIVE, 0.0]:
             self.__test({"delta_0": bad}, ValueError)
 
     def testNfs(self):
@@ -498,8 +502,8 @@ class TestPoundersInterface(unittest.TestCase):
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"X_init": bad}, TypeError)
 
-        self.__test({"X_init": np.zeros(n)}, ValueError)
-        self.__test({"X_init": np.zeros((nfs, n, 1))}, ValueError)
+        self.__test({"X_init": np.zeros(n)}, TypeError)
+        self.__test({"X_init": np.zeros((nfs, n, 1))}, TypeError)
 
         for bad in [nfs - 1, nfs + 1]:
             self.__test({"X_init": np.zeros((bad, n))}, ValueError)
@@ -508,7 +512,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"X_init": np.zeros((nfs, bad))}, ValueError)
 
         for bad in [np.nan, np.inf, -np.inf]:
-            self.__test({"X_init": np.full(X_init.shape, bad, float)}, ValueError)
+            self.__test({"X_init": np.full(X_init.shape, bad, float)}, TypeError)
 
         # X_init[xk_in, :] does not match given X_0
         #
@@ -559,8 +563,8 @@ class TestPoundersInterface(unittest.TestCase):
         for bad in self.__NOT_NUMPY_ARRAY:
             self.__test({"F_init": bad}, TypeError)
 
-        self.__test({"F_init": np.zeros(m)}, ValueError)
-        self.__test({"F_init": np.zeros((nfs, m, 1))}, ValueError)
+        self.__test({"F_init": np.zeros(m)}, TypeError)
+        self.__test({"F_init": np.zeros((nfs, m, 1))}, TypeError)
 
         for bad in [nfs - 1, nfs + 1]:
             self.__test({"F_init": np.zeros((bad, m))}, ValueError)
@@ -569,7 +573,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"F_init": np.zeros((nfs, bad))}, ValueError)
 
         for bad in [np.nan, np.inf, -np.inf]:
-            self.__test({"F_init": np.full(F_init.shape, bad, float)}, ValueError)
+            self.__test({"F_init": np.full(F_init.shape, bad, float)}, TypeError)
 
     def testXKinErrors(self):
         n = self.__KWARGS["n"]
@@ -606,8 +610,8 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Upp": bad}, TypeError)
 
         # Need to be 1D arrays
-        self.__test({"Low": np.atleast_2d(Low)}, ValueError)
-        self.__test({"Upp": np.atleast_2d(Upp)}, ValueError)
+        self.__test({"Low": np.atleast_2d(Low)}, TypeError)
+        self.__test({"Upp": np.atleast_2d(Upp)}, TypeError)
 
         # Incorrect lengths
         for bad in [np.zeros(n - 1), np.zeros(n + 1)]:
@@ -622,11 +626,11 @@ class TestPoundersInterface(unittest.TestCase):
         for i in range(n):
             Low_to_fail = Low.copy()
             Low_to_fail[i] = np.nan
-            self.__test({"Low": Low_to_fail}, ValueError)
+            self.__test({"Low": Low_to_fail}, TypeError)
 
             Upp_to_fail = Upp.copy()
             Upp_to_fail[i] = np.nan
-            self.__test({"Upp": Upp_to_fail}, ValueError)
+            self.__test({"Upp": Upp_to_fail}, TypeError)
 
         # Low >= Upp
         for i in range(n):
@@ -635,3 +639,19 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Low": Low_to_fail}, ValueError)
             Low_to_fail[i] = (1.0 + EPS) * Upp[i]
             self.__test({"Low": Low_to_fail}, ValueError)
+
+            # Low can be set to -Inf, but never to Inf.
+            Low_to_fail = Low.copy()
+            Upp_good = Upp.copy()
+            Low_to_fail[i] = np.inf
+            Upp_good[i] = np.inf
+            self.__test({"Upp": Upp_good}, self.__SUCCESS_MSG)
+            self.__test({"Low": Low_to_fail, "Upp": Upp_good}, ValueError)
+
+            # Upp can be set to Inf, but never to -Inf.
+            Low_good = Low.copy()
+            Upp_to_fail = Upp.copy()
+            Low_good[i] = -np.inf
+            Upp_to_fail[i] = -np.inf
+            self.__test({"Low": Low_good}, self.__SUCCESS_MSG)
+            self.__test({"Low": Low_good, "Upp": Upp_to_fail}, ValueError)

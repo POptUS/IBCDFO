@@ -32,7 +32,7 @@ class TestPounders(unittest.TestCase):
         n = 3
         m = 3
 
-        X_0 = np.array([10, 20, 30])
+        X_0 = np.array([10.0, 20.0, 30.0])
         Low = np.full(n, -np.inf, float)
         Upp = np.full(n, np.inf, float)
         delta = 0.1

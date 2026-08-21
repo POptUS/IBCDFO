@@ -1,0 +1,151 @@
+import unittest
+
+import numpy as np
+
+from ibcdfo._variable_checks import is_finite_real_numpy_array
+
+
+class TestIsFiniteRealNumpyArray(unittest.TestCase):
+
+    def setUp(self):
+        self.__NOT_NUMPY_ARRAY = (
+            None,
+            "",
+            "not_array",
+            True,
+            False,
+            1,
+            1.1,
+            (1.1 + 2.2 * 1j),
+            (0.0 * 1j),
+            {},
+            (1),
+            [1],
+            {1},
+        )
+        self.__COMPLEX = {1j, (1.1 - 2.2 * 1j), (0.0 * 1j)}
+        self.__NOT_FINITE = {np.nan, np.inf, -np.inf}
+
+        self.__GOOD_1D = np.full(5, 1.1, float)
+        self.__GOOD_2D = np.full((5, 3), 1.1, float)
+        self.__GOOD_3D = np.full((5, 3, 4), 1.1, float)
+
+        # 0D arrays are strange, so check this more carefully
+        self.__GOOD_0D = np.array(0.0)
+        self.assertTrue(isinstance(self.__GOOD_0D, np.ndarray))
+        self.assertEqual(self.__GOOD_0D.ndim, 0)
+        self.assertTrue(np.isreal(self.__GOOD_0D))
+        self.assertTrue(np.isfinite(self.__GOOD_0D))
+
+    def test0dArrays(self):
+        with self.assertRaises(AssertionError):
+            self.assertFalse(is_finite_real_numpy_array(self.__GOOD_0D, ndim=0))
+
+    def test1dArrays(self):
+        NDIM = 1
+        BAD_ARRAYS = (self.__GOOD_0D, self.__GOOD_2D, self.__GOOD_3D)
+        GOOD = self.__GOOD_1D.copy()
+
+        self.assertTrue(is_finite_real_numpy_array(GOOD, ndim=NDIM))
+        self.assertFalse(is_finite_real_numpy_array(GOOD.astype(int), ndim=NDIM))
+
+        for bad in self.__NOT_NUMPY_ARRAY:
+            self.assertFalse(is_finite_real_numpy_array(bad, ndim=NDIM))
+
+        for bad in [None, "", "a"]:
+            bad_array = np.full(GOOD.shape, bad)
+            self.assertEqual(bad_array.ndim, NDIM)
+            self.assertFalse(is_finite_real_numpy_array(bad_array, ndim=NDIM))
+
+        for bad in BAD_ARRAYS:
+            self.assertNotEqual(bad.ndim, NDIM)
+            self.assertFalse(is_finite_real_numpy_array(bad, ndim=NDIM))
+
+        for bad in self.__NOT_FINITE:
+            for i in range(len(GOOD)):
+                bad_array = GOOD.copy()
+                bad_array[i] = bad
+                self.assertFalse(is_finite_real_numpy_array(bad_array, ndim=NDIM))
+
+        for bad in self.__COMPLEX:
+            for i in range(len(GOOD)):
+                bad_array = GOOD.copy()
+                bad_array = bad_array.astype(complex)
+                bad_array[i] = bad
+                self.assertFalse(is_finite_real_numpy_array(bad_array, ndim=NDIM))
+
+    def test2dArrays(self):
+        NDIM = 2
+        BAD_ARRAYS = (self.__GOOD_0D, self.__GOOD_1D, self.__GOOD_3D)
+        GOOD = self.__GOOD_2D.copy()
+
+        self.assertTrue(is_finite_real_numpy_array(GOOD, ndim=NDIM))
+        self.assertFalse(is_finite_real_numpy_array(GOOD.astype(int), ndim=NDIM))
+
+        for bad in self.__NOT_NUMPY_ARRAY:
+            self.assertFalse(is_finite_real_numpy_array(bad, ndim=NDIM))
+
+        for bad in [None, "", "a"]:
+            bad_array = np.full(GOOD.shape, bad)
+            self.assertEqual(bad_array.ndim, NDIM)
+            self.assertFalse(is_finite_real_numpy_array(bad_array, ndim=NDIM))
+
+        for bad in BAD_ARRAYS:
+            self.assertNotEqual(bad.ndim, NDIM)
+            self.assertFalse(is_finite_real_numpy_array(bad, ndim=NDIM))
+
+        for bad in self.__NOT_FINITE:
+            for i in range(GOOD.shape[0]):
+                for j in range(GOOD.shape[1]):
+                    bad_array = GOOD.copy()
+                    bad_array[i, j] = bad
+                    self.assertFalse(is_finite_real_numpy_array(bad_array, ndim=NDIM))
+
+        for bad in self.__COMPLEX:
+            for i in range(GOOD.shape[0]):
+                for j in range(GOOD.shape[1]):
+                    bad_array = GOOD.copy()
+                    bad_array = bad_array.astype(complex)
+                    bad_array[i, j] = bad
+                    self.assertFalse(is_finite_real_numpy_array(bad_array, ndim=NDIM))
+
+    def test3dArrays(self):
+        NDIM = 3
+        BAD_ARRAYS = (self.__GOOD_0D, self.__GOOD_1D, self.__GOOD_2D)
+        GOOD = self.__GOOD_3D.copy()
+
+        self.assertTrue(is_finite_real_numpy_array(GOOD, ndim=NDIM))
+        self.assertFalse(is_finite_real_numpy_array(GOOD.astype(int), ndim=NDIM))
+
+        for bad in self.__NOT_NUMPY_ARRAY:
+            self.assertFalse(is_finite_real_numpy_array(bad, ndim=NDIM))
+
+        for bad in [None, "", "a"]:
+            bad_array = np.full(GOOD.shape, bad)
+            self.assertEqual(bad_array.ndim, NDIM)
+            self.assertFalse(is_finite_real_numpy_array(bad_array, ndim=NDIM))
+
+        for bad in BAD_ARRAYS:
+            self.assertNotEqual(bad.ndim, NDIM)
+            self.assertFalse(is_finite_real_numpy_array(bad, ndim=NDIM))
+
+        for bad in self.__NOT_FINITE:
+            for i in range(GOOD.shape[0]):
+                for j in range(GOOD.shape[1]):
+                    for k in range(GOOD.shape[2]):
+                        bad_array = GOOD.copy()
+                        bad_array[i, j, k] = bad
+                        self.assertFalse(is_finite_real_numpy_array(
+                            bad_array, ndim=NDIM)
+                        )  # fmt: skip
+
+        for bad in self.__COMPLEX:
+            for i in range(GOOD.shape[0]):
+                for j in range(GOOD.shape[1]):
+                    for k in range(GOOD.shape[2]):
+                        bad_array = GOOD.copy()
+                        bad_array = bad_array.astype(complex)
+                        bad_array[i, j, k] = bad
+                        self.assertFalse(is_finite_real_numpy_array(
+                            bad_array, ndim=NDIM)
+                        )  # fmt: skip

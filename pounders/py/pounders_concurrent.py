@@ -1,5 +1,3 @@
-import numbers
-
 import numpy as np
 
 from .defaults import (
@@ -10,6 +8,7 @@ from .defaults import (
     compute_default_model,
     compute_default_options,
 )
+from .._variable_checks import is_integer
 from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
 from .checkinputss import checkinputss
@@ -44,12 +43,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     """
     # ----- UPFRONT ERROR CHECKING
     # These are used to set defaults before official error checking
-    if not isinstance(n, numbers.Integral):
+    if not is_integer(n):
         raise TypeError(f"Error: dimension n is not an integer ({n})")
     if n < 1:
         raise ValueError(f"Error: dimension n is not a positive integer ({n})")
 
-    if not isinstance(m, numbers.Integral):
+    if not is_integer(m):
         raise TypeError(f"Error: dimension m is not an integer ({m})")
     if m < 1:
         raise ValueError(f"Error: dimension m is not a positive integer ({m})")
