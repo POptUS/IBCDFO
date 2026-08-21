@@ -81,7 +81,7 @@ def compute_default_options(delta_0, g_tol, Low, Upp):
     :param g_tol: Tolerance for the 2-norm of the model gradient
     :param Low: :math:`\np`-element 1D NumPy array of lower bounds
     :param Upp: :math:`\np`-element 1D NumPy array of upper bounds
-    :return: ``dict`` of full set of ``Options`` values set to default values
+    :return: ``dict`` of full set of **Options** values set to default values
         derived from given inputs
     """
     defaults = {

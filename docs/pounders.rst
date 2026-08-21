@@ -74,7 +74,7 @@ interpretation of the value of the flag is identical across both implementations
 * -3 - a ``NaN`` was encountered
 * -4 - error in trust-region subproblem solver
 * -5 - an attempt at model improvement failed
-* -6 - the trust-region radius `delta` has shrunk to **delta_min**, and the model is valid
+* -6 - the trust-region radius **delta** has shrunk to **delta_min**, and the model is valid
 
 The programmatic interface is generally maintained identical between both
 implementations.  Nevertheless, we provide the interface for each implementation

@@ -94,7 +94,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if not _is_integer(nfs):
         raise TypeError(f"Error: nfs is not an integer ({nfs})")
     if nfs < 0:
-        raise ValueError(f"Error: nfs is not a positive integer ({nfs})")
+        raise ValueError(f"Error: nfs is not a non-negative integer ({nfs})")
 
     # nf_max is the max actual evaluations to be allowed during an optimization.
     # It does not include any preexisting evaluations provided to POUNDERS.
