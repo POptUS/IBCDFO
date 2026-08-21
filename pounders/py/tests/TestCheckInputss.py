@@ -39,6 +39,23 @@ class TestCheckInputss(unittest.TestCase):
         }
         checkinputss(**self.__KWARGS)
 
+    def _assert_bad_dimension(self, key):
+        kwargs = copy.deepcopy(self.__KWARGS)
+        for bad in self.__NOT_INT:
+            kwargs[key] = bad
+            with self.assertRaises(TypeError) as err:
+                checkinputss(**kwargs)
+            err_msg = str(err.exception)
+            # print(err_msg)
+            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
+        for bad in [-10, -1, 0]:
+            kwargs[key] = bad
+            with self.assertRaises(ValueError) as err:
+                checkinputss(**kwargs)
+            err_msg = str(err.exception)
+            # print(err_msg)
+            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
+
     def testN(self):
         # Prefer testing checkinputss() indirectly by testing calls to
         # pounders.py.  POUNDERS error checks n before calling checkinputss()
@@ -46,36 +63,8 @@ class TestCheckInputss(unittest.TestCase):
         # checked.  Therefore, error checks of n in checkinputss are never
         # exercised, and  we test here in case this functionality is actually
         # used at some point.
-        kwargs = copy.deepcopy(self.__KWARGS)
-        for bad in self.__NOT_INT:
-            kwargs["n"] = bad
-            with self.assertRaises(TypeError) as err:
-                checkinputss(**kwargs)
-            err_msg = str(err.exception)
-            # print(err_msg)
-            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
-        for bad in [-10, -1, 0]:
-            kwargs["n"] = bad
-            with self.assertRaises(ValueError) as err:
-                checkinputss(**kwargs)
-            err_msg = str(err.exception)
-            # print(err_msg)
-            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
+        self._assert_bad_dimension("n")
 
     def testM(self):
         # See notes for testN().
-        kwargs = copy.deepcopy(self.__KWARGS)
-        for bad in self.__NOT_INT:
-            kwargs["m"] = bad
-            with self.assertRaises(TypeError) as err:
-                checkinputss(**kwargs)
-            err_msg = str(err.exception)
-            # print(err_msg)
-            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
-        for bad in [-10, -1, 0]:
-            kwargs["m"] = bad
-            with self.assertRaises(ValueError) as err:
-                checkinputss(**kwargs)
-            err_msg = str(err.exception)
-            # print(err_msg)
-            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
+        self._assert_bad_dimension("m")

@@ -3,6 +3,16 @@ import numbers
 import numpy as np
 
 
+def _is_integer(x):
+    # bool is a subclass of int (and so registers as numbers.Integral); exclude
+    # it so that, e.g., n=True is not silently accepted as n=1.
+    return isinstance(x, numbers.Integral) and not isinstance(x, bool)
+
+
+def _is_real(x):
+    return isinstance(x, numbers.Real) and not isinstance(x, bool)
+
+
 def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp):
     """
     Raise an exception if any of the given POUNDERS specification variables do
@@ -25,12 +35,12 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise TypeError("Error: Ffun is not a function")
 
     # Problem dimensions
-    if not isinstance(n, numbers.Integral):
+    if not _is_integer(n):
         raise TypeError(f"Error: dimension n is not an integer ({n})")
     if n < 1:
         raise ValueError(f"Error: dimension n is not a positive integer ({n})")
 
-    if not isinstance(m, numbers.Integral):
+    if not _is_integer(m):
         raise TypeError(f"Error: dimension m is not an integer ({m})")
     if m < 1:
         raise ValueError(f"Error: dimension m is not a positive integer ({m})")
@@ -40,12 +50,16 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise TypeError("Error: Low must be a 1D NumPy array")
     if (Low.ndim != 1) or (len(Low) != n):
         raise ValueError(f"Error: Low is not an {n}-element 1D NumPy array")
+    if not np.issubdtype(Low.dtype, np.number):
+        raise TypeError(f"Error: Low must have a numeric dtype ({Low.dtype})")
     if np.any(np.isnan(Low)):
         raise ValueError("Error: Low contains NaN values")
     if not isinstance(Upp, np.ndarray):
         raise TypeError("Error: Upp must be a 1D NumPy array")
     if (Upp.ndim != 1) or (len(Upp) != n):
         raise ValueError(f"Error: Upp is not an {n}-element 1D NumPy array")
+    if not np.issubdtype(Upp.dtype, np.number):
+        raise TypeError(f"Error: Upp must have a numeric dtype ({Upp.dtype})")
     if np.any(np.isnan(Upp)):
         raise ValueError("Error: Upp contains NaN values")
     if any(Upp <= Low):
@@ -56,19 +70,21 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise TypeError("Error: X_0 must be a 1D NumPy array")
     if (X_0.ndim != 1) or (len(X_0) != n):
         raise ValueError(f"Error: X_0 is not an {n}-element 1D NumPy array")
+    if not np.issubdtype(X_0.dtype, np.number):
+        raise TypeError(f"Error: X_0 must have a numeric dtype ({X_0.dtype})")
     if (not np.all(np.isfinite(X_0))) or (not np.all(np.isreal(X_0))):
-        raise ValueError("Error: X_init must contain only finite, real values")
+        raise ValueError("Error: X_0 must contain only finite, real values")
     if any(X_0 < Low) or any(X_0 > Upp):
         raise ValueError("Error: X_0 outside of Low/Upp bounds")
 
     # Check max number of interpolation points
-    if not isinstance(np_max, numbers.Integral):
+    if not _is_integer(np_max):
         raise TypeError(f"Error: np_max is not an integer ({np_max})")
     if (np_max < n + 1) or (np_max > int(0.5 * (n + 1) * (n + 2))):
         raise ValueError(f"Error: np_max ({np_max}) is not in [n+1, 0.5 * (n+1) * (n+2)]")
 
     # Check standard positive quantities
-    if not isinstance(nfs, numbers.Integral):
+    if not _is_integer(nfs):
         raise TypeError(f"Error: nfs is not an integer ({nfs})")
     if nfs < 0:
         raise ValueError(f"Error: nfs is not a positive integer ({nfs})")
@@ -89,19 +105,19 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     # POUNDERS.  They must assume that all other provided values, if any, might
     # be ignored.
     min_required_evals = n + 1 if nfs > 0 else n + 2
-    if not isinstance(nf_max, numbers.Integral):
+    if not _is_integer(nf_max):
         raise TypeError(f"Error: nf_max is not an integer ({nf_max})")
     if nf_max < min_required_evals:
         raise ValueError(f"Error: nf_max ({nf_max}) should be >= {min_required_evals}")
 
-    if not isinstance(g_tol, numbers.Real):
+    if not _is_real(g_tol):
         raise TypeError(f"Error: g_tol is not a real ({g_tol})")
     if not np.isfinite(g_tol):
         raise ValueError(f"Error: g_tol is not a finite real ({g_tol})")
     if g_tol <= 0.0:
         raise ValueError(f"Error: g_tol must be a positive real ({g_tol})")
 
-    if not isinstance(delta_0, numbers.Real):
+    if not _is_real(delta_0):
         raise TypeError(f"Error: delta_0 is not a real ({delta_0})")
     if not np.isfinite(delta_0):
         raise ValueError(f"Error: delta_0 is not a finite real ({delta_0})")
@@ -109,7 +125,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise ValueError(f"Error: delta_0 must be a positive real ({delta_0})")
 
     # Check prior evaluations
-    if not isinstance(xk_in, numbers.Integral):
+    if not _is_integer(xk_in):
         raise TypeError(f"Error: xk_in is not an integer ({xk_in})")
     elif (xk_in < 0) or ((nfs == 0) and (xk_in != 0)) or ((nfs > 0) and (xk_in >= nfs)):
         raise ValueError(f"Error: Invalid xk_in ({xk_in})")
@@ -122,6 +138,8 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if X_init.shape != (nfs, n):
         raise ValueError(f"Error: X_init has shape {X_init.shape} instead of ({nfs}, {n})")
     if nfs > 0:
+        if not np.issubdtype(X_init.dtype, np.number):
+            raise TypeError(f"Error: X_init must have a numeric dtype ({X_init.dtype})")
         if (not np.all(np.isfinite(X_init))) or (not np.all(np.isreal(X_init))):
             raise ValueError("Error: X_init must contain only finite, real values")
         if not np.array_equal(X_init[xk_in, :], X_0, equal_nan=False):
@@ -133,13 +151,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         # therefore, inform calling code explicitly of this issue (rather than
         # post a warning or fix it for them) to allow them to assess why this
         # error was made and fix it.
-        _, counts = np.unique(
-            X_init,
-            axis=0,
-            return_index=False,
-            return_inverse=False,
-            return_counts=True,
-        )
+        _, counts = np.unique(X_init, axis=0, return_counts=True)
         if any(counts != 1):
             raise ValueError("Error: X_init contains repeated points")
 
@@ -150,5 +162,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if F_init.shape != (nfs, m):
         raise ValueError(f"Error: Invalid F_init shape {F_init.shape}.  Expected ({nfs}, {m})")
     if nfs > 0:
+        if not np.issubdtype(F_init.dtype, np.number):
+            raise TypeError(f"Error: F_init must have a numeric dtype ({F_init.dtype})")
         if (not np.all(np.isfinite(F_init))) or (not np.all(np.isreal(F_init))):
             raise ValueError("Error: F_init must contain only finite, real values")

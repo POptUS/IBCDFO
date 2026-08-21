@@ -68,7 +68,7 @@ interpretation of the value of the flag is identical across both implementations
   :math:`\psp` satisfied user-provided gradient tolerance,
 * > 0 - the budget specified in **nf_max** was reached; the value of the flag is the 2-norm of
   :math:`\gradf` at final :math:`\psp`
-* -1 - input was fatally incorrect (error message shown)
+* -1 - the number of values returned by **Ffun** did not match **m**
 * -2 - a valid model produced ``X[nf] == X[xk_in]`` or ``(mdec == 0, hF[nf] == hF[xk_in])``
   (this indicates that the TRSP solver failed to find decrease in the model)
 * -3 - a ``NaN`` was encountered
