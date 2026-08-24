@@ -77,8 +77,8 @@ class TestPoundersInterface(unittest.TestCase):
         self.assertEqual(set(self.__KWARGS["Model"]), ALL_MODEL_KEYS)
         self.assertEqual(set(self.__KWARGS["Options"]), ALL_OPTIONS_KEYS)
 
-        self.__NOT_REAL = (None, "", {}, [1.1], {1.1})
-        self.__NOT_INT = (None, "", 1.0, 1.1, {}, [1], {1})
+        self.__NOT_REAL = (None, "", True, False, {}, [1.1], {1.1})
+        self.__NOT_INT = (None, "", True, False, 1.0, 1.1, {}, [1], {1})
         self.__NOT_NUMPY_ARRAY = (None, "", 1, 1.1, {}, [1], {1})
         self.__NOT_FUNCTION = (None, "", 1, 1.1, {}, [1], {1})
 
@@ -429,7 +429,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"X_0": bad}, TypeError)
         self.__test({"X_0": np.atleast_2d(X_0)}, TypeError)
 
-        # that is 1D and of correct length
+        # that are of correct length
         for bad in [n - 1, n + 1]:
             self.__test({"X_0": np.full(bad, 0.5, float)}, ValueError)
 
