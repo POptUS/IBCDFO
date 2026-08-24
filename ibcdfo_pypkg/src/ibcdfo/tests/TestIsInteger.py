@@ -22,6 +22,7 @@ class TestIsInteger(unittest.TestCase):
             {},
             [1],
             {1},
+            np.array(1),
             np.array([1]),
         )
 

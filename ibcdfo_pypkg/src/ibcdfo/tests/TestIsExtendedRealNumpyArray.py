@@ -43,7 +43,7 @@ class TestIsExtendedRealNumpyArray(unittest.TestCase):
 
     def test1dArrays(self):
         NDIM = 1
-        BAD_ARRAYS = (self.__GOOD_0D, self.__GOOD_2D, self.__GOOD_3D)
+        WRONG_NDIM = (self.__GOOD_0D, self.__GOOD_2D, self.__GOOD_3D)
         GOOD = self.__GOOD_1D.copy()
 
         self.assertTrue(is_extended_real_numpy_array(GOOD, ndim=NDIM))
@@ -57,20 +57,18 @@ class TestIsExtendedRealNumpyArray(unittest.TestCase):
             self.assertEqual(bad_array.ndim, NDIM)
             self.assertFalse(is_extended_real_numpy_array(bad_array, ndim=NDIM))
 
-        for bad in BAD_ARRAYS:
+        for bad in WRONG_NDIM:
             self.assertNotEqual(bad.ndim, NDIM)
             self.assertFalse(is_extended_real_numpy_array(bad, ndim=NDIM))
 
-        for bad in self.__NOT_EXTENDED:
-            for i in range(len(GOOD)):
-                bad_array = GOOD.copy()
+        for i in range(len(GOOD)):
+            bad_array = GOOD.copy()
+            for bad in self.__NOT_EXTENDED:
                 bad_array[i] = bad
                 self.assertFalse(is_extended_real_numpy_array(bad_array, ndim=NDIM))
 
-        for bad in self.__COMPLEX:
-            for i in range(len(GOOD)):
-                bad_array = GOOD.copy()
-                bad_array = bad_array.astype(complex)
+            bad_array = bad_array.astype(complex)
+            for bad in self.__COMPLEX:
                 bad_array[i] = bad
                 self.assertFalse(is_extended_real_numpy_array(bad_array, ndim=NDIM))
 
@@ -81,13 +79,12 @@ class TestIsExtendedRealNumpyArray(unittest.TestCase):
 
         test = GOOD.copy()
         test[0] = -np.inf
-        self.assertTrue(is_extended_real_numpy_array(test, ndim=NDIM))
         test[-1] = np.inf
         self.assertTrue(is_extended_real_numpy_array(test, ndim=NDIM))
 
     def test2dArrays(self):
         NDIM = 2
-        BAD_ARRAYS = (self.__GOOD_0D, self.__GOOD_1D, self.__GOOD_3D)
+        WRONG_NDIM = (self.__GOOD_0D, self.__GOOD_1D, self.__GOOD_3D)
         GOOD = self.__GOOD_2D.copy()
 
         self.assertTrue(is_extended_real_numpy_array(GOOD, ndim=NDIM))
@@ -101,22 +98,19 @@ class TestIsExtendedRealNumpyArray(unittest.TestCase):
             self.assertEqual(bad_array.ndim, NDIM)
             self.assertFalse(is_extended_real_numpy_array(bad_array, ndim=NDIM))
 
-        for bad in BAD_ARRAYS:
+        for bad in WRONG_NDIM:
             self.assertNotEqual(bad.ndim, NDIM)
             self.assertFalse(is_extended_real_numpy_array(bad, ndim=NDIM))
 
-        for bad in self.__NOT_EXTENDED:
-            for i in range(GOOD.shape[0]):
-                for j in range(GOOD.shape[1]):
-                    bad_array = GOOD.copy()
+        for i in range(GOOD.shape[0]):
+            for j in range(GOOD.shape[1]):
+                bad_array = GOOD.copy()
+                for bad in self.__NOT_EXTENDED:
                     bad_array[i, j] = bad
                     self.assertFalse(is_extended_real_numpy_array(bad_array, ndim=NDIM))
 
-        for bad in self.__COMPLEX:
-            for i in range(GOOD.shape[0]):
-                for j in range(GOOD.shape[1]):
-                    bad_array = GOOD.copy()
-                    bad_array = bad_array.astype(complex)
+                bad_array = bad_array.astype(complex)
+                for bad in self.__COMPLEX:
                     bad_array[i, j] = bad
                     self.assertFalse(is_extended_real_numpy_array(bad_array, ndim=NDIM))
 
@@ -127,13 +121,12 @@ class TestIsExtendedRealNumpyArray(unittest.TestCase):
 
         test = GOOD.copy()
         test[0, -1] = -np.inf
-        self.assertTrue(is_extended_real_numpy_array(test, ndim=NDIM))
         test[-1, 1] = np.inf
         self.assertTrue(is_extended_real_numpy_array(test, ndim=NDIM))
 
     def test3dArrays(self):
         NDIM = 3
-        BAD_ARRAYS = (self.__GOOD_0D, self.__GOOD_1D, self.__GOOD_2D)
+        WRONG_NDIM = (self.__GOOD_0D, self.__GOOD_1D, self.__GOOD_2D)
         GOOD = self.__GOOD_3D.copy()
 
         self.assertTrue(is_extended_real_numpy_array(GOOD, ndim=NDIM))
@@ -147,26 +140,22 @@ class TestIsExtendedRealNumpyArray(unittest.TestCase):
             self.assertEqual(bad_array.ndim, NDIM)
             self.assertFalse(is_extended_real_numpy_array(bad_array, ndim=NDIM))
 
-        for bad in BAD_ARRAYS:
+        for bad in WRONG_NDIM:
             self.assertNotEqual(bad.ndim, NDIM)
             self.assertFalse(is_extended_real_numpy_array(bad, ndim=NDIM))
 
-        for bad in self.__NOT_EXTENDED:
-            for i in range(GOOD.shape[0]):
-                for j in range(GOOD.shape[1]):
-                    for k in range(GOOD.shape[2]):
-                        bad_array = GOOD.copy()
+        for i in range(GOOD.shape[0]):
+            for j in range(GOOD.shape[1]):
+                for k in range(GOOD.shape[2]):
+                    bad_array = GOOD.copy()
+                    for bad in self.__NOT_EXTENDED:
                         bad_array[i, j, k] = bad
                         self.assertFalse(is_extended_real_numpy_array(
                             bad_array, ndim=NDIM)
                         )  # fmt: skip
 
-        for bad in self.__COMPLEX:
-            for i in range(GOOD.shape[0]):
-                for j in range(GOOD.shape[1]):
-                    for k in range(GOOD.shape[2]):
-                        bad_array = GOOD.copy()
-                        bad_array = bad_array.astype(complex)
+                    bad_array = bad_array.astype(complex)
+                    for bad in self.__COMPLEX:
                         bad_array[i, j, k] = bad
                         self.assertFalse(is_extended_real_numpy_array(
                             bad_array, ndim=NDIM)
@@ -179,6 +168,5 @@ class TestIsExtendedRealNumpyArray(unittest.TestCase):
 
         test = GOOD.copy()
         test[0, -1, 2] = -np.inf
-        self.assertTrue(is_extended_real_numpy_array(test, ndim=NDIM))
         test[-1, 1, 3] = np.inf
         self.assertTrue(is_extended_real_numpy_array(test, ndim=NDIM))

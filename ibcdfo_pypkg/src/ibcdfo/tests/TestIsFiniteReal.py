@@ -32,11 +32,9 @@ class TestIsFiniteReal(unittest.TestCase):
             {},
             [1.1],
             {1.1},
+            np.array(1.1),
             np.array([1.1]),
         )
-
-        for bad in NOT_FINITE_REAL:
-            self.assertFalse(is_finite_real(bad))
 
         for good in GOOD_REALS:
             self.assertTrue(isinstance(good, np.float64))
@@ -50,3 +48,6 @@ class TestIsFiniteReal(unittest.TestCase):
             self.assertTrue(is_finite_real(good))
             self.assertTrue(is_finite_real(float(good)))
             self.assertTrue(is_finite_real(np.float32(good)))
+
+        for bad in NOT_FINITE_REAL:
+            self.assertFalse(is_finite_real(bad))
