@@ -72,7 +72,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if not is_integer(nfs):
         raise TypeError(f"Error: nfs is not an integer ({nfs})")
     if nfs < 0:
-        raise ValueError(f"Error: nfs is not a non-negative integer ({nfs})")
+        raise ValueError(f"Error: nfs must be a nonnegative integer ({nfs})")
 
     # nf_max is the max actual evaluations to be allowed during an optimization.
     # It does not include any preexisting evaluations provided to POUNDERS.
@@ -101,7 +101,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise ValueError(f"Error: g_tol must be a positive real ({g_tol})")
 
     if not is_finite_real(delta_0):
-        raise TypeError(f"Error: delta_0 is not a real ({delta_0})")
+        raise TypeError(f"Error: delta_0 is not a finite real ({delta_0})")
     if delta_0 <= 0.0:
         raise ValueError(f"Error: delta_0 must be a positive real ({delta_0})")
 
@@ -139,4 +139,4 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if not is_finite_real_numpy_array(F_init, ndim=2):
         raise TypeError("Error: F_init must be a finite, real 2D NumPy array")
     if F_init.shape != (nfs, m):
-        raise ValueError(f"Error: Invalid F_init shape {F_init.shape}.  Expected ({nfs}, {m})")
+        raise ValueError(f"Error: F_init has shape {F_init.shape} instead of ({nfs}, {m})")
