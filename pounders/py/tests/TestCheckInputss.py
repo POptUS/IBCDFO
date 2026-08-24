@@ -13,7 +13,7 @@ from ibcdfo.pounders.checkinputss import checkinputss
 class TestCheckInputss(unittest.TestCase):
     def setUp(self):
         self.__ERROR_HDR = "Error: "
-        self.__NOT_INT = (None, "", 1.0, 1.1, {}, [1], {1})
+        self.__NOT_INT = (None, "", True, False, 1.0, 1.1, {}, [1], {1})
 
         N, M = (3, 1)
 
