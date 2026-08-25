@@ -54,8 +54,41 @@ def main():
         bad = df[df["error"].notna()]
         print(f"\n!! {len(bad)} arm-runs errored:")
         print(bad[["seed", "arm", "error"]].to_string(index=False))
-    print("\nmedian infidelity by arm:")
-    print(df.groupby("arm")["infidelity"].median().sort_values().to_string())
+    # Which jobs came back with nothing usable. Worth knowing BEFORE reading the table: a
+    # failure correlated with a swept axis biases whatever survived.
+    jl = pathlib.Path("joblist.txt")
+    if jl.exists():
+        expected = [l.split(",")[1].strip() for l in jl.read_text().splitlines() if l.strip()]
+        got = {pathlib.Path(t).name[len("out_"):-len(".tar.gz")] for t in tars}
+        empty = [t for t in expected if t in got
+                 and not list((dest / ("out_" + t)).glob("results/seed_*/result.csv"))]
+        missing = [t for t in expected if t not in got]
+        if empty:
+            print("\n!! %d of %d jobs returned an EMPTY tarball:" % (len(empty), len(expected)))
+            for t in empty:
+                print("     %s   -> logs/job_%s.err" % (t, t))
+        if missing:
+            print("\n!! %d jobs never returned a tarball:" % len(missing))
+            for t in missing:
+                print("     %s   -> logs/job_%s.log" % (t, t))
+
+    print("\n%-26s%3s%13s%13s%13s%12s"
+          % ("arm", "n", "infidelity", "diamond", "spam", "shots"))
+    g = df.groupby("arm")
+    tbl = g[["infidelity", "diamond", "spam"]].median()
+    tbl["n"] = g.size()
+    tbl["shots"] = g["accounted_revealed_shots"].median()
+    for arm, r in tbl.sort_values("infidelity").iterrows():
+        def cell(v):
+            return ("%13.4e" % v) if pd.notna(v) else "%13s" % "--"
+        sh = ("{:>12,.0f}".format(r["shots"]) if pd.notna(r["shots"])
+              else "%12s" % "--")
+        print("%-26s%3d%s%s%s%s" % (arm, int(r["n"]), cell(r["infidelity"]),
+                                    cell(r["diamond"]), cell(r["spam"]), sh))
+
+    if df["diamond"].isna().all():
+        print("\n!! every diamond value is NaN -- cvxopt is missing on the EXECUTE nodes "
+              "(build_env.sh only verifies the submit node).")
 
     if a.stage:
         out = pathlib.Path(a.stage)
