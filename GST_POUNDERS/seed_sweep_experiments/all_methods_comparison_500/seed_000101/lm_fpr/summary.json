@@ -1,0 +1,19 @@
+{
+  "data_seed": 101,
+  "method": "lm_fpr",
+  "mean_gate_entanglement_infidelity_to_truth": 0.00011676056832146675,
+  "mean_gate_diamond_distance_to_truth": 0.002017872938225976,
+  "mean_spam_vector_l2_error_to_truth": 0.003354724227944935,
+  "accounted_revealed_shots": 405314,
+  "physical_precomputed_shots": 405314,
+  "max_shots_per_circuit": 917,
+  "min_shots_per_circuit": 917,
+  "mean_shots_per_circuit": 917.0,
+  "total_circuits": 1918,
+  "revealed_circuits": 442,
+  "fpr_at": "target",
+  "fpr_tol": 10,
+  "fpr_seed": 2024,
+  "objective": "pure_mle",
+  "flag": "LM_FPR"
+}
