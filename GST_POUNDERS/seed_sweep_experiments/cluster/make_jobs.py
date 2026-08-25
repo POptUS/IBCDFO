@@ -45,7 +45,7 @@ _COPY = {
 }
 
 
-def from_results(ref_dir, arms, fracs, seeds=None, extra=""):
+def from_results(ref_dir, arms, fracs, seeds=None, extra="", tag_prefix=""):
     ref = Path(ref_dir)
     seed_dirs = sorted(d for d in ref.glob("seed_*") if d.is_dir())
     if not seed_dirs:
@@ -82,7 +82,7 @@ def from_results(ref_dir, arms, fracs, seeds=None, extra=""):
             args = (f"--arms {arm} --budget {budget} {copied} {extra} "
                     f"--nofpr-baseline-frac {frac} --label-suffix {suffix}").replace("  ", " ")
             assert "," not in args, f"no commas allowed: {args!r}"
-            lines.append(f"{seed}, s{seed}_{arm}{suffix}, {args}")
+            lines.append(f"{seed}, {tag_prefix}s{seed}_{arm}{suffix}, {args}")
 
     if len(settings_seen) > 1:
         print("WARNING: the reference seeds do not share one setting set:", flush=True)
@@ -109,6 +109,12 @@ def main():
                     help="--from-results mode: baseline fractions to sweep")
     ap.add_argument("--seeds", default=None,
                     help="restrict to these seeds, e.g. 101,102,103")
+    ap.add_argument("--tag-prefix", default="",
+                    help="prepended to every job tag, hence to every out_<tag>.tar.gz. Use a "
+                         "distinct prefix per sweep (e.g. b500) when a previous sweep's "
+                         "tarballs are still in the submit directory: the tag is built from "
+                         "seed+arm+fraction, so two sweeps that differ only in BUDGET produce "
+                         "identical tarball names and collect.py would merge them together.")
     ap.add_argument("--extra", default="",
                     help="extra run_one.py flags, appended AFTER the copied settings so they "
                          "override them, e.g. --extra \"--nfmax 500\". Anything you override "
@@ -122,7 +128,7 @@ def main():
         lines = from_results(a.from_results,
                              [m.strip() for m in a.arms.split(",") if m.strip()],
                              [float(f) for f in a.fracs.split(",")],
-                             seeds, a.extra.strip())
+                             seeds, a.extra.strip(), a.tag_prefix.strip())
         if a.extra.strip():
             print(f"overrides applied after the copied settings: {a.extra.strip()}")
             print("  -> POUNDERS arms in the reference run do NOT share these. Compare the "
@@ -135,7 +141,7 @@ def main():
             assert "," not in args, f"no commas allowed in ARGS: {args!r}"
             # unique even when ARGS has several entries for the same seed
             tag = f"s{seed}" if len(ARGS) == 1 else f"s{seed}_c{i % len(ARGS)}"
-            lines.append(f"{seed}, {tag}, {args}")
+            lines.append(f"{seed}, {a.tag_prefix.strip()}{tag}, {args}")
 
     if not lines:
         sys.exit("no jobs written -- nothing matched")

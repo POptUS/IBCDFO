@@ -944,10 +944,91 @@ class GSTProblem:
                     )
                 except Exception:
                     row["diamond_distance"] = float("nan")
+
+            # Gauge-INVARIANT companions, computed on `estimate` -- the raw fit, before
+            # gaugeopt_to_target. Gauge acts on gates by conjugation (G -> S G S^-1), so a
+            # gate's eigenvalues do not move; these two compare eigenvalue spectra and so
+            # need no gauge fixing at all. They are what to quote when the gauge weighting
+            # is itself in question, since entanglement_infidelity and diamonddist above
+            # both depend on the item_weights passed to gaugeopt.
+            #
+            # WHICH OF THESE IS AN ERROR METRIC:
+            #   eigenvalue_diamondnorm            -- yes. max|evA - evB| over matched pairs,
+            #                                        so >= 0, zero for a perfect estimate,
+            #                                        and sensitive to both rotation-angle
+            #                                        and decay error. Prefer this one.
+            #   eigenvalue_nonunitary_diamondnorm -- yes, but partial: it matches on
+            #                                        | |evA| - |evB| |, i.e. decay only,
+            #                                        blind to rotation-angle error.
+            #   eigenvalue_nonunitarity_excess    -- NO. This is
+            #                                        (d2-1)/d2 * (1 - sqrt(U)), which is
+            #                                        SIGNED: negative whenever the estimate
+            #                                        is LESS decoherent than the truth. It
+            #                                        says which way the estimate misses, not
+            #                                        how far. Never average it as an error or
+            #                                        take a ratio of it -- both are
+            #                                        meaningless once it crosses zero, and it
+            #                                        does cross zero on this data.
+            #
+            # eigenvalue_entanglement_infidelity is deliberately NOT used. It sums
+            # conj(evB_j)*evA_i, which with A == B gives sum|ev|^2 < d2 for any non-unitary
+            # gate -- so it is NONZERO for a perfect estimate. On this truth model its floor
+            # is 7.6e-03 while the actual estimation error is ~1e-05, i.e. the reported
+            # number is >99% floor and it ranks every arm identically. The nonunitary_
+            # variant divides that floor out and reads 0 for a perfect estimate; verified by
+            # evaluating truth against itself. Same trap applies to
+            # eigenvalue_avg_gate_infidelity (floor 5.1e-03).
+            #
+            # They are NOT drop-in replacements. Each is a per-gate spectral comparison, so
+            # it misses error in how gates relate to EACH OTHER: a gauge must be one common
+            # S for the whole gate set, and matching every gate's spectrum individually does
+            # not imply such an S exists. Read them as a gauge-free lower bound on the error,
+            # never as the error itself.
+            try:
+                from pygsti.report.reportables import (
+                    eigenvalue_nonunitary_entanglement_infidelity as _ev_inf,
+                    eigenvalue_diamondnorm as _ev_dn,
+                    eigenvalue_nonunitary_diamondnorm as _ev_dn_nu,
+                )
+
+                a = np.asarray(estimate.operations[label].to_dense())
+                b = np.asarray(reference.operations[label].to_dense())
+                row["eigenvalue_nonunitarity_excess"] = float(_ev_inf(a, b, reference.basis))
+                row["eigenvalue_diamondnorm"] = float(_ev_dn(a, b, reference.basis))
+                row["eigenvalue_nonunitary_diamondnorm"] = float(_ev_dn_nu(a, b, reference.basis))
+            except Exception:
+                for _k in ("eigenvalue_nonunitarity_excess", "eigenvalue_diamondnorm",
+                           "eigenvalue_nonunitary_diamondnorm"):
+                    row[_k] = float("nan")
             gate_rows.append(row)
+
+        # SPAM error, two ways.
+        #
+        # vector_l2_error is the Frobenius distance between the superket coefficient vectors.
+        # It is kept because older runs report it and the notebooks key on it, but it is a
+        # weak metric: an L2 norm on Pauli-basis coefficients is basis-dependent and bounds
+        # no experiment's ability to tell the two apart.
+        #
+        # The trace-distance columns are the operational ones, and follow pyGSTi's own report
+        # conventions (report.reportables.vec_trace_diff / tools.povm_jtracedist):
+        #   prep  -- trace distance between the density matrices, = the largest probability
+        #            difference any measurement could produce.
+        #   POVM  -- Jamiolkowski trace distance of the POVM viewed as a MAP from states to
+        #            classical outcomes. A single effect is not a density matrix, so trace
+        #            distance does not apply to one; the POVM as a whole is the right object,
+        #            which is why this is one row per POVM rather than per outcome.
+        # Both are still computed on the gauge-optimised model, so they remain gauge-dependent
+        # -- SPAM has no gauge-invariant analogue (gauge acts one-sidedly on preps/effects).
+        from pygsti.report.reportables import vec_trace_diff as _vec_td
+        from pygsti.tools.optools import povm_jtracedist as _povm_jtd
 
         spam_rows = []
         for label in reference.preps.keys():
+            try:
+                td = float(_vec_td(_dense(aligned.preps[label]),
+                                   _dense(reference.preps[label]), reference.basis))
+            except Exception:
+                td = float("nan")
             spam_rows.append(
                 {
                     "reference": reference_name,
@@ -956,6 +1037,21 @@ class GSTProblem:
                     "vector_l2_error": float(
                         np.linalg.norm(_dense(aligned.preps[label]) - _dense(reference.preps[label]))
                     ),
+                    "tracedist": td,
+                }
+            )
+        for povm_label in reference.povms.keys():
+            try:
+                jtd = float(_povm_jtd(aligned, reference, povm_label))
+            except Exception:
+                jtd = float("nan")
+            spam_rows.append(
+                {
+                    "reference": reference_name,
+                    "member_type": "povm",
+                    "member": str(povm_label),
+                    "vector_l2_error": float("nan"),   # per-outcome rows carry the L2
+                    "tracedist": jtd,
                 }
             )
         for povm_label in reference.povms.keys():
@@ -982,9 +1078,23 @@ class GSTProblem:
                 np.mean([row["average_gate_infidelity"] for row in gate_rows])
             ),
             f"mean_spam_vector_l2_error_to_{reference_name}": float(
-                np.mean([row["vector_l2_error"] for row in spam_rows])
+                np.nanmean([row["vector_l2_error"] for row in spam_rows])
+            ),
+            # mean over the prep trace distances and the POVM Jamiolkowski trace distance;
+            # nanmean because the per-outcome effect rows carry no trace distance
+            f"mean_spam_tracedist_to_{reference_name}": float(
+                np.nanmean([row.get("tracedist", float("nan")) for row in spam_rows])
             ),
         }
+
+        # nanmean, matching how the diamond aggregate below treats a failed gate
+        for key in ("eigenvalue_nonunitarity_excess", "eigenvalue_diamondnorm",
+                    "eigenvalue_nonunitary_diamondnorm"):
+            vals = np.asarray([row.get(key, float("nan")) for row in gate_rows], dtype=float)
+            summary[f"mean_gate_{key}_to_{reference_name}"] = (
+                float(np.nanmean(vals)) if vals.size and not np.all(np.isnan(vals))
+                else float("nan")
+            )
 
         # Aggregate diamond distance here so every caller gets it in summary.json rather
         # than having to re-read final_gate_errors.csv.  nanmean matches how the analysis

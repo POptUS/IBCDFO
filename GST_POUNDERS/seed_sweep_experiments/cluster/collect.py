@@ -23,6 +23,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--indir", default=".", help="where out_*.tar.gz landed")
+    ap.add_argument("--pattern", default="out_*.tar.gz",
+                    help="which tarballs to consume. Narrow it (e.g. 'out_b500*.tar.gz') when "
+                         "the submit directory holds more than one sweep -- the default would "
+                         "otherwise merge a previous sweep's results into --stage as well, "
+                         "and two sweeps at different budgets produce identical arm names.")
     ap.add_argument("--unpack-to", default="collected")
     ap.add_argument("--out", default="sweep_summary.csv")
     ap.add_argument("--stage", default=None,
@@ -32,9 +37,9 @@ def main():
                          "they can be resubmitted on their own")
     a = ap.parse_args()
 
-    tars = sorted(glob.glob(str(pathlib.Path(a.indir) / "out_*.tar.gz")))
+    tars = sorted(glob.glob(str(pathlib.Path(a.indir) / a.pattern)))
     if not tars:
-        sys.exit(f"no out_*.tar.gz under {a.indir}")
+        sys.exit(f"no {a.pattern} under {a.indir}")
     dest = pathlib.Path(a.unpack_to)
     dest.mkdir(parents=True, exist_ok=True)
     for t in tars:
