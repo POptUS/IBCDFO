@@ -51,6 +51,7 @@ def make_adaptive_shot_hook(
     ensure_baseline=None,
     total_shot_budget=None,
     accounted_shots=None,
+    allocate_every=1,
 ):
     """Return a `hook(state)` callable for gradient_pounders.pouders(iter_callback=...).
 
@@ -93,6 +94,27 @@ def make_adaptive_shot_hook(
             logger(msg)
 
     def hook(state):
+        # 0. Allocation cadence. The D/A/L design is re-solved from scratch on every call
+        #    (Frank-Wolfe up to 200 iterations, then greedy integer rounding over every
+        #    circuit), which is by far the most expensive thing this hook does -- and it
+        #    dominates the whole run once FPR is off and the design spans all circuits.
+        #    The Fisher information barely moves between consecutive POUNDERS steps, so
+        #    re-solving every step is mostly wasted. allocate_every=k solves on one call in k
+        #    and skips the rest, then multiplies that call's N_k by k so the SAME total budget
+        #    is still spent -- in k-times larger, k-times rarer batches. Without that
+        #    multiplier the arm would silently under-spend its budget by a factor of k and
+        #    stop being budget-matched against the other arms.
+        if allocate_every > 1:
+            _it = int(state.get("iteration", 0) or 0)
+            if _it % int(allocate_every) != 0:
+                return {
+                    "data_changed": False,
+                    "requested_budget": 0,
+                    "scheduled_budget": 0,
+                    "shots_added": 0,
+                    "skipped_for_cadence": True,
+                }
+
         # Optional per-iteration report (e.g. infidelity-to-truth), logged each call.
         if per_iter_report is not None:
             try:
@@ -102,7 +124,8 @@ def make_adaptive_shot_hook(
             except Exception as exc:
                 _log(f"per_iter_report failed: {exc!r}")
         # 1. How many new shots this iteration (the schedule -- "how many").
-        requested_N_k = int(schedule(state))
+        # x allocate_every so skipping does not reduce the total spend (see the cadence note)
+        requested_N_k = int(schedule(state)) * max(int(allocate_every), 1)
         N_k = requested_N_k
         budget_was_clipped = False
         previous_rho = state.get("previous_rho")

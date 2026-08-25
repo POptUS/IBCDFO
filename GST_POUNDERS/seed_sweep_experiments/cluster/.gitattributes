@@ -1,0 +1,13 @@
+# These run on Linux execute nodes. core.autocrlf=true on Windows would otherwise check them
+# out with CRLF, and bash fails on the shebang with
+#     /bin/bash^M: bad interpreter: No such file or directory
+# Force LF regardless of the checkout platform.
+*.sh    text eol=lf
+*.py    text eol=lf
+*.sub   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+
+# and this file itself, so git stops warning about it
+.gitattributes text eol=lf

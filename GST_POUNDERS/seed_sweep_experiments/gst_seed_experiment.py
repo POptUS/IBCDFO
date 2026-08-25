@@ -33,7 +33,20 @@ for _path in (POUNDERS_PY, GST_POUNDERS_DIR):
         sys.path.insert(0, str(_path))
 
 
-METHODS = ("adaptive_fpr", "fixed_fpr", "fixed_no_fpr")
+# "adaptive_no_fpr" is the isolation arm: adaptive D/A/L shot allocation over ALL circuits,
+# with the FPR circuit reduction switched off. It exists because a paired comparison over the
+# poisson_logl runs showed the two effects pulling in opposite directions --
+#     adaptive_D / fixed_fpr    = 0.565x  (adaptive allocation genuinely helps)
+#     fixed_fpr  / fixed_no_fpr = 1.712x  (FPR genuinely hurts)
+#     fixed_no_fpr / lm         = 1.005x  (POUNDERS matches LM given the same design)
+# whose product is ~0.97, i.e. the observed tie against LM. Every adaptive arm so far has FPR
+# bundled in, so the allocation gain has been spent undoing the reduction loss rather than
+# banked. This arm unbundles them.  NOTE: with no FPR every circuit is measured, so
+# accounted_revealed_shots == physical shots and the budget is directly comparable to lm.
+METHODS = ("adaptive_fpr", "adaptive_no_fpr", "fixed_fpr", "fixed_no_fpr")
+
+# Methods whose shot budget grows online, as opposed to a uniform up-front allocation.
+ADAPTIVE_METHODS = ("adaptive_fpr", "adaptive_no_fpr")
 
 # Optional per-iteration hook, off by default. When set to a callable it is invoked from
 # _run_pounders' iteration_callback with keyword arguments:
@@ -85,6 +98,14 @@ class ExperimentConfig:
     # 0.5 is the Jeffreys/Krichevsky-Trofimov estimate (count+0.5)/(N+1), which is
     # bounded away from 0 and 1, so the floor never binds.
     variance_smoothing: float = 0.0
+    # Poisson-picture delta-logl, used when objective == "poisson_logl".  These
+    # defaults are pyGSTi's own (RawPoissonPicDeltaLogLFunction), so the residual
+    # POUNDERS minimises is the identical vector pyGSTi's LM minimises.
+    # min_prob_clip must sit below the smallest nonzero frequency or pyGSTi's
+    # regularization drives a term negative and raises; it is auto-lowered at run
+    # time when adaptive shots make some frequency smaller than this.
+    logl_min_prob_clip: float = 1e-4
+    logl_radius: float = 1e-4
     nfmax: int = 200
     gtol: float = 1e-4
     initial_delta: float = 0.1
@@ -92,6 +113,42 @@ class ExperimentConfig:
     upper_bound: float = math.pi
     pyrol_max_iters: int = 10
     require_pyrol: bool = True
+
+    # Forward simulator used ONLY by base_model, i.e. only by the POUNDERS oracle.
+    #
+    # Why you might want "matrix": pyGSTi's default here is MapForwardSimulator, whose dp/dx
+    # is a FORWARD FINITE DIFFERENCE with a hardcoded eps=1e-7 (mapforwardsim.py:163). On this
+    # problem that Jacobian is accurate to 2e-6 relative far from the optimum, but it carries
+    # a roughly CONSTANT ABSOLUTE error of ~0.2 in the gradient. Near a solution the true
+    # gradient is also ~0.2, so the reported gradient is ~92% wrong and only 0.47-aligned with
+    # the truth. That is the floor POUNDERS' ng stalls on, and why gtol=1e-4 is never reached
+    # (0 of 882 archived runs exited on gtol; the best ng ever seen is 0.056).
+    #
+    # Why it is OFF by default: setting "matrix" on target_model made pyGSTi's OWN LM protocol
+    # converge to a far worse point -- 2*deltaLogL 6508 vs 767 at max_lengths [1,2,4,8], and a
+    # gauge-optimised infidelity that came out NEGATIVE at the full 7-stage ladder. The fitted
+    # model stayed CP (min Choi eigenvalue -3e-16), and the two simulators agree on
+    # probabilities to 2e-15 and score a fixed estimate bit-identically, so this is a defect in
+    # the LM fit path, not in the metrics. Unexplained -- so the safe scope is base_model only,
+    # and the safe default is None (byte-identical to every previous run).
+    #
+    # Enabling it changes only what POUNDERS sees. Validate on ONE seed before a full sweep:
+    # the ng trace should keep descending past ~0.2 instead of flattening there.
+    forward_simulator: str | None = None
+
+    # Relative weight the gauge optimisation puts on SPAM alignment versus gate alignment
+    # when mapping an estimate onto the truth for scoring. pyGSTi's gaugeopt_to_target
+    # defaults to 1.0 for both, which forces the gauge to trade gate error against SPAM
+    # error; an arm with worse SPAM then has that error pushed into its gates, where the
+    # diamond norm sees it linearly. Measured over 40 budget-matched pairs, adaptive_D's
+    # diamond penalty against LM runs 1.095x (p=0.003) at weight 1.0 and disappears by 0.5
+    # (1.001x), sitting at 0.95-0.96 (p>0.4) for anything smaller. pyGSTi's own stdgaugeopt
+    # is 3-stage and its varySpam suites sweep 1e-4..1e-1, so 1.0 is the outlier, not this.
+    # Set to None to use pyGSTi's default (equal weighting).
+    gaugeopt_spam_weight: float | None = 0.1
+    # Distance the gauge optimisation minimises. "frobenius" is pyGSTi's default; "tracedist"
+    # is closer in spirit to the diamond norm (which IS the stabilised trace distance).
+    gaugeopt_metric: str = "frobenius"
 
     use_fpr_union_mask: bool = True
     rho_uses_full_objective: bool = False
@@ -114,6 +171,14 @@ class ExperimentConfig:
     adaptive_delta_inverse_fourth_n_min: int = 0
     adaptive_delta_floor: float = 1e-12
     adaptive_rho_band: float = 0.5
+    # Re-solve the D/A/L design only every k-th POUNDERS iteration. The design solve
+    # (Frank-Wolfe up to 200 iterations, then greedy integer rounding over every circuit)
+    # dominates the runtime once FPR is off and the design spans all 1918 circuits. The Fisher
+    # information barely moves between consecutive steps, so k>1 costs little accuracy and
+    # divides the allocation cost by k. The same total budget is still spent -- the schedule
+    # keeps accruing across skipped iterations, so shots arrive in k-times larger batches.
+    # 1 = solve every iteration (previous behaviour).
+    adaptive_allocate_every: int = 1
     adaptive_initial_topup: int = 0
 
     # L-optimality (criterion="L") infidelity-metric (M = infidelity Hessian) settings.
@@ -329,6 +394,19 @@ class GSTProblem:
         self.base_model = _make_parameterized_model(
             self.target_model, config.parameterization, ideal_model=self.raw_target_model
         )
+        # base_model ONLY -- it is what the POUNDERS oracle differentiates. truth_model and
+        # target_model keep pyGSTi's default on purpose: target_model seeds the LM protocol,
+        # and switching its simulator wrecks that fit (see forward_simulator above). Scoring is
+        # unaffected either way -- the simulators agree on probabilities to 2e-15 and score a
+        # fixed estimate bit-identically.
+        if config.forward_simulator:
+            try:
+                self.base_model.sim = config.forward_simulator
+                print(f"[SIM] base_model.sim = {config.forward_simulator!r} "
+                      f"(POUNDERS oracle only; truth/target keep the pyGSTi default)")
+            except Exception as exc:  # a model kind that rejects it -- keep the default
+                print(f"[SIM] could not set sim={config.forward_simulator!r}: {exc!r}")
+
         self.x0 = np.asarray(self.base_model.to_vector(), dtype=float).reshape(-1)
         self.n = int(self.x0.size)
         self.m = int(len(self.circuits) * self.outcomes_per_circuit)
@@ -648,6 +726,38 @@ class GSTProblem:
             labels,
         )
 
+    def _logl_objfn(self, freqs):
+        """pyGSTi's Poisson-picture delta-logl -- the exact objective its LM minimises.
+
+        Returns a ``RawPoissonPicDeltaLogLFunction`` whose ``lsvec``/``dlsvec`` give
+        the residual and d(residual)/dp.  ``min_prob_clip`` has to stay below the
+        smallest nonzero frequency, and adaptive shots can shrink that bound as the
+        run proceeds, so rebuild whenever it tightens.  The objective already moves
+        under POUNDERS every time shots are added, so this is not a new discontinuity.
+        """
+        freqs = np.asarray(freqs, dtype=float)
+        clip = float(self.config.logl_min_prob_clip)
+        nonzero = freqs[freqs > 0.0]
+        if nonzero.size:
+            clip = min(clip, 0.5 * float(nonzero.min()))
+        cached = getattr(self, "_logl_raw", None)
+        if cached is None or cached[0] != clip:
+            from pygsti.objectivefns.objectivefns import RawPoissonPicDeltaLogLFunction
+
+            if cached is not None:
+                print(f"[LOGL] min_prob_clip {cached[0]:.3g} -> {clip:.3g}")
+            cached = (
+                clip,
+                RawPoissonPicDeltaLogLFunction(
+                    regularization={
+                        "min_prob_clip": clip,
+                        "radius": float(self.config.logl_radius),
+                    }
+                ),
+            )
+            self._logl_raw = cached
+        return cached[1]
+
     def oracle(
         self,
         x,
@@ -672,20 +782,27 @@ class GSTProblem:
         f, var_f, counts, totals, f_labels = self.data_vector()
         if p_labels != f_labels:
             raise ValueError("Model and data outcome order differs.")
-        residual = p - f
-        if self.config.objective == "weighted_least_squares":
-            if self.config.variance_source != "data":
+        if self.config.objective == "poisson_logl":
+            # residual = sqrt(terms), so sum(residual**2) == deltaLogL.  dlsvec is
+            # d(residual)/dp elementwise; chain it onto dp/dx for the active rows.
+            raw = self._logl_objfn(f)
+            residual = raw.lsvec(p, counts, totals, f)
+            jac = raw.dlsvec(p, counts, totals, f)[active_rows, None] * jac
+        else:
+            residual = p - f
+            if self.config.objective == "weighted_least_squares":
+                if self.config.variance_source != "data":
+                    raise NotImplementedError(
+                        "The standalone seed runner currently supports data-weighted WLS, "
+                        "which is the objective used by the notebook experiments."
+                    )
+                sigma = np.sqrt(np.maximum(var_f, self.config.variance_floor))
+                residual = residual / sigma
+                jac = jac / sigma[active_rows, None]
+            elif self.config.objective != "least_squares":
                 raise NotImplementedError(
-                    "The standalone seed runner currently supports data-weighted WLS, "
-                    "which is the objective used by the notebook experiments."
+                    "Use least_squares, weighted_least_squares, or poisson_logl."
                 )
-            sigma = np.sqrt(np.maximum(var_f, self.config.variance_floor))
-            residual = residual / sigma
-            jac = jac / sigma[active_rows, None]
-        elif self.config.objective != "least_squares":
-            raise NotImplementedError(
-                "Use least_squares or weighted_least_squares for the seed sweep."
-            )
         info = {
             "p": p,
             "f": f,
@@ -714,16 +831,18 @@ class GSTProblem:
             x,
             data_for_outcomes=data,
         )
-        f, var_f, _, _, f_labels = self.data_vector(data=data)
+        f, var_f, counts, totals, f_labels = self.data_vector(data=data)
         if p_labels != f_labels:
             raise ValueError("Model and data outcome order differs.")
+        if self.config.objective == "poisson_logl":
+            return self._logl_objfn(f).lsvec(p, counts, totals, f)
         residual = p - f
         if self.config.objective == "weighted_least_squares":
             sigma = np.sqrt(np.maximum(var_f, self.config.variance_floor))
             residual = residual / sigma
         elif self.config.objective != "least_squares":
             raise NotImplementedError(
-                "Use least_squares or weighted_least_squares for the seed sweep."
+                "Use least_squares, weighted_least_squares, or poisson_logl."
             )
         return residual
 
@@ -771,6 +890,22 @@ class GSTProblem:
             "n_sigma_less_than_1": bool(n_sigma < 1.0) if np.isfinite(n_sigma) else False,
         }
 
+    def _gaugeopt_kwargs(self):
+        """Weighting/metric for gaugeopt_to_target, from config.
+
+        item_weights scales the terms of the gauge objective. Passing 'gates' and 'spam' sets
+        the default for each kind; individual labels could override those but are not used
+        here. Weighting SPAM below the gates stops a poorly-calibrated SPAM estimate from
+        dragging the gauge and inflating the gate error that the diamond norm reports."""
+        kw = {}
+        w = self.config.gaugeopt_spam_weight
+        if w is not None:
+            kw["item_weights"] = {"gates": 1.0, "spam": float(w)}
+        if self.config.gaugeopt_metric != "frobenius":
+            kw["gates_metric"] = self.config.gaugeopt_metric
+            kw["spam_metric"] = self.config.gaugeopt_metric
+        return kw
+
     def aligned_error_metrics(self, estimate_model, reference_model, reference_name: str):
         from pygsti.tools import entanglement_infidelity
 
@@ -779,7 +914,8 @@ class GSTProblem:
         reference.set_all_parameterizations("full")
         estimate.set_all_parameterizations("full")
         with contextlib.redirect_stdout(io.StringIO()):
-            aligned = self.pygsti.gaugeopt_to_target(estimate, reference)
+            aligned = self.pygsti.gaugeopt_to_target(estimate, reference,
+                                                     **self._gaugeopt_kwargs())
 
         d_hilbert = int(round(math.sqrt(reference.dim)))
         gate_rows = []
@@ -849,6 +985,16 @@ class GSTProblem:
                 np.mean([row["vector_l2_error"] for row in spam_rows])
             ),
         }
+
+        # Aggregate diamond distance here so every caller gets it in summary.json rather
+        # than having to re-read final_gate_errors.csv.  nanmean matches how the analysis
+        # notebooks average the CSV column (pandas skips NaN); all-NaN stays NaN.
+        if self.config.report_diamond_distance:
+            dd = np.asarray([row.get("diamond_distance", float("nan")) for row in gate_rows],
+                            dtype=float)
+            summary[f"mean_gate_diamond_distance_to_{reference_name}"] = (
+                float(np.nanmean(dd)) if dd.size and not np.all(np.isnan(dd)) else float("nan")
+            )
         return summary, gate_rows, spam_rows
 
 
@@ -895,7 +1041,8 @@ def _build_infidelity_metric(problem, config):
             model.from_vector(np.asarray(theta, dtype=float), close=False)
             model.set_all_parameterizations("full")
             with contextlib.redirect_stdout(io.StringIO()):
-                aligned = problem.pygsti.gaugeopt_to_target(model, reference)
+                aligned = problem.pygsti.gaugeopt_to_target(model, reference,
+                                                            **problem._gaugeopt_kwargs())
             return float(np.mean([
                 float(_ent_infid(aligned.operations[l], ref_ops[l], ref_basis))
                 for l in ref_ops.keys()
@@ -1082,6 +1229,7 @@ def _build_adaptive_hook(problem, config, fpr_reduction, running_shots, event_hi
         logger=print,
         total_shot_budget=config.adaptive_total_shot_budget,
         accounted_shots=accounted_shots,
+        allocate_every=int(getattr(config, "adaptive_allocate_every", 1) or 1),
     )
 
     def hook(state):
@@ -1141,7 +1289,7 @@ def _run_pounders(problem: GSTProblem, config: ExperimentConfig, method: str):
         shots = int(config.fixed_no_fpr_shots)
     elif method == "fixed_fpr":
         shots = int(config.fixed_fpr_shots)
-    elif method == "adaptive_fpr":
+    elif method in ADAPTIVE_METHODS:
         shots = int(config.adaptive_baseline_shots)
     else:
         raise ValueError(f"Unknown method {method!r}; choose from {METHODS}.")
@@ -1152,7 +1300,7 @@ def _run_pounders(problem: GSTProblem, config: ExperimentConfig, method: str):
         _build_adaptive_hook(
             problem, config, fpr_reduction, running_shots, adaptive_events
         )
-        if method == "adaptive_fpr"
+        if method in ADAPTIVE_METHODS
         else None
     )
 
@@ -1164,7 +1312,7 @@ def _run_pounders(problem: GSTProblem, config: ExperimentConfig, method: str):
 
         if method == "fixed_no_fpr":
             cumulative_shots = int(len(problem.circuits) * shots)
-        elif method == "adaptive_fpr":
+        elif method in ADAPTIVE_METHODS:
             cumulative_shots = (
                 int(adaptive_events[-1]["accounted_revealed_shots"])
                 if adaptive_events
@@ -1180,7 +1328,7 @@ def _run_pounders(problem: GSTProblem, config: ExperimentConfig, method: str):
             cumulative_shots = int(len(revealed_circuit_indices) * shots)
 
         iteration = int(state.get("iteration", 0))
-        if method == "adaptive_fpr":
+        if method in ADAPTIVE_METHODS:
             # The global shot budget only governs the adaptive run; show progress
             # against it here.
             total_budget = int(config.adaptive_total_shot_budget)
@@ -1218,7 +1366,7 @@ def _run_pounders(problem: GSTProblem, config: ExperimentConfig, method: str):
     upper = np.full(problem.n, float(config.upper_bound))
     shot_argument = (
         (lambda: int(np.sum(running_shots)))
-        if method == "adaptive_fpr"
+        if method in ADAPTIVE_METHODS
         else int(shots)
     )
 
@@ -1303,10 +1451,11 @@ def _final_shot_accounting(problem: GSTProblem, run: dict[str, Any], method: str
         if progress
         else len(problem.circuits)
     )
-    if method == "fixed_no_fpr":
+    if method in ("fixed_no_fpr", "adaptive_no_fpr"):
+        # no FPR -> every circuit is measured, so the revealed set is the whole design
         final_union = len(problem.circuits)
     physical = int(np.sum(run["running_shots"]))
-    if method == "adaptive_fpr":
+    if method in ADAPTIVE_METHODS:
         if run["adaptive_events"]:
             revealed = int(run["adaptive_events"][-1]["accounted_revealed_shots"])
         else:
@@ -1389,14 +1538,21 @@ def run_one_experiment(
     objective = float(np.sum(np.asarray(residual, dtype=float) ** 2))
     likelihood = problem.likelihood_diagnostics(run["x_best"])
     shot_summary = _final_shot_accounting(problem, run, method)
-    reduced_chi2 = (
-        objective
-        * (problem.outcomes_per_circuit - 1)
-        / problem.outcomes_per_circuit
-        / likelihood["dof"]
-        if likelihood["dof"] > 0
-        else float("nan")
-    )
+    if config.objective == "poisson_logl":
+        # sum(lsvec**2) == deltaLogL already, and 2*deltaLogL is the chi^2_dof
+        # quantity -- no outcome over-count correction to undo here.
+        reduced_chi2 = (
+            2.0 * objective / likelihood["dof"] if likelihood["dof"] > 0 else float("nan")
+        )
+    else:
+        reduced_chi2 = (
+            objective
+            * (problem.outcomes_per_circuit - 1)
+            / problem.outcomes_per_circuit
+            / likelihood["dof"]
+            if likelihood["dof"] > 0
+            else float("nan")
+        )
     summary = {
         "data_seed": int(data_seed),
         "truth_seed": int(problem.truth_seed),
@@ -1406,6 +1562,7 @@ def run_one_experiment(
         "num_parameters": problem.n,
         "num_circuits": len(problem.circuits),
         "num_residuals": problem.m,
+        "objective_mode": str(config.objective),
         "weighted_least_squares_objective": objective,
         "reduced_chi_square": float(reduced_chi2),
         **likelihood,

@@ -1,0 +1,31 @@
+# HTCondor submit description. One job per line of joblist.txt.
+#
+# joblist.txt columns:  <seed>, <tag>, <extra run_one.py args>
+# The tag must be unique per job: it names the returned tarball, and several jobs can share a
+# seed (one per baseline fraction, say). make_jobs.py guarantees uniqueness.
+#
+#   condor_submit sweep.sub
+universe                = vanilla
+executable              = job.sh
+arguments               = $(seed) $(tag) $(sweep_args)
+
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files    = rolenv.tar.gz, code.tar.gz, experiment_config.json
+transfer_output_files   = out_$(tag).tar.gz
+
+log                     = logs/job_$(tag).log
+output                  = logs/job_$(tag).out
+error                   = logs/job_$(tag).err
+
+# One core on purpose -- see the threading note in job.sh. Memory is dominated by the
+# 1918x72 Jacobians and pygsti's model cache; 8 GB has ample headroom.
+request_cpus            = 1
+request_memory          = 8GB
+request_disk            = 6GB
+
+requirements            = (OpSysMajorVer >= 8)
+max_retries             = 2
++WantFlocking           = true
+
+queue seed, tag, sweep_args from joblist.txt
