@@ -26,6 +26,18 @@ export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
 export PYTHONPATH="$PWD/code:${PYTHONPATH:-}"
 export MPLBACKEND=Agg
 
+# build_env.sh bundles libpythonX.Y.so into rolenv/lib because the venv's interpreter is
+# dynamically linked to it and many execute nodes do not have that python installed. Without
+# this the job dies with "error while loading shared libraries: libpython3.9.so.1.0" -- and
+# only on the nodes that lack it, so the failures look random.
+export LD_LIBRARY_PATH="$PWD/rolenv/lib:${LD_LIBRARY_PATH:-}"
+
+if ! ./rolenv/bin/python -c "import sys" 2>/dev/null; then
+    echo "ERROR: the bundled interpreter will not start on this node" >&2
+    ldd ./rolenv/bin/python3 2>&1 | grep -E "not found|libpython" >&2
+    exit 1
+fi
+
 set +e
 ./rolenv/bin/python code/run_one.py \
     --seed "$SEED" --config experiment_config.json --outdir results "$@"

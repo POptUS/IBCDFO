@@ -89,5 +89,25 @@ assert numpy.isfinite(v), "diamonddist returned non-finite -- is cvxopt installe
 print("diamonddist OK ->", v)
 PYCHK
 
+# --------------------------------------------------------------- make it actually portable
+# `venv --copies` copies the interpreter BINARY but not the shared library it links against.
+# CPython from a distro package is linked to libpythonX.Y.so, which lives in /usr/lib64 on
+# this submit node but is NOT installed on every execute node. Jobs then die with
+#     ./rolenv/bin/python: error while loading shared libraries: libpython3.9.so.1.0
+# intermittently, depending on which node they land on. Bundle the library and let job.sh
+# point LD_LIBRARY_PATH at it.
+LIBPY=$(ldd rolenv/bin/python3 2>/dev/null | awk '/libpython/ {print $3}' | head -1)
+if [ -n "${LIBPY:-}" ] && [ -f "$LIBPY" ]; then
+    cp -L "$LIBPY" rolenv/lib/
+    echo "== bundled $(basename "$LIBPY") from $LIBPY"
+else
+    echo "== note: python is statically linked to libpython (nothing to bundle)"
+fi
+
+# Anything else outside the venv that is not part of a base EL8 install would fail the same
+# way. Report it rather than guessing.
+MISSING=$(ldd rolenv/bin/python3 2>/dev/null | awk '/not found/ {print $1}')
+[ -n "$MISSING" ] && { echo "!! unresolved libraries: $MISSING" >&2; exit 1; }
+
 tar czf rolenv.tar.gz rolenv
 echo "-> rolenv.tar.gz ($(( $(wc -c < rolenv.tar.gz) / 1048576 )) MB)"
