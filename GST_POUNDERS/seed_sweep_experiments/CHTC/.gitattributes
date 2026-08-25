@@ -1,7 +1,0 @@
-# CHTC scripts run on Linux execute nodes: force LF regardless of the
-# checkout platform, otherwise CRLF gives "bad interpreter: /bin/bash^M".
-*.sh    text eol=lf
-*.py    text eol=lf
-*.sub   text eol=lf
-*.json  text eol=lf
-*.md    text eol=lf
