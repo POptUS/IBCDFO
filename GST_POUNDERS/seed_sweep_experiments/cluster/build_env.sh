@@ -22,17 +22,18 @@ pick_python() {
         echo "ERROR: PYVER=$PYVER is not on PATH" >&2; return 1
     fi
     # newest first: numpy/scipy pins are better on 3.11+, and 3.9 is the floor
-    for c in python3.13 python3.12 python3.11 python3.10 python3.9 python3; do
+    # 3.13 is deliberately absent: pyroltrilinos has no cp313 wheel
+    for c in python3.12 python3.11 python3.10 python3.9 python3; do
         command -v "$c" >/dev/null 2>&1 || continue
         v=$("$c" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo "")
         case "$v" in
-            3.9|3.10|3.11|3.12|3.13)
+            3.9|3.10|3.11|3.12)
                 # venv+ensurepip are split out of some distro pythons
                 "$c" -c 'import venv, ensurepip' >/dev/null 2>&1 || continue
                 PY=$(command -v "$c"); return 0 ;;
         esac
     done
-    echo "ERROR: no usable python found (need 3.9-3.13 with venv + ensurepip)." >&2
+    echo "ERROR: no usable python found (need 3.9-3.12 with venv + ensurepip)." >&2
     echo "  On CHTC try:   module avail python     then    module load <one>" >&2
     echo "  Or force one:  PYVER=/path/to/python3.12 bash build_env.sh" >&2
     return 1
@@ -50,8 +51,11 @@ case "$PYMM" in
 esac
 PANDAS=2.2.3
 PYGSTI=0.9.14.3
+# The PyPI DISTRIBUTION is "pyroltrilinos"; "pyrol" is only the import name and is not a
+# package on PyPI. It publishes cp38..cp312 manylinux wheels, so python 3.9 is fine, but
+# there is no cp313 wheel -- 3.13 would try to build Trilinos from source and fail.
 PYROL=${ROLVER:-0.5.3}
-echo "== pins: numpy==$NUMPY scipy==$SCIPY pandas==$PANDAS pygsti==$PYGSTI pyrol==$PYROL"
+echo "== pins: numpy==$NUMPY scipy==$SCIPY pandas==$PANDAS pygsti==$PYGSTI pyroltrilinos==$PYROL"
 
 # ------------------------------------------------------------------------- build it
 rm -rf rolenv rolenv.tar.gz
@@ -62,7 +66,7 @@ rm -rf rolenv rolenv.tar.gz
 
 ./rolenv/bin/pip install \
     "numpy==$NUMPY" "scipy==$SCIPY" "pandas==$PANDAS" \
-    "pygsti==$PYGSTI" "pyrol==$PYROL" \
+    "pygsti==$PYGSTI" "pyroltrilinos==$PYROL" \
     "cvxpy" "cvxopt"
 
 # cvxopt is not optional: diamond distance is an SDP and cvxpy's default CLARABEL cannot solve
