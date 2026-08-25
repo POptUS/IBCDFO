@@ -19,6 +19,10 @@ FILES=(
     "pounders/py/general_h_funs.py"
     "pounders/py/gradient_pounders.py"
     "pounders/py/prepare_outputs_before_return_gradient.py"
+    # the entry point itself: job.sh runs `python code/run_one.py`, and sweep.sub transfers
+    # only the tarballs, so run_one.py must be INSIDE code.tar.gz or the job dies with
+    # "can't open file .../code/run_one.py"
+    "GST_POUNDERS/seed_sweep_experiments/cluster/run_one.py"
 )
 
 [ -f "$IBCDFO/GST_POUNDERS/seed_sweep_experiments/gst_seed_experiment.py" ] || {

@@ -9,6 +9,15 @@ echo "=== $(date -u +%FT%TZ) host=$(hostname) seed=$SEED tag=$TAG"
 tar xzf rolenv.tar.gz
 tar xzf code.tar.gz
 
+# Fail loudly and immediately if the entry point did not make it into code.tar.gz. Without
+# this the job "succeeds" into an empty 45-byte tarball and the failure only surfaces at
+# collect time, after every job has run.
+if [ ! -f code/run_one.py ]; then
+    echo "ERROR: code/run_one.py missing -- re-run 'bash vendor.sh' on the submit node" >&2
+    ls -la code/ >&2
+    exit 1
+fi
+
 # One thread. Cluster nodes are heterogeneous and a single marginal accept/reject decides
 # which basin a seed lands in; multithreaded BLAS would make runs irreproducible across
 # machines. HTCondor also allocates one core per job.
