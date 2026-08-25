@@ -53,10 +53,17 @@ export MPLBACKEND=Agg
 # only on the nodes that lack it, so the failures look random.
 export LD_LIBRARY_PATH="$PWD/rolenv/lib:${LD_LIBRARY_PATH:-}"
 
-if ! ./rolenv/bin/python -c "import sys" 2>/dev/null; then
-    echo "ERROR: the bundled interpreter will not start on this node." >&2
-    echo "  If this says libpython is missing, rolenv.tar.gz predates the fix that bundles" >&2
-    echo "  it -- re-run 'bash build_env.sh' on the submit node and resubmit." >&2
+# A venv carries no stdlib -- it points at the base installation, which most execute nodes do
+# not have. build_env.sh copies the stdlib into rolenv/lib/pythonX.Y; PYTHONHOME makes the
+# interpreter look there instead of at the (absent) system python.
+PYMM=$(basename "$(ls -d rolenv/lib/python3.* 2>/dev/null | head -1)" | sed 's/^python//')
+export PYTHONHOME="$PWD/rolenv"
+
+# Do NOT swallow stderr here: the whole point is to see why it will not start.
+if ! ./rolenv/bin/python -c "import sys, encodings" ; then
+    echo "ERROR: the bundled interpreter will not start on this node (python${PYMM})." >&2
+    echo "  'No module named encodings' means rolenv.tar.gz has no stdlib -- rebuild it" >&2
+    echo "  with 'bash build_env.sh' on the submit node, then resubmit." >&2
     ldd ./rolenv/bin/python3 2>&1 | grep -E "not found|libpython" >&2
     exit 1
 fi

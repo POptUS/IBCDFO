@@ -104,10 +104,34 @@ else
     echo "== note: python is statically linked to libpython (nothing to bundle)"
 fi
 
+# ...and the STANDARD LIBRARY, which a venv also does not contain. `venv` only creates
+# bin/, lib/pythonX.Y/site-packages/ and pyvenv.cfg; every stdlib module still comes from the
+# base installation (/usr/lib64/pythonX.Y). On an execute node without that python the
+# interpreter starts, resolves libpython, and then dies with
+#     ModuleNotFoundError: No module named 'encodings'
+# which is the same intermittent-by-node failure. Copy the stdlib in and point PYTHONHOME at
+# the unpacked venv (job.sh does that), which is what conda-pack/venv-pack do.
+STDLIB=$("$PY" -c 'import sysconfig; print(sysconfig.get_paths()["stdlib"])')
+DEST="rolenv/lib/python${PYMM}"
+if [ -d "$STDLIB" ]; then
+    mkdir -p "$DEST"
+    # skip site-packages: the venv has its own and it is already populated
+    tar -C "$STDLIB" --exclude=site-packages --exclude=__pycache__ -cf - . \
+        | tar -C "$DEST" -xf -
+    echo "== bundled the stdlib from $STDLIB ($(du -sh "$DEST" | cut -f1))"
+else
+    echo "!! cannot find the stdlib at $STDLIB" >&2; exit 1
+fi
+
 # Anything else outside the venv that is not part of a base EL8 install would fail the same
 # way. Report it rather than guessing.
 MISSING=$(ldd rolenv/bin/python3 2>/dev/null | awk '/not found/ {print $1}')
 [ -n "$MISSING" ] && { echo "!! unresolved libraries: $MISSING" >&2; exit 1; }
+
+# Prove it starts the way an execute node will: PYTHONHOME set, nothing else from this box.
+env -i PYTHONHOME="$PWD/rolenv" LD_LIBRARY_PATH="$PWD/rolenv/lib" \
+    ./rolenv/bin/python -c 'import sys, encodings, ssl, ctypes; print("standalone start OK:", sys.version.split()[0])' \
+    || { echo "!! the venv will not start standalone -- jobs would fail on nodes without this python" >&2; exit 1; }
 
 tar czf rolenv.tar.gz rolenv
 echo "-> rolenv.tar.gz ($(( $(wc -c < rolenv.tar.gz) / 1048576 )) MB)"
