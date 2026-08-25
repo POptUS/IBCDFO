@@ -28,4 +28,7 @@ requirements            = (OpSysMajorVer >= 8)
 max_retries             = 2
 +WantFlocking           = true
 
-queue seed, tag, sweep_args from joblist.txt
+# Override to resubmit only the failures:
+#     condor_submit sweep.sub -a "JOBLIST=joblist_retry.txt"
+JOBLIST = joblist.txt
+queue seed, tag, sweep_args from $(JOBLIST)
