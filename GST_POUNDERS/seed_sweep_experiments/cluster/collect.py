@@ -27,6 +27,9 @@ def main():
     ap.add_argument("--out", default="sweep_summary.csv")
     ap.add_argument("--stage", default=None,
                     help="also copy the seed trees here, ready to commit")
+    ap.add_argument("--retry-list", default="joblist_retry.txt",
+                    help="write the joblist lines for jobs that produced no result.csv, so "
+                         "they can be resubmitted on their own")
     a = ap.parse_args()
 
     tars = sorted(glob.glob(str(pathlib.Path(a.indir) / "out_*.tar.gz")))
@@ -71,6 +74,14 @@ def main():
             print("\n!! %d jobs never returned a tarball:" % len(missing))
             for t in missing:
                 print("     %s   -> logs/job_%s.log" % (t, t))
+        bad = set(empty) | set(missing)
+        if bad and a.retry_list:
+            keep = [l for l in jl.read_text().splitlines()
+                    if l.strip() and l.split(",")[1].strip() in bad]
+            pathlib.Path(a.retry_list).write_text("\n".join(keep) + "\n")
+            print("\n-> wrote %s (%d jobs). Resubmit just those with:"
+                  % (a.retry_list, len(keep)))
+            print('     condor_submit sweep.sub -a "JOBLIST=%s"' % a.retry_list)
 
     print("\n%-26s%3s%13s%13s%13s%12s"
           % ("arm", "n", "infidelity", "diamond", "spam", "shots"))

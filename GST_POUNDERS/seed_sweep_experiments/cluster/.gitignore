@@ -9,6 +9,7 @@ code.tar.gz
 
 # per-submit scratch
 joblist.txt
+joblist_retry.txt
 logs/
 out_s*.tar.gz
 collected/
