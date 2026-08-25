@@ -42,13 +42,25 @@ def main():
         sys.exit(f"no {a.pattern} under {a.indir}")
     dest = pathlib.Path(a.unpack_to)
     dest.mkdir(parents=True, exist_ok=True)
+    # Track exactly what THIS invocation unpacked. Everything below iterates over these
+    # directories rather than globbing all of `dest`: --pattern limits which tarballs are
+    # unpacked, but a previous sweep's trees are still sitting in `dest` from last time, and
+    # globbing would sweep them into the summary and into --stage. Two sweeps that differ only
+    # in BUDGET produce identically-named arms, so that merge is silent and wrong.
+    unpacked = []
     for t in tars:
+        d = dest / pathlib.Path(t).name[: -len(".tar.gz")]
         with tarfile.open(t) as tf:
-            tf.extractall(dest / pathlib.Path(t).name[: -len(".tar.gz")])
+            tf.extractall(d)
+        unpacked.append(d)
     print(f"unpacked {len(tars)} tarballs -> {dest}/")
+    stale = sorted(x.name for x in dest.iterdir() if x.is_dir() and x not in unpacked)
+    if stale:
+        print(f"  ({len(stale)} older director{'y' if len(stale) == 1 else 'ies'} in {dest}/ "
+              f"left alone: {', '.join(stale[:4])}{' ...' if len(stale) > 4 else ''})")
 
     frames = []
-    for f in sorted(dest.glob("*/results/seed_*/result.csv")):
+    for f in sorted(f for d in unpacked for f in d.glob("results/seed_*/result.csv")):
         try:
             frames.append(pd.read_csv(f))
         except Exception as exc:
@@ -114,7 +126,7 @@ def main():
         # results/seed_XXXXXX/ tree. Replacing the seed directory would keep only the last
         # tarball's arms and silently drop the rest.
         n, arms = 0, 0
-        for sd in sorted(dest.glob("*/results/seed_*")):
+        for sd in sorted(sd for d in unpacked for sd in d.glob("results/seed_*")):
             tgt = out / sd.name
             tgt.mkdir(parents=True, exist_ok=True)
             n += 1
