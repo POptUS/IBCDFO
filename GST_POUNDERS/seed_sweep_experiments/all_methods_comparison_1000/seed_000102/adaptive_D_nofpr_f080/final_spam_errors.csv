@@ -1,0 +1,7 @@
+reference,member_type,member,vector_l2_error
+truth,prep,rho0,0.003987961592424397
+truth,povm_effect,Mdefault:0,0.0021158250198810803
+truth,povm_effect,Mdefault:1,0.0021161699311281214
+ideal,prep,rho0,0.010949079908308242
+ideal,povm_effect,Mdefault:0,0.008733211693830822
+ideal,povm_effect,Mdefault:1,0.008738360995372046
