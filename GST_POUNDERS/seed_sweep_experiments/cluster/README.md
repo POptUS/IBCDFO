@@ -20,9 +20,25 @@ Results come back small enough to commit to git, which is how you get them onto 
 ## First time on the submit node
 
 ```bash
-git clone <your fork> && cd .../seed_sweep_experiments/chtc
+git clone <your fork> && cd .../seed_sweep_experiments/cluster
 bash build_env.sh          # ~5 min, one time per cluster
 ```
+
+`build_env.sh` picks an interpreter itself (newest of python3.13..3.9 that has venv +
+ensurepip) and pins numpy/scipy to match: 3.10+ gets numpy 2.1.3, and 3.9 -- the default on
+CHTC access points -- gets 2.0.2, the last release that supports it. Both are ABI-compatible
+with the pygsti and pyrol wheels and neither changes a result.
+
+If a newer Python is available as a module it is worth loading first:
+
+```bash
+module avail python
+module load python/3.12          # name varies
+PYVER=python3.12 bash build_env.sh
+```
+
+The venv is built with `--copies` so it survives being tarred and unpacked on an execute node
+that does not have the interpreter at the same path.
 
 ## Every run
 
