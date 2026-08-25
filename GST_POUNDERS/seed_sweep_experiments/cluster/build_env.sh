@@ -76,7 +76,13 @@ import numpy, scipy, pandas, pygsti, cvxpy
 print("numpy", numpy.__version__, "| scipy", scipy.__version__,
       "| pandas", pandas.__version__, "| pygsti", pygsti.__version__,
       "| cvxpy", cvxpy.__version__)
-import pyrol; print("pyrol OK")
+# pyroltrilinos exposes different top-level names per build: "pyrol" on some wheels,
+# "ROL" on others (cp39 installs ROL). gradient_pounders._solve_trsp_pyrol tries pyrol
+# first and falls back to ROL, so either one is fine -- check for either.
+try:
+    import pyrol; print("pyrol OK (module 'pyrol')")
+except ModuleNotFoundError:
+    import ROL; print("pyrol OK (module 'ROL')")
 from pygsti.tools import optools as _ot
 v = float(_ot.diamonddist(numpy.eye(4), numpy.diag([1.0,.999,.999,.999]), mx_basis="pp"))
 assert numpy.isfinite(v), "diamonddist returned non-finite -- is cvxopt installed?"
