@@ -65,6 +65,15 @@ def parse_args(argv=None):
     ap.add_argument("--pilot", type=int, default=None,
                     help="override config.adaptive_baseline_shots (the FPR arms' pilot)")
     ap.add_argument("--nfmax", type=int, default=None)
+    ap.add_argument("--schedule-n-max", type=int, default=None,
+                    help="override config.adaptive_schedule_n_max, the per-round cap on "
+                         "allocated shots. The schedule is budget-BLIND -- n0, base, constant "
+                         "and this cap are absolute -- so its total request is fixed at about "
+                         "2.2M shots regardless of the budget. The hook clips a round to the "
+                         "remaining budget but never pads one, so below that total the budget "
+                         "is spent exactly and above it the remainder is silently left "
+                         "unspent (measured: 79% of a 4000 budget, 54% of a 6000 budget). "
+                         "Raise this for budgets whose adaptive remainder exceeds ~2.2M.")
     ap.add_argument("--allocate-every", type=int, default=None)
     ap.add_argument("--objective", default=None,
                     help="weighted_least_squares | least_squares | poisson_logl")
@@ -97,6 +106,8 @@ def main(argv=None):
         over["nfmax"] = int(a.nfmax)
     if a.allocate_every is not None:
         over["adaptive_allocate_every"] = int(a.allocate_every)
+    if a.schedule_n_max is not None:
+        over["adaptive_schedule_n_max"] = int(a.schedule_n_max)
     if a.objective is not None:
         over["objective"] = a.objective
     if over:
