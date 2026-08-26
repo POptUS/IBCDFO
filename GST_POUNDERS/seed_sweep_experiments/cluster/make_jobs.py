@@ -45,6 +45,32 @@ _COPY = {
 }
 
 
+def _dedupe_flags(argstr):
+    """Keep only the LAST occurrence of each --flag in a "--a 1 --b 2" string.
+
+    argparse already keeps the last, so this changes no behaviour -- it changes the joblist
+    from "--nfmax 150 --nfmax 300" into "--nfmax 300". A line whose effective settings you
+    cannot read at a glance is how a sweep ships at the wrong budget without anyone noticing.
+    Flag ORDER is preserved from first appearance, so the lines stay diffable."""
+    toks = argstr.split()
+    pairs, order = {}, []
+    i = 0
+    while i < len(toks):
+        if not toks[i].startswith("--"):
+            i += 1
+            continue
+        flag = toks[i]
+        val = toks[i + 1] if i + 1 < len(toks) and not toks[i + 1].startswith("--") else None
+        if flag not in pairs:
+            order.append(flag)
+        pairs[flag] = val
+        i += 2 if val is not None else 1
+    out = []
+    for f in order:
+        out.append(f if pairs[f] is None else f"{f} {pairs[f]}")
+    return " ".join(out)
+
+
 def from_results(ref_dir, arms, fracs, seeds=None, extra="", tag_prefix=""):
     ref = Path(ref_dir)
     seed_dirs = sorted(d for d in ref.glob("seed_*") if d.is_dir())
@@ -79,8 +105,8 @@ def from_results(ref_dir, arms, fracs, seeds=None, extra="", tag_prefix=""):
             suffix = f"_f{int(round(frac * 100)):03d}"
             # `extra` goes AFTER the copied settings: argparse keeps the last occurrence
             # of a flag, so --extra "--nfmax 500" overrides a copied --nfmax 300.
-            args = (f"--arms {arm} --budget {budget} {copied} {extra} "
-                    f"--nofpr-baseline-frac {frac} --label-suffix {suffix}").replace("  ", " ")
+            args = _dedupe_flags(f"--arms {arm} --budget {budget} {copied} {extra} "
+                                 f"--nofpr-baseline-frac {frac} --label-suffix {suffix}")
             assert "," not in args, f"no commas allowed: {args!r}"
             lines.append(f"{seed}, {tag_prefix}s{seed}_{arm}{suffix}, {args}")
 
@@ -109,6 +135,13 @@ def main():
                     help="--from-results mode: baseline fractions to sweep")
     ap.add_argument("--seeds", default=None,
                     help="restrict to these seeds, e.g. 101,102,103")
+    ap.add_argument("--budgets", default=None,
+                    help="PHASE A: comma list of fixed_fpr shots/circuit, e.g. 250,1500,2000. "
+                         "Emits one job per (seed, budget) running --arms TOGETHER in that "
+                         "job, because run_one.py takes fixed_fpr's accounted shot count as "
+                         "the budget anchor for every other arm -- split them across jobs and "
+                         "each gets a different anchor. Tags carry the budget (b250_s101), so "
+                         "collect.py --pattern can keep the budgets apart.")
     ap.add_argument("--tag-prefix", default="",
                     help="prepended to every job tag, hence to every out_<tag>.tar.gz. Use a "
                          "distinct prefix per sweep (e.g. b500) when a previous sweep's "
@@ -124,7 +157,29 @@ def main():
 
     seeds = {int(s) for s in a.seeds.split(",")} if a.seeds else None
 
-    if a.from_results:
+    if a.budgets and a.from_results:
+        sys.exit("--budgets is phase A and --from-results is phase B; run them separately")
+
+    if a.budgets:
+        # PHASE A. Unlike --from-results, the arms go into ONE job as a single --arms value:
+        # they share the budget anchor and run_one.py computes it from fixed_fpr.
+        arms = ",".join(m.strip() for m in a.arms.split(",") if m.strip())
+        if "fixed_fpr" not in arms.split(","):
+            sys.exit("phase A needs fixed_fpr in --arms: it IS the budget anchor "
+                     "(pass --budget to run_one.py instead only if you have one already)")
+        use = sorted(seeds) if seeds else SEEDS
+        budgets = [int(b) for b in a.budgets.split(",")]
+        lines = []
+        for budget, seed in itertools.product(budgets, use):
+            args = _dedupe_flags(f"--arms {arms} --fixed-fpr-shots {budget} "
+                                 f"{ARGS[0]} {a.extra.strip()}")
+            assert "," not in args.replace(arms, ""), f"no commas outside --arms: {args!r}"
+            lines.append(f"{seed}, {a.tag_prefix.strip()}b{budget}_s{seed}, {args}")
+        print(f"phase A: {len(budgets)} budgets x {len(use)} seeds, arms = {arms}")
+        print(f"  collect each budget separately, e.g.:")
+        print(f"    python collect.py --pattern 'out_b{budgets[0]}_*.tar.gz' "
+              f"--joblist {a.out} --stage ../all_methods_comparison_{budgets[0]}")
+    elif a.from_results:
         lines = from_results(a.from_results,
                              [m.strip() for m in a.arms.split(",") if m.strip()],
                              [float(f) for f in a.fracs.split(",")],
