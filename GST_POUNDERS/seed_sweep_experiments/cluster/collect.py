@@ -32,6 +32,11 @@ def main():
     ap.add_argument("--out", default="sweep_summary.csv")
     ap.add_argument("--stage", default=None,
                     help="also copy the seed trees here, ready to commit")
+    ap.add_argument("--joblist", default="joblist.txt",
+                    help="the joblist this sweep was submitted from, used to tell which jobs "
+                         "came back. MUST match --pattern: comparing b500_* tarballs against "
+                         "a previous sweep's joblist.txt reports every one of ITS jobs as "
+                         "missing and writes a retry list that would re-run that older sweep.")
     ap.add_argument("--retry-list", default="joblist_retry.txt",
                     help="write the joblist lines for jobs that produced no result.csv, so "
                          "they can be resubmitted on their own")
@@ -76,13 +81,23 @@ def main():
         print(bad[["seed", "arm", "error"]].to_string(index=False))
     # Which jobs came back with nothing usable. Worth knowing BEFORE reading the table: a
     # failure correlated with a swept axis biases whatever survived.
-    jl = pathlib.Path("joblist.txt")
+    jl = pathlib.Path(a.joblist)
     if jl.exists():
         expected = [l.split(",")[1].strip() for l in jl.read_text().splitlines() if l.strip()]
         got = {pathlib.Path(t).name[len("out_"):-len(".tar.gz")] for t in tars}
         empty = [t for t in expected if t in got
                  and not list((dest / ("out_" + t)).glob("results/seed_*/result.csv"))]
         missing = [t for t in expected if t not in got]
+        # A joblist that shares NO tag with the tarballs is the wrong joblist, not 100%
+        # failure. Saying so beats printing every job as missing and offering a retry list
+        # that would resubmit a different sweep entirely.
+        if expected and not (set(expected) & got):
+            print()
+            print(f"!! {jl} shares no job tag with the {len(tars)} tarball(s) matched "
+                  f"by --pattern {a.pattern!r}.")
+            print("   That is a joblist/pattern mismatch, not a failure -- pass --joblist "
+                  "for the sweep you are collecting. Skipping the missing-job report.")
+            expected, empty, missing = [], [], []
         if empty:
             print("\n!! %d of %d jobs returned an EMPTY tarball:" % (len(empty), len(expected)))
             for t in empty:
