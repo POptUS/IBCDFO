@@ -7,11 +7,13 @@ rolenv.tar.gz
 code/
 code.tar.gz
 
-# per-submit scratch
-joblist.txt
-joblist_retry.txt
+# per-submit scratch.
+# Globbed, not literal: --tag-prefix puts a sweep name in front of the tag (out_b500_s101_...)
+# and --out names the joblist per sweep (joblist_500.txt), so 'out_s*' and the two literal
+# joblist names stopped matching and the tarballs showed up as untracked.
+joblist*.txt
 logs/
-out_s*.tar.gz
+out_*.tar.gz
 collected/
 sweep_summary.csv
 fpr_builtin/
