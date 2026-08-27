@@ -17,6 +17,7 @@ dfo = np.loadtxt("dfo.dat")
 
 spsolver = 2
 nf_max = 1000
+delta = 0.1
 g_tol = 1e-13
 combinemodels = ibcdfo.pounders.combine_identity
 hfun = ibcdfo.pounders.h_identity
@@ -32,19 +33,17 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
         return np.squeeze(out)
 
     X_0 = dfoxs(n, nprob, int(10**factor_power))
-    Low = -np.inf * np.ones((1, n))  # 1-by-n Vector of lower bounds [zeros(1, n)]
-    Upp = np.inf * np.ones((1, n))  # 1-by-n Vector of upper bounds [ones(1, n)]
+    Low = -np.inf * np.ones(n)  # 1-by-n Vector of lower bounds [zeros(1, n)]
+    Upp = np.inf * np.ones(n)  # 1-by-n Vector of upper bounds [ones(1, n)]
+    F_0 = Ffun(X_0)
     nfs = 1
-    F_init = np.zeros((1, 1))
-    F_init[0] = Ffun(X_0)
     xind = 0
-    delta = 0.1
-
-    Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
+    X_init = np.atleast_2d(X_0)
+    F_init = np.atleast_2d(F_0)
 
     Results = {}
 
-    Prior = {"nfs": 1, "F_init": F_init, "X_init": X_0, "xk_in": xind}
+    Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xind}
 
     [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, 1, Low, Upp, Prior=Prior, Options=Opts, Model={})
 

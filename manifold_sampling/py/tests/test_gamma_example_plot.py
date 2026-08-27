@@ -30,8 +30,8 @@ os.makedirs("plots", exist_ok=True)
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
     m = int(m)
-    LB = -np.inf * np.ones((1, n))
-    UB = np.inf * np.ones((1, n))
+    LB = np.full(n, -np.inf, float)
+    UB = np.full(n, np.inf, float)
     x0 = dfoxs(n, nprob, 10**factor_power)
 
     def Ffun(y):
@@ -40,6 +40,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return np.squeeze(out)
 
     X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+    assert flag >= 0
 
     # --- Run pounders without using the structure ---
     identity_hfun = ibcdfo.pounders.h_identity
@@ -56,6 +57,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     Opts = {"spsolver": 1, "hfun": identity_hfun, "combinemodels": combinemodels}
 
     X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
+    assert flag >= 0
 
     # # --- Plotting ---
     # plt.figure(figsize=(10, 4))

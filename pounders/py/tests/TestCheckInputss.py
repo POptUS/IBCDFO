@@ -1,123 +1,70 @@
 """
-Unit test of compute function
+Unit test of checkinputss()
 """
 
+import copy
 import unittest
 
 import numpy as np
-from ibcdfo.pounders import _checkinputss as checkinputss
+
+from ibcdfo.pounders.checkinputss import checkinputss
 
 
-class TestLotsOfFeatures(unittest.TestCase):
+class TestCheckInputss(unittest.TestCase):
     def setUp(self):
-        self.Ffun = np.linalg.norm
-        self.n = 3
-        self.X_0 = 0.5 * np.ones(self.n)
-        self.np_max = 2 * self.n + 1
-        self.nf_max = 10
-        self.g_tol = 1e-13
-        self.delta = 0.1
-        self.nfs = 2
-        self.m = 1
-        self.X_init = np.vstack((0.5 * np.ones(self.n), np.zeros(self.n)))
-        self.F_init = np.zeros((self.nfs, self.m))
-        self.xk_in = 0
-        self.Low = np.zeros(self.n)
-        self.Upp = np.ones(self.n)
+        self.__ERROR_HDR = "Error: "
+        self.__NOT_INT = (None, "", True, False, 1.0, 1.1, {}, [1], {1})
 
-    def __testCommonFinalConditions(self, out, flag):
-        if flag == "success":
-            self.assertEqual(out[0], 1, "Should not have failed")
-        elif flag == "fail":
-            self.assertEqual(out[0], -1, "Should have failed")
-        elif flag == "warn":
-            self.assertEqual(out[0], 0, "Should have warned, but not failed")
+        N, M = (3, 1)
 
-        self.assertEqual(len(out), 7, "Should always have 7 outputs from checkinputss")
+        # These should pass all checks.
+        #
+        # Tests that need to change values should make a deepcopy and alter that
+        # dictionary.
+        self.__KWARGS = {
+            "n": N,
+            "m": M,
+            "Ffun": np.linalg.norm,
+            "Low": np.full(N, -np.inf, float),
+            "Upp": np.full(N, np.inf, float),
+            "X_0": np.full(N, 0.5, float),
+            "np_max": 2 * N + 1,
+            "nf_max": 10,
+            "g_tol": 1.0e-13,
+            "delta_0": 0.1,
+            "nfs": 0,
+            "X_init": np.full((0, N), 0.0, float),
+            "F_init": np.full((0, M), 0.0, float),
+            "xk_in": 0,
+        }
+        checkinputss(**self.__KWARGS)
 
-    def test_checkinputts0(self):
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "success")
+    def _assert_bad_dimension(self, key):
+        kwargs = copy.deepcopy(self.__KWARGS)
+        for bad in self.__NOT_INT:
+            kwargs[key] = bad
+            with self.assertRaises(TypeError) as err:
+                checkinputss(**kwargs)
+            err_msg = str(err.exception)
+            # print(err_msg)
+            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
+        for bad in [-10, -1, 0]:
+            kwargs[key] = bad
+            with self.assertRaises(ValueError) as err:
+                checkinputss(**kwargs)
+            err_msg = str(err.exception)
+            # print(err_msg)
+            self.assertTrue(err_msg.startswith(self.__ERROR_HDR))
 
-    def test_checkinputts1(self):
-        Ffun_to_fail = []
-        out = checkinputss(Ffun_to_fail, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
+    def testN(self):
+        # Prefer testing checkinputss() indirectly by testing calls to
+        # pounders.py.  POUNDERS error checks n before calling checkinputss()
+        # because n is used to set other local variables that also need to be
+        # checked.  Therefore, error checks of n in checkinputss are never
+        # exercised, and  we test here in case this functionality is actually
+        # used at some point.
+        self._assert_bad_dimension("n")
 
-    def test_checkinputts2(self):
-        n_to_fail = 2
-        with self.assertRaises(AssertionError):
-            checkinputss(self.Ffun, self.X_0, n_to_fail, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-
-    def test_checkinputts3(self):
-        np_max_to_warn = 1
-        out = checkinputss(self.Ffun, self.X_0, self.n, np_max_to_warn, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "warn")
-
-    def test_checkinputts4(self):
-        nf_max_to_fail = 0
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, nf_max_to_fail, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts5(self):
-        g_tol_to_fail = 0
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, g_tol_to_fail, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts6(self):
-        delta_to_fail = 0
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, delta_to_fail, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts7(self):
-        F_init_to_fail = np.zeros((self.nfs, 3 * self.nfs))
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_fail, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts8(self):
-        F_init_to_error = np.zeros((3 * self.nfs, 1))
-        with self.assertRaises(AssertionError):
-            checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_error, self.xk_in, self.Low, self.Upp)
-
-    def test_checkinputts9(self):
-        F_init_to_fail = np.nan * self.F_init
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, F_init_to_fail, self.xk_in, self.Low, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts10(self):
-        xk_in_to_fail = -1
-        with self.assertRaises(AssertionError):
-            checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, xk_in_to_fail, self.Low, self.Upp)
-
-    def test_checkinputts11(self):
-        Low_to_fail = np.hstack((self.Low, self.Low))
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_fail, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts12(self):
-        Low_to_warn = np.atleast_2d(self.Low).T
-        Upp_to_warn = np.atleast_2d(self.Upp).T
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_warn, Upp_to_warn)
-        self.__testCommonFinalConditions(out, "warn")
-
-    def test_checkinputts13(self):
-        Low_to_fail = np.zeros((2, self.n))
-        Upp_to_fail = np.zeros((2, self.n))
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_fail, Upp_to_fail)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts14(self):
-        Low_to_error = self.Upp
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts15(self):
-        Low_to_error = 0.9 * self.Upp
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
-
-    def test_checkinputts16(self):
-        Low_to_error = self.Low
-        Low_to_error[0] = np.nan
-        out = checkinputss(self.Ffun, self.X_0, self.n, self.np_max, self.nf_max, self.g_tol, self.delta, self.nfs, self.m, self.X_init, self.F_init, self.xk_in, Low_to_error, self.Upp)
-        self.__testCommonFinalConditions(out, "fail")
+    def testM(self):
+        # See notes for testN().
+        self._assert_bad_dimension("m")

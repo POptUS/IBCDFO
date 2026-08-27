@@ -14,13 +14,13 @@ def call_beamline_simulation(x):
     return np.squeeze(out)
 
 
-np.random.seed(8675309)
+rng = np.random.default_rng(8675309)
 # Adjust these:
 n = 4  # Number of parameters to be optimized
-X_0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
+X_0 = rng.uniform(0, 1, size=n)  # starting parameters for the optimizer
 nf_max = int(100)  # Max number of evaluations to be used by optimizer
-Low = -1 * np.ones((1, n))  # 1-by-n Vector of lower bounds
-Upp = np.ones((1, n))  # 1-by-n Vector of upper bounds
+Low = -1 * np.ones(n)  # 1-by-n Vector of lower bounds
+Upp = np.ones(n)  # 1-by-n Vector of upper bounds
 Ffun = call_beamline_simulation  # Simulation function, accepting single points to evaluate
 printf = True
 
@@ -30,17 +30,18 @@ combinemodels = ibcdfo.pounders.combine_emittance
 m = 3  # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
 g_tol = 1e-8  # Stopping tolerance
 delta_0 = 0.1  # Initial trust-region radius
-F_0 = np.zeros((1, m))  # Initial evaluations (parameters with completed simulations)
-F_0[0] = Ffun(X_0)
+F_0 = Ffun(X_0)
 nfs = 1  # Number of initial evaluations
 xk_in = 0  # Index in F_0 for starting the optimization (usually the point with minimal emittance)
+X_init = np.atleast_2d(X_0)
+F_init = np.atleast_2d(F_0)
 
 Options = {}
 Options["printf"] = printf
 Options["hfun"] = hfun
 Options["combinemodels"] = combinemodels
 
-Prior = {"X_init": X_0, "F_init": F_0, "nfs": nfs, "xk_in": xk_in}
+Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
 [Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})

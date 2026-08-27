@@ -34,13 +34,13 @@ def create_trsp_solver(spsolver):
 
         where
 
-        * ``H`` is an :math:`\np \times \np` Numpy array that provides the
+        * ``H`` is an :math:`\np \times \np` NumPy array that provides the
           (symmetric) Hessian of the objective function,
-        * ``g`` is an :math:`\np` element Numpy array that provides the gradient
+        * ``g`` is an :math:`\np`-element NumPy array that provides the gradient
           of the objective function,
-        * ``Low`` and ``Upp`` are :math:`\np` element Numpy arrays that specify
+        * ``Low`` and ``Upp`` are :math:`\np`-element NumPy arrays that specify
           the bound constraints,
-        * ``Xsp`` is the subproblem solution as an :math:`\np` element Numpy
+        * ``Xsp`` is the subproblem solution as an :math:`\np`-element NumPy
           array,
         * ``mdec`` is the value of the subproblem objective function at
           the solution as a real scalar, and
