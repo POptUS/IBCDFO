@@ -74,19 +74,18 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
     if nfs < 0:
         raise ValueError(f"Error: nfs must be a nonnegative integer ({nfs})")
 
-    # nf_max is the max actual evaluations to be allowed during an optimization.
+    # nf_max is the maximum evaluations to be allowed during an optimization.
     # It does not include any preexisting evaluations provided to POUNDERS.
     #
     # There is no sense in running an optimization without evaluating at least
-    # once at a non-geometry point chosen by POUNDERS.  If users provide any
-    # number of preexisting evaluations, there's no guarantee that any of those
-    # values (other than at the starting point) will be used by POUNDERS to
-    # start the optimization.  Even if they did, we still want POUNDERS to
-    # perform one evaluation at a point determined by POUNDERS using those
-    # values.
+    # once at a trial point chosen by POUNDERS.  If users provide any number
+    # of preexisting evaluations, there's no guarantee that any of those
+    # values (other than at the starting point X0) will be used by POUNDERS to
+    # start the optimization. In any case, we always want POUNDERS to
+    # perform one evaluation at a trial point determined by POUNDERS.
     #
-    # We, therefore, establish a lower bound on nf_max assuming that users can
-    # only know with certainty that a given starting point value can be used by
+    # Therefore, we establish a lower bound on nf_max assuming that users can
+    # only know with certainty that a given starting point value at X0 can be used by
     # POUNDERS.  They must assume that all other provided values, if any, might
     # be ignored.
     min_required_evals = n + 1 if nfs > 0 else n + 2
@@ -120,12 +119,12 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         if not np.array_equal(X_init[xk_in, :], X_0, equal_nan=False):
             raise ValueError("Error: X_0 doesn't match X_init[xk_in, :]")
 
-        # While one could argue that including a point more than once in X_init
-        # could be acceptable so long as their F_init values were identical, we
-        # prefer to consider it as a logic error in calling code.  We,
-        # therefore, inform calling code explicitly of this issue (rather than
+        # While one could argue that including redundant points in X_init
+        # could be acceptable provided their F_init values were identical, we
+        # prefer to consider it as a logic error in calling code.  Therefore,
+        # we inform the calling code explicitly about this issue (rather than
         # post a warning or fix it for them) to allow them to assess why this
-        # error was made and fix it.
+        # error was made so that they may fix it.
         _, counts = np.unique(
             X_init,
             axis=0,

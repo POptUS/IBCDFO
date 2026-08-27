@@ -115,7 +115,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # ----- ALLOW "1D" NUMPY ARRAY FLEXIBILITY
     # For arguments that are specified as X-element NumPy arrays, we can be
-    # flexible and accept any iterables that can be converted to genuinely 1D
+    # flexible and accept any iterables that can be converted to 1D
     # arrays of the correct length.  We eagerly convert here into the final
     # specification required by the algorithm's implementation.
     # TODO: Uncomment this once we add in tests to confirm this.  Ensure that we
