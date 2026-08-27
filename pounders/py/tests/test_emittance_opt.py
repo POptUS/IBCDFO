@@ -16,13 +16,13 @@ def call_beamline_simulation(x):
     return np.squeeze(out)
 
 
-np.random.seed(8675309)
+rng = np.random.default_rng(8675309)
 # Adjust these:
 n = 4  # Number of parameters to be optimized
-X_0 = np.random.uniform(0, 1, (1, n))  # starting parameters for the optimizer
+X_0 = rng.uniform(0, 1, size=n)  # starting parameters for the optimizer
 nf_max = int(100)  # Max number of evaluations to be used by optimizer
-Low = -1 * np.ones((1, n))  # 1-by-n Vector of lower bounds
-Upp = np.ones((1, n))  # 1-by-n Vector of upper bounds
+Low = -1 * np.ones(n)  # 1-by-n Vector of lower bounds
+Upp = np.ones(n)  # 1-by-n Vector of upper bounds
 Ffun = call_beamline_simulation  # Simulation function, accepting single points to evaluate
 
 # Not as important to adjust:
