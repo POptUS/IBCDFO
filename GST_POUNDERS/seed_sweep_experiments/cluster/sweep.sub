@@ -18,6 +18,18 @@ log                     = logs/job_$(tag).log
 output                  = logs/job_$(tag).out
 error                   = logs/job_$(tag).err
 
+# Write stdout/stderr back to logs/ AS THE JOB RUNS instead of shipping them at exit.
+# Without this, when_to_transfer_output = ON_EXIT spools both on the execute node and the
+# local .out/.err do not exist until the job finishes -- so a running job looks like it is
+# producing nothing, and a job that dies without exiting cleanly leaves no output at all.
+#
+# The cost is a live connection per job plus continuous network writes, and PyROL prints an
+# iteration table per trust-region subproblem solve, so this is chatty. For a large
+# submission turn it off at submit time rather than editing this file:
+#     condor_submit sweep.sub -a "JOBLIST=..." -a "stream_output=False" -a "stream_error=False"
+stream_output           = True
+stream_error            = True
+
 # One core on purpose -- see the threading note in job.sh. Memory is dominated by the
 # 1918x72 Jacobians and pygsti's model cache; 8 GB has ample headroom.
 request_cpus            = 1
