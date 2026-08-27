@@ -179,6 +179,11 @@ class ExperimentConfig:
     # keeps accruing across skipped iterations, so shots arrive in k-times larger batches.
     # 1 = solve every iteration (previous behaviour).
     adaptive_allocate_every: int = 1
+    # True: one decision variable per CIRCUIT, per-shot info = sum_beta J J^T / p_beta.
+    # False: the older per-ROW path weighted by 1/(p(1-p)), max-aggregated to circuits.
+    # Identical rankings for a 2-outcome measurement; only the per-circuit form is correct
+    # for more outcomes. See the note in adaptive_shot_hook.make_adaptive_shot_hook.
+    adaptive_per_circuit_allocation: bool = True
     adaptive_initial_topup: int = 0
 
     # L-optimality (criterion="L") infidelity-metric (M = infidelity Hessian) settings.
@@ -1340,6 +1345,8 @@ def _build_adaptive_hook(problem, config, fpr_reduction, running_shots, event_hi
         total_shot_budget=config.adaptive_total_shot_budget,
         accounted_shots=accounted_shots,
         allocate_every=int(getattr(config, "adaptive_allocate_every", 1) or 1),
+        per_circuit_allocation=bool(
+            getattr(config, "adaptive_per_circuit_allocation", True)),
     )
 
     def hook(state):

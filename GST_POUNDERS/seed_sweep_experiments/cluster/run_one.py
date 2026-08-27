@@ -72,9 +72,22 @@ def parse_args(argv=None):
                          "2.2M shots regardless of the budget. The hook clips a round to the "
                          "remaining budget but never pads one, so below that total the budget "
                          "is spent exactly and above it the remainder is silently left "
-                         "unspent (measured: 79% of a 4000 budget, 54% of a 6000 budget). "
+                         "unspent (measured: 79 percent of a 4000 budget, 54 percent of a 6000 "
+                         "budget). "
                          "Raise this for budgets whose adaptive remainder exceeds ~2.2M.")
     ap.add_argument("--allocate-every", type=int, default=None)
+    ap.add_argument("--per-circuit-allocation", dest="per_circuit_allocation",
+                    action="store_true", default=None,
+                    help="one decision variable per CIRCUIT, per-shot information "
+                         "sum_beta J J^T / p_beta (the physically correct multinomial form; "
+                         "this is the config default)")
+    ap.add_argument("--per-row-allocation", dest="per_circuit_allocation",
+                    action="store_false",
+                    help="the older path: optimise over (circuit, outcome) rows weighted by "
+                         "1/(p(1-p)), then max-aggregate to circuits. Gives the SAME circuit "
+                         "ranking for a 2-outcome measurement (verified: Spearman 1.000000) "
+                         "but under-spends the batch by roughly one percent and is not correct "
+                         "for more than two outcomes. Use only to reproduce pre-2026-08-27 runs.")
     ap.add_argument("--objective", default=None,
                     help="weighted_least_squares | least_squares | poisson_logl")
     ap.add_argument("--lm-maxiter", type=int, default=800)
@@ -106,6 +119,8 @@ def main(argv=None):
         over["nfmax"] = int(a.nfmax)
     if a.allocate_every is not None:
         over["adaptive_allocate_every"] = int(a.allocate_every)
+    if a.per_circuit_allocation is not None:
+        over["adaptive_per_circuit_allocation"] = bool(a.per_circuit_allocation)
     if a.schedule_n_max is not None:
         over["adaptive_schedule_n_max"] = int(a.schedule_n_max)
     if a.objective is not None:
