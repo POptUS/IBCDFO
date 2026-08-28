@@ -1,0 +1,16 @@
+{
+  "data_seed": 106,
+  "method": "adaptive_no_fpr",
+  "model_kind": "1Q",
+  "num_circuits": 1918,
+  "num_parameters": 72,
+  "num_residuals": 3836,
+  "operation_labels": [
+    "[]",
+    "Gxpi2:0",
+    "Gypi2:0",
+    "Gzpi2:0"
+  ],
+  "outcomes_per_circuit": 2,
+  "truth_seed": 1000
+}

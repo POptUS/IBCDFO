@@ -1,0 +1,7 @@
+{
+  "data_seed": 110,
+  "truth_seed": 1000,
+  "method": "lm",
+  "num_parameters": 72,
+  "num_circuits": 1918
+}

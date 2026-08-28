@@ -1,0 +1,29 @@
+{
+  "seed": 103,
+  "budget": 1296000,
+  "total_circuits": 1918,
+  "arms": [
+    "adaptive_D_nofpr"
+  ],
+  "args": {
+    "seed": 103,
+    "config": "experiment_config.json",
+    "outdir": "results",
+    "arms": "adaptive_D_nofpr",
+    "budget": 1296000,
+    "fixed_fpr_shots": null,
+    "nofpr_baseline_frac": 0.7,
+    "pilot": null,
+    "nfmax": 600,
+    "schedule_n_max": null,
+    "allocate_every": 5,
+    "per_circuit_allocation": true,
+    "objective": "poisson_logl",
+    "lm_maxiter": 800,
+    "lm_modes": "CPTPLND",
+    "lm_data_seed_offset": 0,
+    "fpr_cache": "fpr_builtin",
+    "label_suffix": "_f070"
+  },
+  "seconds": 1182.9
+}

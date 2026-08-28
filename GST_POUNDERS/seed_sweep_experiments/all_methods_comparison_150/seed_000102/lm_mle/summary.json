@@ -1,0 +1,16 @@
+{
+  "data_seed": 102,
+  "method": "lm_mle",
+  "mean_gate_entanglement_infidelity_to_truth": 0.00023346079583685952,
+  "mean_gate_diamond_distance_to_truth": 0.0026757884026893017,
+  "mean_spam_vector_l2_error_to_truth": 0.005232235659531831,
+  "accounted_revealed_shots": 130424,
+  "physical_precomputed_shots": 130424,
+  "max_shots_per_circuit": 68,
+  "min_shots_per_circuit": 68,
+  "mean_shots_per_circuit": 68.0,
+  "total_circuits": 1918,
+  "revealed_circuits": 1918,
+  "flag": "LM_MLE",
+  "objective": "pure_mle"
+}
