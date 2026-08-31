@@ -34,18 +34,18 @@ def create_trsp_solver(spsolver):
 
         where
 
-        * ``H`` is an :math:`\np \times \np` NumPy array that provides the
+        * **H** is an :math:`\np \times \np` NumPy array that provides the
           (symmetric) Hessian of the objective function,
-        * ``g`` is an :math:`\np`-element NumPy array that provides the gradient
+        * **g** is an :math:`\np`-element NumPy array that provides the gradient
           of the objective function,
-        * ``Low`` and ``Upp`` are :math:`\np`-element NumPy arrays that specify
+        * **Low** and **Upp** are :math:`\np`-element NumPy arrays that specify
           the bound constraints,
-        * ``Xsp`` is the subproblem solution as an :math:`\np`-element NumPy
+        * **Xsp** is the subproblem solution as an :math:`\np`-element NumPy
           array,
-        * ``mdec`` is the value of the subproblem objective function at
+        * **mdec** is the value of the subproblem objective function at
           the solution as a real scalar, and
-        * ``found_solution`` is True if a solution was found that should be
-          acceptable for |pounders|'s purposes; False, otherwise.
+        * **found_solution** is ``True`` if a solution was found that should be
+          acceptable for |pounders|'s purposes; ``False``, otherwise.
     """
     if spsolver == TRSP_SOLVER_SIMPLE:
         # Since this solver is for testing/debugging only, we do not mention it
