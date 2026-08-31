@@ -1,5 +1,4 @@
 import copy
-import numpy as np
 
 from .constants import TRSP_SOLVER_MINQ5
 from .create_trsp_solver import create_trsp_solver
@@ -28,10 +27,11 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=No
         Set to ``None`` to use the default
         :py:func:`ibcdfo.pounders.h_leastsquares` hfun function.
 
-        * **hfun** - Outer function :math:`\hfun` that maps given
-          :math:`\Ffun(\psp)` to scalars for minimization
-        * **combinemodels** - Function that maps the linear and quadratic terms
-          from the models of :math:`\Ffun` into a single quadratic model
+        * **hfun** - Outer function :math:`\hfun` that maps the value
+          :math:`\Ffun(\psp)` computed with **Ffun** to scalars for minimization
+        * **combinemodels** - Matching function that maps the linear and
+          quadratic terms from the models of :math:`\Ffun` into a single
+          quadratic model
 
     :param Prior:   ``dict`` describing past evaluations of **Ffun**.  Set to ``None``
         to run optimization assuming no past evaluations. A nonempty **Prior** must
@@ -48,12 +48,12 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=No
           and **X_0** must be identical and still satisfy the boundary
           constraints.
 
-    :param concurrent: Set to True if **Ffun** is parallelized and you would
+    :param concurrent: Set to ``True`` if **Ffun** is parallelized and you would
         like |pounders| to make use of that potential performance increase.
 
     :return:
         * **X** - :math:`k \times` **n** NumPy array containing all points of
-          evaulation :math:`\psp_i` (including those provided in **Prior**) in
+          evaluation :math:`\psp_i` (including those provided in **Prior**) in
           the order in which they were evaluated, where **nfs** :math:`< k \le`
           **nf_max** + **nfs**.
         * **F** - :math:`k \times` **m** NumPy array of values :math:`\Ffun(\psp_i)`
@@ -74,13 +74,38 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=No
     else:
         Options = copy.deepcopy(hfun)
     if set(Options) != {"hfun", "combinemodels"}:
-        raise ValueError("Invalid hfun configuration")
+        raise ValueError("Error: Invalid hfun configuration")
     Options["spsolver"] = create_trsp_solver(TRSP_SOLVER_MINQ5)
 
-    if Prior is None:
-        Prior = {"nfs": 0, "X_init": np.full((0, n), np.nan, float), "F_init": np.full((0, m), np.nan, float), "xk_in": 0}
-
     # ----- OPTIMIZE!
+    # Let POUNDERS error check the majority of the arguments.
     if concurrent:
-        return pounders_concurrent(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options, Prior=Prior)
-    return pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Options=Options, Prior=Prior)
+        return pounders_concurrent(
+            Ffun=Ffun,
+            X_0=X_0,
+            n=n,
+            nf_max=nf_max,
+            g_tol=g_tol,
+            delta_0=delta_0,
+            m=m,
+            Low=Low,
+            Upp=Upp,
+            Options=Options,
+            Prior=Prior,
+            Model=None,
+        )
+
+    return pounders(
+        Ffun=Ffun,
+        X_0=X_0,
+        n=n,
+        nf_max=nf_max,
+        g_tol=g_tol,
+        delta_0=delta_0,
+        m=m,
+        Low=Low,
+        Upp=Upp,
+        Options=Options,
+        Prior=Prior,
+        Model=None,
+    )
