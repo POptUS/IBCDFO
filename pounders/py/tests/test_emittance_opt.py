@@ -30,10 +30,19 @@ m = 3  # The number of outputs from the beamline simulation. Should be 3 for emi
 g_tol = 1e-8  # Stopping tolerance
 delta_0 = 0.1  # Initial trust-region radius
 
-hfun = {"hfun": ibcdfo.pounders.h_emittance, "combinemodels": ibcdfo.pounders.combine_emittance}
+hfun = {
+    "hfun": ibcdfo.pounders.h_emittance,
+    "combinemodels": ibcdfo.pounders.combine_emittance,
+}
+Prior = {
+    "nfs": 1,
+    "X_init": np.atleast_2d(X_0),
+    "F_init": np.atleast_2d(Ffun(X_0)),
+    "xk_in": 0,
+}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=hfun)
+[Xout, Fout, hFout, flag, xk_inout] = run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=hfun, Prior=Prior)
 
 assert flag >= 0, "pounders crashed"
 
