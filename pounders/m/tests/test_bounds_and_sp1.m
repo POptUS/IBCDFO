@@ -33,8 +33,6 @@ for row = [7, 8]
 
     xs = dfoxs(n, nprob, factor^factor_power);
 
-    SolverNumber = 0;
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % POUNDERs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
