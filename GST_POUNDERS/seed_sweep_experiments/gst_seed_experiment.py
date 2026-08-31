@@ -14,6 +14,7 @@ import contextlib
 import importlib
 import importlib.util
 import io
+import itertools
 import json
 import math
 import sys
@@ -278,36 +279,68 @@ def _make_parameterized_model(model, parameterization: str | None, ideal_model=N
 _PAULI_AXES = ("X", "Y", "Z")
 
 
-def _stochastic_block(s: dict, c: dict, a: dict, scale: float = 1.0) -> np.ndarray:
-    """The 1-qubit stochastic block: 3x3 Hermitian over (X,Y,Z), diag S, off-diag C - iA.
+def _pauli_axes(num_qubits: int) -> tuple:
+    """Non-identity Pauli labels for an n-qubit error generator, in pyGSTi's basis order.
+
+    n=1 gives ("X","Y","Z"); n=2 gives the 15 labels IX..ZZ, matching
+    ``Basis.cast('pp', 4**n)`` with the identity dropped.  The width is a property of the
+    GATE, not of the device: a single-qubit gate on a two-qubit chip still carries a
+    1-qubit error generator, and only a genuinely two-qubit gate needs the wide basis.
+    """
+    if num_qubits == 1:
+        return _PAULI_AXES
+    labels = ["".join(t) for t in itertools.product("IXYZ", repeat=num_qubits)]
+    return tuple(l for l in labels if set(l) != {"I"})
+
+
+def _embed_axis(pauli: str, qubit: int, num_qubits: int) -> str:
+    """``pauli`` acting on ``qubit``, identity elsewhere -- e.g. ("X", 1, 2) -> "IX"."""
+    if num_qubits == 1:
+        return pauli
+    return "".join(pauli if i == qubit else "I" for i in range(num_qubits))
+
+
+def _stochastic_block(s: dict, c: dict, a: dict, axes=_PAULI_AXES,
+                      scale: float = 1.0) -> np.ndarray:
+    """The stochastic block over ``axes``: Hermitian, diag S, off-diag C - iA.
 
     Complete positivity of the resulting channel is exactly positive-semidefiniteness of
     this matrix, so it is the cheapest CP test available.  `scale` multiplies the C terms
-    only (A carries the physical T1 rate and is CP-safe on its own).
+    only (A carries the physical T1 rate and is CP-safe on its own).  The block is 3x3 for
+    a 1-qubit gate and 15x15 for a 2-qubit one.
     """
-    block = np.zeros((3, 3), dtype=complex)
-    for i, p in enumerate(_PAULI_AXES):
+    n = len(axes)
+    block = np.zeros((n, n), dtype=complex)
+    for i, p in enumerate(axes):
         block[i, i] = s[p]
-    for i, p in enumerate(_PAULI_AXES):
-        for j, q in enumerate(_PAULI_AXES[i + 1:], start=i + 1):
+    for i, p in enumerate(axes):
+        for j, q in enumerate(axes[i + 1:], start=i + 1):
             value = scale * c.get((p, q), 0.0) - 1j * a.get((p, q), 0.0)
             block[i, j] = value
             block[j, i] = np.conj(value)
     return block
 
 
-def _cp_safe_c_scale(s: dict, c: dict, a: dict, tol: float = 1e-12) -> float:
+def _cp_safe_c_scale(s: dict, c: dict, a: dict, axes=_PAULI_AXES,
+                     tol: float = 0.0) -> float:
     """Largest factor in [0, 1] on the C terms keeping the stochastic block PSD (i.e. CP).
 
     Drawing C as rho * sqrt(S_P * S_Q) respects the pairwise bound C^2 + A^2 <= S_P * S_Q,
-    but the full 3x3 can still fail for correlated signs, so shrink until it holds.
+    but the full block can still fail for correlated signs, so shrink until it holds.
+
+    ``tol`` is 0, not a small negative number, because the bisection converges ONTO the
+    acceptance boundary: with tol=1e-12 it returned a scale whose smallest eigenvalue was
+    -1e-12, and pyGSTi's LindbladCoefficientBlock then refused the block outright
+    ("Lindblad coefficients are not CPTP ... largest neg = -9.99998e-13").  Only the
+    2-qubit path ever reached the bisection -- every 1-qubit gate is PSD at scale 1.0 and
+    returns from the early exit -- so this does not perturb the 1-qubit truth model.
     """
-    if float(np.linalg.eigvalsh(_stochastic_block(s, c, a, 1.0)).min()) >= -tol:
+    if float(np.linalg.eigvalsh(_stochastic_block(s, c, a, axes, 1.0)).min()) >= -tol:
         return 1.0
     lo, hi = 0.0, 1.0
     for _ in range(50):
         mid = 0.5 * (lo + hi)
-        if float(np.linalg.eigvalsh(_stochastic_block(s, c, a, mid)).min()) >= -tol:
+        if float(np.linalg.eigvalsh(_stochastic_block(s, c, a, axes, mid)).min()) >= -tol:
             lo = mid
         else:
             hi = mid
@@ -439,45 +472,70 @@ class GSTProblem:
             # Driven gates only (the idle does not accept Lindblad coeffs via this API).
             gate_names = [n for n in self.processor_spec.gate_names if "idle" not in n.lower()]
             coeffs = {}
+            # Error generators are expressed in the DEVICE basis, not a gate-local one:
+            # verified against pyGSTi 0.9.14.3, a 1-qubit gate on a 2-qubit spec still
+            # requires the 15 two-qubit Pauli labels and raises KeyError: 'X' if handed
+            # ("X","Y","Z").  So the axis set is fixed by the processor, not by the gate.
+            # A consequence worth knowing: 1-qubit gates then carry correlated two-qubit
+            # error terms, i.e. this is a crosstalk-capable noise model rather than a
+            # strictly local one.  For a 1-qubit pack this reduces to ("X","Y","Z").
+            n_qubits = len(self.processor_spec.qubit_labels)
+            axes = _pauli_axes(n_qubits)
             for name in gate_names:
-                terms = {}
-                for pauli in ("X", "Y", "Z"):
-                    terms[("H", pauli)] = float(rng.uniform(-config.lindblad_h_max, config.lindblad_h_max))
-                    terms[("S", pauli)] = float(rng.uniform(0.0, config.lindblad_s_max))
-                # T1 amplitude damping toward |0> (Bloch offset along +Z).  Damping at
-                # rate `a` is not a lone A term: it is S_X = S_Y = a/4 (the transverse
-                # decay that accompanies relaxation) plus A_(X,Y) = -a/4 (the non-unital
-                # slide; the minus sign puts the ground state at +Z).  Adding to the
-                # existing S draws rather than overwriting keeps CP headroom, since the
-                # pair condition is |A_(P,Q)| <= sqrt(S_P * S_Q).
-                # NB: pyGSTi A labels take TWO basis elements and only ascending pairs
-                # register -- a single-index ("A", "Y") is silently discarded (no error).
-                a = float(rng.uniform(0.0, config.lindblad_a_max))
-                terms[("S", "X")] += a / 4.0
-                terms[("S", "Y")] += a / 4.0
-                terms[("A", "X", "Y")] = -a / 4.0
+                # Iterating availability rather than assuming qubit 0 is what makes
+                # multi-qubit packs work -- in smq2Q_XYICNOT, Gxpi2 exists on both (0,) and
+                # (1,), and Gcnot on (0,1).  For a 1-qubit pack availability is [(0,)], so
+                # the draw sequence below is identical to the pre-2Q version.
+                for placement in (self.processor_spec.availability.get(name) or [(0,)]):
+                    qubits = (0,) if placement is None else tuple(placement)
+                    terms = {}
+                    for pauli in axes:
+                        terms[("H", pauli)] = float(rng.uniform(-config.lindblad_h_max, config.lindblad_h_max))
+                        terms[("S", pauli)] = float(rng.uniform(0.0, config.lindblad_s_max))
+                    # T1 amplitude damping toward |0> (Bloch offset along +Z).  Damping at
+                    # rate `a` is not a lone A term: it is S_X = S_Y = a/4 (the transverse
+                    # decay that accompanies relaxation) plus A_(X,Y) = -a/4 (the non-unital
+                    # slide; the minus sign puts the ground state at +Z).  Adding to the
+                    # existing S draws rather than overwriting keeps CP headroom, since the
+                    # pair condition is |A_(P,Q)| <= sqrt(S_P * S_Q).
+                    # NB: pyGSTi A labels take TWO basis elements and only ascending pairs
+                    # register -- a single-index ("A", "Y") is silently discarded (no error).
+                    # T1 is a single-qubit process, so on a 2-qubit device the damping is
+                    # applied per qubit -- on the (IX,IY) and (XI,YI) pairs -- rather than
+                    # as one joint term.  Every qubit relaxes during a gate, including one
+                    # the gate does not target.
+                    a = float(rng.uniform(0.0, config.lindblad_a_max))
+                    a_off = {}
+                    for target in range(n_qubits):
+                        px = _embed_axis("X", target, n_qubits)
+                        py = _embed_axis("Y", target, n_qubits)
+                        terms[("S", px)] += a / 4.0
+                        terms[("S", py)] += a / 4.0
+                        terms[("A", px, py)] = -a / 4.0
+                        a_off[(px, py)] = -a / 4.0
 
-                # Correlated stochastic (C) errors: the off-diagonal of the stochastic
-                # block -- Pauli error channels that fluctuate together rather than
-                # independently.  Physically this is what a tilted noise axis (e.g. drive
-                # phase miscalibration) looks like in the X/Y/Z frame, and it enters at
-                # FIRST order in the tilt while the spurious S term is only second order.
-                # Drawn as a correlation coefficient rho = C_PQ / sqrt(S_P * S_Q) so it
-                # scales to whatever CP headroom each gate has: an absolute range would
-                # violate CP for ~50% of gates, since the pair bound is
-                # C^2 + A^2 <= S_P * S_Q and the S draws reach 0.
-                if config.lindblad_rho_max > 0.0:
-                    s_diag = {p: terms[("S", p)] for p in _PAULI_AXES}
-                    a_off = {("X", "Y"): -a / 4.0}
-                    c_off = {}
-                    for p, q in (("X", "Y"), ("X", "Z"), ("Y", "Z")):
-                        rho = float(rng.uniform(-config.lindblad_rho_max, config.lindblad_rho_max))
-                        c_off[(p, q)] = rho * math.sqrt(s_diag[p] * s_diag[q])
-                    scale = _cp_safe_c_scale(s_diag, c_off, a_off)
-                    for (p, q), value in c_off.items():
-                        terms[("C", p, q)] = scale * value
+                    # Correlated stochastic (C) errors: the off-diagonal of the stochastic
+                    # block -- Pauli error channels that fluctuate together rather than
+                    # independently.  Physically this is what a tilted noise axis (e.g. drive
+                    # phase miscalibration) looks like in the X/Y/Z frame, and it enters at
+                    # FIRST order in the tilt while the spurious S term is only second order.
+                    # Drawn as a correlation coefficient rho = C_PQ / sqrt(S_P * S_Q) so it
+                    # scales to whatever CP headroom each gate has: an absolute range would
+                    # violate CP for ~50% of gates, since the pair bound is
+                    # C^2 + A^2 <= S_P * S_Q and the S draws reach 0.
+                    # combinations() over `axes` reproduces (X,Y),(X,Z),(Y,Z) exactly in the
+                    # 1-qubit case, and covers all 105 ascending pairs for a 2-qubit gate.
+                    if config.lindblad_rho_max > 0.0:
+                        s_diag = {p: terms[("S", p)] for p in axes}
+                        c_off = {}
+                        for p, q in itertools.combinations(axes, 2):
+                            rho = float(rng.uniform(-config.lindblad_rho_max, config.lindblad_rho_max))
+                            c_off[(p, q)] = rho * math.sqrt(s_diag[p] * s_diag[q])
+                        scale = _cp_safe_c_scale(s_diag, c_off, a_off, axes)
+                        for (p, q), value in c_off.items():
+                            terms[("C", p, q)] = scale * value
 
-                coeffs[_bo.Label(name, 0)] = terms
+                    coeffs[_bo.Label(name, qubits)] = terms
             model = _mc.create_explicit_model(self.processor_spec, lindblad_error_coeffs=coeffs)
             model.set_all_parameterizations("full")   # make SPAM mutable
             if config.spam_noise:

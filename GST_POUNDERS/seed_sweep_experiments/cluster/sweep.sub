@@ -40,6 +40,14 @@ requirements            = (OpSysMajorVer >= 8)
 max_retries             = 2
 +WantFlocking           = true
 
+# Allow the job past the default 72-hour wall clock. 1-qubit runs finish in minutes, but a
+# 2-qubit job is estimated at ~22 h at max_lengths 1..8 and ~47 h at 1..64 -- and that
+# estimate extrapolates a Jacobian timing from a small sample, so it can be well off on
+# slower execute nodes. There is no checkpointing in run_one.py: a job killed at the wall
+# clock restarts from zero, so the cost of setting this unnecessarily is nil next to the
+# cost of not setting it.
++LongJob                = true
+
 # Override to resubmit only the failures:
 #     condor_submit sweep.sub -a "JOBLIST=joblist_retry.txt"
 JOBLIST = joblist.txt

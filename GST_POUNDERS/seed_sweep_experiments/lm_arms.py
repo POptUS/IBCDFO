@@ -25,6 +25,7 @@ import pandas as pd
 INF = "mean_gate_entanglement_infidelity_to_truth"
 DD = "mean_gate_diamond_distance_to_truth"
 SPAM = "mean_spam_vector_l2_error_to_truth"
+SPAM_TD = "mean_spam_tracedist_to_truth"
 
 
 # --------------------------------------------------------------------------- scoring
@@ -77,6 +78,11 @@ def _write_arm(prob, cfg, seed, out_dir, method, fit, estimate, shots, n_reveale
            INF: float(summ[INF]),
            DD: float(summ.get(DD, float("nan"))),
            SPAM: float(summ.get(SPAM, float("nan"))),
+           # aligned_error_metrics computes this alongside the L2; copy it through rather
+           # than dropping it, so the LM arms carry the same operational SPAM metric as the
+           # POUNDERS arms. Without it the notebooks can only plot SPAM for the POUNDERS
+           # arms and the comparison has no baseline.
+           SPAM_TD: float(summ.get(SPAM_TD, float("nan"))),
            "accounted_revealed_shots": int(shots.sum()),
            "physical_precomputed_shots": int(shots.sum()),
            "max_shots_per_circuit": int(shots.max()),
