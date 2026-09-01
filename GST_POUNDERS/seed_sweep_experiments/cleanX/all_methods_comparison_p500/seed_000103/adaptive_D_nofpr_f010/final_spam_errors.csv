@@ -1,0 +1,9 @@
+reference,member_type,member,vector_l2_error,tracedist
+truth,prep,rho0,0.0025665298171555135,0.0018148106072107956
+truth,povm,Mdefault,,0.0013567540353214107
+truth,povm_effect,Mdefault:0,0.0019205871704902936,
+truth,povm_effect,Mdefault:1,0.0019206003785777498,
+ideal,prep,rho0,0.0066362026447638256,0.004692494719493423
+ideal,povm,Mdefault,,0.006372690969751855
+ideal,povm_effect,Mdefault:0,0.009010388190639283,
+ideal,povm_effect,Mdefault:1,0.009014739871337957,
