@@ -81,6 +81,16 @@ class ExperimentConfig:
     lindblad_a_max: float = 0.004      # lindblad_hard: T1 damping rate range [0, max] (decay toward |0>)
     lindblad_rho_max: float = 0.3      # lindblad_hard: correlated-stochastic (C) range as a
                                        #   correlation coeff rho = C_PQ / sqrt(S_P*S_Q); 0 disables
+    # HETEROGENEOUS noise: gate names listed here have their H/S/A draws multiplied by
+    # lindblad_clean_factor, making them much cleaner than the rest of the gate set.  This is
+    # the "clean X, noisy Z" device -- the case where uniform allocation is expected to waste
+    # shots on a gate that is already well known.  Scaling the DRAWN value rather than the
+    # range keeps the RNG stream identical, so an empty list reproduces the previous truth
+    # model exactly.  Prefer a small factor over zero: an exactly noiseless gate is unitary,
+    # which puts the truth on the CPTP boundary where the Fisher information goes singular in
+    # that gate's stochastic directions.
+    lindblad_clean_gates: tuple = ()
+    lindblad_clean_factor: float = 0.01
     sample_error: str = "multinomial"
 
     objective: str = "weighted_least_squares"
@@ -486,12 +496,16 @@ class GSTProblem:
                 # multi-qubit packs work -- in smq2Q_XYICNOT, Gxpi2 exists on both (0,) and
                 # (1,), and Gcnot on (0,1).  For a 1-qubit pack availability is [(0,)], so
                 # the draw sequence below is identical to the pre-2Q version.
+                # Scale the DRAWN value, never the range: the RNG stream stays identical, so
+                # an empty lindblad_clean_gates reproduces the previous truth model exactly.
+                gate_scale = (float(config.lindblad_clean_factor)
+                              if name in tuple(config.lindblad_clean_gates) else 1.0)
                 for placement in (self.processor_spec.availability.get(name) or [(0,)]):
                     qubits = (0,) if placement is None else tuple(placement)
                     terms = {}
                     for pauli in axes:
-                        terms[("H", pauli)] = float(rng.uniform(-config.lindblad_h_max, config.lindblad_h_max))
-                        terms[("S", pauli)] = float(rng.uniform(0.0, config.lindblad_s_max))
+                        terms[("H", pauli)] = gate_scale * float(rng.uniform(-config.lindblad_h_max, config.lindblad_h_max))
+                        terms[("S", pauli)] = gate_scale * float(rng.uniform(0.0, config.lindblad_s_max))
                     # T1 amplitude damping toward |0> (Bloch offset along +Z).  Damping at
                     # rate `a` is not a lone A term: it is S_X = S_Y = a/4 (the transverse
                     # decay that accompanies relaxation) plus A_(X,Y) = -a/4 (the non-unital
@@ -504,7 +518,7 @@ class GSTProblem:
                     # applied per qubit -- on the (IX,IY) and (XI,YI) pairs -- rather than
                     # as one joint term.  Every qubit relaxes during a gate, including one
                     # the gate does not target.
-                    a = float(rng.uniform(0.0, config.lindblad_a_max))
+                    a = gate_scale * float(rng.uniform(0.0, config.lindblad_a_max))
                     a_off = {}
                     for target in range(n_qubits):
                         px = _embed_axis("X", target, n_qubits)
