@@ -9,7 +9,6 @@ from .defaults import (
     compute_default_options,
 )
 from .._variable_checks import is_integer
-from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
 from .checkinputss import checkinputss
 from .formquad import formquad
@@ -55,7 +54,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # ----- ALLOW "1D" NUMPY ARRAY FLEXIBILITY
     # For arguments that are specified as X-element NumPy arrays, we can be
-    # flexible and accept any iterables that can be converted to genuinely 1D
+    # flexible and accept any iterables that can be converted to 1D
     # arrays of the correct length.  We eagerly convert here into the final
     # specification required by the algorithm's implementation.
     # TODO: Uncomment this once we add in tests to confirm this.  Ensure that we
@@ -120,7 +119,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         defaults[key] = value
 
     printf = defaults["printf"]
-    spsolver = defaults["spsolver"]
+    solve_trsp = defaults["spsolver"]
     delta_max = defaults["delta_max"]
     delta_min = defaults["delta_min"]
     delta_inact = defaults["delta_inact"]
@@ -130,7 +129,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     hfun = defaults["hfun"]
     combinemodels = defaults["combinemodels"]
 
-    solve_trsp = create_trsp_solver(spsolver)
+    if not callable(solve_trsp):
+        raise TypeError("Error: spsolver is not a function")
 
     # ----- OPTIMIZE!
     eps = np.finfo(float).eps  # Define machine epsilon

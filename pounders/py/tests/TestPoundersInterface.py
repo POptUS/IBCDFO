@@ -655,3 +655,7 @@ class TestPoundersInterface(unittest.TestCase):
             Upp_to_fail[i] = -np.inf
             self.__test({"Low": Low_good}, self.__SUCCESS_MSG)
             self.__test({"Low": Low_good, "Upp": Upp_to_fail}, ValueError)
+
+    def testSpsolver(self):
+        for bad in self.__NOT_FUNCTION:
+            self.__test({"spsolver": bad}, TypeError)

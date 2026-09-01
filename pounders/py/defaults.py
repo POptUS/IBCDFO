@@ -8,6 +8,7 @@ import numpy as np
 
 from .constants import TRSP_SOLVER_MINQ5
 from .general_h_funs import h_leastsquares, combine_leastsquares
+from .create_trsp_solver import create_trsp_solver
 
 # ----- SETS OF DICT CONFIG KEYS
 # * EXPECTED_* implies that users have to provide this and only this set of keys
@@ -86,7 +87,7 @@ def compute_default_options(delta_0, g_tol, Low, Upp):
     """
     defaults = {
         "printf": 0,
-        "spsolver": TRSP_SOLVER_MINQ5,
+        "spsolver": create_trsp_solver(TRSP_SOLVER_MINQ5),
         "delta_max": np.minimum(0.5 * np.min(Upp - Low), 1.0e3 * delta_0),
         "delta_min": np.minimum(delta_0 * 1.0e-13, 0.1 * g_tol),
         "delta_inact": 0.75,

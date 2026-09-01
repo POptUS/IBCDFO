@@ -39,11 +39,9 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %           * 1 - Debugging level of output to screen
 %           * 2 - More verbose screen output
 %
-%       * **spsolver** - Trust-region subproblem solver flag
-%
-%           * 2 - Arnold Neumaier's minq5 solver (default and recommended)
-%           * 3 - Arnold Neumaier's minq8 solver
-%
+%       * **spsolver** - Trust-region subproblem solver that is typically
+%         created using ``create_trsp_solver``.  If not specified, the
+%         MINQ5 solver (recommended) is used.
 %       * **hfun** - Outer function :math:`\hfun` that maps given
 %         :math:`\Ffun(\psp)` to scalars for minimization (default is
 %         sum-of-squares that yields :math:`f`.)
@@ -120,7 +118,7 @@ if ~isfield(Options, 'delta_inact')
     Options.delta_inact = 0.75;
 end
 if ~isfield(Options, 'spsolver')
-    Options.spsolver = 2; % Use minq5 by default
+    Options.spsolver = create_trsp_solver(2); % Use minq5 by default
 end
 
 if isfield(Options, 'hfun')
@@ -153,7 +151,7 @@ end
 nfs = Prior.nfs;
 
 delta = delta_0;
-solve_trsp = create_trsp_solver(Options.spsolver);
+solve_trsp = Options.spsolver;
 delta_max = Options.delta_max;
 delta_min = Options.delta_min;
 gamma_dec = Options.gamma_dec;
@@ -161,6 +159,18 @@ gamma_inc = Options.gamma_inc;
 eta_1 = Options.eta_1;
 printf = Options.printf;
 delta_inact = Options.delta_inact;
+if ~isa(solve_trsp, 'function_handle')
+    % TODO: Should this be moved into checkinputss?  Is that compatible with
+    % MSP?  Should we call it to confirm that it implements the necessary
+    % interface?
+    disp("Error: spsolver must be a function handle to a TRSP solver");
+    X = [];
+    F = [];
+    hF = [];
+    flag = -1;
+    xk_in = Prior.xk_in;
+    return
+end
 
 % 0. Check inputs
 [flag, X_0, np_max, F_0, Low, Upp, xk_in] = ...

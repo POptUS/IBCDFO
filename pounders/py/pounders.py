@@ -9,7 +9,6 @@ from .defaults import (
     compute_default_options,
 )
 from .._variable_checks import is_integer
-from .create_trsp_solver import create_trsp_solver
 from .bmpts import bmpts
 from .checkinputss import checkinputss
 from .formquad import formquad
@@ -55,9 +54,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             * 1 - Debugging level of output to screen
             * 2 - More verbose screen output
 
-        * **spsolver** - Trust-region subproblem solver flag
-
-            * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver (default)
+        * **spsolver** - Trust-region subproblem solver that is typically
+          created using :py:func:`ibcdfo.pounders.create_trsp_solver`.  If not
+          specified, the MINQ5 solver (recommended) is used.
 
         * **delta_max** - Maximum allowed trust-region radius (default is
           :math:`\min(\min(\mathrm{Upp}-\mathrm{Low})/2, 10^3\cdot\mathrm{delta\_0})`)
@@ -180,7 +179,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         defaults[key] = value
 
     printf = defaults["printf"]
-    spsolver = defaults["spsolver"]
+    solve_trsp = defaults["spsolver"]
     delta_max = defaults["delta_max"]
     delta_min = defaults["delta_min"]
     delta_inact = defaults["delta_inact"]
@@ -190,7 +189,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     hfun = defaults["hfun"]
     combinemodels = defaults["combinemodels"]
 
-    solve_trsp = create_trsp_solver(spsolver)
+    if not callable(solve_trsp):
+        raise TypeError("Error: spsolver is not a function")
 
     # ----- OPTIMIZE!
     eps = np.finfo(float).eps  # Define machine epsilon
