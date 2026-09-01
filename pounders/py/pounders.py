@@ -56,7 +56,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **spsolver** - Trust-region subproblem solver that is typically
           created using :py:func:`ibcdfo.pounders.create_trsp_solver`.  If not
-          specified, then the MINQ5 solver (recommended) is used.
+          specified, the MINQ5 solver (recommended) is used.
 
         * **delta_max** - Maximum allowed trust-region radius (default is
           :math:`\min(\min(\mathrm{Upp}-\mathrm{Low})/2, 10^3\cdot\mathrm{delta\_0})`)

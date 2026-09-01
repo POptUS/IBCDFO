@@ -40,7 +40,7 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %           * 2 - More verbose screen output
 %
 %       * **spsolver** - Trust-region subproblem solver that is typically
-%         created using ``create_trsp_solver``.  If not specified, then the
+%         created using ``create_trsp_solver``.  If not specified, the
 %         MINQ5 solver (recommended) is used.
 %       * **hfun** - Outer function :math:`\hfun` that maps given
 %         :math:`\Ffun(\psp)` to scalars for minimization (default is

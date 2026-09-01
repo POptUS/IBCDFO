@@ -4,13 +4,12 @@ Advanced |pounders| Interface
 Trust-region subproblem solver
 ------------------------------
 For both Python and |matlab|, Arnold Neumaier’s minq5 solver is used by default
-in |pounders| to solve trust-region subproblems.  This has been the default
-solver for a very long time.
+in |pounders| to solve trust-region subproblems.
 
-While ``ibcdfo.pounders.pounders.pounders`` does allow users to provide their
-own subproblem solver, users can also provide one of potentially many solvers
-officially provided by |ibcdfo| with the ``create_trsp_solver`` function
-documented below.  Users that wish to provide their own external solver should
+While ``ibcdfo.pounders.pounders.pounders`` allows users to provide their
+own subproblem solver, |ibcdfo| also officially provides several solvers via the
+``create_trsp_solver`` function
+documented below.  Users who wish to provide their own solver should
 refer to the same documentation to understand |pounders|'s interface
 requirements.
 
@@ -24,9 +23,9 @@ Python
 
 High-level interface
 --------------------
-The following is a prototype of a potential high-level user interface for
-|pounders|.  Since it's interface is minimal and contains only those arguments
-that must be or are likely to be supplied by typical users, it could replace
+The following is a prototype for a high-level user interface for
+|pounders|. Since its interface is minimal and contains only the arguments
+most users must or would likely supply, it could replace
 ``ibcdfo.run_pounders``.  In that case, the low-level interface
 ``ibcdfo.pounders.pounders.pounders`` would be left in the public interface for
 power users.

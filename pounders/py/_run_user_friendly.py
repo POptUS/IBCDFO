@@ -25,7 +25,7 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
     :param Upp:     **n**-element 1D NumPy array of upper bounds
     :param ObjOpts: ``dict`` that defines objective function :math:`f` to use.
         Set to ``None`` to use the default
-        :py:func:`ibcdfo.pounders.h_leastsquares` hfun function.
+        :py:func:`ibcdfo.pounders.h_leastsquares` function as ``hfun``.
 
         * **hfun** - Outer function :math:`\hfun` that maps the value
           :math:`\Ffun(\psp)` computed with **Ffun** to scalars for minimization
