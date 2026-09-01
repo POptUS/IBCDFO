@@ -7,7 +7,7 @@ from .pounders import pounders
 from .pounders_concurrent import pounders as pounders_concurrent
 
 
-def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=None, Prior=None, concurrent=False):
+def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts=None, Prior=None, concurrent=False):
     r"""
     Run |pounders| on the optimization problem specified by the given arguments.
 
@@ -23,7 +23,7 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=No
     :param m:       Dimension of output of **Ffun** (number of component functions)
     :param Low:     **n**-element 1D NumPy array of lower bounds
     :param Upp:     **n**-element 1D NumPy array of upper bounds
-    :param hfun: ``dict`` that defines objective function :math:`f` to use.
+    :param ObjOpts: ``dict`` that defines objective function :math:`f` to use.
         Set to ``None`` to use the default
         :py:func:`ibcdfo.pounders.h_leastsquares` hfun function.
 
@@ -48,8 +48,13 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=No
           and **X_0** must be identical and still satisfy the boundary
           constraints.
 
-    :param concurrent: Set to ``True`` if **Ffun** is parallelized and you would
-        like |pounders| to make use of that potential performance increase.
+    :param concurrent: Set to ``True`` if **Ffun** accepts a batch of points as
+        a ``(batch_size, n)`` NumPy array and returns their values as a
+        ``(batch_size, m)`` NumPy array, so that |pounders| can request and
+        evaluate all model-building points for a given iteration together
+        (see :py:func:`ibcdfo.run_pounders_concurrent` for the exact calling
+        convention). Leave as ``False`` if **Ffun** evaluates one point at a
+        time.
 
     :return:
         * **X** - :math:`k \times` **n** NumPy array containing all points of
@@ -69,10 +74,10 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, hfun=No
     # ----- CHOOSE DEFAULT VALUES ON-BEHALF OF USERS
     # All non-power users should use the MINQ5 TRSP, which implies that all
     # other choices of TRSP solver require the use of the low-level interface.
-    if hfun is None:
+    if ObjOpts is None:
         Options = {"hfun": h_leastsquares, "combinemodels": combine_leastsquares}
     else:
-        Options = copy.deepcopy(hfun)
+        Options = copy.deepcopy(ObjOpts)
     if set(Options) != {"hfun", "combinemodels"}:
         raise ValueError("Error: Invalid hfun configuration")
     Options["spsolver"] = create_trsp_solver(TRSP_SOLVER_MINQ5)
