@@ -994,6 +994,15 @@ def pouders(
                 # Update model to reflect new center
                 xkin = nf  # Change current center
                 J[previous_xkin] = None
+                # Info[i] carries the oracle's full model cache, including
+                # probability_jacobian -- the SAME size as J[i].  Only Info[xkin] and
+                # Info[nf] are ever read (line 763 aside, which runs once at nf=0), so an
+                # entry whose point is no longer the center or the trial is dead weight.
+                # Leaving it alive made memory grow by one Jacobian per evaluation: at
+                # 1 qubit that is 2.2 MB and nobody noticed, but a 2-qubit Jacobian is
+                # 55832 x 1920 = 858 MB, which walked past a 16 GB request in ~19
+                # evaluations and a 64 GB one in ~75.
+                Info[previous_xkin] = None
                 center_raw_F = trial_raw_F
                 center_raw_J = trial_raw_J
                 center_raw_Info = trial_raw_Info
@@ -1004,6 +1013,7 @@ def pouders(
                 center_fpr_x = np.empty(0, dtype=float)
             else:
                 J[nf] = None
+                Info[nf] = None          # rejected trial: same reasoning as above
                 trial_raw_F = None
                 trial_raw_J = None
                 trial_raw_Info = None
