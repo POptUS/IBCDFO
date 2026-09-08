@@ -10,7 +10,7 @@ While ``ibcdfo.pounders.pounders.pounders`` allows users to provide their
 own subproblem solver, |ibcdfo| also officially provides several solvers via the
 ``create_trsp_solver`` function
 documented below.  Users who wish to provide their own solver should
-refer to the same documentation to understand |pounders|'s interface
+refer to the same documentation to understand |pounders|' interface
 requirements.
 
 Python
