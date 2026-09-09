@@ -1,6 +1,8 @@
 import ibcdfo
 import numpy as np
 
+from ibcdfo.pounders._run_user_friendly import run_user_friendly
+
 
 def call_beamline_simulation(x):
     # In here, put your call to your simulation that takes in the
@@ -22,29 +24,25 @@ nf_max = int(100)  # Max number of evaluations to be used by optimizer
 Low = -1 * np.ones(n)  # 1-by-n Vector of lower bounds
 Upp = np.ones(n)  # 1-by-n Vector of upper bounds
 Ffun = call_beamline_simulation  # Simulation function, accepting single points to evaluate
-printf = True
 
 # Not as important to adjust:
-hfun = ibcdfo.pounders.h_emittance
-combinemodels = ibcdfo.pounders.combine_emittance
 m = 3  # The number of outputs from the beamline simulation. Should be 3 for emittance minimization
 g_tol = 1e-8  # Stopping tolerance
 delta_0 = 0.1  # Initial trust-region radius
-F_0 = Ffun(X_0)
-nfs = 1  # Number of initial evaluations
-xk_in = 0  # Index in F_0 for starting the optimization (usually the point with minimal emittance)
-X_init = np.atleast_2d(X_0)
-F_init = np.atleast_2d(F_0)
 
-Options = {}
-Options["printf"] = printf
-Options["hfun"] = hfun
-Options["combinemodels"] = combinemodels
-
-Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xk_in}
+ObjOpts = {
+    "hfun": ibcdfo.pounders.h_emittance,
+    "combinemodels": ibcdfo.pounders.combine_emittance,
+}
+Prior = {
+    "nfs": 1,
+    "X_init": np.atleast_2d(X_0),
+    "F_init": np.atleast_2d(Ffun(X_0)),
+    "xk_in": 0,
+}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xk_inout] = run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts=ObjOpts, Prior=Prior)
 
 assert flag >= 0, "pounders crashed"
 

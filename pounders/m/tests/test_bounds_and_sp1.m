@@ -33,8 +33,6 @@ for row = [7, 8]
 
     xs = dfoxs(n, nprob, factor^factor_power);
 
-    SolverNumber = 0;
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % POUNDERs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,7 +76,7 @@ for row = [7, 8]
 
             Options.hfun = hfun;
             Options.combinemodels = combinemodels;
-            Options.spsolver = spsolver;
+            Options.spsolver = create_trsp_solver(spsolver);
             Options.printf = printf;
 
             [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options);

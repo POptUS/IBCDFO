@@ -26,7 +26,7 @@ class TestPounders(unittest.TestCase):
 
             return fvec
 
-        spsolver = 1
+        simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
         nf_max = 1000
         g_tol = 1e-13
         n = 3
@@ -40,7 +40,7 @@ class TestPounders(unittest.TestCase):
 
         np.random.seed(1)
 
-        Opts = {"spsolver": spsolver, "printf": printf}
+        Opts = {"spsolver": simple_solver, "printf": printf}
         [X, F, hF, flag, xk_best] = both_pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -3, f"No NaN was encountered in this test, but should have been. (flag={flag})")
 
@@ -100,6 +100,8 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
+        simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
+
         hfun = ibcdfo.pounders.h_identity
         combinemodels = ibcdfo.pounders.combine_identity
 
@@ -119,21 +121,23 @@ class TestPounders(unittest.TestCase):
         Low = -0.1 * np.arange(n)
         Upp = np.inf * np.ones(n)
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xind}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
         Ffun = lambda x: np.sum(x**2)
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels}
+        Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -2, f"This test should terminate because mdec == 0.  (flag={flag})")
 
-        Opts = {"spsolver": 1, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
+        Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
+        simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
+
         # Sample calling syntax for pounders
         Ffun = lambda x: x
         n = 16
@@ -147,7 +151,7 @@ class TestPounders(unittest.TestCase):
         Upp = np.ones(n)
 
         Opts = {
-            "spsolver": ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE,
+            "spsolver": simple_solver,
             "hfun": ibcdfo.pounders.h_neg_leastsquares,
             "combinemodels": ibcdfo.pounders.combine_neg_leastsquares,
             "printf": 2,

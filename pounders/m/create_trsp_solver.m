@@ -17,23 +17,23 @@ function [solver] = create_trsp_solver(spsolver)
     %     * 3 - Arnold Neumaier's minq8 solver
     % :return: handle to MATLAB function with the interface
     %
-    % .. code:: matlab
+    %   .. code:: matlab
     %
-    %     [Xsp, mdec, found_solution] = solve_trsp(H, g, Low, Upp);
+    %       [Xsp, mdec, found_solution] = solve_trsp(H, g, Low, Upp);
     %
-    % where
+    %   where
     %
-    % * ``H`` is an :math:`\np \times \np` matrix that provides the
-    %   (symmetric) Hessian of the objective function,
-    % * ``g`` is an :math:`\np \times 1` vector that provides the
-    %   gradient of the objective function,
-    % * ``Low`` and ``Upp`` are :math:`1 \times \np` vectors that specify
-    %   the bound constraints,
-    % * ``Xsp`` is the :math:`\np \times 1` subproblem solution vector,
-    % * ``mdec`` is the value of the subproblem objective function at
-    %   the solution as a real scalar, and
-    % * ``found_solution`` is True if a solution was found that should be
-    %   acceptable for |pounders|'s purposes; False, otherwise.
+    %   * **H** is an :math:`\np \times \np` matrix that provides the
+    %     (symmetric) Hessian of the objective function,
+    %   * **g** is an :math:`\np \times 1` vector that provides the
+    %     gradient of the objective function,
+    %   * **Low** and **Upp** are :math:`1 \times \np` vectors that specify
+    %     the bound constraints,
+    %   * **Xsp** is the :math:`\np \times 1` subproblem solution vector,
+    %   * **mdec** is the value of the subproblem objective function at
+    %     the solution as a real scalar, and
+    %   * **found_solution** is ``true`` if a solution was found that should be
+    %     acceptable for |pounders|'s purposes; ``false``, otherwise.
 
     arguments
         spsolver {mustBeScalarOrEmpty, mustBeNonempty, mustBeInteger}
