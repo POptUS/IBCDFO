@@ -1,3 +1,5 @@
+import functools
+
 import numpy as np
 
 from .defaults import (
@@ -13,6 +15,15 @@ from .bmpts import bmpts
 from .checkinputss import checkinputss
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
+
+
+def _solve_trsp_with_copies(H, g, Low, Upp, solver):
+    """
+    Since |pounders| accepts user-provided TRSP solvers outside of our control and
+    test infrastructure, we do not assume that TRSP solvers leave our arguments
+    untouched.
+    """
+    return solver(H.copy(), g.copy(), Low.copy(), Upp.copy())
 
 
 def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Options=None, Model=None):
@@ -56,7 +67,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **spsolver** - Trust-region subproblem solver that is typically
           created using :py:func:`ibcdfo.pounders.create_trsp_solver`.  If not
-          specified, the MINQ5 solver (recommended) is used.
+          specified, the MINQ5 solver (recommended) is used.  TRSP solvers must
+          not alter the contents of the arguments passed to them.
 
         * **delta_max** - Maximum allowed trust-region radius (default is
           :math:`\min(\min(\mathrm{Upp}-\mathrm{Low})/2, 10^3\cdot\mathrm{delta\_0})`)
@@ -179,7 +191,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         defaults[key] = value
 
     printf = defaults["printf"]
-    solve_trsp = defaults["spsolver"]
+    spsolver = defaults["spsolver"]
     delta_max = defaults["delta_max"]
     delta_min = defaults["delta_min"]
     delta_inact = defaults["delta_inact"]
@@ -189,8 +201,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     hfun = defaults["hfun"]
     combinemodels = defaults["combinemodels"]
 
-    if not callable(solve_trsp):
+    if not callable(spsolver):
         raise TypeError("Error: spsolver is not a function")
+
+    # All calls to the TRSP solver should use only this function to avoid
+    # unintentional corruption of arguments by the given solver that might break
+    # downstream computations.
+    solve_trsp = functools.partial(_solve_trsp_with_copies, solver=spsolver)
+    del spsolver
 
     # ----- OPTIMIZE!
     eps = np.finfo(float).eps  # Define machine epsilon

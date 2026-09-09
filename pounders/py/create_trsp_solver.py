@@ -8,16 +8,6 @@ from .._get_minq_installation import get_minq_installation
 from .bqmin import bqmin
 
 
-def _defend_against_mutation(solve_trsp):
-    # Some TRSP solver implementations might mutate input arrays in place.
-    # Copy inputs here so that no solve_trsp implementation can corrupt state
-    # that its caller relies on afterward.
-    def __copying_wrapper(H, g, Low, Upp):
-        return solve_trsp(H.copy(), g.copy(), Low.copy(), Upp.copy())
-
-    return __copying_wrapper
-
-
 def create_trsp_solver(spsolver):
     r"""
     Create a Python function that solves the bound-constrained trust-region
@@ -68,7 +58,7 @@ def create_trsp_solver(spsolver):
             Xsp, mdec = bqmin(H, g, Low, Upp)
             return Xsp, mdec, True
 
-        return _defend_against_mutation(__bqmin_wrapper)
+        return __bqmin_wrapper
 
     elif spsolver == TRSP_SOLVER_MINQ5:
         # Implement in such a way that users that would like to use a non-MINQ
@@ -100,6 +90,6 @@ def create_trsp_solver(spsolver):
             # assert minq_err != 99
             return Xsp, mdec, (minq_err >= 0)
 
-        return _defend_against_mutation(__minq5_wrapper)
+        return __minq5_wrapper
 
     raise ValueError(f"Unknown trust-region subproblem solver: {spsolver}")
