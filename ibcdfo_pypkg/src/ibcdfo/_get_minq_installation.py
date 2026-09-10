@@ -77,7 +77,7 @@ def get_minq_installation():
         git_sha = result.stdout.decode().strip()
         assert len(git_sha) == 40
 
-        result = sbp.run(CLONE_STATE_CMD, capture_output=True, check=True)
+        result = sbp.run(CLONE_STATE_CMD, capture_output=True, check=False)
         assert result.stdout.decode() == ""
         assert result.stderr.decode() == ""
         exit_code = result.returncode
