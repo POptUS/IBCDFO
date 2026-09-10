@@ -190,3 +190,62 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
 
         self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
+
+    def test_pounders_using_pyrol_trsp(self):
+        pyrol_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.TRSP_SOLVER_PYROL)
+
+        def Ffun(x: float) -> np.ndarray:
+            """
+            Smooth R -> R^3 function with ||f(x)||_2 minimized at x = 0.7.
+            Returns a 3-vector.
+            """
+            t = x.squeeze() - 0.7
+            return np.array([t, t**2, t**3], dtype=float)
+
+        n = 1
+        X_0 = 0.4 * np.ones(n)
+        nf_max = 200
+        g_tol = 10**-13
+        delta = 0.1
+        m = 3
+        Low = 0.1 * np.ones(n)
+        Upp = np.ones(n)
+
+        Opts = {"spsolver": pyrol_solver}
+        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+
+        self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
+
+    def test_pounders_maximizing_sum_squares_with_pyrol(self):
+        # Same problem as test_pounders_maximizing_sum_squares, but using
+        # PyROL as the TRSP solver, to confirm PyROL correctly respects
+        # active bound constraints across a full pounders run (not just a
+        # single, isolated subproblem solve).
+        pyrol_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.TRSP_SOLVER_PYROL)
+
+        Ffun = lambda x: x
+        n = 16
+
+        X_0 = 0.4 * np.ones(n)
+        nf_max = 200
+        g_tol = 10**-13
+        delta = 0.1
+        m = n
+        Low = 0.1 * np.ones(n)
+        Upp = np.ones(n)
+
+        Opts = {
+            "spsolver": pyrol_solver,
+            "hfun": ibcdfo.pounders.h_neg_leastsquares,
+            "combinemodels": ibcdfo.pounders.combine_neg_leastsquares,
+        }
+        Prior = {
+            "X_init": np.atleast_2d(X_0.T),
+            "F_init": np.atleast_2d(Ffun(X_0.T)),
+            "nfs": 1,
+            "xk_in": 0,
+        }
+
+        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+
+        self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")
