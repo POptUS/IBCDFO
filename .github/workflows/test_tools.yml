@@ -63,7 +63,8 @@ jobs:
         run: |
           pushd $IBCDFO_PKG
           python -m build --wheel
-          python -m pip install dist/ibcdfo-*-py3-none-any.whl
+          WHEEL=$(ls dist/ibcdfo-*-py3-none-any.whl)
+          python -m pip install "${WHEEL}[pyrol]"
           popd
           python -m pip list
 
