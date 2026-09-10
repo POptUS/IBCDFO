@@ -33,6 +33,9 @@ dependencies = [
     "jax>=0.4.18"                     # Testing
 ]
 
+[project.optional-dependencies]
+pyrol = ["rol-python"]
+
 keywords = ["ibcdfo"]
 classifiers=[
     "Natural Language :: English",

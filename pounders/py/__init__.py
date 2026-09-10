@@ -19,7 +19,7 @@ from .create_squared_diff_from_mean_functions import create_squared_diff_from_me
 
 # Do **not** put TRSP_SOLVER_SIMPLE in the public interface since it is for
 # testing/debugging purposes only.
-from .constants import TRSP_SOLVER_MINQ5, TRSP_SOLVER_MINQ8
+from .constants import TRSP_SOLVER_MINQ5, TRSP_SOLVER_MINQ8, TRSP_SOLVER_PYROL
 from .create_trsp_solver import create_trsp_solver
 
 # -- Python unittest-based test framework

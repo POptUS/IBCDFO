@@ -7,6 +7,7 @@
 TRSP_SOLVER_SIMPLE = 1
 TRSP_SOLVER_MINQ5 = 2
 TRSP_SOLVER_MINQ8 = 3
+TRSP_SOLVER_PYROL = 4
 
 # ----- ERROR & WARNING MESSAGES
 WARNING_SIMPLE_TRSP = "The simple TRSP solver should only be used for testing or debugging"

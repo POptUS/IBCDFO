@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 
-from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, WARNING_SIMPLE_TRSP
+from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, TRSP_SOLVER_PYROL, WARNING_SIMPLE_TRSP
 from .._get_minq_installation import get_minq_installation
 from .bqmin import bqmin
 
@@ -26,6 +26,7 @@ def create_trsp_solver(spsolver):
     :param spsolver:
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ8`` - Arnold Neumaier's minq8 solver
+        * ``ibcdfo.pounders.TRSP_SOLVER_PYROL`` - PyROL's trust-region solver
     :return: Python function with the interface
 
         .. code:: python
@@ -94,5 +95,63 @@ def create_trsp_solver(spsolver):
             return Xsp, mdec, (minq_err >= 0)
 
         return __minq5_wrapper
+
+    elif spsolver == TRSP_SOLVER_PYROL:
+        # Implement in such a way that users that would like to use a
+        # non-PyROL solver don't have to install PyROL.  In other words,
+        # allow PyROL to be an *optional* external dependence.
+        try:
+            from pyrol import Bounds, Objective, ParameterList, Problem, Solver, getCout
+            from pyrol.vectors import NumPyVector
+        except ImportError:
+            msg = "PyROL is not installed.\nSee https://github.com/trilinos/Trilinos for build/installation instructions."
+            sys.exit(msg)
+
+        class __PyROLQuadraticObjective(Objective):
+            def __init__(self, g, H):
+                super().__init__()
+                self.g = np.asarray(g, dtype=float).reshape(-1)
+                self.H = np.asarray(H, dtype=float)
+
+            def value(self, x, tol):
+                s = np.asarray(x[:], dtype=float)
+                return float(self.g @ s + 0.5 * s @ (self.H @ s))
+
+            def gradient(self, g_out, x, tol):
+                s = np.asarray(x[:], dtype=float)
+                g_out[:] = self.g + self.H @ s
+
+            def hessVec(self, hv, v, x, tol):
+                hv[:] = self.H @ np.asarray(v[:], dtype=float)
+
+        def __pyrol_wrapper(H, g, Low, Upp):
+            # Assume that solver error checks its arguments thoroughly.
+            n = H.shape[0]
+
+            x = NumPyVector(np.zeros(n))
+            objective = __PyROLQuadraticObjective(g, H)
+            problem = Problem(objective, x, x.dual())
+            problem.addBoundConstraint(Bounds(NumPyVector(np.asarray(Low, dtype=float).reshape(-1)), NumPyVector(np.asarray(Upp, dtype=float).reshape(-1))))
+
+            params = ParameterList()
+            params["General"] = ParameterList()
+            params["General"]["Output Level"] = 0
+            params["Step"] = ParameterList()
+            params["Step"]["Trust Region"] = ParameterList()
+            params["Step"]["Trust Region"]["Subproblem Solver"] = "Truncated CG"
+            params["Step"]["Trust Region"]["Subproblem Model"] = "Lin-More"
+
+            try:
+                solver = Solver(problem, params)
+                solver.solve(getCout())
+            except Exception:
+                return np.zeros(n), 0.0, False
+
+            Xsp = np.atleast_1d(np.squeeze(np.asarray(x[:], dtype=float)))
+            mdec = objective.value(x, 0.0)
+
+            return Xsp, mdec, True
+
+        return __pyrol_wrapper
 
     raise ValueError(f"Unknown trust-region subproblem solver: {spsolver}")

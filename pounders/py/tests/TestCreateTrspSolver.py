@@ -13,7 +13,7 @@ import ibcdfo
 
 class TestCreateTrspSolver(unittest.TestCase):
     def setUp(self):
-        self.__solvers = {ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE, ibcdfo.pounders.TRSP_SOLVER_MINQ5}
+        self.__solvers = {ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE, ibcdfo.pounders.TRSP_SOLVER_MINQ5, ibcdfo.pounders.TRSP_SOLVER_PYROL}
         self.__emit_warnings = {ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE: ibcdfo.pounders.constants.WARNING_SIMPLE_TRSP}
 
         warnings.simplefilter("default")
