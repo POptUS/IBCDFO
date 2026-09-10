@@ -6,12 +6,13 @@ Trust-region subproblem solver
 For both Python and |matlab|, Arnold Neumaier’s minq5 solver is used by default
 in |pounders| to solve trust-region subproblems.
 
-While ``ibcdfo.pounders.pounders.pounders`` allows users to provide their
-own subproblem solver, |ibcdfo| also officially provides several solvers via the
-``create_trsp_solver`` function
-documented below.  Users who wish to provide their own solver should
-refer to the same documentation to understand |pounders|' interface
-requirements.
+While ``ibcdfo.pounders.pounders.pounders`` allows users to provide their own
+subproblem solver, |ibcdfo| also officially provides several solvers |via| the
+``create_trsp_solver`` function documented below.  Users who wish to provide
+their own solver should refer to the same documentation to understand
+|pounders|' interface requirements.  In addition, TRSP solvers should not be
+passed to |pounders| if they alter the contents of the arguments provided to
+them.
 
 Python
 ^^^^^^

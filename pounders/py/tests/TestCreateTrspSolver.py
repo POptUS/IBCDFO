@@ -70,7 +70,11 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertTrue(callable(solve_trsp))
 
             # Unconstrained solution in bounds
-            s_0, f_0, found_solution = solve_trsp(H, g, Low, Upp)
+            g_arg = g.copy()
+            H_arg = H.copy()
+            Low_arg = Low.copy()
+            Upp_arg = Upp.copy()
+            s_0, f_0, found_solution = solve_trsp(H_arg, g_arg, Low_arg, Upp_arg)
             self.assertTrue(found_solution)
             self.assertTrue(isinstance(s_0, np.ndarray))
             self.assertEqual(s_0.ndim, 1)
@@ -78,6 +82,11 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertTrue(isinstance(f_0, numbers.Real))
             self.assertTrue(np.fabs(1.0 - s_0[0] / s_expected) <= 110.0 * EPS)
             self.assertTrue(np.fabs(1.0 - f_0 / f_expected) <= 110.0 * EPS)
+            # Ensure that solver doesn't alter its arguments.
+            self.assertTrue(np.array_equal(g, g_arg))
+            self.assertTrue(np.array_equal(H, H_arg))
+            self.assertTrue(np.array_equal(Low, Low_arg))
+            self.assertTrue(np.array_equal(Upp, Upp_arg))
 
             # Unconstrained solution outside bounds
             s_0, f_0, found_solution = solve_trsp(H, g, Low, too_small)
@@ -123,7 +132,11 @@ class TestCreateTrspSolver(unittest.TestCase):
             solve_trsp = ibcdfo.pounders.create_trsp_solver(idx)
             self.assertTrue(callable(solve_trsp))
 
-            s_0, f_0, found_solution = solve_trsp(H, g, Low, Upp)
+            g_arg = g.copy()
+            H_arg = H.copy()
+            Low_arg = Low.copy()
+            Upp_arg = Upp.copy()
+            s_0, f_0, found_solution = solve_trsp(H_arg, g_arg, Low_arg, Upp_arg)
             self.assertTrue(found_solution)
             self.assertTrue(isinstance(s_0, np.ndarray))
             self.assertEqual(s_0.ndim, 1)
@@ -135,6 +148,11 @@ class TestCreateTrspSolver(unittest.TestCase):
             rel_err = np.fabs(1.0 - f_0 / f_expected)
             # print(rel_err)
             self.assertTrue(rel_err <= 2.5e-14)
+            # Ensure that solver doesn't alter its arguments.
+            self.assertTrue(np.array_equal(g, g_arg))
+            self.assertTrue(np.array_equal(H, H_arg))
+            self.assertTrue(np.array_equal(Low, Low_arg))
+            self.assertTrue(np.array_equal(Upp, Upp_arg))
 
     def test5D(self):
         # Setting maxit=600,000 in bqmin yielded a solution that was of similar
@@ -165,7 +183,11 @@ class TestCreateTrspSolver(unittest.TestCase):
             solve_trsp = ibcdfo.pounders.create_trsp_solver(idx)
             self.assertTrue(callable(solve_trsp))
 
-            s_0, f_0, found_solution = solve_trsp(H, g, Low, Upp)
+            g_arg = g.copy()
+            H_arg = H.copy()
+            Low_arg = Low.copy()
+            Upp_arg = Upp.copy()
+            s_0, f_0, found_solution = solve_trsp(H_arg, g_arg, Low_arg, Upp_arg)
             self.assertTrue(found_solution)
             self.assertTrue(isinstance(s_0, np.ndarray))
             self.assertEqual(s_0.ndim, 1)
@@ -177,3 +199,8 @@ class TestCreateTrspSolver(unittest.TestCase):
             rel_err = np.fabs(1.0 - f_0 / f_expected)
             # print(rel_err)
             self.assertTrue(rel_err <= 7.5e-11)
+            # Ensure that solver doesn't alter its arguments.
+            self.assertTrue(np.array_equal(g, g_arg))
+            self.assertTrue(np.array_equal(H, H_arg))
+            self.assertTrue(np.array_equal(Low, Low_arg))
+            self.assertTrue(np.array_equal(Upp, Upp_arg))

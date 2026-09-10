@@ -68,6 +68,9 @@ def create_trsp_solver(spsolver):
         if not minq_installation["is_valid"]:
             msg = f"Please set MINQ clone to git commit {required_minq_SHA}.\nSee User Guide (https://ibcdfo.readthedocs.io) for more information and instructions."
             sys.exit(msg)
+        elif not minq_installation["is_clean"]:
+            warnings.warn("MINQ clone is dirty")
+
         from minqsw import minqsw
 
         def __minq5_wrapper(H, g, Low, Upp):
