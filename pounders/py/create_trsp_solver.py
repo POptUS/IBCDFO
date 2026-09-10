@@ -104,7 +104,7 @@ def create_trsp_solver(spsolver):
             from pyrol import Bounds, Objective, ParameterList, Problem, Solver, getCout
             from pyrol.vectors import NumPyVector
         except ImportError:
-            msg = "PyROL is not installed.\nSee https://github.com/trilinos/Trilinos for build/installation instructions."
+            msg = "PyROL is not installed.\nInstall it with `pip install rol-python` (see https://github.com/trilinos/Trilinos/tree/master/packages/rol/pyrol for source)."
             sys.exit(msg)
 
         class __PyROLQuadraticObjective(Objective):
@@ -144,7 +144,8 @@ def create_trsp_solver(spsolver):
             try:
                 solver = Solver(problem, params)
                 solver.solve(getCout())
-            except Exception:
+            except Exception as exc:
+                warnings.warn(f"PyROL failed to solve subproblem: {exc}")
                 return np.zeros(n), 0.0, False
 
             Xsp = np.atleast_1d(np.squeeze(np.asarray(x[:], dtype=float)))
