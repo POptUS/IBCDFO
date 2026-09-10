@@ -40,11 +40,11 @@ class TestCreateTrspSolver(unittest.TestCase):
         # ----- SPECIFY PROBLEMS
         # Unconstrained solution inside bounds
         N = 1
-        g = np.array([-1.1])
-        H = np.atleast_2d([2.2])
-        Low = np.array([-1.9])
-        Upp = np.array([0.9])
-        self.assertTrue(H[0, 0] > 0.0)
+        g_orig = np.array([-1.1])
+        H_orig = np.atleast_2d([2.2])
+        Low_orig = np.array([-1.9])
+        Upp_orig = np.array([0.9])
+        self.assertTrue(H_orig[0, 0] > 0.0)
 
         # Bounds that put unconstrained solution outside bounds
         too_small = np.array([0.25])
@@ -70,6 +70,10 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertTrue(callable(solve_trsp))
 
             # Unconstrained solution in bounds
+            g = g_orig.copy()
+            H = H_orig.copy()
+            Low = Low_orig.copy()
+            Upp = Upp_orig.copy()
             s_0, f_0, found_solution = solve_trsp(H, g, Low, Upp)
             self.assertTrue(found_solution)
             self.assertTrue(isinstance(s_0, np.ndarray))
@@ -78,6 +82,11 @@ class TestCreateTrspSolver(unittest.TestCase):
             self.assertTrue(isinstance(f_0, numbers.Real))
             self.assertTrue(np.fabs(1.0 - s_0[0] / s_expected) <= 110.0 * EPS)
             self.assertTrue(np.fabs(1.0 - f_0 / f_expected) <= 110.0 * EPS)
+            # Ensure that solver doesn't alter its arguments.
+            self.assertTrue(np.array_equal(g, g_orig))
+            self.assertTrue(np.array_equal(H, H_orig))
+            self.assertTrue(np.array_equal(Low, Low_orig))
+            self.assertTrue(np.array_equal(Upp, Upp_orig))
 
             # Unconstrained solution outside bounds
             s_0, f_0, found_solution = solve_trsp(H, g, Low, too_small)
