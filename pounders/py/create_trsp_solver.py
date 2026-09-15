@@ -110,8 +110,8 @@ def create_trsp_solver(spsolver):
         class __PyROLQuadraticObjective(pyrol.Objective):
             def __init__(self, g, H):
                 """
-                The `[:]` notation is specific to PyROL's NumPyVector class and
-                provides direct access to the NumPy array that each NumPyVector
+                The ``[:]`` notation is specific to PyROL's NumPyVector class
+                and provides direct access to the NumPy array that a NumPyVector
                 object wraps.
 
                 Assume that only PyROL will be calling the member functions.
@@ -122,7 +122,8 @@ def create_trsp_solver(spsolver):
                     :py:func:`create_trsp_solver`
                 """
                 super().__init__()
-                # We presently do *not* store these as copies.  Please determine
+                # We presently do *not* store these as copies despite the
+                # interface requirement that they be readonly.  Please determine
                 # if this is still correct after making changes to this class.
                 self.__g = g
                 self.__H = H
@@ -142,10 +143,13 @@ def create_trsp_solver(spsolver):
                 hv[:] = self.__H @ v[:]
 
         def __pyrol_wrapper(H, g, Low, Upp):
+            ZERO_TOLR = 0.0
+
             objective = __PyROLQuadraticObjective(g, H)
             n = H.shape[0]
-            assert is_extended_real_numpy_array(Low, ndim=1)
-            assert is_extended_real_numpy_array(Upp, ndim=1)
+            # Since Low/Upp are arguments provided to POUNDERS, are tested by
+            # POUNDERS eagerly, and are not altered afterward by POUNDERS, we
+            # assume that Low/Upp satisfy the TRSP sampler interface.
             bounds = pyrol.Bounds(
                 pyrol.vectors.NumPyVector(Low),
                 pyrol.vectors.NumPyVector(Upp),
@@ -170,7 +174,7 @@ def create_trsp_solver(spsolver):
                 warnings.warn(f"PyROL failed to solve subproblem: {exc}")
                 return np.full(n, np.nan, float), np.nan, False
 
-            mdec = objective.value(x, 0.0)
+            mdec = objective.value(x, ZERO_TOLR)
 
             Xsp = x[:]
             assert is_finite_real_numpy_array(Xsp, ndim=1)
