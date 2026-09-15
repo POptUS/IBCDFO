@@ -3,8 +3,9 @@ import warnings
 
 import numpy as np
 
-from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, WARNING_SIMPLE_TRSP
+from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, TRSP_SOLVER_ROL, WARNING_SIMPLE_TRSP
 from .._get_minq_installation import get_minq_installation
+from .._variable_checks import is_finite_real_numpy_array
 from .bqmin import bqmin
 
 
@@ -26,6 +27,7 @@ def create_trsp_solver(spsolver):
     :param spsolver:
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ8`` - Arnold Neumaier's minq8 solver
+        * ``ibcdfo.pounders.TRSP_SOLVER_ROL`` - ROL's trust-region solver
     :return: Python function with the interface
 
         .. code:: python
@@ -94,5 +96,91 @@ def create_trsp_solver(spsolver):
             return Xsp, mdec, (minq_err >= 0)
 
         return __minq5_wrapper
+
+    elif spsolver == TRSP_SOLVER_ROL:
+        # Implement in such a way that users that would like to use a
+        # non-PyROL solver don't have to install PyROL.  In other words,
+        # allow PyROL to be an *optional* external dependence.
+        try:
+            import pyrol.vectors
+        except ImportError:
+            msg = "PyROL is not installed.\nInstall it with `pip install rol-python`."
+            sys.exit(msg)
+
+        class __PyROLQuadraticObjective(pyrol.Objective):
+            def __init__(self, g, H):
+                """
+                The ``[:]`` notation is specific to PyROL's NumPyVector class
+                and provides direct access to the NumPy array that a NumPyVector
+                object wraps.
+
+                Assume that only PyROL will be calling the member functions.
+
+                :param g: See documentation for **g** in
+                    :py:func:`create_trsp_solver`
+                :param H: See documentation for **H** in
+                    :py:func:`create_trsp_solver`
+                """
+                super().__init__()
+                # We presently do *not* store these as copies despite the
+                # interface requirement that they be readonly.  Please determine
+                # if this is still correct after making changes to this class.
+                self.__g = g
+                self.__H = H
+                assert is_finite_real_numpy_array(self.__g, ndim=1)
+                assert is_finite_real_numpy_array(self.__H, ndim=2)
+                assert self.__H.shape[1] == self.__H.shape[0]
+                assert len(self.__g) == self.__H.shape[0]
+
+            def value(self, x, _):
+                s = x[:]
+                return self.__g @ s + 0.5 * s @ (self.__H @ s)
+
+            def gradient(self, g_out, x, _):
+                g_out[:] = self.__g + self.__H @ x[:]
+
+            def hessVec(self, hv, v, *_):
+                hv[:] = self.__H @ v[:]
+
+        def __pyrol_wrapper(H, g, Low, Upp):
+            TOLR_IGNORED = np.nan
+
+            objective = __PyROLQuadraticObjective(g, H)
+            n = H.shape[0]
+            # Since Low/Upp are arguments provided to POUNDERS, are tested by
+            # POUNDERS eagerly, and are not altered afterward by POUNDERS, we
+            # assume that Low/Upp satisfy the TRSP sampler interface.
+            bounds = pyrol.Bounds(
+                pyrol.vectors.NumPyVector(Low),
+                pyrol.vectors.NumPyVector(Upp),
+            )
+
+            x = pyrol.vectors.NumPyVector(np.zeros(n))
+            problem = pyrol.Problem(objective, x, x.dual())
+            problem.addBoundConstraint(bounds)
+
+            params = pyrol.ParameterList()
+            params["General"] = pyrol.ParameterList()
+            params["General"]["Output Level"] = 0
+            params["Step"] = pyrol.ParameterList()
+            params["Step"]["Trust Region"] = pyrol.ParameterList()
+            params["Step"]["Trust Region"]["Subproblem Solver"] = "Truncated CG"
+            params["Step"]["Trust Region"]["Subproblem Model"] = "Lin-More"
+
+            try:
+                solver = pyrol.Solver(problem, params)
+                solver.solve(pyrol.getCout())
+            except Exception as exc:
+                warnings.warn(f"PyROL failed to solve subproblem: {exc}")
+                return np.full(n, np.nan, float), np.nan, False
+
+            mdec = objective.value(x, TOLR_IGNORED)
+
+            Xsp = x[:]
+            assert is_finite_real_numpy_array(Xsp, ndim=1)
+
+            return Xsp, mdec, True
+
+        return __pyrol_wrapper
 
     raise ValueError(f"Unknown trust-region subproblem solver: {spsolver}")

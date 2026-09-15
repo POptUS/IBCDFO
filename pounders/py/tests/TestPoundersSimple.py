@@ -2,6 +2,7 @@
 Unit test of simple functionality of pounders routine.
 """
 
+import copy
 import unittest
 
 import ibcdfo
@@ -17,6 +18,9 @@ def both_pounders(*args, **kwargs):
 
 
 class TestPounders(unittest.TestCase):
+    def setUp(self):
+        self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
+
     def test_failing_objective(self):
         def failing_objective(x, nan_freq=0.1):
             fvec = x
@@ -136,8 +140,6 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
-        simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
-
         # Sample calling syntax for pounders
         Ffun = lambda x: x
         n = 16
@@ -151,7 +153,7 @@ class TestPounders(unittest.TestCase):
         Upp = np.ones(n)
 
         Opts = {
-            "spsolver": simple_solver,
+            "spsolver": None,
             "hfun": ibcdfo.pounders.h_neg_leastsquares,
             "combinemodels": ibcdfo.pounders.combine_neg_leastsquares,
             "printf": 2,
@@ -163,30 +165,35 @@ class TestPounders(unittest.TestCase):
             "xk_in": 0,
         }
 
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        for idx in self.__solvers:
+            Opts["spsolver"] = ibcdfo.pounders.create_trsp_solver(idx)
 
-        self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")
+            [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+
+            self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")
 
     def test_pounders_one_dimensional(self):
-
-        def Ffun(x: float) -> np.ndarray:
+        def Ffun(x):
             """
             Smooth R -> R^3 function with ||f(x)||_2 minimized at x = 0.7.
             Returns a 3-vector.
             """
             t = x.squeeze() - 0.7
-            return np.array([t, t**2, t**3], dtype=float)
+            return np.array([t, t**2, t**3])
 
-        # Sample calling syntax for pounders
         n = 1
-
-        X_0 = 0.4 * np.ones(n)  # Test giving of column vector
+        X_0 = 0.4 * np.ones(n)
         nf_max = 200
         g_tol = 10**-13
         delta = 0.1
         m = 3
         Low = 0.1 * np.ones(n)
         Upp = np.ones(n)
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp)
 
-        self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
+        Opts = {"spsolver": None}
+
+        for idx in self.__solvers:
+            Opts["spsolver"] = ibcdfo.pounders.create_trsp_solver(idx)
+            [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+
+            self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")

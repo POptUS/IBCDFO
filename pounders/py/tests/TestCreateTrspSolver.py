@@ -2,6 +2,7 @@
 Unit test of create_trsp_solver()
 """
 
+import copy
 import numbers
 import warnings
 import unittest
@@ -13,7 +14,7 @@ import ibcdfo
 
 class TestCreateTrspSolver(unittest.TestCase):
     def setUp(self):
-        self.__solvers = {ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE, ibcdfo.pounders.TRSP_SOLVER_MINQ5}
+        self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
         self.__emit_warnings = {ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE: ibcdfo.pounders.constants.WARNING_SIMPLE_TRSP}
 
         warnings.simplefilter("default")
