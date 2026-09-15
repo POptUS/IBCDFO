@@ -3,8 +3,9 @@ import warnings
 
 import numpy as np
 
-from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, TRSP_SOLVER_PYROL, WARNING_SIMPLE_TRSP
+from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, TRSP_SOLVER_ROL, WARNING_SIMPLE_TRSP
 from .._get_minq_installation import get_minq_installation
+from .._variable_checks import is_finite_real_numpy_array, is_extended_real_numpy_array
 from .bqmin import bqmin
 
 
@@ -26,7 +27,7 @@ def create_trsp_solver(spsolver):
     :param spsolver:
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ5`` - Arnold Neumaier's minq5 solver
         * ``ibcdfo.pounders.TRSP_SOLVER_MINQ8`` - Arnold Neumaier's minq8 solver
-        * ``ibcdfo.pounders.TRSP_SOLVER_PYROL`` - PyROL's trust-region solver
+        * ``ibcdfo.pounders.TRSP_SOLVER_ROL`` - ROL's trust-region solver
     :return: Python function with the interface
 
         .. code:: python
@@ -96,60 +97,83 @@ def create_trsp_solver(spsolver):
 
         return __minq5_wrapper
 
-    elif spsolver == TRSP_SOLVER_PYROL:
+    elif spsolver == TRSP_SOLVER_ROL:
         # Implement in such a way that users that would like to use a
         # non-PyROL solver don't have to install PyROL.  In other words,
         # allow PyROL to be an *optional* external dependence.
         try:
-            from pyrol import Bounds, Objective, ParameterList, Problem, Solver, getCout
-            from pyrol.vectors import NumPyVector
+            import pyrol.vectors
         except ImportError:
-            msg = "PyROL is not installed.\nInstall it with `pip install rol-python` (see https://github.com/trilinos/Trilinos/tree/master/packages/rol/pyrol for source)."
+            msg = "PyROL is not installed.\nInstall it with `pip install rol-python`."
             sys.exit(msg)
 
-        class __PyROLQuadraticObjective(Objective):
+        class __PyROLQuadraticObjective(pyrol.Objective):
             def __init__(self, g, H):
+                """
+                The `[:]` notation is specific to PyROL's NumPyVector class and
+                provides direct access to the NumPy array that each NumPyVector
+                object wraps.
+
+                Assume that only PyROL will be calling the member functions.
+
+                :param g: See documentation for **g** in
+                    :py:func:`create_trsp_solver`
+                :param H: See documentation for **H** in
+                    :py:func:`create_trsp_solver`
+                """
                 super().__init__()
-                self.g = np.asarray(g, dtype=float).reshape(-1)
-                self.H = np.asarray(H, dtype=float)
+                # We presently do *not* store these as copies.  Please determine
+                # if this is still correct after making changes to this class.
+                self.__g = g
+                self.__H = H
+                assert is_finite_real_numpy_array(self.__g, ndim=1)
+                assert is_finite_real_numpy_array(self.__H, ndim=2)
+                assert self.__H.shape[1] == self.__H.shape[0]
+                assert len(self.__g) == self.__H.shape[0]
 
-            def value(self, x, tol):
-                s = np.asarray(x[:], dtype=float)
-                return float(self.g @ s + 0.5 * s @ (self.H @ s))
+            def value(self, x, _):
+                s = x[:]
+                return self.__g @ s + 0.5 * s @ (self.__H @ s)
 
-            def gradient(self, g_out, x, tol):
-                s = np.asarray(x[:], dtype=float)
-                g_out[:] = self.g + self.H @ s
+            def gradient(self, g_out, x, _):
+                g_out[:] = self.__g + self.__H @ x[:]
 
-            def hessVec(self, hv, v, x, tol):
-                hv[:] = self.H @ np.asarray(v[:], dtype=float)
+            def hessVec(self, hv, v, *_):
+                hv[:] = self.__H @ v[:]
 
         def __pyrol_wrapper(H, g, Low, Upp):
-            # Assume that solver error checks its arguments thoroughly.
-            n = H.shape[0]
-
-            x = NumPyVector(np.zeros(n))
             objective = __PyROLQuadraticObjective(g, H)
-            problem = Problem(objective, x, x.dual())
-            problem.addBoundConstraint(Bounds(NumPyVector(np.asarray(Low, dtype=float).reshape(-1)), NumPyVector(np.asarray(Upp, dtype=float).reshape(-1))))
+            n = H.shape[0]
+            assert is_extended_real_numpy_array(Low, ndim=1)
+            assert is_extended_real_numpy_array(Upp, ndim=1)
+            bounds = pyrol.Bounds(
+                pyrol.vectors.NumPyVector(Low),
+                pyrol.vectors.NumPyVector(Upp),
+            )
 
-            params = ParameterList()
-            params["General"] = ParameterList()
+            x = pyrol.vectors.NumPyVector(np.zeros(n))
+            problem = pyrol.Problem(objective, x, x.dual())
+            problem.addBoundConstraint(bounds)
+
+            params = pyrol.ParameterList()
+            params["General"] = pyrol.ParameterList()
             params["General"]["Output Level"] = 0
-            params["Step"] = ParameterList()
-            params["Step"]["Trust Region"] = ParameterList()
+            params["Step"] = pyrol.ParameterList()
+            params["Step"]["Trust Region"] = pyrol.ParameterList()
             params["Step"]["Trust Region"]["Subproblem Solver"] = "Truncated CG"
             params["Step"]["Trust Region"]["Subproblem Model"] = "Lin-More"
 
             try:
-                solver = Solver(problem, params)
-                solver.solve(getCout())
+                solver = pyrol.Solver(problem, params)
+                solver.solve(pyrol.getCout())
             except Exception as exc:
                 warnings.warn(f"PyROL failed to solve subproblem: {exc}")
-                return np.zeros(n), 0.0, False
+                return np.full(n, np.nan, float), np.nan, False
 
-            Xsp = np.atleast_1d(np.squeeze(np.asarray(x[:], dtype=float)))
             mdec = objective.value(x, 0.0)
+
+            Xsp = x[:]
+            assert is_finite_real_numpy_array(Xsp, ndim=1)
 
             return Xsp, mdec, True
 

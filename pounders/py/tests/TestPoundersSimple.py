@@ -192,7 +192,7 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
 
     def test_pounders_using_pyrol_trsp(self):
-        pyrol_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.TRSP_SOLVER_PYROL)
+        pyrol_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.TRSP_SOLVER_ROL)
 
         def Ffun(x: float) -> np.ndarray:
             """
@@ -221,7 +221,7 @@ class TestPounders(unittest.TestCase):
         # PyROL as the TRSP solver, to confirm PyROL correctly respects
         # active bound constraints across a full pounders run (not just a
         # single, isolated subproblem solve).
-        pyrol_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.TRSP_SOLVER_PYROL)
+        pyrol_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.TRSP_SOLVER_ROL)
 
         Ffun = lambda x: x
         n = 16
