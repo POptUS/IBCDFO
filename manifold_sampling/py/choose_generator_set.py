@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 
-import jaxnp_hash as jnph
 
 def _safe_equal(a, b):
     """Equality test that tolerates NumPy objects/arrays."""
@@ -50,12 +49,40 @@ def _as_list(x):
 
 
 def _extend_unique(existing, new_items):
-    """Add entries from new_items to existing without requiring hashability."""
-    out = _as_list(existing)
+    """Add entries from new_items to existing without requiring hashability.
 
-    for item in _as_list(new_items):
-        if not _contains_equal(out, item):
-            out.append(item)
+    Hand-coded hfuns represent each Hash entry as a plain (hashable) string,
+    so the common case can dedupe in O(1) per item via a set. jax hfuns'
+    Hash entries are custom objects that define __eq__ but not __hash__
+    (unhashable, for interoperability -- see jaxnp_hash's _TraceNode), so
+    hashing them raises TypeError; we fall back to the slower O(len(out))
+    equality scan only for those entries. Without this fast path, a single
+    evaluated point whose Hash combinatorially explodes (e.g. many
+    near-simultaneous ties in a censored-L1-type hfun) makes the plain
+    O(n^2) scan the dominant cost of the whole algorithm.
+    """
+    out = _as_list(existing)
+    new = _as_list(new_items)
+
+    try:
+        seen = set(out)
+    except TypeError:
+        seen = None
+
+    if seen is None:
+        for item in new:
+            if not _contains_equal(out, item):
+                out.append(item)
+        return out
+
+    for item in new:
+        try:
+            if item not in seen:
+                seen.add(item)
+                out.append(item)
+        except TypeError:
+            if not _contains_equal(out, item):
+                out.append(item)
 
     return out
 

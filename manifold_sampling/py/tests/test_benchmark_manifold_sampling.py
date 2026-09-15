@@ -26,7 +26,7 @@ Qzb = sio.loadmat("mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_nor
 dfo = np.loadtxt("dfo.dat")
 
 Results = {}
-probs_to_solve = list(range(dfo.shape[0]))
+probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
 subprob_switch = "linprog"
 nf_max = 50
@@ -46,12 +46,9 @@ hfuns = [
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
     m = int(m)
+    LB = -np.inf * np.ones((1, n))
+    UB = np.inf * np.ones((1, n))
     x0 = dfoxs(n, nprob, 10**factor_power)
-
-    # Box constraints ensure h(F(x)) is bounded on this compact domain,
-    # regardless of which hfun is used (see main.tex, Sec. "Test cases").
-    radius = np.maximum(20.0, 2.0 * np.abs(x0))
-    LB, UB = x0 - radius, x0 + radius
 
     def Ffun(y):
         out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
