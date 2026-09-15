@@ -5,7 +5,7 @@ import numpy as np
 
 from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, TRSP_SOLVER_ROL, WARNING_SIMPLE_TRSP
 from .._get_minq_installation import get_minq_installation
-from .._variable_checks import is_finite_real_numpy_array, is_extended_real_numpy_array
+from .._variable_checks import is_finite_real_numpy_array
 from .bqmin import bqmin
 
 
@@ -143,7 +143,7 @@ def create_trsp_solver(spsolver):
                 hv[:] = self.__H @ v[:]
 
         def __pyrol_wrapper(H, g, Low, Upp):
-            ZERO_TOLR = 0.0
+            TOLR_IGNORED = np.nan
 
             objective = __PyROLQuadraticObjective(g, H)
             n = H.shape[0]
@@ -174,7 +174,7 @@ def create_trsp_solver(spsolver):
                 warnings.warn(f"PyROL failed to solve subproblem: {exc}")
                 return np.full(n, np.nan, float), np.nan, False
 
-            mdec = objective.value(x, ZERO_TOLR)
+            mdec = objective.value(x, TOLR_IGNORED)
 
             Xsp = x[:]
             assert is_finite_real_numpy_array(Xsp, ndim=1)
