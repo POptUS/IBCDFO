@@ -64,7 +64,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         elif hfun.__name__ == "create_censored_L1_loss_hfun" and nprob == 1:
             nf_max = 10000
         else:
-            nf_max = 150
+            nf_max = 100
 
         if hfun.__name__ == "create_piecewise_quadratic_hfun":
             Qs = Qzb["Q_mat"][probs_to_solve[row], 0]
