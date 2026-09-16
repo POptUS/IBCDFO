@@ -1,7 +1,7 @@
 % Compares the matlab and python implementations of a method.
 % This comparison code assumes you've already:
 % 1) Run m/tests/benchmark_manifold_sampling.m
-% 2) Run py/tests/test_benchmark_manifold_sampling.py 
+% 2) Run py/tests/test_benchmark_manifold_sampling.py
 method = 'manifold_sampling';
 
 LW = 2;
