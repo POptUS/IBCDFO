@@ -23,8 +23,8 @@ load dfo.dat;
 Results = cell(1, 53);
 
 if ~exist("mpc_test_files_smaller_Q", "dir")
-    system("curl -O -L https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip");
-    system("unzip mpc_test_files_smaller_Q.zip");
+    websave("mpc_test_files_smaller_Q.zip", "https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip");
+    unzip("mpc_test_files_smaller_Q.zip");
 end
 
 C_L1_loss = load('mpc_test_files_smaller_Q/C_for_benchmark_probs.csv');
