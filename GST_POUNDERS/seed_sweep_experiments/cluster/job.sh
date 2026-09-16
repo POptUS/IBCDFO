@@ -68,5 +68,14 @@ if ! ./rolenv/bin/python -c "import sys, encodings" ; then
     exit 1
 fi
 
+# Provenance: which config this job actually used, and its checksum. The 2Q joblists pass
+# --config experiment_config_2q.json AFTER the default below, so the later flag wins -- print
+# what is on disk either way, because job 6151683 was held without any record of which
+# configuration it ran, and the local copy was the 1-qubit one.
+for cfg in experiment_config*.json; do
+    [ -f "$cfg" ] && echo "=== config present: $cfg  sha256=$(sha256sum "$cfg" 2>/dev/null | cut -c1-16)"
+done
+echo "=== run_one args: --seed $SEED $*"
+
 ./rolenv/bin/python code/run_one.py \
     --seed "$SEED" --config experiment_config.json --outdir results "$@"

@@ -36,6 +36,11 @@ for f in "${FILES[@]}"; do
 done
 cp "$SSE/experiment_config.json" "$HERE/experiment_config.json"
 echo "   experiment_config.json"
+# The 2-qubit config as well: sweep_2q.sub transfers it and every 2Q joblist line passes
+# --config experiment_config_2q.json. Vendoring only the 1-qubit one is why the held 2Q job
+# 6151683 could not be traced back to a configuration afterwards.
+cp "$SSE/experiment_config_2q.json" "$HERE/experiment_config_2q.json"
+echo "   experiment_config_2q.json"
 
 # provenance: which commit these came from, so a result can always be traced back
 {

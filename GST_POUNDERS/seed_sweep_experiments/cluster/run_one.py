@@ -14,8 +14,18 @@ Mirrors compare_all_methods.ipynb exactly:
                          adaptive_baseline_shots would blow the budget at iteration 0.
   4. lm, lm_mle, lm_fpr  the pyGSTi Levenberg-Marquardt baselines (see lm_arms.py).
 
-Every arm for a seed MUST run in the same job: the budget anchor is shared, and all arms
-draw from the same data seed so they are one realisation of one experiment.
+Arms of one seed may share a job or run in separate jobs, with one condition: pass --budget
+explicitly. The only thing the arms share is the budget anchor, and without --budget that
+anchor is fixed_fpr's own accounted shot count, which only exists if fixed_fpr runs in the
+same process. Everything else is already order-independent -- the truth model comes from
+truth_seed, and every dataset draw takes an explicit seed derived from the data seed
+(lm_arms passes data_seed_offset + seed, the adaptive hook uses data_seed + 1000 + increment
+index), so an arm run alone draws exactly the data it would have drawn alongside the others.
+
+Splitting is what you want at 2 qubits: the POUNDERS arms take ~20-40 h while the LM arms
+take ~9-16 h, and run together in one job they cannot finish inside CHTC's 72-hour limit --
+that is how job 6151683 was held on 2026-09-10 having never started its LM arms. One arm per
+job also means a POUNDERS failure no longer costs the LM results. See make_jobs_2q.py.
 
 Writes <outdir>/seed_<seed>/<arm>/ plus a one-row-per-arm result.csv.
 """
@@ -75,6 +85,17 @@ def parse_args(argv=None):
                          "unspent (measured: 79 percent of a 4000 budget, 54 percent of a 6000 "
                          "budget). "
                          "Raise this for budgets whose adaptive remainder exceeds ~2.2M.")
+    ap.add_argument("--schedule-n-min", type=int, default=None,
+                    help="override config.adaptive_delta_inverse_square_n_min, the per-round "
+                         "FLOOR on allocated shots. This is the knob that makes a budget get "
+                         "spent inside a shorter run. The schedule is budget-blind, so with "
+                         "the default floor a large budget is only reached once delta has "
+                         "contracted far enough to ask for big batches -- at 2Q budget 250 "
+                         "that was iteration 235 of 600, and a bigger budget would not have "
+                         "been spent at all. The hook requests n_min on every scheduled round "
+                         "and rounds happen every --allocate-every iterations, so a floor of "
+                         "(budget - baseline_shots)/k spends the budget by iteration k. "
+                         "make_jobs_2q.py computes it per budget.")
     ap.add_argument("--allocate-every", type=int, default=None)
     ap.add_argument("--per-circuit-allocation", dest="per_circuit_allocation",
                     action="store_true", default=None,
@@ -123,6 +144,8 @@ def main(argv=None):
         over["adaptive_per_circuit_allocation"] = bool(a.per_circuit_allocation)
     if a.schedule_n_max is not None:
         over["adaptive_schedule_n_max"] = int(a.schedule_n_max)
+    if a.schedule_n_min is not None:
+        over["adaptive_delta_inverse_square_n_min"] = int(a.schedule_n_min)
     if a.objective is not None:
         over["objective"] = a.objective
     if over:

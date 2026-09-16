@@ -1,0 +1,61 @@
+# HTCondor submit description for the TWO-QUBIT sweep. ONE ARM PER JOB.
+#
+#   bash vendor.sh                                    # refresh code.tar.gz + both configs
+#   python make_jobs_2q.py                            # writes the joblists below
+#   condor_submit sweep_2q.sub -a "JOBLIST=joblist_2q_lm.txt"
+#   condor_submit sweep_2q.sub -a "JOBLIST=joblist_2q_pounders.txt"
+#
+# Differences from sweep.sub (the 1-qubit file), each one the fix for something that bit us:
+#
+# 1. It ships experiment_config_2q.json, and every joblist line passes
+#    --config experiment_config_2q.json.  job.sh hardcodes --config experiment_config.json
+#    and appends the joblist args after it, so the later flag wins -- but the FILE still has
+#    to be transferred, and sweep.sub only ever transferred the 1-qubit one.  That is why the
+#    held job's configuration could not be confirmed afterwards.
+#
+# 2. max_retries = 0.  A 2Q arm is 20-40 h.  With retries, a failure in post-run scoring
+#    silently reruns the whole thing from zero, twice, and the first thing you learn about it
+#    is the core-hours.
+#
+# 3. No +WantFlocking.  Job 6151683 was held with
+#       "Error from backfill1_46@parabyte2000.chtc.wisc.edu: Job failed to complete in 72 hrs"
+#    Hold code 21 means the EXECUTE machine's own policy held it, not the queue, so a
+#    submit-side attribute cannot override it.  +WantFlocking opts into pools CHTC does not
+#    own; CHTC's archived guidance capped those at 4 hours and the current docs say under ~12.
+#    +LongJob is kept below, but note it appears NOWHERE in CHTC's documentation -- do not
+#    plan around it.  Plan for arms that finish inside 72 h, which is what one-arm-per-job
+#    plus the allocator speedups buy.
+#
+# 4. request_memory = 16GB, down from 32GB.  Measured peaks at the full 2Q design: the
+#    Jacobian path +1.6 GB (0.87 GB once the layout is cached), the allocator ~2.5 GB with
+#    the factored-score path, LM arms ~4 GB.  A smaller request matches more slots.
+universe                = vanilla
+executable              = job.sh
+arguments               = $(seed) $(tag) $(sweep_args)
+
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files    = rolenv.tar.gz, code.tar.gz, experiment_config_2q.json
+transfer_output_files   = out_$(tag).tar.gz
+
+log                     = logs/job_$(tag).log
+output                  = logs/job_$(tag).out
+error                   = logs/job_$(tag).err
+
+# Stream stdout/stderr back as the job runs.  A 2Q arm prints nothing for long stretches, so
+# without this a running job and a dead one look identical for hours.  Turn it off only for a
+# very large submission:
+#     condor_submit sweep_2q.sub -a "JOBLIST=..." -a "stream_output=False" -a "stream_error=False"
+stream_output           = True
+stream_error            = True
+
+request_cpus            = 1
+request_memory          = 16GB
+request_disk            = 8GB
+
+requirements            = (OpSysMajorVer >= 8)
+max_retries             = 0
++LongJob                = true
+
+JOBLIST = joblist_2q_lm.txt
+queue seed, tag, sweep_args from $(JOBLIST)

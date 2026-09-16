@@ -310,11 +310,16 @@ def allocate_shots(J, sigma2, N, n=None, H0=None, criterion="D", ridge=1e-9,
     return extra, {"rho": rho, "fw": fw_info, "rounding": round_info, "H0": H0}
 
 
-def allocate_shots_per_circuit(J, p, N, circuit_of_row, n_circuit=None, H0=None,
-                               criterion="D", ridge=1e-9, prob_floor=1e-9,
-                               max_iter=200, gap_tol=1e-8, metric_M=None,
-                               refactor_every=50):
-    """Per-CIRCUIT D/A-optimal shot allocation with MULTINOMIAL Fisher blocks.
+def allocate_shots_per_circuit_reference(J, p, N, circuit_of_row, n_circuit=None, H0=None,
+                                         criterion="D", ridge=1e-9, prob_floor=1e-9,
+                                         max_iter=200, gap_tol=1e-8, metric_M=None,
+                                         refactor_every=50):
+    """Reference (pre-2026-09-15) implementation; see allocate_shots_per_circuit.
+
+    Kept verbatim as the thing the fast path is validated against, and as the path
+    still used for criterion "A"/"L".
+
+    Per-CIRCUIT D/A-optimal shot allocation with MULTINOMIAL Fisher blocks.
 
     A single circuit-shot samples all of a circuit's outcomes jointly, so the design
     variable is one integer rho_s per circuit (NOT per outcome).  Each circuit s
@@ -394,6 +399,169 @@ def allocate_shots_per_circuit(J, p, N, circuit_of_row, n_circuit=None, H0=None,
         Hinv = Hinv - HJt @ np.linalg.solve(Mw, HJt.T)
     return m_int, {"rho": rho, "gap": gap, "R": R, "rank": int(rank), "d": int(d)}
 
+
+
+def _score_factor(H, cutoff=RANK_CUTOFF, criterion="D"):
+    """Truncated inverse in FACTORED form, so a row score is a norm, not a sandwich.
+
+    Returns (F, pseudo_logdet, rank) with ``row score = ||F^T g||^2``:
+        D:  F = Vk / sqrt(ev)   ->  g^T H^+ g
+        A:  F = Vk / ev         ->  ||H^+ g||^2
+    Same eigendecomposition, same relative cutoff, same kept subspace as
+    ``stable_inverse`` -- only the ORDER of the products changes, and
+    ``F @ F.T`` reproduces its Hinv for D.  Scoring m rows through F costs
+    m*d*rank instead of the m*d*d of ``Hinv @ J.T``; at 2Q the kept rank is
+    ~190 of 1920 parameters, which is ~1 s per iteration instead of ~9 s.
+    """
+    H = np.asarray(H, dtype=float)
+    H = 0.5 * (H + H.T)
+    ev, V = np.linalg.eigh(H)
+    ev_max = ev[-1]
+    if not np.isfinite(ev_max) or ev_max <= 0.0:
+        return np.zeros((H.shape[0], 0)), -np.inf, 0
+    keep = ev > cutoff * ev_max
+    Vk, evk = V[:, keep], ev[keep]
+    F = (Vk / evk) if criterion == "A" else (Vk / np.sqrt(evk))
+    return F, float(np.sum(np.log(evk))), int(keep.sum())
+
+
+def _rowq_from_factor(J, F, chunk=8192, out=None):
+    """Per-row quadratic forms ||F^T J_i||^2, in row blocks to bound peak memory."""
+    m = J.shape[0]
+    out = np.empty(m) if out is None else out
+    for s in range(0, m, chunk):
+        e = min(s + chunk, m)
+        S = J[s:e] @ F
+        out[s:e] = np.einsum("ij,ij->i", S, S)
+    return out
+
+
+def allocate_shots_per_circuit(J, p, N, circuit_of_row, n_circuit=None, H0=None,
+                               criterion="D", ridge=1e-9, prob_floor=1e-9,
+                               max_iter=200, gap_tol=1e-8, metric_M=None,
+                               refactor_every=50, fast=True, resync_every=25,
+                               chunk=8192):
+    """Per-CIRCUIT D-optimal shot allocation; same result as the reference, faster.
+
+    The reference implementation redoes two full-Jacobian products per Frank-Wolfe
+    iteration (assemble H, then ``Hinv @ J.T``), each 55,832 x 1920 x 1920 at 2Q.
+    Neither is necessary, because between iterations only ONE circuit's rows change
+    weight.  Three exact shortcuts, all validated against
+    ``allocate_shots_per_circuit_reference``:
+
+    1. H is UPDATED, not rebuilt.  A Frank-Wolfe step is
+       ``rho <- (1-gamma) rho + gamma N e_i``, and H is affine in rho, so
+       ``H_rho <- (1-gamma) H_rho + gamma N A_i`` with A_i built from that circuit's
+       rows alone.  Round-off from repeated scaling is cleared by an exact rebuild
+       every ``resync_every`` iterations; that rebuild only touches circuits with
+       nonzero shots (after the first step at most one new circuit per iteration),
+       so it is cheap too.
+    2. Scores go through the FACTORED inverse (see _score_factor), costing
+       rank instead of d in the inner dimension.
+    3. In the greedy rounding, a shot adds exactly one circuit's rank-4 block, so the
+       per-row scores get the matching rank-4 Woodbury downdate instead of being
+       recomputed from scratch.  ``refactor_every`` still rebuilds exactly.
+
+    ``fast=False`` (or criterion "A"/"L") runs the reference path unchanged.
+    """
+    if not fast or criterion != "D":
+        return allocate_shots_per_circuit_reference(
+            J, p, N, circuit_of_row, n_circuit=n_circuit, H0=H0, criterion=criterion,
+            ridge=ridge, prob_floor=prob_floor, max_iter=max_iter, gap_tol=gap_tol,
+            metric_M=metric_M, refactor_every=refactor_every)
+
+    J = np.asarray(J, dtype=float); p = np.asarray(p, dtype=float)
+    circuit_of_row = np.asarray(circuit_of_row, dtype=int).reshape(-1)
+    m, d = J.shape
+    n_circuits = int(circuit_of_row.max()) + 1 if m else 0
+    inv_p = 1.0 / np.maximum(p, prob_floor)
+
+    # Row indices of each circuit, so a single circuit's block is an O(4) slice.
+    order = np.argsort(circuit_of_row, kind="stable")
+    starts = np.searchsorted(circuit_of_row[order], np.arange(n_circuits + 1))
+
+    def _rows_of(s):
+        return order[starts[s]:starts[s + 1]]
+
+    def _A_block(s):
+        """Per-shot multinomial Fisher block B_s of one circuit (its rows only)."""
+        rows = _rows_of(s)
+        Js = J[rows]
+        return (Js * inv_p[rows][:, None]).T @ Js
+
+    def _H_design(shots_c):
+        w = np.asarray(shots_c, dtype=float)[circuit_of_row] * inv_p
+        return (J * w[:, None]).T @ J
+
+    def _H_design_active(shots_c):
+        """Exact H(shots) built from the circuits that actually carry shots."""
+        shots_c = np.asarray(shots_c, dtype=float)
+        active = np.flatnonzero(shots_c)
+        if active.size == 0:
+            return np.zeros((d, d))
+        rows = np.concatenate([_rows_of(int(s)) for s in active])
+        Jr = J[rows]
+        w = shots_c[circuit_of_row[rows]] * inv_p[rows]
+        return (Jr * w[:, None]).T @ Jr
+
+    def _aggregate(rowq):
+        sc = np.zeros(n_circuits)
+        np.add.at(sc, circuit_of_row, rowq * inv_p)
+        return sc
+
+    if H0 is None:
+        n0 = np.zeros(n_circuits) if n_circuit is None else np.asarray(n_circuit, dtype=float)
+        H0 = _H_design(n0) + ridge * np.eye(d)
+    elif ridge:
+        H0 = np.asarray(H0, dtype=float) + ridge * np.eye(d)
+
+    # ---- Frank-Wolfe over the circuit simplex {rho >= 0, sum rho_s = N}
+    rho = np.full(n_circuits, N / n_circuits)
+    H_rho = _H_design(rho)          # the one unavoidable full build per allocation
+    gap = np.inf
+    rank = d
+    for _l in range(max_iter):
+        if _l and resync_every and _l % resync_every == 0:
+            H_rho = _H_design_active(rho)
+        F, _logdet, rank = _score_factor(H0 + H_rho, criterion=criterion)
+        g = _aggregate(_rowq_from_factor(J, F, chunk=chunk))
+        i_star = int(np.argmax(g))
+        gap = float(N * g[i_star] - g @ rho)
+        if gap <= gap_tol:
+            break
+        gamma = 2.0 / (_l + 2.0)
+        rho *= (1.0 - gamma); rho[i_star] += gamma * N
+        H_rho *= (1.0 - gamma); H_rho += (gamma * N) * _A_block(i_star)
+
+    # ---- floor + greedy completion with rank-4 Woodbury updates of Hinv AND scores
+    m_int = np.floor(rho).astype(int)
+    R = int(round(N - m_int.sum()))
+    H_int = _H_design_active(m_int.astype(float))
+    F, _ld, rank = _score_factor(H0 + H_int, criterion=criterion)
+    rowq = _rowq_from_factor(J, F, chunk=chunk)
+    Hinv = F @ F.T
+    for step in range(max(R, 0)):
+        g = _aggregate(rowq)
+        i_star = int(np.argmax(g))
+        m_int[i_star] += 1
+        H_int = H_int + _A_block(i_star)
+        if refactor_every and (step + 1) % refactor_every == 0:
+            F, _ld, rank = _score_factor(H0 + H_int, criterion=criterion)
+            rowq = _rowq_from_factor(J, F, chunk=chunk)
+            Hinv = F @ F.T
+            continue
+        rows = _rows_of(i_star)
+        Js = J[rows]                              # (k, d)
+        HJt = Hinv @ Js.T                         # (d, k)
+        Mw = np.diag(p[rows]) + Js @ HJt          # (k, k)
+        # Scores first: the downdate uses the PRE-update inverse.
+        #   q_r <- q_r - (Js Hinv g_r)^T Mw^{-1} (Js Hinv g_r)
+        for s0 in range(0, m, chunk):
+            e0 = min(s0 + chunk, m)
+            Ab = J[s0:e0] @ HJt                   # (block, k)
+            rowq[s0:e0] -= np.einsum("ij,ij->i", Ab, np.linalg.solve(Mw, Ab.T).T)
+        Hinv = Hinv - HJt @ np.linalg.solve(Mw, HJt.T)
+    return m_int, {"rho": rho, "gap": gap, "R": R, "rank": int(rank), "d": int(d)}
 
 
 # ---------------------------------------------------------------------------
