@@ -23,7 +23,7 @@ load dfo.dat;
 Results = cell(1, 53);
 
 if ~exist("mpc_test_files_smaller_Q", "dir")
-    system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip");
+    system("curl -O -L https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip");
     system("unzip mpc_test_files_smaller_Q.zip");
 end
 
