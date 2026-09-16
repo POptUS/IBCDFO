@@ -1,14 +1,16 @@
 % Compares the matlab and python implementations of a method.
-
+% This comparison code assumes you've already:
+% 1) Run m/tests/benchmark_manifold_sampling.m
+% 2) Run py/tests/test_benchmark_manifold_sampling.py 
 method = 'manifold_sampling';
 
 LW = 2;
 FS = 12;
 Label_FS = 12;
 
-nfmax = 1000;
+nfmax = 100;
 
-filename = ['m/tests/benchmark_results/' method 'M_nfmax=' int2str(nfmax) '_gentype=3.mat'];
+filename = ['m/tests/benchmark_results/' method 'M_nf_max=' int2str(nfmax) '.mat'];
 M1 = load(filename);
 
 rows = [1, 2, 7, 8, 43, 44, 45];
@@ -21,7 +23,7 @@ for row = rows
         M{countm} = M1.Results{col, row};
     end
 end
-filename = ['py/tests/benchmark_results/' method '_py_nfmax=' int2str(nfmax) '.mat'];
+filename = ['py/tests/msp_benchmark_results/' method '_py_nf_max=' int2str(nfmax) '.mat'];
 P1 = load(filename);
 
 countpy = 0;
