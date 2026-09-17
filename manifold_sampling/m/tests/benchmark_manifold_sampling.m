@@ -24,7 +24,7 @@ Results = cell(1, 53);
 
 if ~exist("mpc_test_files_smaller_Q", "dir")
     url = "https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip";
-    if system("command -v wget >/dev/null 2>&1") == 0
+    if system("which wget > /dev/null") == 0
         system("wget " + url);
     else
         % MATLAB puts its own bundled libcurl on the loader path, which
