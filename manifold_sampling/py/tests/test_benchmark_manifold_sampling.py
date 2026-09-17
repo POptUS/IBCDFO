@@ -46,8 +46,8 @@ hfuns = [
 for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     n = int(n)
     m = int(m)
-    LB = -np.inf * np.ones((1, n))
-    UB = np.inf * np.ones((1, n))
+    LB = np.full(n, -np.inf, float)
+    UB = np.full(n, np.inf, float)
     x0 = dfoxs(n, nprob, 10**factor_power)
 
     def Ffun(y):
