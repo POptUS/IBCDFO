@@ -36,6 +36,7 @@ os.makedirs(OUT_DIR, exist_ok=True)
 # bounded so one combo can't stall the whole sweep indefinitely.
 TIMEOUT_SEC = 1800
 
+
 def _already_done(row_idx, name, version):
     path = f"{OUT_DIR}/{name}__row{row_idx}__{version}.npz"
     if not os.path.exists(path):
