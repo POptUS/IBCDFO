@@ -46,7 +46,7 @@ def _report_diff(prob_row, name, a, b):
 
 # The full run_MSP trajectories may not match bit-for-bit across platforms with
 # different h-functions. What we can test is that the two h-function
-# implementations agree on a single evaluation. 
+# implementations agree on a single evaluation.
 rng = np.random.default_rng(0)
 KY = np.linspace(0.10, 0.60, 11)
 z_generic = rng.uniform(-1, 1, 11)
