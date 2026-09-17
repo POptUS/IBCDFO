@@ -14,6 +14,7 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 # eng = matlab.engine.start_matlab()
 eng = []
 
+
 def _as_list(x):
     """Return x as a flat Python list without requiring entries to be hashable."""
     if x is None:
@@ -34,7 +35,7 @@ def _as_list(x):
 def _safe_equal(a, b):
     """Equality test that tolerates NumPy objects/arrays."""
     try:
-        eq = (a == b)
+        eq = a == b
     except Exception:
         return False
 

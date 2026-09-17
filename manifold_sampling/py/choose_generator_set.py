@@ -5,7 +5,7 @@ from scipy.spatial.distance import cdist
 def _safe_equal(a, b):
     """Equality test that tolerates NumPy objects/arrays."""
     try:
-        eq = (a == b)
+        eq = a == b
     except Exception:
         return False
 
@@ -30,6 +30,7 @@ def _all_in(needles, haystack):
 def _any_in(needles, haystack):
     haystack = _as_list(haystack)
     return any(_contains_equal(haystack, item) for item in _as_list(needles))
+
 
 def _as_list(x):
     """Return x as a flat Python list without requiring entries to be hashable."""
@@ -111,6 +112,7 @@ def _take_by_indices(x, indices):
 
     x_list = _as_list(x)
     return [x_list[int(j)] for j in indices]
+
 
 def choose_generator_set(X, Hash, xkin, nf, delta, F, hfun):
     Act_Z_k = Hash[xkin]
