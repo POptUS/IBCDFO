@@ -34,9 +34,7 @@ h_pw_minimum_squared_jax = _hfun_jax(lambda z: jnp_h.min(z**2))
 # alpha=0.0 zeroes the quadratic-violation-penalty term's contribution to the value, but
 # keeping the term in place keeps the hash structure comparable to the hand-coded version.
 _ALPHA = 0.0
-h_max_plus_quadratic_violation_penalty_jax = _hfun_jax(
-    lambda z: jnp_h.max(z[: z.shape[0] - 1]) + _ALPHA * jnp_h.sum(jnp_h.maximum(z[z.shape[0] - 1 :], 0.0) ** 2)
-)
+h_max_plus_quadratic_violation_penalty_jax = _hfun_jax(lambda z: jnp_h.max(z[: z.shape[0] - 1]) + _ALPHA * jnp_h.sum(jnp_h.maximum(z[z.shape[0] - 1 :], 0.0) ** 2))
 
 
 def create_piecewise_quadratic_hfun_jax(Qs, zs, cs):

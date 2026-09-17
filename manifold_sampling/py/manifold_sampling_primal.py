@@ -1,4 +1,5 @@
 import numpy as np
+from branch_extended_AD import paths_all_in, paths_any_in
 from ibcdfo.pounders import _checkinputss as checkinputss
 
 from .build_p_models import build_p_models
@@ -13,53 +14,6 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 # import matlab.engine
 # eng = matlab.engine.start_matlab()
 eng = []
-
-
-def _as_list(x):
-    """Return x as a flat Python list without requiring entries to be hashable."""
-    if x is None:
-        return []
-
-    if isinstance(x, np.ndarray):
-        return x.ravel().tolist()
-
-    if isinstance(x, (list, tuple, set)):
-        return list(x)
-
-    try:
-        return list(x)
-    except TypeError:
-        return [x]
-
-
-def _safe_equal(a, b):
-    """Equality test that tolerates NumPy objects/arrays."""
-    try:
-        eq = a == b
-    except Exception:
-        return False
-
-    if isinstance(eq, np.ndarray):
-        return bool(np.all(eq))
-
-    try:
-        return bool(eq)
-    except Exception:
-        return False
-
-
-def _contains_equal(container, item):
-    return any(_safe_equal(item, entry) for entry in container)
-
-
-def _all_in(needles, haystack):
-    haystack = _as_list(haystack)
-    return all(_contains_equal(haystack, item) for item in _as_list(needles))
-
-
-def _any_in(needles, haystack):
-    haystack = _as_list(haystack)
-    return any(_contains_equal(haystack, item) for item in _as_list(needles))
 
 
 def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
@@ -212,9 +166,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
-                if _all_in(tmp_Act_Z_k, Act_Z_k):
+                if paths_all_in(tmp_Act_Z_k, Act_Z_k):
                     # Line 20: See if intersection is nonempty
-                    if _any_in(hashes_at_nf, Act_Z_k):
+                    if paths_any_in(hashes_at_nf, Act_Z_k):
                         break
                     else:
                         # Line 24: Shrink delta

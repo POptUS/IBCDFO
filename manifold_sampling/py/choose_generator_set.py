@@ -1,35 +1,6 @@
 import numpy as np
+from branch_extended_AD import path_key
 from scipy.spatial.distance import cdist
-
-
-def _safe_equal(a, b):
-    """Equality test that tolerates NumPy objects/arrays."""
-    try:
-        eq = a == b
-    except Exception:
-        return False
-
-    if isinstance(eq, np.ndarray):
-        return bool(np.all(eq))
-
-    try:
-        return bool(eq)
-    except Exception:
-        return False
-
-
-def _contains_equal(container, item):
-    return any(_safe_equal(item, entry) for entry in container)
-
-
-def _all_in(needles, haystack):
-    haystack = _as_list(haystack)
-    return all(_contains_equal(haystack, item) for item in _as_list(needles))
-
-
-def _any_in(needles, haystack):
-    haystack = _as_list(haystack)
-    return any(_contains_equal(haystack, item) for item in _as_list(needles))
 
 
 def _as_list(x):
@@ -52,38 +23,24 @@ def _as_list(x):
 def _extend_unique(existing, new_items):
     """Add entries from new_items to existing without requiring hashability.
 
-    Hand-coded hfuns represent each Hash entry as a plain (hashable) string,
-    so the common case can dedupe in O(1) per item via a set. jax hfuns'
-    Hash entries are custom objects that define __eq__ but not __hash__
-    (unhashable, for interoperability -- see branch_extended_AD's _TraceNode), so
-    hashing them raises TypeError; we fall back to the slower O(len(out))
-    equality scan only for those entries. Without this fast path, a single
-    evaluated point whose Hash combinatorially explodes (e.g. many
-    near-simultaneous ties in a censored-L1-type hfun) makes the plain
-    O(n^2) scan the dominant cost of the whole algorithm.
+    Hand-coded hfuns represent each Hash entry as a plain (hashable) string;
+    jax hfuns' Hash entries are branch_extended_AD paths (lists of _TraceNode),
+    which define __eq__ but not __hash__ and are therefore unhashable on their
+    own. branch_extended_AD.path_key gives an O(1)-hashable proxy for both
+    kinds of entry, so this dedup stays O(n) regardless of which kind of hfun
+    produced Hash -- without it, a single evaluated point whose Hash
+    combinatorially explodes (e.g. many near-simultaneous ties in a
+    censored-L1-type hfun) would make an O(n^2) equality scan the dominant
+    cost of the whole algorithm.
     """
     out = _as_list(existing)
-    new = _as_list(new_items)
+    seen = {path_key(item) for item in out}
 
-    try:
-        seen = set(out)
-    except TypeError:
-        seen = None
-
-    if seen is None:
-        for item in new:
-            if not _contains_equal(out, item):
-                out.append(item)
-        return out
-
-    for item in new:
-        try:
-            if item not in seen:
-                seen.add(item)
-                out.append(item)
-        except TypeError:
-            if not _contains_equal(out, item):
-                out.append(item)
+    for item in _as_list(new_items):
+        key = path_key(item)
+        if key not in seen:
+            seen.add(key)
+            out.append(item)
 
     return out
 
