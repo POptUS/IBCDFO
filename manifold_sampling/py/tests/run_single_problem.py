@@ -6,7 +6,7 @@
 # comparison-plot run (plot_hand_coded_vs_jax_progress.py) stalled on for 35+ minutes
 # without finishing a single evaluation, unlike the smaller rows (n<=8, m<=8) it had
 # previously been tested on. m=45 means h_one_norm's jax version traces abs() over 45
-# components; if jaxnp_hash enumerates tie-break branches combinatorially in the number
+# components; if branch_extended_AD enumerates tie-break branches combinatorially in the number
 # of near-zero components, going from m=5-8 to m=45 could be exponential rather than
 # linear -- this script isolates that combo so it can be profiled directly.
 #

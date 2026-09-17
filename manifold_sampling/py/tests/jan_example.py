@@ -2,8 +2,8 @@ import numpy as np
 
 import jax
 import jax.numpy as jnp
-import jaxnp_hash.numpy as jnp_h
-import jaxnp_hash as jnph
+import branch_extended_AD.numpy as jnp_h
+import branch_extended_AD as jnph
 jax.config.update("jax_enable_x64", True)
 
 """
@@ -11,10 +11,10 @@ Jax-hash versions of the hand-coded outer functions h in
 general_nonsmooth_h_funs.py / create_*_hfun.py.
 
 Each of these is just the ordinary (smooth-except-for-max/min/abs) math for the
-corresponding hand-coded hfun, wrapped with jnph.h_fun so that jaxnp_hash traces the
+corresponding hand-coded hfun, wrapped with jnph.h_fun so that branch_extended_AD traces the
 max/min/maximum/minimum/abs calls and derives the branch hash automatically instead of
 it being hand-derived. There is no jax version of h_quantile: it needs an order
-statistic (2nd-smallest of the squared values), and jaxnp_hash's numpy shim only
+statistic (2nd-smallest of the squared values), and branch_extended_AD's numpy shim only
 overrides max/min/maximum/minimum/sum/abs.
 """
 

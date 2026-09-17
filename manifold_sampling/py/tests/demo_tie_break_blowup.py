@@ -1,12 +1,12 @@
 # Demonstrates, with a SINGLE standalone call (no run_MSP, no optimization loop), that
-# jaxnp_hash's tracing of h_one_norm_jax blows up combinatorially in the number of
+# branch_extended_AD's tracing of h_one_norm_jax blows up combinatorially in the number of
 # components of z that are tied at a kink (here, exactly 0) -- NOT in the dimension m
 # of z itself. Each abs(z_i) call traces both sign branches when z_i is exactly 0, so
 # the branch count in the resulting PathSet is ~2**(number of tied components).
 #
 # Contrast: the hand-coded h_one_norm deliberately collapses a near-zero residual to a
 # single flat-gradient "0" branch specifically to avoid this 2**dim(z) blowup (see its
-# own comment). jaxnp_hash's automatic tracing has no such collapse.
+# own comment). branch_extended_AD's automatic tracing has no such collapse.
 #
 # Usage:
 #   python demo_tie_break_blowup.py            # 10 tied components (~tens of seconds)

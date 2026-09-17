@@ -31,7 +31,7 @@ except ImportError:
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # Some jax-hash hfuns (e.g. create_piecewise_quadratic_hfun on the larger dfo rows) are
-# slow due to jaxnp_hash's non-JIT, per-call tracing overhead rather than any bug --
+# slow due to branch_extended_AD's non-JIT, per-call tracing overhead rather than any bug --
 # generous enough that a "did it finish" timeout doesn't masquerade as a hang, but still
 # bounded so one combo can't stall the whole sweep indefinitely.
 TIMEOUT_SEC = 1800
@@ -51,7 +51,7 @@ failures = []
 skipped = 0
 t_start = time.time()
 
-# create_piecewise_quadratic_hfun is much slower than the rest (jaxnp_hash's non-JIT,
+# create_piecewise_quadratic_hfun is much slower than the rest (branch_extended_AD's non-JIT,
 # per-call tracing overhead scales with the ~90 pieces on the larger dfo rows) and has
 # hit failures on some rows -- run it dead last, across all rows, so it can't stall or
 # block progress on the other (cheap, reliable) hfuns.

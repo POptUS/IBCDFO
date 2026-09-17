@@ -54,7 +54,7 @@ def _extend_unique(existing, new_items):
     Hand-coded hfuns represent each Hash entry as a plain (hashable) string,
     so the common case can dedupe in O(1) per item via a set. jax hfuns'
     Hash entries are custom objects that define __eq__ but not __hash__
-    (unhashable, for interoperability -- see jaxnp_hash's _TraceNode), so
+    (unhashable, for interoperability -- see branch_extended_AD's _TraceNode), so
     hashing them raises TypeError; we fall back to the slower O(len(out))
     equality scan only for those entries. Without this fast path, a single
     evaluated point whose Hash combinatorially explodes (e.g. many
