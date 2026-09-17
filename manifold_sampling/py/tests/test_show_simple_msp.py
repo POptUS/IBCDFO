@@ -1,6 +1,7 @@
 # This wrapper tests various algorithms against the Benchmark functions from the
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 import os
+import shutil
 
 import ibcdfo
 import numpy as np
@@ -8,7 +9,11 @@ from calfun import calfun
 from dfoxs import dfoxs
 
 if not os.path.exists("mpc_test_files_smaller_Q"):
-    os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
+    url = "https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip"
+    if shutil.which("wget"):
+        os.system("wget " + url)
+    else:
+        os.system("curl -O -L " + url)
     os.system("unzip mpc_test_files_smaller_Q.zip")
 
 # www.mcs.anl.gov/~jlarson/mpc_test_files_smaller_Q.zip
