@@ -1,9 +1,8 @@
-import numpy as np
-
+import branch_extended_AD as jnph
+import branch_extended_AD.numpy as jnp_h
 import jax
 import jax.numpy as jnp
-import branch_extended_AD.numpy as jnp_h
-import branch_extended_AD as jnph
+import numpy as np
 
 jax.config.update("jax_enable_x64", True)
 

@@ -1,9 +1,9 @@
-import numpy as np
-
 import ibcdfo
+import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
 from ibcdfo.manifold_sampling import h_max_gamma_over_KY
+
 from jan_example import h_max_gamma_over_KY_jax
 
 dfo = np.loadtxt("dfo.dat")

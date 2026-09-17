@@ -16,13 +16,13 @@
 import sys
 import time
 
-import numpy as np
-
 import ibcdfo
 import ibcdfo.manifold_sampling as ms
-import jan_example as je
+import numpy as np
 from calfun import calfun
 from dfoxs import dfoxs
+
+import jan_example as je
 
 if len(sys.argv) != 2 or sys.argv[1] not in ("hand", "jax"):
     sys.exit("Usage: python run_single_problem.py [hand|jax]")
