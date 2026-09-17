@@ -16,8 +16,8 @@ for prob_row in PROBS_TO_SOLVE:
     nprob, n, m, factor_power = dfo[prob_row, :]
     n = int(n)
     m = int(m)
-    LB = -np.inf * np.ones((1, n))
-    UB = np.inf * np.ones((1, n))
+    LB = -np.inf * np.ones(n)
+    UB = np.inf * np.ones(n)
     x0 = dfoxs(n, nprob, 10**factor_power)
 
     def Ffun(y):
