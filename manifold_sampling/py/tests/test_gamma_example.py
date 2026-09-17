@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append("./jaxnp_hash/")
-
 import numpy as np
 
 import ibcdfo

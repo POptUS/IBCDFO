@@ -6,8 +6,7 @@
 #       The BenDFO test functions used in this test do not have n = 4,
 #       so these tests are only for testing the algorithms and hfun definition
 #       rather than representing the true physics problem.
-import os, sys
-sys.path.append('./jaxnp_hash/')
+import os
 
 import ibcdfo
 

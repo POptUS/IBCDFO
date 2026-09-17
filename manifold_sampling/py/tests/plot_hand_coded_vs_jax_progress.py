@@ -12,9 +12,6 @@
 # Not a test: run directly with `python plot_hand_coded_vs_jax_progress.py`. Images are
 # written to tests/plots/.
 import os
-import sys
-
-sys.path.append("./jaxnp_hash/")
 
 import matplotlib
 

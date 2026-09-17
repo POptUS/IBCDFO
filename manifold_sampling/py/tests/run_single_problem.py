@@ -16,8 +16,6 @@
 import sys
 import time
 
-sys.path.append("./jaxnp_hash/")
-
 import numpy as np
 
 import ibcdfo
