@@ -20,7 +20,7 @@ hfun_names = {'leastsquares', 'squared_diff_from_mean', 'emittance'};
 % convention), so pairing a MATLAB result with its Python counterpart by that
 % shared filename is itself the name-based handshake: two files only get
 % compared if their filenames -- and therefore their row and hfun -- agree.
-countm = 0;
+np = 0;
 for row = 1:53
     for col = 1:numel(hfun_names)
         hfun_name = hfun_names{col};
@@ -34,15 +34,14 @@ for row = 1:53
             assert(strcmp(strtrim(Mk.alg), 'POUNDERS_M'), ['Unexpected alg in ' filename_m]);
             assert(strcmp(strtrim(Pk.alg), 'POUNDERS_Py'), ['Unexpected alg in ' filename_p]);
 
-            countm = countm + 1;
-            M{countm} = Mk;
-            P{countm} = Pk;
+            np = np + 1;
+            M{np} = Mk;
+            P{np} = Pk;
         end
     end
 end
-countpy = countm;
 
-if countm == 0
+if np == 0
     error('compare_matlab_and_python:noResults', [ ...
         'No paired MATLAB/Python benchmark results were found in\n' ...
         '  %s\nand\n  %s\n' ...
@@ -51,12 +50,8 @@ if countm == 0
         fullfile(pwd, 'm', 'tests', 'TempPoundersBenchmarkResults'), ...
         fullfile(pwd, 'py', 'tests', 'TempPoundersBenchmarkResults'));
 end
-
-np = countm;
-ns = 2;
-nf = nf_max;
 prob_dim = zeros(np, 1);
-H = inf(nf_max, np, ns);
+H = inf(nf_max, np, 2);
 Solvers = {[method '-M'], [method '-py']};
 
 addpath('../../BenDFO/profiling/');
@@ -66,23 +61,15 @@ addpath('../../BenDFO/profiling/');
 % to whoever is reading the resulting plots.
 max_evals_seen = 0;
 for k = 1:np
-    for s = 1:ns
-        if s == 1
-            max_evals_seen = max(max_evals_seen, length(M{k}.H));
-            len = min([nf_max, length(M{k}.H)]);
-            H(1:len, k, s) = M{k}.H(1:len);
-        elseif s == 2
-            max_evals_seen = max(max_evals_seen, length(P{k}.H));
-            len = min([nf_max, length(P{k}.H)]);
-            H(1:len, k, s) = P{k}.H(1:len);
-        end
-    end
+    max_evals_seen = max(max_evals_seen, length(M{k}.H));
+    len = min([nf_max, length(M{k}.H)]);
+    H(1:len, k, 1) = M{k}.H(1:len);
+
+    max_evals_seen = max(max_evals_seen, length(P{k}.H));
+    len = min([nf_max, length(P{k}.H)]);
+    H(1:len, k, 2) = P{k}.H(1:len);
+
     prob_dim(k) = size(M{k}.X, 2);
-    %     assert(all(all(M{k}.X(1:n+1,:) == P{k}.X(1:n+1,:))), "The first n+1 points differ between the Matlab and Python versions");
-    %     if method == 'pounders'
-    %         assert(all(all(M{k}.Fvec(1:n+1,:) == P{k}.Fvec(1:n+1,:))), "The first n+1 Fvec values differ between the Matlab and Python versions");
-    %     end
-    %     assert(all(all(M{k}.H(1:n+1) == P{k}.H(1:n+1)')), "The first n+1 H values differ between the Matlab and Python versions");
 end
 
 if max_evals_seen > nf_max
