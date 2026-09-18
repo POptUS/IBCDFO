@@ -14,27 +14,45 @@ filename = ['m/tests/benchmark_results/' method 'M_nf_max=' int2str(nfmax) '.mat
 M1 = load(filename);
 
 rows = [1, 2, 7, 8, 43, 44, 45];
-cols = [1:7];
+n_hfuns = 9; % number of hfuns_all entries in m/tests/benchmark_manifold_sampling.m
 
-countm = 0;
-for row = rows
-    for col = cols
-        countm = countm + 1';
-        M{countm} = M1.Results{col, row};
-    end
-end
 filename = ['py/tests/msp_benchmark_results/' method '_py_nf_max=' int2str(nfmax) '.mat'];
 P1 = load(filename);
 
+% MATLAB's hfuns_all and Python's hfuns lists are not sorted identically, so
+% pair results up by their hfun_name field rather than by loop position.
+countm = 0;
 countpy = 0;
 for row = rows
-    for col = cols
-        countpy = countpy + 1';
-        P{countpy} = P1.(['MSP_' int2str(row) '_' int2str(col - 1)]);
+    M_by_name = containers.Map;
+    for jj = 1:n_hfuns
+        Mjj = M1.Results{jj, row};
+        M_by_name(Mjj.hfun_name) = Mjj;
+    end
+
+    P_by_name = containers.Map;
+    for i = 0:(n_hfuns - 1)
+        Pi = P1.(['MSP_' int2str(row) '_' int2str(i)]);
+        P_by_name(Pi.hfun_name) = Pi;
+    end
+
+    common_names = intersect(keys(M_by_name), keys(P_by_name));
+    assert(numel(common_names) == n_hfuns, ...
+        ['Expected all ' int2str(n_hfuns) ' hfuns to be common between MATLAB and Python for row ' int2str(row)]);
+
+    for name = common_names
+        Mk = M_by_name(name{1});
+        Pk = P_by_name(name{1});
+        assert(strcmp(Mk.hfun_name, Pk.hfun_name), 'hfun_name handshake failed between MATLAB and Python results');
+
+        countm = countm + 1;
+        M{countm} = Mk;
+        countpy = countpy + 1;
+        P{countpy} = Pk;
     end
 end
 
-assert(all(size(M1) == size(P1)));
+assert(countm == countpy);
 
 np = countm;
 ns = 2;

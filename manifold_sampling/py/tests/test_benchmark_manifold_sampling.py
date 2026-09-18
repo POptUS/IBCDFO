@@ -61,8 +61,12 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return np.squeeze(out)
 
     for i, hfun in enumerate(hfuns):
+        # Capture the canonical name before hfun is potentially reassigned to a
+        # factory-produced closure below, so it can be matched against the
+        # MATLAB benchmark's hfun_name (which is not in the same list order).
+        hfun_name = hfun.__name__
 
-        print("Running manifold sampling with hfun = " + hfun.__name__ + " and More-Wild problem number = " + str(int(nprob)))
+        print("Running manifold sampling with hfun = " + hfun_name + " and More-Wild problem number = " + str(int(nprob)))
 
         if hfun.__name__ == "h_pw_maximum_squared" and nprob == 1:
             nf_max = 10000
@@ -88,7 +92,8 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + str(hfun)]
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + hfun_name]
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["hfun_name"] = hfun_name
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["Fvec"] = F
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X

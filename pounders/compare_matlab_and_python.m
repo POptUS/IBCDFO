@@ -12,44 +12,39 @@ Label_FS = 12;
 nf_max = 100;
 probtype = 'smooth';
 
+% Canonical hfun names, matching the hfun_name field written by
+% m/tests/benchmark_pounders.m and py/tests/TestPoundersExtensive.py.
+hfun_names = {'combine_leastsquares', 'combine_squared_diff_from_mean', 'combine_emittance'};
+
+% Pair a MATLAB result with its Python counterpart only when both files exist
+% for the same (row, hfun) combination, then verify the pairing with an
+% explicit hfun_name handshake, rather than trusting that two independently
+% built lists happened to skip missing files in the same order.
 countm = 0;
 for row = 1:53
-    for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
-        if exist(filename)
-            if strcmp(hfun, 'leastsquares')
-                col = 1;
-            elseif strcmp(hfun, 'squared_diff_from_mean')
-                col = 2;
-            elseif strcmp(hfun, 'emittance_combine')
-                col = 3;
-            end
-            M1 = load(filename);
-            countm = countm + 1';
-            M{countm} = M1.Results{col, row};
-        end
-    end
-end
+    for col = 1:numel(hfun_names)
+        hfun_name = hfun_names{col};
+        filename_m = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
+        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
+        if exist(filename_m) && exist(filename_p)
+            M1 = load(filename_m);
+            P1 = load(filename_p);
+            Mk = M1.Results{col, row};
+            Pk = P1.([method '4py_' int2str(row - 1) '_' int2str(col)]);
 
-countpy = 0;
-for row = 1:53
-    for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
-        if exist(filename)
-            P1 = load(filename);
-            countpy = countpy + 1';
-            if strcmp(hfun, 'leastsquares')
-                col = 1;
-            elseif strcmp(hfun, 'squared_diff_from_mean')
-                col = 2;
-            elseif strcmp(hfun, 'emittance_combine')
-                col = 3;
-            end
-            P{countpy} = P1.([method '4py_' int2str(row - 1) '_' int2str(col)]);
+            assert(strcmp(Mk.hfun_name, hfun_name), ...
+                ['MATLAB hfun_name mismatch for row ' int2str(row) ': expected ' hfun_name ' got ' Mk.hfun_name]);
+            assert(strcmp(Pk.hfun_name, hfun_name), ...
+                ['Python hfun_name mismatch for row ' int2str(row) ': expected ' hfun_name ' got ' Pk.hfun_name]);
+            assert(strcmp(Mk.hfun_name, Pk.hfun_name), 'hfun_name handshake failed between MATLAB and Python results');
+
+            countm = countm + 1;
+            M{countm} = Mk;
+            P{countm} = Pk;
         end
     end
 end
-assert(countpy == countm);
+countpy = countm;
 
 np = countm;
 ns = 2;
@@ -104,28 +99,24 @@ for tau = logspace(-7, -1, 7)
 end
 
 for row = 1:53
-    for hfun = {'leastsquares', 'squared_diff_from_mean', 'emittance_combine'}
-        filename_m = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
-        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun{1} '.mat'];
-        if exist(filename_p)
+    for col = 1:numel(hfun_names)
+        hfun_name = hfun_names{col};
+        filename_m = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
+        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
+        if exist(filename_m) && exist(filename_p)
             M1 = load(filename_m);
             P1 = load(filename_p);
-            col = 0;
-            if strcmp(hfun, 'leastsquares')
-                col = 1;
-            elseif strcmp(hfun, 'squared_diff_from_mean')
-                col = 2;
-            elseif strcmp(hfun, 'emittance_combine')
-                col = 3;
-            end
-            f = figure;
             Mat = M1.Results{col, row};
             Py = P1.([method '4py_' int2str(row - 1) '_' int2str(col)]);
+
+            assert(strcmp(Mat.hfun_name, Py.hfun_name), 'hfun_name handshake failed between MATLAB and Python results');
+
+            f = figure;
             hold off;
             semilogy(Mat.H, 'LineWidth', LW);
             hold on;
             semilogy(Py.H, 'LineWidth', LW);
-            print(f, ['raw_values_row=' int2str(row) '_hfun=' hfun{1} '_' Solvers{1} '_vs_' Solvers{2} '.png'], '-dpng', '-r400');
+            print(f, ['raw_values_row=' int2str(row) '_hfun=' hfun_name '_' Solvers{1} '_vs_' Solvers{2} '.png'], '-dpng', '-r400');
             close all;
         end
     end

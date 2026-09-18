@@ -107,7 +107,8 @@ class TestPounders(unittest.TestCase):
 
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)] = {}
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["alg"] = "pounders4py"
-                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild"
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["problem"] = "problem " + str(row) + " from More/Wild with hfun=" + hfun_name
+                Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["hfun_name"] = hfun_name
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["Fvec"] = F
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["H"] = hF
                 Results["pounders4py_" + str(row) + "_" + str(hfun_cases)]["X"] = X

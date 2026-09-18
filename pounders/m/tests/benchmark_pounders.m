@@ -54,20 +54,26 @@ for row = 1:length(dfo)
         if hfun_cases == 1
             hfun = @h_leastsquares;
             combinemodels = @combine_leastsquares;
+            hfun_name = 'combine_leastsquares';
         elseif hfun_cases == 2
             ALPHA = 0;
             [hfun, combinemodels] = create_squared_diff_from_mean_functions(ALPHA);
+            % combinemodels is an anonymous handle here, so func2str(combinemodels)
+            % would return its full body text rather than a clean name; hardcode
+            % the canonical name instead, matching the Python benchmark.
+            hfun_name = 'combine_squared_diff_from_mean';
         elseif hfun_cases == 3
             if m ~= 3 % Emittance is defined only for the case when m == 3
                 continue
             end
             hfun = @h_emittance;
             combinemodels = @combine_emittance;
+            hfun_name = 'combine_emittance';
             printf = 2; % Just to test this feature
         end
         disp([row, hfun_cases]);
 
-        filename = ['./benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' func2str(combinemodels) '.mat'];
+        filename = ['./benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(g_tol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
 
         Options.hfun = hfun;
         Options.combinemodels = combinemodels;
@@ -98,7 +104,8 @@ for row = 1:length(dfo)
         end
 
         Results{hfun_cases, row}.alg = 'POUNDERs';
-        Results{hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild'];
+        Results{hfun_cases, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun=' hfun_name];
+        Results{hfun_cases, row}.hfun_name = hfun_name;
         Results{hfun_cases, row}.Fvec = F;
         Results{hfun_cases, row}.H = hF;
         Results{hfun_cases, row}.X = X;
