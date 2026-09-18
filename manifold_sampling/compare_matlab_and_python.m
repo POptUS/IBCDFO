@@ -62,12 +62,18 @@ Solvers = {[method '-M'], [method '-py']};
 
 addpath('../../BenDFO/profiling/');
 
+% Data profiles need a common budget across all problems/solvers. We track the
+% largest actual evaluation count seen so that truncation, if any, is visible
+% to whoever is reading the resulting plots.
+max_evals_seen = 0;
 for k = 1:np
     for s = 1:ns
         if s == 1
+            max_evals_seen = max(max_evals_seen, length(M{k}.H));
             len = min([nfmax, length(M{k}.H)]);
             H(1:len, k, s) = M{k}.H(1:len);
         elseif s == 2
+            max_evals_seen = max(max_evals_seen, length(P{k}.H));
             len = min([nfmax, length(P{k}.H)]);
             H(1:len, k, s) = P{k}.H(1:len);
         end
@@ -80,6 +86,12 @@ for k = 1:np
     %     assert(all(all(M{k}.H(1:n+1) == P{k}.H(1:n+1)')), "The first n+1 H values differ between the Matlab and Python versions");
 end
 
+if max_evals_seen > nfmax
+    fprintf(['Note: at least one result used more than nfmax=%d evaluations ' ...
+        '(max observed: %d). Data profiles below only count each result''s ' ...
+        'first nfmax evaluations.\n'], nfmax, max_evals_seen);
+end
+
 for tau = logspace(-5, -1, 3)
     f = figure;
     h = data_profile(H, prob_dim + 1, tau);
@@ -89,6 +101,7 @@ for tau = logspace(-5, -1, 3)
 
     legend(h, Solvers, 'Location', 'SouthEast');
 
+    title(sprintf('Results capped at nfmax=%d (max evaluations observed across all results: %d)', nfmax, max_evals_seen), 'FontSize', FS);
     xlabel('Function evaluations divided by (n+1)', 'FontSize', Label_FS);
     ylabel('Fraction of problems solved', 'FontSize', Label_FS);
 

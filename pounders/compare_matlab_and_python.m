@@ -42,6 +42,16 @@ for row = 1:53
 end
 countpy = countm;
 
+if countm == 0
+    error('compare_matlab_and_python:noResults', [ ...
+        'No paired MATLAB/Python benchmark results were found in\n' ...
+        '  %s\nand\n  %s\n' ...
+        'Run pounders/m/tests/benchmark_pounders.m and pounders/py/tests/TestPoundersExtensive.py ' ...
+        '(from within their own directories) to (re)generate results before comparing.'], ...
+        fullfile(pwd, 'm', 'tests', 'TempPoundersBenchmarkResults'), ...
+        fullfile(pwd, 'py', 'tests', 'TempPoundersBenchmarkResults'));
+end
+
 np = countm;
 ns = 2;
 nf = nf_max;
@@ -51,12 +61,18 @@ Solvers = {[method '-M'], [method '-py']};
 
 addpath('../../BenDFO/profiling/');
 
+% Data profiles need a common budget across all problems/solvers. We track the
+% largest actual evaluation count seen so that truncation, if any, is visible
+% to whoever is reading the resulting plots.
+max_evals_seen = 0;
 for k = 1:np
     for s = 1:ns
         if s == 1
+            max_evals_seen = max(max_evals_seen, length(M{k}.H));
             len = min([nf_max, length(M{k}.H)]);
             H(1:len, k, s) = M{k}.H(1:len);
         elseif s == 2
+            max_evals_seen = max(max_evals_seen, length(P{k}.H));
             len = min([nf_max, length(P{k}.H)]);
             H(1:len, k, s) = P{k}.H(1:len);
         end
@@ -69,15 +85,22 @@ for k = 1:np
     %     assert(all(all(M{k}.H(1:n+1) == P{k}.H(1:n+1)')), "The first n+1 H values differ between the Matlab and Python versions");
 end
 
+if max_evals_seen > nf_max
+    fprintf(['Note: at least one result used more than nf_max=%d evaluations ' ...
+        '(max observed: %d). Data profiles below only count each result''s ' ...
+        'first nf_max evaluations.\n'], nf_max, max_evals_seen);
+end
+
 for tau = logspace(-7, -1, 7)
     f = figure;
-    [h, T] = data_profile(H, prob_dim + 1, tau);
+    h = data_profile(H, prob_dim + 1, tau);
 
     set(findall(f, 'type', 'line'), 'LineWidth', LW);
     set(gca, 'FontSize', FS);
 
     legend(h, Solvers, 'Location', 'SouthEast');
 
+    title(sprintf('Results capped at nf\\_max=%d (max evaluations observed across all results: %d)', nf_max, max_evals_seen), 'FontSize', FS);
     xlabel('Function evaluations divided by (n+1)', 'FontSize', Label_FS);
     ylabel('Fraction of problems solved', 'FontSize', Label_FS);
 
