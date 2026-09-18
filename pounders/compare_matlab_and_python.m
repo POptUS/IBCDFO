@@ -2,41 +2,37 @@
 
 % method = 'orbit'; gtol = 1e-9;
 method = 'pounders';
-gtol = 1e-13;
 
-spsolver = 2;
+spsolver = 2; % TRSP_SOLVER_MINQ5 in both implementations; see m/create_trsp_solver.m / py/constants.py
 LW = 2;
 FS = 12;
 Label_FS = 12;
 
 nf_max = 100;
-probtype = 'smooth';
 
-% Canonical hfun names, matching the hfun_name field written by
-% m/tests/benchmark_pounders.m and py/tests/TestPoundersExtensive.py.
-hfun_names = {'combine_leastsquares', 'combine_squared_diff_from_mean', 'combine_emittance'};
+% Canonical hfun names, matching the stripped hfun_name used to build the
+% filenames written by m/tests/benchmark_pounders.m and
+% py/tests/TestPoundersExtensive.py.
+hfun_names = {'leastsquares', 'squared_diff_from_mean', 'emittance'};
 
-% Pair a MATLAB result with its Python counterpart only when both files exist
-% for the same (row, hfun) combination, then verify the pairing with an
-% explicit hfun_name handshake, rather than trusting that two independently
-% built lists happened to skip missing files in the same order.
+% Both implementations now write one result per (row, hfun) to a file whose
+% name is built identically on both sides (same nf_max/prob/spsolver/hfun_name
+% convention), so pairing a MATLAB result with its Python counterpart by that
+% shared filename is itself the name-based handshake: two files only get
+% compared if their filenames -- and therefore their row and hfun -- agree.
 countm = 0;
 for row = 1:53
     for col = 1:numel(hfun_names)
         hfun_name = hfun_names{col};
-        filename_m = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
-        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
-        if exist(filename_m) && exist(filename_p)
-            M1 = load(filename_m);
-            P1 = load(filename_p);
-            Mk = M1.Results{col, row};
-            Pk = P1.([method '4py_' int2str(row - 1) '_' int2str(col)]);
+        result_name = ['pounders_nf_max=' int2str(nf_max) '_prob=' int2str(row) '_spsolver=' int2str(spsolver) '_hfun=' hfun_name '.mat'];
+        filename_m = fullfile('m', 'tests', 'TempPoundersBenchmarkResults', result_name);
+        filename_p = fullfile('py', 'tests', 'TempPoundersBenchmarkResults', result_name);
+        if isfile(filename_m) && isfile(filename_p)
+            Mk = load(filename_m);
+            Pk = load(filename_p);
 
-            assert(strcmp(Mk.hfun_name, hfun_name), ...
-                ['MATLAB hfun_name mismatch for row ' int2str(row) ': expected ' hfun_name ' got ' Mk.hfun_name]);
-            assert(strcmp(Pk.hfun_name, hfun_name), ...
-                ['Python hfun_name mismatch for row ' int2str(row) ': expected ' hfun_name ' got ' Pk.hfun_name]);
-            assert(strcmp(Mk.hfun_name, Pk.hfun_name), 'hfun_name handshake failed between MATLAB and Python results');
+            assert(strcmp(strtrim(Mk.alg), 'POUNDERS_M'), ['Unexpected alg in ' filename_m]);
+            assert(strcmp(strtrim(Pk.alg), 'POUNDERS_Py'), ['Unexpected alg in ' filename_p]);
 
             countm = countm + 1;
             M{countm} = Mk;
@@ -94,22 +90,19 @@ for tau = logspace(-7, -1, 7)
     ax_height = outerpos(4) - ti(2) - ti(4);
     ax.Position = [left bottom ax_width ax_height];
 
-    print(f, ['Fvalue_data_tau=' num2str(tau) '_nf_max=' int2str(len) '_' Solvers{1} '_vs_' Solvers{2} '.png'], '-dpng', '-r400');
+    print(f, ['Fvalue_data_tau=' num2str(tau) '_nf_max=' int2str(nf_max) '_' Solvers{1} '_vs_' Solvers{2} '.png'], '-dpng', '-r400');
     close all;
 end
 
 for row = 1:53
     for col = 1:numel(hfun_names)
         hfun_name = hfun_names{col};
-        filename_m = ['m/tests/benchmark_results/poundersM_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
-        filename_p = ['py/tests/regression_tests/benchmark_results/' method '4py_nf_max=' int2str(nf_max) '_gtol=' num2str(gtol) '_prob=' int2str(row - 1) '_spsolver=' num2str(spsolver) '_hfun=' hfun_name '.mat'];
-        if exist(filename_m) && exist(filename_p)
-            M1 = load(filename_m);
-            P1 = load(filename_p);
-            Mat = M1.Results{col, row};
-            Py = P1.([method '4py_' int2str(row - 1) '_' int2str(col)]);
-
-            assert(strcmp(Mat.hfun_name, Py.hfun_name), 'hfun_name handshake failed between MATLAB and Python results');
+        result_name = ['pounders_nf_max=' int2str(nf_max) '_prob=' int2str(row) '_spsolver=' int2str(spsolver) '_hfun=' hfun_name '.mat'];
+        filename_m = fullfile('m', 'tests', 'TempPoundersBenchmarkResults', result_name);
+        filename_p = fullfile('py', 'tests', 'TempPoundersBenchmarkResults', result_name);
+        if isfile(filename_m) && isfile(filename_p)
+            Mat = load(filename_m);
+            Py = load(filename_p);
 
             f = figure;
             hold off;

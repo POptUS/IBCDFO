@@ -89,6 +89,8 @@ H_mm = zeros(n);
 while nf < nf_max && delta > tol.mindelta
     bar_delta = delta;
 
+    successful = false;
+
     % Line 3: manifold sampling while loop
     while nf < nf_max
 
@@ -168,7 +170,6 @@ while nf < nf_max && delta > tol.mindelta
 
                 % Line 20: See if intersection is nonempty
                 if any(ismember(hashes_at_nf, Act_Z_k))
-                    successful = false; % iteration is unsuccessful
                     break
                 else
                     % Line 24: Shrink delta

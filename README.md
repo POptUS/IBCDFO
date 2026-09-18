@@ -34,6 +34,11 @@ through Lawrence Berkeley National Laboratory and UChicago Argonne
 LLC through Argonne National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy). All rights reserved.
 
+This material is based upon work supported by the U.S. Department of
+Energy, Office of Science, Office of Advanced Scientific Computing Research,
+Scientific Discovery through Advanced Computing (SciDAC) Program through the
+FASTMath Institute.
+
 ## Support
 
 To
