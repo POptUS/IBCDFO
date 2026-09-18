@@ -59,3 +59,8 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
+
+# From benchmarking
+dfo.dat
+
+
