@@ -1,6 +1,7 @@
 # This wrapper tests various algorithms against the Benchmark functions from the
 # More and Wild SIOPT paper "Benchmarking derivative-free optimization algorithms"
 import os
+import shutil
 
 import ibcdfo
 import numpy as np
@@ -13,7 +14,11 @@ if not os.path.exists("msp_benchmark_results"):
     os.makedirs("msp_benchmark_results")
 
 if not os.path.exists("mpc_test_files_smaller_Q"):
-    os.system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip")
+    url = "https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip"
+    if shutil.which("wget"):
+        os.system("wget " + url)
+    else:
+        os.system("curl -O -L " + url)
     os.system("unzip mpc_test_files_smaller_Q.zip")
 
 # www.mcs.anl.gov/~jlarson/mpc_test_files_smaller_Q.zip
@@ -56,15 +61,19 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return np.squeeze(out)
 
     for i, hfun in enumerate(hfuns):
+        # Capture the canonical name before hfun is potentially reassigned to a
+        # factory-produced closure below, so it can be matched against the
+        # MATLAB benchmark's hfun_name (which is not in the same list order).
+        hfun_name = hfun.__name__
 
-        print("Running manifold sampling with hfun = " + hfun.__name__ + " and More-Wild problem number = " + str(int(nprob)))
+        print("Running manifold sampling with hfun = " + hfun_name + " and More-Wild problem number = " + str(int(nprob)))
 
         if hfun.__name__ == "h_pw_maximum_squared" and nprob == 1:
             nf_max = 10000
         elif hfun.__name__ == "create_censored_L1_loss_hfun" and nprob == 1:
             nf_max = 10000
         else:
-            nf_max = 150
+            nf_max = 100
 
         if hfun.__name__ == "create_piecewise_quadratic_hfun":
             Qs = Qzb["Q_mat"][probs_to_solve[row], 0]
@@ -83,7 +92,8 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + str(hfun)]
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + hfun_name]
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["hfun_name"] = hfun_name
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["Fvec"] = F
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X

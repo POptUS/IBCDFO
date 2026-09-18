@@ -23,7 +23,14 @@ load dfo.dat;
 Results = cell(1, 53);
 
 if ~exist("mpc_test_files_smaller_Q", "dir")
-    system("wget https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip");
+    url = "https://web.cels.anl.gov/~jmlarson/mpc_test_files_smaller_Q.zip";
+    if system("which wget > /dev/null") == 0
+        system("wget " + url);
+    else
+        % MATLAB puts its own bundled libcurl on the loader path, which
+        % conflicts with the system curl binary unless cleared here.
+        system("LD_LIBRARY_PATH='' DYLD_LIBRARY_PATH='' curl -O -L " + url);
+    end
     system("unzip mpc_test_files_smaller_Q.zip");
 end
 
@@ -69,8 +76,19 @@ for row = [1, 2, 7, 8, 43, 44, 45]
                  @h_pw_minimum, @h_pw_minimum_squared, ...
                  @h_quantile, ...
                  @h_one_norm};
+    % Canonical names for hfuns_all, in the same order, so that results can be
+    % matched against the Python benchmark by name rather than by position
+    % (the Python hfuns list is not sorted identically to this one).
+    hfun_names = {'create_censored_L1_loss_hfun', ...
+                  'create_piecewise_quadratic_hfun', ...
+                  'h_max_plus_quadratic_violation_penalty', ...
+                  'h_pw_maximum', 'h_pw_maximum_squared', ...
+                  'h_pw_minimum', 'h_pw_minimum_squared', ...
+                  'h_quantile', ...
+                  'h_one_norm'};
     for hfuns = hfuns_all
         hfun = hfuns{1};
+        hfun_name = hfun_names{jj};
         nf_max = 100;
         if row == 1
             if jj == 1 || jj == 6
@@ -83,7 +101,8 @@ for row = [1, 2, 7, 8, 43, 44, 45]
         [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
 
         Results{jj, row}.alg = 'Manifold sampling';
-        Results{jj, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun='];
+        Results{jj, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun=' hfun_name];
+        Results{jj, row}.hfun_name = hfun_name;
         Results{jj, row}.Fvec = F;
         Results{jj, row}.H = h;
         Results{jj, row}.X = X;
