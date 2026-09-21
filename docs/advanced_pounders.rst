@@ -22,6 +22,22 @@ Python
 ^^^^^^^^
 .. mat:autofunction:: pounders.m.create_trsp_solver
 
+Model-building point evaluator
+-------------------------------
+By default, |pounders| (Python) calls ``Ffun`` once for each new
+model-building point needed to complete its initial interpolation set.
+Also, ``ibcdfo.pounders.pounders.pounders`` allows users to provide their own
+model-building point evaluator. |ibcdfo| provides the ``create_mbp_evaluator``
+function, which calls ``Ffun`` once with all new model-building points stacked
+as rows of a single NumPy array. This allows a user-provided ``Ffun`` to
+evaluate them concurrently (if they so desire). This is a Python-only feature.
+
+The ``create_mbp_evaluator`` function is documented below.
+
+Python
+^^^^^^
+.. autofunction:: ibcdfo.pounders.create_mbp_evaluator
+
 High-level interface
 --------------------
 The following is a prototype for a high-level user interface for
