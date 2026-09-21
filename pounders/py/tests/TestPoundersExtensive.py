@@ -66,7 +66,7 @@ class TestPounders(unittest.TestCase):
                 for i, y in enumerate(Y):
                     out[i] = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
 
-                return np.squeeze(out)
+                return out
 
             X_0 = dfoxs(n, nprob, int(factor**factor_power))
             Low = np.full(n, -np.inf, float)
