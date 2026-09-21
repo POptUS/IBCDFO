@@ -12,7 +12,7 @@ def create_mbp_evaluator(mbp_eval):
         * ``ibcdfo.pounders.MBP_EVAL_SERIAL`` - call ``Ffun`` once for each new
           model-building point
         * ``ibcdfo.pounders.MBP_EVAL_BATCH`` - call ``Ffun`` once with all new
-          model-building points stacked as rows of a single NumPy array. 
+          model-building points stacked as rows of a single NumPy array.
           Users who want concurrent evaluation of model-building points should
           provide an ``Ffun`` that accepts a batch of points ``X_new`` with
           shape ``(batch_size, n)``, where each row is one point to evaluate,
@@ -46,7 +46,7 @@ def create_mbp_evaluator(mbp_eval):
                     # Stop at the first failing point.  pounders.py reads F_new
                     # row by row and returns/stops as soon as it reaches this
                     # row, so it never sees the remaining, still-zero
-                    # placeholder rows. 
+                    # placeholder rows.
                     break
             return F_new
 
