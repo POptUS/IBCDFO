@@ -14,5 +14,15 @@ TRSP_SOLVERS = {
     TRSP_SOLVER_ROL,
 }
 
+# ----- MODEL-BUILDING POINT EVALUATORS
+# This is a Python-only feature; there is no corresponding MATLAB constant
+# since MATLAB does not support a batched-evaluation option.
+MBP_EVAL_SERIAL = 1
+MBP_EVAL_BATCH = 2
+MBP_EVALUATORS = {
+    MBP_EVAL_SERIAL,
+    MBP_EVAL_BATCH,
+}
+
 # ----- ERROR & WARNING MESSAGES
 WARNING_SIMPLE_TRSP = "The simple TRSP solver should only be used for testing or debugging"
