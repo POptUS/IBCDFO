@@ -39,11 +39,12 @@ Options = {
     "printf": True,
     "hfun": ibcdfo.pounders.h_emittance,
     "combinemodels": ibcdfo.pounders.combine_emittance,
+    "mbp_evaluator": ibcdfo.pounders.create_mbp_evaluator(ibcdfo.pounders.constants.MBP_EVAL_BATCH),
 }
 Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders_concurrent(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 
