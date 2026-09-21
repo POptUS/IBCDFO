@@ -659,3 +659,7 @@ class TestPoundersInterface(unittest.TestCase):
     def testSpsolver(self):
         for bad in self.__NOT_FUNCTION:
             self.__test({"spsolver": bad}, TypeError)
+
+    def testMbpEvaluator(self):
+        for bad in self.__NOT_FUNCTION:
+            self.__test({"mbp_evaluator": bad}, TypeError)
