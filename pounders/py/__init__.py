@@ -22,6 +22,9 @@ from .create_squared_diff_from_mean_functions import create_squared_diff_from_me
 from .constants import TRSP_SOLVER_MINQ5, TRSP_SOLVER_MINQ8, TRSP_SOLVER_ROL
 from .create_trsp_solver import create_trsp_solver
 
+from .constants import MBP_EVAL_SERIAL, MBP_EVAL_BATCH
+from .create_mbp_evaluator import create_mbp_evaluator
+
 # -- Python unittest-based test framework
 # Used for automatic test discovery by main package
 from .load_tests import load_tests
