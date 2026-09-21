@@ -9,14 +9,6 @@ import ibcdfo
 import numpy as np
 
 
-# I am defining this call to pounders to include calls to pounders
-# and pounders_concurrent without having to duplicate every
-# call in this regression test.
-def both_pounders(*args, **kwargs):
-    ibcdfo.run_pounders_concurrent(*args, **kwargs)
-    return ibcdfo.run_pounders(*args, **kwargs)
-
-
 class TestPounders(unittest.TestCase):
     def setUp(self):
         self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
@@ -45,15 +37,15 @@ class TestPounders(unittest.TestCase):
         np.random.seed(1)
 
         Opts = {"spsolver": simple_solver, "printf": printf}
-        [X, F, hF, flag, xk_best] = both_pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -3, f"No NaN was encountered in this test, but should have been. (flag={flag})")
 
         Ffun_to_fail = lambda x: failing_objective(x, 1.0)
-        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -3, f"NaN should have been encountered on first eval. (flag={flag})")
 
         Ffun_to_fail = lambda x: np.hstack((x, x))
-        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+        [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -1, f"Dimension error should have occurred on first eval. (flag={flag})")
 
     def test_basic_pounders_usage(self):
@@ -101,7 +93,7 @@ class TestPounders(unittest.TestCase):
             F_init[i, :] = Ffun(X_0[i, :])
 
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
@@ -127,16 +119,16 @@ class TestPounders(unittest.TestCase):
 
         Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
         Ffun = lambda x: np.sum(x**2)
         Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -2, f"This test should terminate because mdec == 0.  (flag={flag})")
 
         Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
@@ -168,7 +160,7 @@ class TestPounders(unittest.TestCase):
         for idx in self.__solvers:
             Opts["spsolver"] = ibcdfo.pounders.create_trsp_solver(idx)
 
-            [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+            [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
             self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")
 
@@ -194,6 +186,6 @@ class TestPounders(unittest.TestCase):
 
         for idx in self.__solvers:
             Opts["spsolver"] = ibcdfo.pounders.create_trsp_solver(idx)
-            [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+            [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
 
             self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
