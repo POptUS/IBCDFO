@@ -36,18 +36,25 @@ def create_mbp_evaluator(mbp_eval):
           values of ``Ffun`` at the rows of **X_new**, in the same order.
     """
     if mbp_eval == MBP_EVAL_SERIAL:
+        # Call Ffun once for each row in X_new.
 
         def __serial_evaluator(Ffun, X_new, m):
             F_new = np.zeros((X_new.shape[0], m))
             for i in range(X_new.shape[0]):
                 F_new[i] = Ffun(X_new[i])
                 if np.any(np.isnan(F_new[i])) or np.any(np.isinf(F_new[i])):
+                    # Stop at the first failing point.  pounders.py reads F_new
+                    # row by row and returns/stops as soon as it reaches this
+                    # row, so it never sees the remaining, still-zero
+                    # placeholder rows. 
                     break
             return F_new
 
         return __serial_evaluator
 
     elif mbp_eval == MBP_EVAL_BATCH:
+        # Call Ffun once for all points in X_new, letting a user-supplied Ffun
+        # evaluate them concurrently.
 
         def __batch_evaluator(Ffun, X_new, m):
             F_new = Ffun(X_new)
