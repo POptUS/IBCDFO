@@ -14,12 +14,12 @@ their own solver should refer to the same documentation to understand
 passed to |pounders| if they alter the contents of the arguments provided to
 them.
 
-Python
-^^^^^^
+Python (TRSP solver)
+^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: ibcdfo.pounders.create_trsp_solver
 
-|matlab|
-^^^^^^^^
+|matlab| (TRSP solver)
+^^^^^^^^^^^^^^^^^^^^^^
 .. mat:autofunction:: pounders.m.create_trsp_solver
 
 Model-building point evaluator
@@ -34,8 +34,8 @@ evaluate them concurrently (if they so desire). This is a Python-only feature.
 
 The ``create_mbp_evaluator`` function is documented below.
 
-Python
-^^^^^^
+Python (MBP evaluator)
+^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: ibcdfo.pounders.create_mbp_evaluator
 
 High-level interface
