@@ -663,3 +663,8 @@ class TestPoundersInterface(unittest.TestCase):
     def testMbpEvaluator(self):
         for bad in self.__NOT_FUNCTION:
             self.__test({"mbp_evaluator": bad}, TypeError)
+
+    def testCreateMbpEvaluatorUnknownEvaluator(self):
+        bad = max(ibcdfo.pounders.constants.MBP_EVALUATORS) + 1
+        with self.assertRaises(ValueError):
+            ibcdfo.pounders.create_mbp_evaluator(bad)
