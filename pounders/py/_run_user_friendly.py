@@ -1,10 +1,10 @@
 import copy
 
-from .constants import TRSP_SOLVER_MINQ5
+from .constants import TRSP_SOLVER_MINQ5, MBP_EVAL_BATCH
 from .create_trsp_solver import create_trsp_solver
+from .create_mbp_evaluator import create_mbp_evaluator
 from .general_h_funs import h_leastsquares, combine_leastsquares
 from .pounders import pounders
-from .pounders_concurrent import pounders as pounders_concurrent
 
 
 def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts=None, Prior=None, concurrent=False):
@@ -52,9 +52,9 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
         a ``(batch_size, n)`` NumPy array and returns their values as a
         ``(batch_size, m)`` NumPy array, so that |pounders| can request and
         evaluate all model-building points for a given iteration together
-        (see :py:func:`ibcdfo.run_pounders_concurrent` for the exact calling
-        convention). Leave as ``False`` if **Ffun** evaluates one point at a
-        time.
+        (see :py:func:`ibcdfo.pounders.create_mbp_evaluator` for the exact
+        calling convention). Leave as ``False`` if **Ffun** evaluates one
+        point at a time.
 
     :return:
         * **X** - :math:`k \times` **n** NumPy array containing all points of
@@ -81,25 +81,11 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
     if set(Options) != {"hfun", "combinemodels"}:
         raise ValueError("Error: Invalid hfun configuration")
     Options["spsolver"] = create_trsp_solver(TRSP_SOLVER_MINQ5)
+    if concurrent:
+        Options["mbp_evaluator"] = create_mbp_evaluator(MBP_EVAL_BATCH)
 
     # ----- OPTIMIZE!
     # Let POUNDERS error check the majority of the arguments.
-    if concurrent:
-        return pounders_concurrent(
-            Ffun=Ffun,
-            X_0=X_0,
-            n=n,
-            nf_max=nf_max,
-            g_tol=g_tol,
-            delta_0=delta_0,
-            m=m,
-            Low=Low,
-            Upp=Upp,
-            Options=Options,
-            Prior=Prior,
-            Model=None,
-        )
-
     return pounders(
         Ffun=Ffun,
         X_0=X_0,

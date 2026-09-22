@@ -70,6 +70,12 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           specified, the MINQ5 solver (recommended) is used.  TRSP solvers must
           not alter the contents of the arguments passed to them.
 
+        * **mbp_evaluator** - Model-building point evaluator that is typically
+          created using :py:func:`ibcdfo.pounders.create_mbp_evaluator`.  It
+          determines how ``Ffun`` is called to complete the initial
+          interpolation set.  If not specified, ``Ffun`` is called once for
+          each new model-building point.
+
         * **delta_max** - Maximum allowed trust-region radius (default is
           :math:`\min(\min(\mathrm{Upp}-\mathrm{Low})/2, 10^3\cdot\mathrm{delta\_0})`)
         * **delta_min** - Minimum allowed trust-region radius; falling at or
@@ -192,6 +198,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     printf = defaults["printf"]
     spsolver = defaults["spsolver"]
+    evaluate_mbp = defaults["mbp_evaluator"]
     delta_max = defaults["delta_max"]
     delta_min = defaults["delta_min"]
     delta_inact = defaults["delta_inact"]
@@ -203,6 +210,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     if not callable(spsolver):
         raise TypeError("Error: spsolver is not a function")
+    if not callable(evaluate_mbp):
+        raise TypeError("Error: mbp_evaluator is not a function")
 
     # All calls to the TRSP solver should use only this function to avoid
     # unintentional corruption of arguments by the given solver that might break
@@ -248,10 +257,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, np_max, Par, False)
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Par[2])
-            for i in range(int(min(n - mp, nf_max - (nf + 1)))):
+            k_new = int(min(n - mp, nf_max - (nf + 1)))
+            idx_new = nf + 1 + np.arange(k_new)
+
+            X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
+            F[idx_new] = evaluate_mbp(Ffun, X[idx_new], m)
+
+            for i in range(k_new):
                 nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
-                F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                     X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                     return X, F, hF, flag, xk_in
