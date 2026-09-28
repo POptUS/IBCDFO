@@ -47,8 +47,8 @@ class TestPounders(unittest.TestCase):
                 [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
                 self.assertEqual(flag, -3, f"NaN should have been encountered on first eval. (batched_Ffun={batched}, flag={flag})")
 
-        # The dimension check on the very first evaluation happens before any
-        # mbp_evaluator is ever invoked, so this case need not be parametrized.
+        # The dimension check on the very first evaluation happens before
+        # batched_Ffun is ever consulted, so this case need not be parametrized.
         Ffun_to_fail = lambda x: np.hstack((x, x))
         Opts = {"spsolver": simple_solver, "printf": printf}
         [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
