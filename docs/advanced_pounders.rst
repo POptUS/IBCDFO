@@ -24,14 +24,10 @@ Python (TRSP solver)
 
 Batched ``Ffun``
 ----------------
-By default, |pounders| (Python) calls ``Ffun`` once per point, passing a 1D
-:math:`\np`-element array and expecting an :math:`\nd`-element array in
-return. Setting ``Options['batched_Ffun'] = True`` instead allows ``Ffun`` to
-be called with a ``(batch_size, n)`` NumPy array whose rows are points to
-evaluate; ``Ffun`` must then return a ``(batch_size, m)`` NumPy array with
-corresponding values in row order. This allows a user-provided ``Ffun`` to
-evaluate the batch of points concurrently (if they so desire). This is a
-Python-only feature.
+|pounders| (Python) supports an ``Options['batched_Ffun']`` flag that allows a
+user-provided ``Ffun`` to evaluate multiple model-building points at once,
+(possibly using concurrency). For details, see the ``batched_Ffun`` entry in
+the |pounders| docstring.
 
 High-level interface
 --------------------
