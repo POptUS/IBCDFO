@@ -14,15 +14,5 @@ TRSP_SOLVERS = {
     TRSP_SOLVER_ROL,
 }
 
-# ----- MODEL-BUILDING POINT EVALUATORS (DEPRECATED)
-# Deprecated: use Options["batched_Ffun"] boolean flag instead of
-# create_mbp_evaluator() with these constants.
-MBP_EVAL_SERIAL = 1
-MBP_EVAL_BATCH = 2
-MBP_EVALUATORS = {
-    MBP_EVAL_SERIAL,
-    MBP_EVAL_BATCH,
-}
-
 # ----- ERROR & WARNING MESSAGES
 WARNING_SIMPLE_TRSP = "The simple TRSP solver should only be used for testing or debugging"
