@@ -14,9 +14,9 @@ TRSP_SOLVERS = {
     TRSP_SOLVER_ROL,
 }
 
-# ----- MODEL-BUILDING POINT EVALUATORS
-# This is a Python-only feature; there is no corresponding MATLAB constant
-# since MATLAB does not support a batched-evaluation option.
+# ----- MODEL-BUILDING POINT EVALUATORS (DEPRECATED)
+# Deprecated: use Options["batched_Ffun"] boolean flag instead of
+# create_mbp_evaluator() with these constants.
 MBP_EVAL_SERIAL = 1
 MBP_EVAL_BATCH = 2
 MBP_EVALUATORS = {

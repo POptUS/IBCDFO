@@ -70,11 +70,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           specified, the MINQ5 solver (recommended) is used.  TRSP solvers must
           not alter the contents of the arguments passed to them.
 
-        * **mbp_evaluator** - Model-building point evaluator that is typically
-          created using :py:func:`ibcdfo.pounders.create_mbp_evaluator`.  It
-          determines how ``Ffun`` is called to complete the initial
-          interpolation set.  If not specified, ``Ffun`` is called once for
-          each new model-building point.
+        * **batched_Ffun** - Boolean flag (default ``False``) indicating whether
+          ``Ffun`` accepts a batch of points. See **Batched Ffun** section below.
 
         * **delta_max** - Maximum allowed trust-region radius (default is
           :math:`\min(\min(\mathrm{Upp}-\mathrm{Low})/2, 10^3\cdot\mathrm{delta\_0})`)
@@ -104,6 +101,16 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         * **np_max** - Integer in :math:`\Z[\np+1, (n+1)(n+2)/2]` that specifies
           the maximum number of interpolation points (default is :math:`2\np+1`)
         * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
+
+    **Batched Ffun**
+
+    When ``Options['batched_Ffun'] = True``, ``Ffun`` can be called with a
+    ``(batch_size, n)`` NumPy array whose rows are points to evaluate, and must
+    return a ``(batch_size, m)`` NumPy array with corresponding values in row
+    order. This allows users the option to evaluate multiple points
+    in a single call to Ffun, e.g., via concurrent/parallel evaluation. When
+    ``batched_Ffun = False`` (default), ``Ffun`` is called once per point with
+    a 1D :math:`\np`-element array and returns an :math:`\nd`-element array.
 
     :return:
         * **X** - :math:`k \times \np` NumPy array containing locations of
@@ -198,7 +205,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     printf = defaults["printf"]
     spsolver = defaults["spsolver"]
-    evaluate_mbp = defaults["mbp_evaluator"]
+    batched_Ffun = defaults["batched_Ffun"]
     delta_max = defaults["delta_max"]
     delta_min = defaults["delta_min"]
     delta_inact = defaults["delta_inact"]
@@ -210,8 +217,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     if not callable(spsolver):
         raise TypeError("Error: spsolver is not a function")
-    if not callable(evaluate_mbp):
-        raise TypeError("Error: mbp_evaluator is not a function")
+    if not isinstance(batched_Ffun, bool):
+        raise TypeError("Error: batched_Ffun must be a boolean")
 
     # All calls to the TRSP solver should use only this function to avoid
     # unintentional corruption of arguments by the given solver that might break
@@ -261,7 +268,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             idx_new = nf + 1 + np.arange(k_new)
 
             X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
-            F[idx_new] = evaluate_mbp(Ffun, X[idx_new], m)
+
+            if batched_Ffun:
+                F_batch = Ffun(X[idx_new])
+                assert F_batch.shape == (k_new, m), f"batched Ffun returned shape {F_batch.shape}, expected ({k_new}, {m})"
+                F[idx_new] = F_batch
+            else:
+                for i in range(k_new):
+                    F[idx_new[i]] = Ffun(X[idx_new[i]])
 
             for i in range(k_new):
                 nf += 1

@@ -39,7 +39,7 @@ Options = {
     "printf": True,
     "hfun": ibcdfo.pounders.h_emittance,
     "combinemodels": ibcdfo.pounders.combine_emittance,
-    "mbp_evaluator": ibcdfo.pounders.create_mbp_evaluator(ibcdfo.pounders.constants.MBP_EVAL_BATCH),
+    "batched_Ffun": True,
 }
 Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xk_in}
 

@@ -14,9 +14,7 @@ class TestPounders(unittest.TestCase):
         self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
 
     def test_failing_objective(self):
-        # failing_objective supports both single-point (1D) and batched (2D)
-        # calls so that this test exercises every mbp_evaluator, not just the
-        # default one.
+        # Test that NaN/Inf handling works in both serial and batched modes.
         def failing_objective(X, nan_freq=0.1):
             X = np.atleast_2d(X)
             fvec = X.copy()
@@ -37,19 +35,17 @@ class TestPounders(unittest.TestCase):
         delta = 0.1
         printf = 1
 
-        # This must hold no matter how the model-building points needed to
-        # complete the initial interpolation set are evaluated.
-        for mbp_eval in ibcdfo.pounders.constants.MBP_EVALUATORS:
-            with self.subTest(mbp_eval=mbp_eval):
+        for batched in [False, True]:
+            with self.subTest(batched_Ffun=batched):
                 np.random.seed(1)
 
-                Opts = {"spsolver": simple_solver, "printf": printf, "mbp_evaluator": ibcdfo.pounders.create_mbp_evaluator(mbp_eval)}
+                Opts = {"spsolver": simple_solver, "printf": printf, "batched_Ffun": batched}
                 [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-                self.assertEqual(flag, -3, f"No NaN was encountered in this test, but should have been. (mbp_eval={mbp_eval}, flag={flag})")
+                self.assertEqual(flag, -3, f"No NaN was encountered in this test, but should have been. (batched_Ffun={batched}, flag={flag})")
 
                 Ffun_to_fail = lambda X: failing_objective(X, 1.0)
                 [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-                self.assertEqual(flag, -3, f"NaN should have been encountered on first eval. (mbp_eval={mbp_eval}, flag={flag})")
+                self.assertEqual(flag, -3, f"NaN should have been encountered on first eval. (batched_Ffun={batched}, flag={flag})")
 
         # The dimension check on the very first evaluation happens before any
         # mbp_evaluator is ever invoked, so this case need not be parametrized.
@@ -58,10 +54,9 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
         self.assertEqual(flag, -1, f"Dimension error should have occurred on first eval. (flag={flag})")
 
-    def test_mbp_evaluator_batch_failure_preserves_earlier_points(self):
+    def test_batched_ffun_failure_preserves_earlier_points(self):
         # Test that a NaN/Inf encountered partway through a batch of
-        # model-building points behaves as expected. (Earlier, valid
-        # points from that same batch aren't discarded.)
+        # model-building points behaves as expected in both serial and batched modes.
         def make_indexed_nan_objective(fail_at_index):
             """
             Ffun that supports both single-point (1D) and batched (2D)
@@ -91,20 +86,20 @@ class TestPounders(unittest.TestCase):
         Upp = np.full(n, np.inf, float)
         delta = 0.1
 
-        for mbp_eval in ibcdfo.pounders.constants.MBP_EVALUATORS:
-            with self.subTest(mbp_eval=mbp_eval):
+        for batched in [False, True]:
+            with self.subTest(batched_Ffun=batched):
                 # Point 0 is the initial evaluation of X_0.  Points 1, 2, ...
                 # are the model-building points needed to complete the first
                 # interpolation set; fail on the second of these (index 2) so
                 # that the first (index 1) must be preserved.
                 Ffun = make_indexed_nan_objective(fail_at_index=2)
-                Opts = {"spsolver": simple_solver, "mbp_evaluator": ibcdfo.pounders.create_mbp_evaluator(mbp_eval)}
+                Opts = {"spsolver": simple_solver, "batched_Ffun": batched}
                 [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun, X_0, n, 1000, 1e-13, delta, m, Low, Upp, Options=Opts)
 
-                self.assertEqual(flag, -3, f"Expected a NaN failure. (mbp_eval={mbp_eval}, flag={flag})")
-                self.assertEqual(X.shape[0], 3, f"Earlier valid geometry point was lost. (mbp_eval={mbp_eval}, X.shape={X.shape})")
-                self.assertFalse(np.any(np.isnan(F[1])), f"Valid geometry point's F was discarded/corrupted. (mbp_eval={mbp_eval}, F[1]={F[1]})")
-                self.assertTrue(np.array_equal(F[1], X[1]), f"Valid geometry point's F does not match the identity Ffun. (mbp_eval={mbp_eval}, F[1]={F[1]}, X[1]={X[1]})")
+                self.assertEqual(flag, -3, f"Expected a NaN failure. (batched_Ffun={batched}, flag={flag})")
+                self.assertEqual(X.shape[0], 3, f"Earlier valid geometry point was lost. (batched_Ffun={batched}, X.shape={X.shape})")
+                self.assertFalse(np.any(np.isnan(F[1])), f"Valid geometry point's F was discarded/corrupted. (batched_Ffun={batched}, F[1]={F[1]})")
+                self.assertTrue(np.array_equal(F[1], X[1]), f"Valid geometry point's F does not match the identity Ffun. (batched_Ffun={batched}, F[1]={F[1]}, X[1]={X[1]})")
 
     def test_basic_pounders_usage(self):
         def vecFun(x):
@@ -247,3 +242,43 @@ class TestPounders(unittest.TestCase):
             [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
 
             self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
+
+    def test_batched_Ffun(self):
+        def Ffun_serial(x):
+            return np.array([x[0] - 1.0, 10.0 * (x[1] - x[0] ** 3)])
+
+        def Ffun_batched(X):
+            X = np.atleast_2d(X)
+            m = 2
+            F = np.zeros((X.shape[0], m))
+            for i in range(X.shape[0]):
+                F[i] = Ffun_serial(X[i])
+            return F
+
+        n = 2
+        X_0 = np.array([0.0, 0.0])
+        nf_max = 50
+        g_tol = 1e-13
+        delta = 0.1
+        m = 2
+        Low = -np.inf * np.ones(n)
+        Upp = np.inf * np.ones(n)
+
+        simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
+        Opts_serial = {"spsolver": simple_solver, "batched_Ffun": False}
+        Opts_batched = {"spsolver": simple_solver, "batched_Ffun": True}
+
+        X_ser, F_ser, hF_ser, flag_ser, xk_in_ser = ibcdfo.run_pounders(
+            Ffun_serial, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_serial
+        )
+        X_bat, F_bat, hF_bat, flag_bat, xk_in_bat = ibcdfo.run_pounders(
+            Ffun_batched, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_batched
+        )
+
+        self.assertTrue(F_ser.shape == F_bat.shape, f"Shapes differ: serial {F_ser.shape} vs batched {F_bat.shape}")
+        self.assertTrue(
+            np.allclose(F_ser, F_bat, atol=1e-10),
+            f"Results differ: max diff = {np.max(np.abs(F_ser - F_bat))}"
+        )
+        self.assertEqual(flag_ser, 0, f"Serial run should succeed. (flag={flag_ser})")
+        self.assertEqual(flag_bat, 0, f"Batched run should succeed. (flag={flag_bat})")

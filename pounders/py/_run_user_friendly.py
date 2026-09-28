@@ -1,8 +1,7 @@
 import copy
 
-from .constants import TRSP_SOLVER_MINQ5, MBP_EVAL_BATCH
+from .constants import TRSP_SOLVER_MINQ5
 from .create_trsp_solver import create_trsp_solver
-from .create_mbp_evaluator import create_mbp_evaluator
 from .general_h_funs import h_leastsquares, combine_leastsquares
 from .pounders import pounders
 
@@ -50,11 +49,8 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
 
     :param concurrent: Set to ``True`` if **Ffun** accepts a batch of points as
         a ``(batch_size, n)`` NumPy array and returns their values as a
-        ``(batch_size, m)`` NumPy array, so that |pounders| can request and
-        evaluate all model-building points for a given iteration together
-        (see :py:func:`ibcdfo.pounders.create_mbp_evaluator` for the exact
-        calling convention). Leave as ``False`` if **Ffun** evaluates one
-        point at a time.
+        ``(batch_size, m)`` NumPy array. Leave as ``False`` if **Ffun** evaluates
+        one point at a time.
 
     :return:
         * **X** - :math:`k \times` **n** NumPy array containing all points of
@@ -81,8 +77,7 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
     if set(Options) != {"hfun", "combinemodels"}:
         raise ValueError("Error: Invalid hfun configuration")
     Options["spsolver"] = create_trsp_solver(TRSP_SOLVER_MINQ5)
-    if concurrent:
-        Options["mbp_evaluator"] = create_mbp_evaluator(MBP_EVAL_BATCH)
+    Options["batched_Ffun"] = concurrent
 
     # ----- OPTIMIZE!
     # Let POUNDERS error check the majority of the arguments.
