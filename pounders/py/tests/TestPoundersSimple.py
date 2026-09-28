@@ -268,10 +268,10 @@ class TestPounders(unittest.TestCase):
         Opts_serial = {"spsolver": simple_solver, "batched_Ffun": False}
         Opts_batched = {"spsolver": simple_solver, "batched_Ffun": True}
 
-        X_ser, F_ser, hF_ser, flag_ser, xk_in_ser = ibcdfo.run_pounders(Ffun_serial, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_serial)
-        X_bat, F_bat, hF_bat, flag_bat, xk_in_bat = ibcdfo.run_pounders(Ffun_batched, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_batched)
+        X_serial, F_serial, hF_serial, flag_serial, xk_in_serial = ibcdfo.run_pounders(Ffun_serial, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_serial)
+        X_batch, F_batch, hF_batch, flag_batch, xk_in_batch = ibcdfo.run_pounders(Ffun_batched, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_batched)
 
-        self.assertTrue(F_ser.shape == F_bat.shape, f"Shapes differ: serial {F_ser.shape} vs batched {F_bat.shape}")
-        self.assertTrue(np.allclose(F_ser, F_bat, atol=1e-10), f"Results differ: max diff = {np.max(np.abs(F_ser - F_bat))}")
-        self.assertEqual(flag_ser, 0, f"Serial run should succeed. (flag={flag_ser})")
-        self.assertEqual(flag_bat, 0, f"Batched run should succeed. (flag={flag_bat})")
+        self.assertTrue(F_serial.shape == F_batch.shape, f"Shapes differ: serial {F_serial.shape} vs batched {F_batch.shape}")
+        self.assertTrue(np.allclose(F_serial, F_batch, atol=1e-10), f"Results differ: max diff = {np.max(np.abs(F_serial - F_batch))}")
+        self.assertEqual(flag_serial, 0, f"Serial run should succeed. (flag={flag_serial})")
+        self.assertEqual(flag_batch, 0, f"Batched run should succeed. (flag={flag_batch})")
