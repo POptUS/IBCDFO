@@ -101,7 +101,7 @@ class TestPounders(unittest.TestCase):
                 Prior = {"nfs": nfs, "F_init": F_init, "X_init": X_init, "xk_in": xind}
 
                 X, F, hF, flag, xk_best = run_user_friendly(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts)
-                Xc, Fc, hFc, flagc, xk_bestc = run_user_friendly(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts, concurrent=True)
+                Xc, Fc, hFc, flagc, xk_bestc = run_user_friendly(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts, batched_Ffun=True)
 
                 self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
                 self.assertTrue(np.array_equal(X, Xc), f"Mismatch: ‖X−Xc‖={np.linalg.norm(X - Xc):.3e}")

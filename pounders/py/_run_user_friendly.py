@@ -6,7 +6,7 @@ from .general_h_funs import h_leastsquares, combine_leastsquares
 from .pounders import pounders
 
 
-def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts=None, Prior=None, concurrent=False):
+def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts=None, Prior=None, batched_Ffun=False):
     r"""
     Run |pounders| on the optimization problem specified by the given arguments.
 
@@ -47,10 +47,10 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
           and **X_0** must be identical and still satisfy the boundary
           constraints.
 
-    :param concurrent: Set to ``True`` if **Ffun** accepts a batch of points as
+    :param batched_Ffun: Set to ``True`` if **Ffun** accepts a batch of points as
         a ``(batch_size, n)`` NumPy array and returns their values as a
-        ``(batch_size, m)`` NumPy array. Leave as ``False`` if **Ffun** evaluates
-        one point at a time.
+        ``(batch_size, m)`` NumPy array. Leave as ``False`` if **Ffun**
+        evaluates one point at a time.
 
     :return:
         * **X** - :math:`k \times` **n** NumPy array containing all points of
@@ -77,7 +77,7 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
     if set(Options) != {"hfun", "combinemodels"}:
         raise ValueError("Error: Invalid hfun configuration")
     Options["spsolver"] = create_trsp_solver(TRSP_SOLVER_MINQ5)
-    Options["batched_Ffun"] = concurrent
+    Options["batched_Ffun"] = batched_Ffun
 
     # ----- OPTIMIZE!
     # Let POUNDERS error check the majority of the arguments.
