@@ -18,6 +18,7 @@ ALL_MODEL_KEYS = {"np_max", "Par"}
 ALL_OPTIONS_KEYS = {
     "printf",
     "spsolver",
+    "batched_Ffun",
     "delta_max",
     "delta_min",
     "delta_inact",
@@ -88,6 +89,7 @@ def compute_default_options(delta_0, g_tol, Low, Upp):
     defaults = {
         "printf": 0,
         "spsolver": create_trsp_solver(TRSP_SOLVER_MINQ5),
+        "batched_Ffun": False,
         "delta_max": np.minimum(0.5 * np.min(Upp - Low), 1.0e3 * delta_0),
         "delta_min": np.minimum(delta_0 * 1.0e-13, 0.1 * g_tol),
         "delta_inact": 0.75,

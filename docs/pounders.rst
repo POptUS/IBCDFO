@@ -55,8 +55,6 @@ the quadratic models of :math:`\Ffun` into a single quadratic model.
 For more detailed information please refer to :cite:t:`POUNDERS_TAO_2017`.  A
 brief description can also be found in :cite:t:`UNEDF0_2010`.
 
-We provide two implementations of |pounders|, namely, `pounders` and `pounders_concurrent`.
-
 Programmatic Interface
 ----------------------
 Status Code
@@ -83,7 +81,6 @@ to provide language-specific descriptions.
 Python
 ^^^^^^
 .. autofunction:: ibcdfo.run_pounders
-.. autofunction:: ibcdfo.run_pounders_concurrent
 
 |matlab|
 ^^^^^^^^

@@ -14,13 +14,20 @@ their own solver should refer to the same documentation to understand
 passed to |pounders| if they alter the contents of the arguments provided to
 them.
 
-Python
-^^^^^^
+Python (TRSP solver)
+^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: ibcdfo.pounders.create_trsp_solver
 
-|matlab|
-^^^^^^^^
+|matlab| (TRSP solver)
+^^^^^^^^^^^^^^^^^^^^^^
 .. mat:autofunction:: pounders.m.create_trsp_solver
+
+Batched ``Ffun``
+----------------
+|pounders| (Python) supports an ``Options['batched_Ffun']`` flag that allows a
+user-provided ``Ffun`` to evaluate multiple model-building points at once,
+(possibly using concurrency). For details, see the ``batched_Ffun`` entry in
+the |pounders| docstring.
 
 High-level interface
 --------------------

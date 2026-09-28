@@ -659,3 +659,7 @@ class TestPoundersInterface(unittest.TestCase):
     def testSpsolver(self):
         for bad in self.__NOT_FUNCTION:
             self.__test({"spsolver": bad}, TypeError)
+
+    def testBatchedFfun(self):
+        for bad in [None, "", 1, 1.1, [], {}]:
+            self.__test({"batched_Ffun": bad}, TypeError)
