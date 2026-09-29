@@ -24,9 +24,14 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     assert subprob_switch == "linprog", "Unrecognized subprob_switch"
 
     if subprob_switch == "linprog":
-        options = {"disp": False, "ipm_optimality_tolerance": 1e-12}
+        # highs-ipm can hang on some small, numerically degenerate LPs on certain
+        # some platforms. A 5-second time limit breaks the hang, after which
+        # we use highs-ds, which does not exhibit the issue.
+        options = {"disp": False, "ipm_optimality_tolerance": 1e-12, "time_limit": 5}
         try:
             res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, method="highs-ipm")
+            if not res["success"]:
+                res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options={"disp": False}, method="highs-ds")
             assert res["success"], "Error in minimize_affine_envelope. We will try rescaling now."
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
@@ -64,6 +69,8 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
                 rescaledA[:, 0] = -np.ones(p)
                 rescaledA[:, 1:] = A[:, 1:] / normA
                 res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, method="highs-ipm")
+                if not res["success"]:
+                    res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options={"disp": False}, method="highs-ds")
                 assert res["success"], "Error in minimize_affine_envelope, even after rescaling."
 
                 x = res.x

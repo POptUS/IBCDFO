@@ -3,7 +3,7 @@ import numpy as np
 from .general_nonsmooth_h_funs import _activities_and_inds
 
 
-def create_piecewise_quadratic_hfun(Qs, zs, cs):
+def create_piecewise_quadratic_hfun(Qs, zs, cs, tol=1e-8):
     r"""
     Create an :math:`\hfun` function using the given :math:`Q_j, \zvec_j, c_j`
     parameter values for constructing and using the manifold sampling piecewise
@@ -27,6 +27,9 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
         \in \R^m` parameter values
     :param cs: 1D NumPy array of length :math:`l` that specifies the :math:`c_j`
         parameter values
+    :param tol: activity/tie-detection tolerance used when classifying which
+        quadratic piece(s) are active at a given :math:`\zvec` (only affects
+        the ``H0 is None`` evaluation mode).
     :return: ``hfun`` constructed with the given :math:`Q_j, \zvec_j, c_j` that
         is compatible only with :math:`\zvec` arguments whose lengths are
         compatible with the shapes of ``Qs`` and ``zs``.
@@ -118,7 +121,7 @@ def create_piecewise_quadratic_hfun(Qs, zs, cs):
 
             h = np.max(manifolds)
 
-            inds, grads, Hash = _activities_and_inds(h, manifolds, n=n)
+            inds, grads, Hash = _activities_and_inds(h, manifolds, n=n, atol=tol, rtol=tol)
 
             for j in range(len(inds)):
                 grads[:, j] = 2 * np.dot(Qs[:, :, inds[j]], (z - zs[:, inds[j]]))

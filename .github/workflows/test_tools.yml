@@ -7,6 +7,7 @@ env:
   BENDFO_PY_PATH:   ${{ github.workspace }}/BenDFO/py
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   MINQ5_PY_PATH:    ${{ github.workspace }}/MINQ/py/minq5
+  BRANCH_EXTENDED_AD_PATH: ${{ github.workspace }}/branch_extended_AD
 on:
   push:
     branches: [main]
@@ -53,6 +54,11 @@ jobs:
         with:
           repository: POptUS/BenDFO
           path: BenDFO
+      - name: Checkout branch_extended_AD repository
+        uses: actions/checkout@v6
+        with:
+          repository: POptUS/branch_extended_AD
+          path: branch_extended_AD
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -78,7 +84,7 @@ jobs:
       # incompatible with running MATLAB in actions (TBC).
       - name: Use tools
         run: |
-          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH
+          export PYTHONPATH=$BENDFO_PY_PATH:$MINQ5_PY_PATH:$BRANCH_EXTENDED_AD_PATH
           echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
           cp $BENDFO_DATA_PATH/dfo.dat .
           $TOOLS_PATH/test_ibcdfo_python_installation.py

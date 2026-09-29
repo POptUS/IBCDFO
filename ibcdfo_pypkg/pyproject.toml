@@ -24,7 +24,11 @@ license       = "MIT"
 license-files = ["LICENSE"]
 
 requires-python = ">=3.10"
-# BenDFO is also required for testing but is not yet pip installable
+# BenDFO is also required for testing but is not yet pip installable.
+#
+# branch_extended_AD is required at runtime by ibcdfo.manifold_sampling (not
+# just for testing) but is also not yet pip installable, so it cannot be
+# listed here either -- see https://github.com/POptUS/branch_extended_AD.
 #
 # See Issues #227/#253 for version limits
 dependencies = [
