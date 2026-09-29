@@ -1,12 +1,14 @@
-# Driver for the full hand-coded-vs-jax-hash benchmark sweep: runs every
-# (dfo row, hfun, hand/jax) combo from bench_run_one_combo.py in its own subprocess
-# (with a timeout), so a single slow/hanging combo can't take down the whole sweep.
-# Covers all 53 More-Wild rows x 8 hfuns x {hand, jax} = 848 combos; already-completed
-# combos (per _already_done below) are skipped, so this is safe to re-run/resume.
+# Driver for the full hand-coded-vs-jax-hash benchmark sweep at the baseline tol=1e-8:
+# runs every (dfo row, hfun, hand/jax) combo from bench_run_one_combo.py in its own
+# subprocess (with a timeout), so a single slow/hanging combo can't take down the
+# whole sweep. Covers all 53 More-Wild rows x 8 hfuns x {hand, jax} = 848 combos;
+# already-completed combos (per _already_done below, via npz_path) are skipped, so
+# this is safe to re-run/resume. For other tol values, see run_tol_sweep_benchmark.py.
 #
 # Usage: python run_benchmark_hand_coded_vs_jax.py
 # Parallel usage (each rank runs combos[i] where i % commsize == rank; every rank
-# writes to a distinct {name}__row{row_idx}__{version}.npz, so ranks never collide):
+# writes to a distinct {name}__row{row_idx}__{version}__tol{tol}.npz, so ranks never
+# collide):
 #   mpirun -np 4 python run_benchmark_hand_coded_vs_jax.py
 import os
 import subprocess
@@ -15,7 +17,7 @@ import time
 
 import numpy as np
 
-from bench_run_one_combo import HFUN_PAIRS, OUT_DIR, PROBS_TO_SOLVE
+from bench_run_one_combo import DEFAULT_TOL, HFUN_PAIRS, OUT_DIR, PROBS_TO_SOLVE, npz_path
 
 try:
     from mpi4py import MPI
@@ -38,7 +40,7 @@ TIMEOUT_SEC = 1800
 
 
 def _already_done(row_idx, name, version):
-    path = f"{OUT_DIR}/{name}__row{row_idx}__{version}.npz"
+    path = npz_path(name, row_idx, version, tol=DEFAULT_TOL)
     if not os.path.exists(path):
         return False
     try:
@@ -86,11 +88,11 @@ for i, (row_idx, name, version) in enumerate(combos):
         if result.returncode != 0:
             print(f"FAILED (exit {result.returncode}): {name} row {row_idx} {version}")
             failures.append((row_idx, name, version, f"exit {result.returncode}"))
-            np.savez(f"{OUT_DIR}/{name}__row{row_idx}__{version}.npz", h=np.full(1, np.nan), flag=None)
+            np.savez(npz_path(name, row_idx, version, tol=DEFAULT_TOL), h=np.full(1, np.nan), flag=None)
     except subprocess.TimeoutExpired:
         print(f"TIMED OUT after {TIMEOUT_SEC}s: {name} row {row_idx} {version}")
         failures.append((row_idx, name, version, "timeout"))
-        np.savez(f"{OUT_DIR}/{name}__row{row_idx}__{version}.npz", h=np.full(1, np.nan), flag=None)
+        np.savez(npz_path(name, row_idx, version, tol=DEFAULT_TOL), h=np.full(1, np.nan), flag=None)
 
 elapsed = time.time() - t_start
 print(f"\nRank {rank}: ran {n_mine - skipped} combos ({skipped} already done, skipped) in {elapsed:.1f}s. Failures: {len(failures)}")

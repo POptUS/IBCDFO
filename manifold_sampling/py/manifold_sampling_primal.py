@@ -1,5 +1,5 @@
 import numpy as np
-from branch_extended_AD import paths_all_in, paths_any_in
+from branch_extended_AD.integrations.ibcdfo import hashes_all_in, hashes_any_in
 from ibcdfo.pounders import _checkinputss as checkinputss
 
 from .build_p_models import build_p_models
@@ -166,9 +166,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 __, tmp_Act_Z_k, __ = choose_generator_set(X, Hash, xkin, nf, delta, F, hfun)
 
                 # Lines 19: See if any new activities
-                if paths_all_in(tmp_Act_Z_k, Act_Z_k):
+                if hashes_all_in(tmp_Act_Z_k, Act_Z_k):
                     # Line 20: See if intersection is nonempty
-                    if paths_any_in(hashes_at_nf, Act_Z_k):
+                    if hashes_any_in(hashes_at_nf, Act_Z_k):
                         break
                     else:
                         # Line 24: Shrink delta

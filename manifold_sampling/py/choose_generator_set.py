@@ -1,5 +1,5 @@
 import numpy as np
-from branch_extended_AD import path_key
+from branch_extended_AD.integrations.ibcdfo import hash_key
 from scipy.spatial.distance import cdist
 
 
@@ -26,18 +26,18 @@ def _extend_unique(existing, new_items):
     Hand-coded hfuns represent each Hash entry as a plain (hashable) string;
     jax hfuns' Hash entries are branch_extended_AD paths (lists of _TraceNode),
     which define __eq__ but not __hash__ and are therefore unhashable on their
-    own. branch_extended_AD.path_key gives an O(1)-hashable proxy for both
-    kinds of entry, so this dedup stays O(n) regardless of which kind of hfun
-    produced Hash -- without it, a single evaluated point whose Hash
-    combinatorially explodes (e.g. many near-simultaneous ties in a
+    own. branch_extended_AD.integrations.ibcdfo.hash_key gives an O(1)-hashable
+    proxy for both kinds of entry, so this dedup stays O(n) regardless of which
+    kind of hfun produced Hash -- without it, a single evaluated point whose
+    Hash combinatorially explodes (e.g. many near-simultaneous ties in a
     censored-L1-type hfun) would make an O(n^2) equality scan the dominant
     cost of the whole algorithm.
     """
     out = _as_list(existing)
-    seen = {path_key(item) for item in out}
+    seen = {hash_key(item) for item in out}
 
     for item in _as_list(new_items):
-        key = path_key(item)
+        key = hash_key(item)
         if key not in seen:
             seen.add(key)
             out.append(item)

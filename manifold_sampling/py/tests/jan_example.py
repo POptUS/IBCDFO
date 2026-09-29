@@ -1,8 +1,8 @@
-import branch_extended_AD as jnph
 import branch_extended_AD.numpy as jnp_h
 import jax
 import jax.numpy as jnp
 import numpy as np
+from branch_extended_AD.integrations.ibcdfo import h_fun
 
 jax.config.update("jax_enable_x64", True)
 
@@ -11,18 +11,21 @@ Jax-hash versions of the hand-coded outer functions h in
 general_nonsmooth_h_funs.py / create_*_hfun.py.
 
 Each of these is just the ordinary (smooth-except-for-max/min/abs) math for the
-corresponding hand-coded hfun, wrapped with jnph.h_fun so that branch_extended_AD traces the
-max/min/maximum/minimum/abs calls and derives the branch hash automatically instead of
-it being hand-derived. There is no jax version of h_quantile: it needs an order
-statistic (2nd-smallest of the squared values), and branch_extended_AD's numpy shim only
-overrides max/min/maximum/minimum/sum/abs.
+corresponding hand-coded hfun, wrapped with h_fun (branch_extended_AD.integrations.ibcdfo)
+so that branch_extended_AD traces the max/min/maximum/minimum/abs calls and derives the
+branch hash automatically instead of it being hand-derived. There is no jax version of
+h_quantile: it needs an order statistic (2nd-smallest of the squared values), and
+branch_extended_AD's numpy shim only overrides max/min/maximum/minimum/sum/abs.
 """
 
 _TOL = 1e-8
 
 
 def _hfun_jax(f, tol=_TOL):
-    return jnph.h_fun(f, tol=tol)
+    # atol=tol, rtol=0.0 reproduces the old single-`tol` API's absolute-only tie
+    # tolerance exactly (the new h_fun's "local" tol_mode uses atol + rtol*|reference|,
+    # same formula as the hand-coded side's `_activities_and_inds(atol=, rtol=)`).
+    return h_fun(f, atol=tol, rtol=0.0)
 
 
 def _one_norm(z):

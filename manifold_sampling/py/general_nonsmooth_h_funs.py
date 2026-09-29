@@ -21,7 +21,7 @@ def _activities_and_inds(h, z, n=None, atol=1e-8, rtol=1e-8):
     return inds, grads, Hashes
 
 
-def h_one_norm(z, H0=None):
+def h_one_norm(z, H0=None, tol=1e-8):
     r"""
     :math:`\hfun` function for constructing the 1-norm
     objective function
@@ -33,6 +33,7 @@ def h_one_norm(z, H0=None):
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+    #  tol: (optional) activity/tie-detection tolerance (only used when H0 is None)
 
     # Outputs:
     #  h: [dbl]                       function value
@@ -41,8 +42,6 @@ def h_one_norm(z, H0=None):
 
     if H0 is None:
         h = np.sum(np.abs(z))
-
-        tol = 1e-8
 
         grad_lists = [None] * len(z)
         Hash_lists = [None] * len(z)
@@ -90,7 +89,7 @@ def h_one_norm(z, H0=None):
         return h, grads
 
 
-def h_pw_maximum(z, H0=None):
+def h_pw_maximum(z, H0=None, tol=1e-8):
     r"""
     :math:`\hfun` function for constructing the pointwise
     maximum objective function
@@ -103,6 +102,7 @@ def h_pw_maximum(z, H0=None):
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+    #  tol: (optional) activity/tie-detection tolerance (only used when H0 is None)
 
     # Outputs:
     #  h: [dbl]                       function value
@@ -112,7 +112,7 @@ def h_pw_maximum(z, H0=None):
     if H0 is None:
         h = np.max(z)
 
-        inds, grads, Hash = _activities_and_inds(h, z)
+        inds, grads, Hash = _activities_and_inds(h, z, atol=tol, rtol=tol)
 
         for j in range(len(inds)):
             grads[inds[j], j] = 1
@@ -132,7 +132,7 @@ def h_pw_maximum(z, H0=None):
         return h, grads
 
 
-def h_pw_maximum_squared(z, H0=None):
+def h_pw_maximum_squared(z, H0=None, tol=1e-8):
     r"""
     :math:`\hfun` function for constructing the pointwise
     maximum objective function
@@ -145,6 +145,7 @@ def h_pw_maximum_squared(z, H0=None):
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+    #  tol: (optional) activity/tie-detection tolerance (only used when H0 is None)
 
     # Outputs:
     #  h: [dbl]                       function value
@@ -156,7 +157,7 @@ def h_pw_maximum_squared(z, H0=None):
         i1 = np.argmax(z2)
         h = z[i1] ** 2
 
-        inds, grads, Hash = _activities_and_inds(h, z2)
+        inds, grads, Hash = _activities_and_inds(h, z2, atol=tol, rtol=tol)
 
         for j in range(len(inds)):
             grads[inds[j], j] = 2 * z[inds[j]]
@@ -176,7 +177,7 @@ def h_pw_maximum_squared(z, H0=None):
         return h, grads
 
 
-def h_pw_minimum(z, H0=None):
+def h_pw_minimum(z, H0=None, tol=1e-8):
     r"""
     :math:`\hfun` function for constructing the pointwise
     minimum objective function
@@ -189,6 +190,7 @@ def h_pw_minimum(z, H0=None):
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+    #  tol: (optional) activity/tie-detection tolerance (only used when H0 is None)
 
     # Outputs:
     #  h: [dbl]                       function value
@@ -198,7 +200,7 @@ def h_pw_minimum(z, H0=None):
     if H0 is None:
         h = np.min(z)
 
-        inds, grads, Hash = _activities_and_inds(h, z)
+        inds, grads, Hash = _activities_and_inds(h, z, atol=tol, rtol=tol)
 
         for j in range(len(inds)):
             grads[inds[j], j] = 1
@@ -218,7 +220,7 @@ def h_pw_minimum(z, H0=None):
         return h, grads
 
 
-def h_pw_minimum_squared(z, H0=None):
+def h_pw_minimum_squared(z, H0=None, tol=1e-8):
     r"""
     :math:`\hfun` function for constructing the pointwise
     minimum objective function
@@ -231,6 +233,7 @@ def h_pw_minimum_squared(z, H0=None):
     # Inputs:
     #  z:              [1 x p]   point where we are evaluating h
     #  H0: (optional)  [1 x l cell of strings]  set of hashes where to evaluate z
+    #  tol: (optional) activity/tie-detection tolerance (only used when H0 is None)
 
     # Outputs:
     #  h: [dbl]                       function value
@@ -241,7 +244,7 @@ def h_pw_minimum_squared(z, H0=None):
         z2 = z**2
         h = np.min(z2)
 
-        inds, grads, Hash = _activities_and_inds(h, z2)
+        inds, grads, Hash = _activities_and_inds(h, z2, atol=tol, rtol=tol)
 
         for j in range(len(inds)):
             grads[inds[j], j] = 2 * z[inds[j]]
@@ -391,7 +394,7 @@ def h_max_gamma_over_KY(z, H0=None):
         return h, grads
 
 
-def h_max_plus_quadratic_violation_penalty(z, H0=None):
+def h_max_plus_quadratic_violation_penalty(z, H0=None, tol=1e-8):
     r"""
     :math:`\hfun` function for constructing the objective
     function
@@ -429,7 +432,6 @@ def h_max_plus_quadratic_violation_penalty(z, H0=None):
     p1 = p - 1
 
     alpha = 0.0
-    h_activity_tol = 1e-8
 
     if H0 is None:
         h1 = np.max(z[:p1])
@@ -439,8 +441,8 @@ def h_max_plus_quadratic_violation_penalty(z, H0=None):
         h = h1 + h2
 
         # Active indices for the max term:
-        atol = h_activity_tol
-        rtol = h_activity_tol
+        atol = tol
+        rtol = tol
 
         inds1 = np.where(np.abs(h1 - z[:p1]) <= atol + rtol * np.abs(z[:p1]))[0]
         inds2 = p1 + np.where(z[p1:] >= -rtol)[0]
