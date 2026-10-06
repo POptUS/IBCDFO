@@ -55,6 +55,9 @@ the quadratic models of :math:`\Ffun` into a single quadratic model.
 For more detailed information please refer to :cite:t:`POUNDERS_TAO_2017`.  A
 brief description can also be found in :cite:t:`UNEDF0_2010`.
 
+We provide Python and |matlab| implementations of |pounders|, whose interfaces
+are discussed below.
+
 Programmatic Interface
 ----------------------
 Status Code

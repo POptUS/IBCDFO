@@ -76,8 +76,8 @@ def compute_default_options(delta_0, g_tol, Low, Upp):
     This is intended for private, internal use only.  No error checking of
     inputs or returned values is performed by this function.
 
-    Except for the default **spsolver** these default values are unlikely to
-    change in the future.
+    Except for the default **spsolver** and **batched_Ffun** settings these
+    default values are unlikely to change in the future.
 
     :param delta_0: Positive initial trust region radius
     :param g_tol: Tolerance for the 2-norm of the model gradient
