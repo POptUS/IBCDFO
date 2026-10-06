@@ -10,8 +10,16 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
     r"""
     Run |pounders| on the optimization problem specified by the given arguments.
 
-    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as
-        **m**-element NumPy array for given :math:`\psp`
+    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as an
+        :math:`\nd`-element NumPy array for a given :math:`\np`-element NumPy
+        array :math:`\psp`.  Alternatively, the user can provide a batched
+        function that returns a :math:`k \times \nd` 2D NumPy array of values
+        :math:`\Ffun(\psp_j)` corresponding to the points :math:`\left\{\psp_1,
+        \cdots, \psp_k\right\}` provided as a :math:`k \times \np` 2D NumPy
+        array.  **batch_Ffun** must be set appropriately to indicate the
+        evaluation type of **Ffun**.  See the general |pounders| documentation
+        for more information including the possible benefits of batched
+        execution.
     :param X_0:     **n**-element 1D NumPy array that specifies the
         initial point, which must satisfy the boundary constraints
     :param n:       Dimension (number of continuous, real-valued input variables)
@@ -47,10 +55,7 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
           and **X_0** must be identical and still satisfy the boundary
           constraints.
 
-    :param batched_Ffun: Set to ``True`` if **Ffun** accepts a batch of points as
-        a ``(batch_size, n)`` NumPy array and returns their values as a
-        ``(batch_size, m)`` NumPy array. Leave as ``False`` if **Ffun**
-        evaluates one point at a time.
+    :param batched_Ffun: Set to ``True`` if **Ffun** provides batched evaluations
 
     :return:
         * **X** - :math:`k \times` **n** NumPy array containing all points of
