@@ -114,19 +114,9 @@ class TestPounders(unittest.TestCase):
                 self.assertTrue(np.array_equal(F[1], X[1]), f"Valid geometry point's F does not match the identity Ffun. (batched_Ffun={batched}, F[1]={F[1]}, X[1]={X[1]})")
 
     def test_basic_pounders_usage(self):
-        def vecFun(x):
-            """
-            Input:
-                x is a NumPy array (column / row vector)
-            Output:
-                x + x^2 as a row vector
-            """
-            if np.shape(x)[0] > 1:
-                x = np.reshape(x, (1, max(np.shape(x))))
+        def Ffun(x):
             return x + (x**2)
 
-        # Sample calling syntax for pounders
-        Ffun = vecFun
         # n [int] Dimension (number of continuous variables)
         n = 2
         # X_0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
@@ -143,7 +133,7 @@ class TestPounders(unittest.TestCase):
         # m [int] number of residuals
         m = 2
         # F_init [dbl] [fstart-by-1] Set of known function values  ([])
-        F_init = np.zeros((10, 2))
+        F_init = np.zeros((X_0.shape[0], m))
         # xind [int] Index of point in X_0 at which to start from (1)
         xind = 0
         # Low [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
@@ -153,7 +143,7 @@ class TestPounders(unittest.TestCase):
 
         np.random.seed(1)
         F_init[0, :] = Ffun(X_0[0, :])
-        for i in range(1, 10):
+        for i in range(1, X_0.shape[0]):
             X_0[i, :] = X_0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
             F_init[i, :] = Ffun(X_0[i, :])
 

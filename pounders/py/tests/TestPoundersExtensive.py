@@ -59,13 +59,13 @@ class TestPounders(unittest.TestCase):
             #     assert len(out) == m, "Incorrect output dimension"
             #     return np.squeeze(out)
 
+            def Ffun_single_eval(Y):
+                return calfun(Y, m, int(nprob), "smooth", 0, num_outs=2)[1]
+
             def Ffun_batch(Y):
-                Y = np.atleast_2d(Y)
-
                 out = np.zeros((Y.shape[0], m))  # We will always have a (rows-in-X by 3) output
-                for i, y in enumerate(Y):
-                    out[i] = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
-
+                for i in range(Y.shape[0]):
+                    out[i] = Ffun_single_eval(Y[i, :])
                 return out
 
             X_0 = dfoxs(n, nprob, int(factor**factor_power))
@@ -73,7 +73,7 @@ class TestPounders(unittest.TestCase):
             Upp = np.full(n, np.inf, float)
             nfs = 1
             X_init = np.atleast_2d(X_0)
-            F_init = np.atleast_2d(Ffun_batch(X_0))
+            F_init = Ffun_batch(X_init)
             xind = 0
             for hfun_cases in range(1, 4):
                 Results = {}
@@ -100,7 +100,7 @@ class TestPounders(unittest.TestCase):
                 ObjOpts = {"hfun": hfun, "combinemodels": combinemodels}
                 Prior = {"nfs": nfs, "F_init": F_init, "X_init": X_init, "xk_in": xind}
 
-                X, F, hF, flag, xk_best = run_user_friendly(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts)
+                X, F, hF, flag, xk_best = run_user_friendly(Ffun_single_eval, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts)
                 Xc, Fc, hFc, flagc, xk_bestc = run_user_friendly(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts, batched_Ffun=True)
 
                 self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")

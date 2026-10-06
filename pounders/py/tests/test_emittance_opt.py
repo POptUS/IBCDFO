@@ -9,11 +9,8 @@ def call_beamline_simulation(x):
     # parameters x and returns the three values used in the calculation of
     # emittance.
     # out = put_your_sim_call_here(x)
-
-    out = x.squeeze()[:3]  # This is not doing any beamline simulation!
-
-    assert len(out) == 3, "Incorrect output dimension"
-    return np.squeeze(out)
+    out = x[:3]  # This is not doing any beamline simulation!
+    return out
 
 
 rng = np.random.default_rng(8675309)
