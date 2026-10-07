@@ -338,6 +338,8 @@ class TestPoundersInterface(unittest.TestCase):
         self.__test({"Options": bad}, ValueError)
 
     def testFfun(self):
+        # Confirming that Ffun's interface is valid is intentionally tested in
+        # the dedicated TestFfunInterface TestCase.
         for bad in self.__NOT_FUNCTION:
             self.__test({"Ffun": bad}, TypeError)
 
