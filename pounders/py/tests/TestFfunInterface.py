@@ -188,5 +188,133 @@ class TestFfunInterface(unittest.TestCase):
                 )
 
     def testScalar(self):
-        # TODO: Test m=1 special cases
-        pass
+        # ----- HARDCODED VALUES
+        THETA_STAR = np.array([2.1, -0.4, 3.4])
+        N = len(THETA_STAR)
+        M = 1
+        C = np.diag([1.1, 2.2, 3.3])
+        LOW = np.full(N, -np.inf, float)
+        UPP = np.full(N, np.inf, float)
+        X_0 = np.full(N, 0.5, float)
+
+        # ----- DETERMINE BENCHMARK
+        # This returns scalars
+        def Ffun(theta):
+            return (theta - THETA_STAR) @ C @ (theta - THETA_STAR)
+
+        X_good, F_good, hF_good, flag, xk_in_good = run_user_friendly(
+            Ffun=Ffun,
+            n=N,
+            m=M,
+            Low=LOW,
+            Upp=UPP,
+            X_0=X_0,
+            nf_max=50,
+            g_tol=1.0e-13,
+            delta_0=1.0,
+            batched_Ffun=False,
+        )
+        self.assertEqual(flag, 0)
+        max_rel_err = np.max(np.fabs(1.0 - X_good[xk_in_good, :] / THETA_STAR))
+        self.assertTrue(max_rel_err <= 5.0e-5)
+        self.assertTrue(np.squeeze(F_good[xk_in_good, :]) <= 7.5e-10)
+        self.assertTrue(np.fabs(hF_good[xk_in_good]) <= 5.625e-19)
+
+        # ----- CONFIRM IDENTICAL RESULTS
+        # We expect all results produced with acceptable, compatible Ffuns to
+        # have identical results.
+
+        # -- Single-evaluation Ffun
+        def single_eval_np_1d(theta):
+            return np.array([Ffun(theta)])
+
+        def single_eval_np_2d(theta):
+            return np.array([Ffun(theta)]).reshape((1, 1))
+
+        def single_eval_list_1d(theta):
+            return [Ffun(theta)]
+
+        def single_eval_list_2d(theta):
+            return [[Ffun(theta)]]
+
+        def single_eval_tuple(theta):
+            return tuple([Ffun(theta)])
+
+        single_eval_all = [
+            single_eval_np_1d,
+            single_eval_np_2d,
+            single_eval_list_1d,
+            single_eval_list_2d,
+            single_eval_tuple,
+        ]
+        for good in single_eval_all:
+            X, F, hF, flag, xk_in = run_user_friendly(
+                Ffun=good,
+                n=N,
+                m=M,
+                Low=LOW,
+                Upp=UPP,
+                X_0=X_0,
+                nf_max=50,
+                g_tol=1.0e-13,
+                delta_0=1.0,
+                batched_Ffun=False,
+            )
+            self.assertEqual(flag, 0)
+            self.assertEqual(xk_in, xk_in_good)
+            self.assertTrue(np.array_equal(X, X_good))
+            self.assertTrue(np.array_equal(F, F_good))
+            self.assertTrue(np.array_equal(hF, hF_good))
+
+        # -- Batched-evaluation Ffun
+        def Ffun_batched(theta):
+            k = theta.shape[0]
+            F_batch = np.full((k), np.nan, float)
+            for i in range(k):
+                F_batch[i] = Ffun(theta[i, :])
+            return F_batch
+
+        def batched_np_row(theta):
+            k = theta.shape[0]
+            return Ffun_batched(theta).reshape((1, k))
+
+        def batched_np_col(theta):
+            k = theta.shape[0]
+            return Ffun_batched(theta).reshape((k, 1))
+
+        def batched_list_1d(theta):
+            return list(Ffun_batched(theta))
+
+        def batched_list_2d(theta):
+            return [list(Ffun_batched(theta))]
+
+        def batched_tuple(theta):
+            return tuple(Ffun_batched(theta))
+
+        batched_all = [
+            Ffun_batched,
+            batched_np_row,
+            batched_np_col,
+            batched_list_1d,
+            batched_list_2d,
+            batched_tuple,
+        ]
+        for good in batched_all:
+            # print(good(THETA_STAR.reshape((N, 1))))
+            X, F, hF, flag, xk_in = run_user_friendly(
+                Ffun=good,
+                n=N,
+                m=M,
+                Low=LOW,
+                Upp=UPP,
+                X_0=X_0,
+                nf_max=50,
+                g_tol=1.0e-13,
+                delta_0=1.0,
+                batched_Ffun=True,
+            )
+            self.assertEqual(flag, 0)
+            self.assertEqual(xk_in, xk_in_good)
+            self.assertTrue(np.array_equal(X, X_good))
+            self.assertTrue(np.array_equal(F, F_good))
+            self.assertTrue(np.array_equal(hF, hF_good))
