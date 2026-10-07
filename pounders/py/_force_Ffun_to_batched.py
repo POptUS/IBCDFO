@@ -52,7 +52,7 @@ def _batched_Ffun(X, Ffun, n, m):
     """
     assert (m > 1) and (X.ndim == 2) and (X.shape[1] == n)
     k = X.shape[0]
-    F_batch = np.asarray(Ffun(X), copy=False)
+    F_batch = np.array(Ffun(X), copy=False)
     if (F_batch.ndim != 2) or (F_batch.shape != (k, m)):
         raise ValueError(f"Ffun result cannot be converted into a {k}x{m} NumPy array")
     return F_batch

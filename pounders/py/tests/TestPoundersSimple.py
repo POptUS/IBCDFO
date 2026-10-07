@@ -157,7 +157,7 @@ class TestPounders(unittest.TestCase):
         combinemodels = ibcdfo.pounders.combine_identity
 
         # Sample calling syntax for pounders
-        Ffun = lambda x: np.array([np.sum(x)])
+        Ffun = lambda x: np.sum(x)
         n = 16
 
         X_0 = np.ones(n)
@@ -177,7 +177,7 @@ class TestPounders(unittest.TestCase):
         [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
-        Ffun = lambda x: np.array([np.sum(x**2)])
+        Ffun = lambda x: np.sum(x**2)
         Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
         [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -2, f"This test should terminate because mdec == 0.  (flag={flag})")
@@ -226,7 +226,7 @@ class TestPounders(unittest.TestCase):
             Returns a 3-vector.
             """
             t = x.squeeze() - 0.7
-            return np.array([t, t**2, t**3])
+            return [t, t**2, t**3]
 
         n = 1
         X_0 = 0.4 * np.ones(n)
@@ -247,7 +247,7 @@ class TestPounders(unittest.TestCase):
 
     def test_batched_Ffun(self):
         def Ffun_single_eval(x):
-            return np.array([x[0] - 1.0, 10.0 * (x[1] - x[0] ** 3)])
+            return [x[0] - 1.0, 10.0 * (x[1] - x[0] ** 3)]
 
         def Ffun_batched(X):
             m = 2
