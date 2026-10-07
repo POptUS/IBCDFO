@@ -170,7 +170,8 @@ class TestFfunInterface(unittest.TestCase):
             return np.ones((k + 1, M))
 
         def bad_3d(theta):
-            return np.ones((2, M, 1))
+            k = theta.shape[0]
+            return np.ones((k, M, 1))
 
         for bad in [bad_1d, bad_too_few_m, bad_too_many_m, bad_too_many_k, bad_3d]:
             with self.assertRaises(ValueError):
@@ -318,3 +319,57 @@ class TestFfunInterface(unittest.TestCase):
             self.assertTrue(np.array_equal(X, X_good))
             self.assertTrue(np.array_equal(F, F_good))
             self.assertTrue(np.array_equal(hF, hF_good))
+
+        # ----- CONFIRM ERRORS CAUGHT
+        # -- Single-evaluation Ffun
+        def bad_too_few(theta):
+            return np.array([])
+
+        def bad_too_many(theta):
+            return np.ones(2)
+
+        def bad_2d(theta):
+            return np.ones((2, 1))
+
+        for bad in [bad_too_few, bad_too_many, bad_2d]:
+            with self.assertRaises(ValueError):
+                run_user_friendly(
+                    Ffun=bad,
+                    n=N,
+                    m=M,
+                    Low=LOW,
+                    Upp=UPP,
+                    X_0=X_0,
+                    nf_max=50,
+                    g_tol=1.0e-13,
+                    delta_0=1.0,
+                    batched_Ffun=False,
+                )
+
+        # -- Batched-evaluation Ffun
+        def bad_too_many_m(theta):
+            k = theta.shape[0]
+            return np.ones((k, 2))
+
+        def bad_too_few_k(theta):
+            k = theta.shape[0]
+            return np.ones((k - 1, 1))
+
+        def bad_too_many_k(theta):
+            k = theta.shape[0]
+            return np.ones((k + 1, 1))
+
+        for bad in [bad_too_many_m, bad_too_few_k, bad_too_many_k]:
+            with self.assertRaises(ValueError):
+                run_user_friendly(
+                    Ffun=bad,
+                    n=N,
+                    m=M,
+                    Low=LOW,
+                    Upp=UPP,
+                    X_0=X_0,
+                    nf_max=50,
+                    g_tol=1.0e-13,
+                    delta_0=1.0,
+                    batched_Ffun=True,
+                )

@@ -22,7 +22,7 @@ def _single_eval_Ffun(X, Ffun, n, m):
     return F_batch
 
 
-def _single_eval_Ffun_scalar(X, Ffun, n):
+def _single_eval_Ffun_m_eq_1(X, Ffun, n):
     """
     This is a special version of _single_eval_Ffun that directly handles just
     the m=1 special case.
@@ -58,7 +58,7 @@ def _batched_Ffun(X, Ffun, n, m):
     return F_batch
 
 
-def _batched_Ffun_scalar(X, Ffun, n):
+def _batched_Ffun_m_eq_1(X, Ffun, n):
     """
     This is a special version of _batched_Ffun that directly handles just
     the m=1 special case.
@@ -89,9 +89,9 @@ def force_Ffun_to_batched(Ffun, n, m, batched_Ffun):
     are valid.
     """
     if batched_Ffun and (m == 1):
-        return functools.partial(_batched_Ffun_scalar, Ffun=Ffun, n=n)
+        return functools.partial(_batched_Ffun_m_eq_1, Ffun=Ffun, n=n)
     elif batched_Ffun and (m > 1):
         return functools.partial(_batched_Ffun, Ffun=Ffun, n=n, m=m)
     elif m == 1:
-        return functools.partial(_single_eval_Ffun_scalar, Ffun=Ffun, n=n)
+        return functools.partial(_single_eval_Ffun_m_eq_1, Ffun=Ffun, n=n)
     return functools.partial(_single_eval_Ffun, Ffun=Ffun, n=n, m=m)

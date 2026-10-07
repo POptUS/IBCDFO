@@ -97,9 +97,9 @@ Aside from including flexibility in the interface, batched evaluations can also
 potentially provide additional benefits.  In particular, if |pounders|
 identifies the need to evaluate :math:`\Ffun` at multiple, independent points to
 improve its internal models, it will evaluate those points in a single batched
-call to Ffun if possible.  Therefore, significant performance gains can be
+call to Ffun if possible.  Therefore, significant performance gains might be
 achieved if the user provides a batched Ffun whose evaluation is parallelized
-across points in the batch.
+across points in the batch and executes the |pounders| optimization accordingly.
 
 .. autofunction:: ibcdfo.run_pounders
 
