@@ -26,26 +26,30 @@ def _solve_trsp_with_copies(H, g, Low, Upp, solver):
     return solver(H.copy(), g.copy(), Low.copy(), Upp.copy())
 
 
-def _wrap_single_eval_Ffun(X, Ffun, n, m):
+def _single_eval_Ffun(X, Ffun, n, m):
     """
     |pounders| is written to always call Ffun in batch mode.  This wrapper
     adapts a user-provided single-evaluation Ffun to the batch mode interface.
     """
-    assert X.ndim == 2
-    assert X.shape[1] == n
+    assert (X.ndim == 2) and (X.shape[1] == n)
     k = X.shape[0]
     F_batch = np.full((k, m), np.nan, float)
     for i in range(k):
-        # Allow Ffun to return a 1D array, 1 x m 2D array, or m x 1 2D array.
-        # Account for m=1, which should be a 1-element 1D array.
-        F_i = np.atleast_1d(np.squeeze(Ffun(X[i, :])))
+        # Allow Ffun to return an m-element 1D array, 1 x m 2D array, or m x 1
+        # 2D array.  For m=1, we still expect a single-element 1D array or a 1x1
+        # 2D array.
+        F_i = Ffun(X[i, :])
+        if (not isinstance(F_i, np.ndarray)) or (F_i.ndim not in (1, 2)):
+            raise ValueError(f"Ffun result is not an {m}-element NumPy array")
+        # For m=1, squeezing results in a scalar.
+        F_i = np.atleast_1d(np.squeeze(F_i))
         if (F_i.ndim != 1) or (len(F_i) != m):
             raise ValueError(f"Ffun result is not an {m}-element NumPy array")
         F_batch[i, :] = F_i
     return F_batch
 
 
-def _wrap_batched_Ffun(X, Ffun, n, m):
+def _batched_Ffun(X, Ffun, n, m):
     """
     Since |pounders| is written to always call Ffun in batch mode, this wrapper
     is not strictly necessary.  However, instead of having |pounders| check that
@@ -55,8 +59,7 @@ def _wrap_batched_Ffun(X, Ffun, n, m):
     overhead.  For instance, developers do not need to ensure that they have
     correctly identified all possible first evaluations of Ffun.
     """
-    assert X.ndim == 2
-    assert X.shape[1] == n
+    assert (X.ndim == 2) and (X.shape[1] == n)
     k = X.shape[0]
     F_batch = Ffun(X)
     if (not isinstance(F_batch, np.ndarray)) or (F_batch.ndim != 2) or (F_batch.shape != (k, m)):
@@ -70,11 +73,11 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     arguments.
 
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as an
-        :math:`\nd`-element NumPy array for a given :math:`\np`-element NumPy
+        :math:`\nd`-element NumPy array for a given :math:`\np`-element 1D NumPy
         array :math:`\psp`.  Alternatively, the user can provide a batched
-        function that returns a :math:`k \times \nd` 2D NumPy array of values
-        :math:`\Ffun(\psp_j)` corresponding to the points :math:`\left\{\psp_1,
-        \cdots, \psp_k\right\}` provided as a :math:`k \times \np` 2D NumPy
+        function that returns a :math:`k \times \nd` NumPy array of values
+        :math:`\Ffun(\psp_1), \cdots, \Ffun(\psp_k)` corresponding to the points
+        :math:`\psp_1, \cdots, \psp_k` provided as a :math:`k \times \np` NumPy
         array.  **batch_Ffun** must be set appropriately to indicate the
         evaluation type of **Ffun**.  See the general |pounders| documentation
         for more information including the possible benefits of batched
@@ -263,9 +266,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     if not isinstance(batched_Ffun, bool):
         raise TypeError("Error: batched_Ffun must be a boolean")
     if batched_Ffun:
-        Ffun = functools.partial(_wrap_batched_Ffun, Ffun=Ffun, n=n, m=m)
+        Ffun = functools.partial(_batched_Ffun, Ffun=Ffun, n=n, m=m)
     else:
-        Ffun = functools.partial(_wrap_single_eval_Ffun, Ffun=Ffun, n=n, m=m)
+        Ffun = functools.partial(_single_eval_Ffun, Ffun=Ffun, n=n, m=m)
 
     # ----- OPTIMIZE!
     # From here onward, we assume that Ffun accepts a (num_batch, n) 2D NumPy

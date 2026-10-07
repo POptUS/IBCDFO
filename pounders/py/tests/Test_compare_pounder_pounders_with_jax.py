@@ -23,7 +23,7 @@ def Ffun(gamma, nostruct=True):
     G_of_gamma = np.sin(gamma) - np.arange(1, len(gamma) + 1) * np.cos(gamma) * 1j
     out = np.hstack((gamma, np.real(G_of_gamma), np.imag(G_of_gamma)))
     if nostruct:
-        return hfun(out)
+        return np.array([hfun(out)])
     else:
         return out
 

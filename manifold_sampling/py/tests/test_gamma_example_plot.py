@@ -37,7 +37,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     def Ffun(y):
         out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[1]
         assert len(out) == m, "Incorrect output dimension"
-        return np.squeeze(out)
+        return out
 
     X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
     assert flag >= 0
@@ -48,7 +48,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
     def unstructured_obj(x):
         maxout = hfun(Ffun(x))
-        return np.squeeze(maxout[0])  # only the function value
+        return np.array([maxout[0]])  # only the function value
 
     nf_max = 200
     g_tol = 10**-13
