@@ -19,7 +19,7 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
         :math:`\psp_1, \cdots, \psp_k` provided as a :math:`k \times \np` NumPy
         array.  If :math:`\nd = 1`, then the returned values can be a
         :math:`k`-element 1D array, a :math:`1 \times k` 2D array, or a :math:`k
-        \times 1` 2D array.  **batch_Ffun** must be set appropriately to
+        \times 1` 2D array.  **batched_Ffun** must be set appropriately to
         indicate the evaluation type of **Ffun**.  See the general |pounders|
         documentation for more information including the possible benefits of
         batched execution.

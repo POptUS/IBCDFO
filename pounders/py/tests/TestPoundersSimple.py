@@ -62,6 +62,7 @@ class TestPounders(unittest.TestCase):
                             self.assertTrue(np.array_equal(X[:fail_at_eval, :], F[:fail_at_eval, :]))
                             self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])))
                     fail_at_eval += 1
+                    self.assertLess(fail_at_eval, nf_max, "Never stopped hitting the injected bad value within nf_max evaluations.")
                 self.assertTrue(flag >= 0)
                 self.assertTrue(fail_at_eval >= 10)
 
