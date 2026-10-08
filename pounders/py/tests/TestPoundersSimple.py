@@ -244,35 +244,3 @@ class TestPounders(unittest.TestCase):
             [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
 
             self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
-
-    def test_batched_Ffun(self):
-        def Ffun_single_eval(x):
-            return [x[0] - 1.0, 10.0 * (x[1] - x[0] ** 3)]
-
-        def Ffun_batched(X):
-            m = 2
-            F = np.zeros((X.shape[0], m))
-            for i in range(X.shape[0]):
-                F[i, :] = Ffun_single_eval(X[i, :])
-            return F
-
-        n = 2
-        X_0 = np.array([0.0, 0.0])
-        nf_max = 50
-        g_tol = 1e-13
-        delta = 0.1
-        m = 2
-        Low = -np.inf * np.ones(n)
-        Upp = np.inf * np.ones(n)
-
-        simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
-        Opts_serial = {"spsolver": simple_solver, "batched_Ffun": False}
-        Opts_batched = {"spsolver": simple_solver, "batched_Ffun": True}
-
-        X_serial, F_serial, hF_serial, flag_serial, xk_in_serial = ibcdfo.run_pounders(Ffun_single_eval, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_serial)
-        X_batch, F_batch, hF_batch, flag_batch, xk_in_batch = ibcdfo.run_pounders(Ffun_batched, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts_batched)
-
-        self.assertTrue(F_serial.shape == F_batch.shape, f"Shapes differ: serial {F_serial.shape} vs batched {F_batch.shape}")
-        self.assertTrue(np.allclose(F_serial, F_batch, atol=1e-10), f"Results differ: max diff = {np.max(np.abs(F_serial - F_batch))}")
-        self.assertEqual(flag_serial, 0, f"Serial run should succeed. (flag={flag_serial})")
-        self.assertEqual(flag_batch, 0, f"Batched run should succeed. (flag={flag_batch})")

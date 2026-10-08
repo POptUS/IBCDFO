@@ -48,7 +48,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
     def unstructured_obj(x):
         maxout = hfun(Ffun(x))
-        return np.array([maxout[0]])  # only the function value
+        return maxout[0]  # only the function value
 
     nf_max = 200
     g_tol = 10**-13

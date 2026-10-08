@@ -33,7 +33,10 @@ def _single_eval_Ffun_m_eq_1(X, Ffun, n):
     for i in range(k):
         # Allow Ffun to return a scalar, 1 single-element 1D array, or a 1x1 2D
         # array.
-        F_i = np.atleast_1d(np.squeeze(Ffun(X[i, :])))
+        F_i = np.array(Ffun(X[i, :]))
+        if F_i.ndim not in (0, 1, 2):
+            raise ValueError("Ffun result is not a scalar, 1D array, or 2D array")
+        F_i = np.atleast_1d(np.squeeze(F_i))
         if (F_i.ndim != 1) or (len(F_i) != 1):
             raise ValueError("Ffun result cannot be converted into a single-element NumPy array")
         F_batch[i, :] = F_i
@@ -65,7 +68,12 @@ def _batched_Ffun_m_eq_1(X, Ffun, n):
     """
     assert (X.ndim == 2) and (X.shape[1] == n)
     k = X.shape[0]
-    F = np.atleast_1d(np.squeeze(Ffun(X)))
+    # Allow Ffun to return a k-element 1D array, kx1 2D array, or a 1xk 2D
+    # array.
+    F = np.array(Ffun(X))
+    if F.ndim not in (1, 2):
+        raise ValueError("Ffun result is not a 1D or 2D array")
+    F = np.atleast_1d(np.squeeze(F))
     if (F.ndim != 1) or (len(F) != k):
         raise ValueError(f"Ffun result cannot be converted into a {k}x1 NumPy array")
     return F.reshape((k, 1))

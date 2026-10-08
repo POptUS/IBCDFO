@@ -331,7 +331,10 @@ class TestFfunInterface(unittest.TestCase):
         def bad_2d(theta):
             return np.ones((2, 1))
 
-        for bad in [bad_too_few, bad_too_many, bad_2d]:
+        def bad_3d(theta):
+            return np.ones((1, 1, 1))
+
+        for bad in [bad_too_few, bad_too_many, bad_2d, bad_3d]:
             with self.assertRaises(ValueError):
                 run_user_friendly(
                     Ffun=bad,
@@ -347,6 +350,9 @@ class TestFfunInterface(unittest.TestCase):
                 )
 
         # -- Batched-evaluation Ffun
+        def bad_0d(theta):
+            return 1.1
+
         def bad_too_many_m(theta):
             k = theta.shape[0]
             return np.ones((k, 2))
@@ -359,7 +365,11 @@ class TestFfunInterface(unittest.TestCase):
             k = theta.shape[0]
             return np.ones((k + 1, 1))
 
-        for bad in [bad_too_many_m, bad_too_few_k, bad_too_many_k]:
+        def bad_3d(theta):
+            k = theta.shape[0]
+            return np.ones((k, 1, 1))
+
+        for bad in [bad_0d, bad_too_many_m, bad_too_few_k, bad_too_many_k, bad_3d]:
             with self.assertRaises(ValueError):
                 run_user_friendly(
                     Ffun=bad,

@@ -11,15 +11,18 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
     Run |pounders| on the optimization problem specified by the given arguments.
 
     :param Ffun:    Function that returns :math:`\Ffun(\psp)` as an
-        :math:`\nd`-element NumPy array for a given :math:`\np`-element 1D NumPy
-        array :math:`\psp`.  Alternatively, the user can provide a batched
-        function that returns a :math:`k \times \nd` NumPy array of values
+        :math:`\nd`-element array for a given :math:`\np`-element 1D NumPy array
+        :math:`\psp`.  If :math:`\nd = 1`, then the returned value can
+        optionally be a scalar.  Alternatively, the user can provide a batched
+        function that returns a :math:`k \times \nd` array of values
         :math:`\Ffun(\psp_1), \cdots, \Ffun(\psp_k)` corresponding to the points
         :math:`\psp_1, \cdots, \psp_k` provided as a :math:`k \times \np` NumPy
-        array.  **batch_Ffun** must be set appropriately to indicate the
-        evaluation type of **Ffun**.  See the general |pounders| documentation
-        for more information including the possible benefits of batched
-        execution.
+        array.  If :math:`\nd = 1`, then the returned values can be an
+        :math:`k`-element 1D array, a :math:`1 \times k` 2D array, or a :math:`k
+        \times 1` 2D array.  **batch_Ffun** must be set appropriately to
+        indicate the evaluation type of **Ffun**.  See the general |pounders|
+        documentation for more information including the possible benefits of
+        batched execution.
     :param X_0:     **n**-element 1D NumPy array that specifies the
         initial point, which must satisfy the boundary constraints
     :param n:       Dimension (number of continuous, real-valued input variables)

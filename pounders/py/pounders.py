@@ -40,9 +40,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         :math:`\Ffun(\psp_1), \cdots, \Ffun(\psp_k)` corresponding to the points
         :math:`\psp_1, \cdots, \psp_k` provided as a :math:`k \times \np` NumPy
         array.  If :math:`\nd = 1`, then the returned values can be an
-        :math:`\nd`-element 1D array, a :math:`1 \times \nd` 2D array, or a
-        :math:`\nd \times 1` 2D array.  **batch_Ffun** must be set appropriately
-        to indicate the evaluation type of **Ffun**.  See the general |pounders|
+        :math:`k`-element 1D array, a :math:`1 \times k` 2D array, or a :math:`k
+        \times 1` 2D array.  **batch_Ffun** must be set appropriately to
+        indicate the evaluation type of **Ffun**.  See the general |pounders|
         documentation for more information including the possible benefits of
         batched execution.
     :param X_0:     :math:`\np`-element 1D NumPy array that specifies the
