@@ -65,7 +65,7 @@ class TestPounders(unittest.TestCase):
             def Ffun_batch(Y):
                 out = np.zeros((Y.shape[0], m))  # We will always have a (rows-in-X by 3) output
                 for i in range(Y.shape[0]):
-                    out[i] = Ffun_single_eval(Y[i, :])
+                    out[i, :] = Ffun_single_eval(Y[i, :])
                 return out
 
             X_0 = dfoxs(n, nprob, int(factor**factor_power))
