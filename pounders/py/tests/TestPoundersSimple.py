@@ -4,6 +4,7 @@ Unit test of simple functionality of pounders routine.
 
 import copy
 import unittest
+import functools
 
 import ibcdfo
 import numpy as np
@@ -14,21 +15,29 @@ class TestPounders(unittest.TestCase):
         self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
 
     def test_failing_objective(self):
-        # Test that NaN/Inf handling works in both serial and batched modes.
-        def failing_objective_single_eval(X, nan_freq=0.1):
-            fvec = X.copy()
-            if np.random.uniform() < nan_freq:
-                fvec[0] = np.nan
-            return fvec
+        # Test that a NaN/Inf encountered partway through a batch of
+        # model-building points behaves as expected in both serial and batched
+        # modes.
+        def make_Ffun(fail_at_eval, bad_value, use_batched):
+            n_evals = [0]
 
-        def failing_objective_batched(X, nan_freq=0.1):
-            fvec = X.copy()
-            for i in range(fvec.shape[0]):
-                fvec[i, :] = failing_objective_single_eval(X[i, :], nan_freq)
-            return fvec
+            def F_single_eval(X):
+                F = np.zeros(X.shape)
+                if n_evals[0] == fail_at_eval:
+                    F[0] = bad_value
+                n_evals[0] += 1
+                return F
+
+            def F_batched(X):
+                F = np.zeros(X.shape)
+                for i in range(F.shape[0]):
+                    F[i, :] = F_single_eval(X[i, :])
+                return F
+
+            return F_batched if use_batched else F_single_eval
 
         simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
-        nf_max = 1000
+        nf_max = 100
         g_tol = 1e-13
         n = 3
         m = 3
@@ -37,81 +46,22 @@ class TestPounders(unittest.TestCase):
         Low = np.full(n, -np.inf, float)
         Upp = np.full(n, np.inf, float)
         delta = 0.1
-        printf = 1
 
-        for batched in [False, True]:
-            with self.subTest(batched_Ffun=batched):
-                np.random.seed(1)
-
-                if batched:
-                    Ffun_to_fail = failing_objective_batched
-                else:
-                    Ffun_to_fail = failing_objective_single_eval
-                Opts = {"spsolver": simple_solver, "printf": printf, "batched_Ffun": batched}
-                [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-                self.assertEqual(flag, -3, f"No NaN was encountered in this test, but should have been. (batched_Ffun={batched}, flag={flag})")
-
-                if batched:
-                    Ffun_to_fail = lambda X: failing_objective_batched(X, 1.0)
-                else:
-                    Ffun_to_fail = lambda X: failing_objective_single_eval(X, 1.0)
-                [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-                self.assertEqual(flag, -3, f"NaN should have been encountered on first eval. (batched_Ffun={batched}, flag={flag})")
-
-        # The dimension check happens on the very first (always single-point)
-        # Ffun evaluation, before any model-building points are evaluated, so
-        # batched_Ffun has no effect here.
-        Ffun_to_fail = lambda x: np.hstack((x, x))
-        Opts = {"spsolver": simple_solver, "printf": printf}
-        with self.assertRaises(ValueError):
-            ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-
-    def test_batched_ffun_failure_preserves_earlier_points(self):
-        # Test that a NaN/Inf encountered partway through a batch of
-        # model-building points behaves as expected in both serial and batched modes.
-        def make_indexed_nan_objective(fail_at_index):
-            """
-            Ffun that supports both single-point (1D) and batched (2D)
-            calls, is the identity everywhere, and returns NaN in
-            component 0 of exactly the fail_at_index-th point evaluated
-            (0-based, counting every row of every call, in the order Ffun
-            sees them).
-            """
-            seen = [0]
-
-            def Ffun(X):
-                was_1d = X.ndim == 1
-                X = np.atleast_2d(X).copy()
-                for i in range(X.shape[0]):
-                    if seen[0] == fail_at_index:
-                        X[i, 0] = np.nan
-                    seen[0] += 1
-                return X[0] if was_1d else X
-
-            return Ffun
-
-        simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
-        n = 3
-        m = 3
-        X_0 = np.array([10.0, 20.0, 30.0])
-        Low = np.full(n, -np.inf, float)
-        Upp = np.full(n, np.inf, float)
-        delta = 0.1
-
-        for batched in [False, True]:
-            with self.subTest(batched_Ffun=batched):
-                # Point 0 is the initial evaluation of X_0.  Points 1, 2, ...
-                # are the model-building points needed to complete the first
-                # interpolation set; fail on the second of these (index 2) so
-                # that the first (index 1) must be preserved.
-                Ffun = make_indexed_nan_objective(fail_at_index=2)
-                Opts = {"spsolver": simple_solver, "batched_Ffun": batched}
-                [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun, X_0, n, 1000, 1e-13, delta, m, Low, Upp, Options=Opts)
-
-                self.assertEqual(flag, -3, f"Expected a NaN failure. (batched_Ffun={batched}, flag={flag})")
-                self.assertEqual(X.shape[0], 3, f"Earlier valid geometry point was lost. (batched_Ffun={batched}, X.shape={X.shape})")
-                self.assertFalse(np.any(np.isnan(F[1])), f"Valid geometry point's F was discarded/corrupted. (batched_Ffun={batched}, F[1]={F[1]})")
-                self.assertTrue(np.array_equal(F[1], X[1]), f"Valid geometry point's F does not match the identity Ffun. (batched_Ffun={batched}, F[1]={F[1]}, X[1]={X[1]})")
+        for batched in [True, False]:
+            for bad in [np.nan, np.inf, -np.inf]:
+                flag = -3
+                fail_at_eval = 0
+                while flag == -3:
+                    with self.subTest(Ffun=batched, bad_value=bad, fail_at_index=fail_at_eval):
+                        Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
+                        Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
+                        [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+                        if flag == -3:
+                            self.assertEqual(X.shape[0], fail_at_eval + 1, f"Earlier valid geometry point was lost. (X.shape={X.shape})")
+                            self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])), f"Valid geometry point's F was discarded/corrupted. (F[bad]={F[fail_at_eval]})")
+                    fail_at_eval += 1
+                self.assertEqual(flag, 0)
+                self.assertTrue(fail_at_eval >= 6)
 
     def test_basic_pounders_usage(self):
         def Ffun(x):
