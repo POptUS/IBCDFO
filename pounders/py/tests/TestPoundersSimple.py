@@ -4,7 +4,6 @@ Unit test of simple functionality of pounders routine.
 
 import copy
 import unittest
-import functools
 
 import ibcdfo
 import numpy as np
@@ -15,9 +14,9 @@ class TestPounders(unittest.TestCase):
         self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
 
     def test_failing_objective(self):
-        # Test that a NaN/Inf encountered partway through a batch of
-        # model-building points behaves as expected in both serial and batched
-        # modes.
+        # Test that a NaN/Inf encountered at any point during the initial
+        # point evaluation or the model-building points behaves as expected
+        # in both serial and batched modes.
         def make_Ffun(fail_at_eval, bad_value, use_batched):
             n_evals = [0]
 
@@ -52,6 +51,7 @@ class TestPounders(unittest.TestCase):
                 flag = -3
                 fail_at_eval = 0
                 while flag == -3:
+                    self.assertLess(fail_at_eval, nf_max, "Never stopped hitting the injected bad value within nf_max evaluations.")
                     with self.subTest(Ffun=batched, bad_value=bad, fail_at_index=fail_at_eval):
                         Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
                         Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
