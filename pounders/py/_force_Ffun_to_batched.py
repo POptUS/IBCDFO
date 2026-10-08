@@ -13,8 +13,8 @@ def _single_eval_Ffun(X, Ffun, n, m):
     k = X.shape[0]
     F_batch = np.full((k, m), np.nan, float)
     for i in range(k):
-        # Allow Ffun to return an m-element 1D array, 1 x m 2D array, or m x 1
-        # 2D array.
+        # Allow Ffun to return an m-element 1D array, a 1xm 2D array, or an
+        # mx1 2D array.
         F_i = np.squeeze(Ffun(X[i, :]))
         if (F_i.ndim != 1) or (len(F_i) != m):
             raise ValueError(f"Ffun result cannot be converted into a {m}-element NumPy array")
@@ -24,8 +24,7 @@ def _single_eval_Ffun(X, Ffun, n, m):
 
 def _single_eval_Ffun_m_eq_1(X, Ffun, n):
     """
-    This is a special version of _single_eval_Ffun that handles just the m=1
-    special case.
+    The m=1 special case of _single_eval_Ffun.
     """
     assert (X.ndim == 2) and (X.shape[1] == n)
     k = X.shape[0]
@@ -45,14 +44,12 @@ def _single_eval_Ffun_m_eq_1(X, Ffun, n):
 
 def _batched_Ffun(X, Ffun, n, m):
     """
-    This wraps batched Ffuns with m>1.  Since |pounders| is written to always
-    call Ffun in batch mode, this wrapper is not strictly necessary.  However,
-    instead of having |pounders| check that the user-provided Ffun has the
-    correct batch interface on the first call of Ffun during execution, we let
-    this wrapper check this on each call.  This results in more maintainable,
-    clean code with acceptably small overhead.  For instance, developers do not
-    need to ensure that they have correctly identified all possible first
-    evaluations of Ffun.
+    Wraps a user-provided batched Ffun with m>1.  Since |pounders| is written
+    to always call Ffun in batch mode, this wrapper is not strictly necessary.
+    However, checking the interface here, on every call, is simpler than
+    having |pounders| check it only on Ffun's first call: developers do not
+    need to identify every possible "first evaluation" code path, at an
+    acceptably small runtime cost.
     """
     assert (m > 1) and (X.ndim == 2) and (X.shape[1] == n)
     k = X.shape[0]
@@ -64,12 +61,11 @@ def _batched_Ffun(X, Ffun, n, m):
 
 def _batched_Ffun_m_eq_1(X, Ffun, n):
     """
-    This is a special version of _batched_Ffun that handles just the m=1 special
-    case.
+    The m=1 special case of _batched_Ffun.
     """
     assert (X.ndim == 2) and (X.shape[1] == n)
     k = X.shape[0]
-    # Allow Ffun to return a k-element 1D array, kx1 2D array, or a 1xk 2D
+    # Allow Ffun to return a k-element 1D array, a kx1 2D array, or a 1xk 2D
     # array.
     F = np.array(Ffun(X))
     if F.ndim not in (1, 2):

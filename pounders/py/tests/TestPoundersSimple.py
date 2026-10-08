@@ -16,8 +16,11 @@ class TestPounders(unittest.TestCase):
     def test_failing_objective(self):
         # Test that a NaN/Inf encountered at any point during the initial
         # point evaluation or the model-building points behaves as expected
-        # in both serial and batched modes.
+        # in both single-evaluation and batched Ffun modes.
         def make_Ffun(fail_at_eval, bad_value, use_batched):
+            # n_evals counts individual evaluations, not calls to Ffun, so
+            # fail_at_eval identifies the same point whether it is evaluated
+            # on its own or as part of a batch.
             n_evals = [0]
 
             def F_single_eval(X):
@@ -48,9 +51,10 @@ class TestPounders(unittest.TestCase):
 
         for batched in [True, False]:
             for bad in [np.nan, np.inf, -np.inf]:
-                # We don't know if the optimization will always converge within
-                # the allotted budget.  If it does, we don't know how many
-                # evaluations will be needed...
+                # We don't known in advance how many evaluations pounders will
+                # need before converging (if it converges before nf_max is
+                # reached), so we test by looping over every possible failure
+                # point up to the budget and stop early on success.
                 for fail_at_eval in range(nf_max):
                     Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
                     Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
@@ -61,9 +65,8 @@ class TestPounders(unittest.TestCase):
                     self.assertTrue(np.all(np.isfinite(F[:fail_at_eval, :])))
                     self.assertTrue(np.array_equal(X[:fail_at_eval, :], F[:fail_at_eval, :]))
                     self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])))
-                # But, we want to make sure that a sufficiently large number of
-                # evaluations were made so that this test is sufficiently
-                # stressful and meaningful.
+                # Guard against convergence happening too quickly to have
+                # exercised the failure-recovery logic.
                 self.assertTrue(fail_at_eval >= 10)
                 self.assertTrue(flag in {-3, 0})
 
@@ -73,22 +76,23 @@ class TestPounders(unittest.TestCase):
 
         # n [int] Dimension (number of continuous variables)
         n = 2
-        # X_0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
+        # X_0 [dbl] [min(nfs,1)-by-n] holds nfs points that will be passed in
+        # as Prior; X_0[xind] is the actual starting point for the optimization.
         X_0 = np.zeros((10, 2))
         X_0[0, :] = 0.5 * np.ones((1, 2))
         # nf_max [int] Maximum number of function evaluations (>n+1) (100)
         nf_max = 60
         # g_tol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
         g_tol = 10**-13
-        # delta [dbl] Positive trust region radius (.1)
+        # delta [dbl] Initial trust region radius (.1)
         delta = 0.1
-        # nfs [int] Number of function values (at X_0) known in advance (0)
+        # nfs [int] Number of rows of X_0/F_init supplied as already-known evaluations
         nfs = 10
-        # m [int] number of residuals
+        # m [int] Dimension of Ffun's output
         m = 2
-        # F_init [dbl] [fstart-by-1] Set of known function values  ([])
+        # F_init [dbl] [nfs-by-1] Known Ffun values corresponding to the rows of X_0
         F_init = np.zeros((X_0.shape[0], m))
-        # xind [int] Index of point in X_0 at which to start from (1)
+        # xind [int] Index of point in X_0 at which to start from (first index)
         xind = 0
         # Low [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
         Low = np.zeros(n)
@@ -110,7 +114,6 @@ class TestPounders(unittest.TestCase):
         hfun = ibcdfo.pounders.h_identity
         combinemodels = ibcdfo.pounders.combine_identity
 
-        # Sample calling syntax for pounders
         Ffun = lambda x: np.sum(x)
         n = 16
 
@@ -141,11 +144,10 @@ class TestPounders(unittest.TestCase):
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
-        # Sample calling syntax for pounders
         Ffun = lambda x: x
         n = 16
 
-        X_0 = 0.4 * np.ones(n)  # Test giving of column vector
+        X_0 = 0.4 * np.ones(n)
         nf_max = 200
         g_tol = 10**-13
         delta = 0.1
