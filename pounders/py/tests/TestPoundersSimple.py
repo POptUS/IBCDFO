@@ -48,23 +48,24 @@ class TestPounders(unittest.TestCase):
 
         for batched in [True, False]:
             for bad in [np.nan, np.inf, -np.inf]:
-                flag = -3
-                fail_at_eval = 0
-                while flag == -3:
-                    with self.subTest(use_batched=batched, bad_value=bad, fail_at_eval=fail_at_eval):
-                        Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
-                        Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
-                        [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-                        if flag == -3:
-                            # print(F)
-                            self.assertEqual(X.shape[0], fail_at_eval + 1, f"Earlier valid geometry point was lost. (X.shape={X.shape})")
-                            self.assertTrue(np.all(np.isfinite(F[:fail_at_eval, :])))
-                            self.assertTrue(np.array_equal(X[:fail_at_eval, :], F[:fail_at_eval, :]))
-                            self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])))
-                    fail_at_eval += 1
-                    self.assertLess(fail_at_eval, nf_max, "Never stopped hitting the injected bad value within nf_max evaluations.")
-                self.assertTrue(flag >= 0)
+                # We don't know if the optimization will always converge within
+                # the allotted budget.  If it does, we don't know how many
+                # evaluations will be needed...
+                for fail_at_eval in range(nf_max):
+                    Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
+                    Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
+                    [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+                    if flag == 0:
+                        break
+                    self.assertEqual(X.shape[0], fail_at_eval + 1, f"Earlier valid geometry point was lost. (X.shape={X.shape})")
+                    self.assertTrue(np.all(np.isfinite(F[:fail_at_eval, :])))
+                    self.assertTrue(np.array_equal(X[:fail_at_eval, :], F[:fail_at_eval, :]))
+                    self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])))
+                # But, we want to make sure that a sufficiently large number of
+                # evaluations were made so that this test is sufficiently
+                # stressful and meaningful.
                 self.assertTrue(fail_at_eval >= 10)
+                self.assertTrue(flag in {-3, 0})
 
     def test_basic_pounders_usage(self):
         def Ffun(x):
