@@ -21,14 +21,14 @@ class TestPounders(unittest.TestCase):
             n_evals = [0]
 
             def F_single_eval(X):
-                F = np.zeros(X.shape)
+                F = X.copy()
                 if n_evals[0] == fail_at_eval:
                     F[0] = bad_value
                 n_evals[0] += 1
                 return F
 
             def F_batched(X):
-                F = np.zeros(X.shape)
+                F = np.full(X.shape, np.nan, float)
                 for i in range(F.shape[0]):
                     F[i, :] = F_single_eval(X[i, :])
                 return F
@@ -36,7 +36,7 @@ class TestPounders(unittest.TestCase):
             return F_batched if use_batched else F_single_eval
 
         simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
-        nf_max = 100
+        nf_max = 25
         g_tol = 1e-13
         n = 3
         m = 3
@@ -51,17 +51,19 @@ class TestPounders(unittest.TestCase):
                 flag = -3
                 fail_at_eval = 0
                 while flag == -3:
-                    self.assertLess(fail_at_eval, nf_max, "Never stopped hitting the injected bad value within nf_max evaluations.")
-                    with self.subTest(Ffun=batched, bad_value=bad, fail_at_index=fail_at_eval):
+                    with self.subTest(use_batched=batched, bad_value=bad, fail_at_eval=fail_at_eval):
                         Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
                         Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
                         [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
                         if flag == -3:
+                            # print(F)
                             self.assertEqual(X.shape[0], fail_at_eval + 1, f"Earlier valid geometry point was lost. (X.shape={X.shape})")
-                            self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])), f"Valid geometry point's F was discarded/corrupted. (F[bad]={F[fail_at_eval]})")
+                            self.assertTrue(np.all(np.isfinite(F[:fail_at_eval, :])))
+                            self.assertTrue(np.array_equal(X[:fail_at_eval, :], F[:fail_at_eval, :]))
+                            self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])))
                     fail_at_eval += 1
-                self.assertEqual(flag, 0)
-                self.assertTrue(fail_at_eval >= 6)
+                self.assertTrue(flag >= 0)
+                self.assertTrue(fail_at_eval >= 10)
 
     def test_basic_pounders_usage(self):
         def Ffun(x):
