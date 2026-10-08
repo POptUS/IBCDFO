@@ -4,7 +4,6 @@ Unit test of simple functionality of pounders routine.
 
 import copy
 import unittest
-import functools
 
 import ibcdfo
 import numpy as np
