@@ -1,9 +1,10 @@
 """
-Confirm that |pounders| handles user-provided Ffun flexibility as desired.
+Confirm that |pounders| handles user-provided Ffun flexibility as desired.  This
+indirectly tests _force_Ffun_to_batched().
 
-While this is checking the |pounders| interface, these tests are quite involved
-and are, therefore, executed in a dedicated TestCase rather than including them
-in TestPoundersInterface.
+While this code checks the |pounders| interface, these tests are quite involved
+and are, therefore, isolated in a dedicated TestCase rather than included in
+TestPoundersInterface.
 """
 
 import unittest
@@ -27,7 +28,11 @@ class TestFfunInterface(unittest.TestCase):
         UPP = np.full(N, np.inf, float)
         X_0 = np.full(N, 0.5, float)
 
-        # ----- DETERMINE BENCHMARK
+        NF_MAX = 50
+        G_TOL = 1.0e-13
+        DELTA_0 = 1.0
+
+        # ----- DETERMINE m>1 BENCHMARK
         def Ffun(theta):
             return A @ (theta - THETA_STAR)
 
@@ -38,16 +43,16 @@ class TestFfunInterface(unittest.TestCase):
             Low=LOW,
             Upp=UPP,
             X_0=X_0,
-            nf_max=50,
-            g_tol=1.0e-13,
-            delta_0=1.0,
+            nf_max=NF_MAX,
+            g_tol=G_TOL,
+            delta_0=DELTA_0,
             batched_Ffun=False,
         )
         self.assertEqual(flag, 0)
         max_rel_err = np.max(np.fabs(1.0 - X_good[xk_in_good, :] / THETA_STAR))
         self.assertTrue(max_rel_err <= 4.0 * EPS)
         self.assertTrue(np.max(np.fabs(F_good[xk_in_good, :])) <= 4.0 * EPS)
-        self.assertTrue(np.fabs(hF_good[xk_in_good]) <= 4.0 * EPS)
+        self.assertTrue(0.0 <= hF_good[xk_in_good] <= 4.0 * EPS)
 
         # ----- CONFIRM IDENTICAL RESULTS
         # We expect all results produced with acceptable, compatible Ffuns to
@@ -60,7 +65,23 @@ class TestFfunInterface(unittest.TestCase):
         def single_eval_list(theta):
             return list(Ffun(theta))
 
-        for good in [single_eval_tuple, single_eval_list]:
+        def single_eval_list_2d(theta):
+            return [list(Ffun(theta))]
+
+        def single_eval_row(theta):
+            return Ffun(theta).reshape((1, M))
+
+        def single_eval_col(theta):
+            return Ffun(theta).reshape((M, 1))
+
+        single_evals_all = [
+            single_eval_tuple,
+            single_eval_list,
+            single_eval_list_2d,
+            single_eval_row,
+            single_eval_col,
+        ]
+        for good in single_evals_all:
             X, F, hF, flag, xk_in = run_user_friendly(
                 Ffun=good,
                 n=N,
@@ -68,9 +89,9 @@ class TestFfunInterface(unittest.TestCase):
                 Low=LOW,
                 Upp=UPP,
                 X_0=X_0,
-                nf_max=50,
-                g_tol=1.0e-13,
-                delta_0=1.0,
+                nf_max=NF_MAX,
+                g_tol=G_TOL,
+                delta_0=DELTA_0,
                 batched_Ffun=False,
             )
             self.assertEqual(flag, 0)
@@ -80,9 +101,6 @@ class TestFfunInterface(unittest.TestCase):
             self.assertTrue(np.array_equal(hF, hF_good))
 
         # -- Batched-evaluation Ffun
-        # TODO: Should this be setup so that it keeps track of the largest batch
-        # that was executed so that we can also confirm that batch execution
-        # actually happens?
         def Ffun_batched(theta):
             k = theta.shape[0]
             F_batch = np.full((k, M), np.nan, float)
@@ -98,11 +116,7 @@ class TestFfunInterface(unittest.TestCase):
             return F_batch
 
         def batched_tuple(theta):
-            k = theta.shape[0]
-            F_batch = []
-            for i in range(k):
-                F_batch.append(single_eval_tuple(theta[i, :]))
-            return tuple(F_batch)
+            return tuple(batched_list(theta))
 
         for good in [Ffun_batched, batched_list, batched_tuple]:
             X, F, hF, flag, xk_in = run_user_friendly(
@@ -112,9 +126,9 @@ class TestFfunInterface(unittest.TestCase):
                 Low=LOW,
                 Upp=UPP,
                 X_0=X_0,
-                nf_max=50,
-                g_tol=1.0e-13,
-                delta_0=1.0,
+                nf_max=NF_MAX,
+                g_tol=G_TOL,
+                delta_0=DELTA_0,
                 batched_Ffun=True,
             )
             self.assertEqual(flag, 0)
@@ -138,19 +152,20 @@ class TestFfunInterface(unittest.TestCase):
             return np.ones((2, M))
 
         for bad in [bad_scalar, bad_too_few, bad_too_many, bad_2d]:
-            with self.assertRaises(ValueError):
-                run_user_friendly(
-                    Ffun=bad,
-                    n=N,
-                    m=M,
-                    Low=LOW,
-                    Upp=UPP,
-                    X_0=X_0,
-                    nf_max=50,
-                    g_tol=1.0e-13,
-                    delta_0=1.0,
-                    batched_Ffun=False,
-                )
+            with self.subTest(Ffun=bad):
+                with self.assertRaises(ValueError):
+                    run_user_friendly(
+                        Ffun=bad,
+                        n=N,
+                        m=M,
+                        Low=LOW,
+                        Upp=UPP,
+                        X_0=X_0,
+                        nf_max=NF_MAX,
+                        g_tol=G_TOL,
+                        delta_0=DELTA_0,
+                        batched_Ffun=False,
+                    )
 
         # -- Batched-evaluation Ffun
         def bad_1d(theta):
@@ -174,19 +189,20 @@ class TestFfunInterface(unittest.TestCase):
             return np.ones((k, M, 1))
 
         for bad in [bad_1d, bad_too_few_m, bad_too_many_m, bad_too_many_k, bad_3d]:
-            with self.assertRaises(ValueError):
-                run_user_friendly(
-                    Ffun=bad,
-                    n=N,
-                    m=M,
-                    Low=LOW,
-                    Upp=UPP,
-                    X_0=X_0,
-                    nf_max=50,
-                    g_tol=1.0e-13,
-                    delta_0=1.0,
-                    batched_Ffun=True,
-                )
+            with self.subTest(Ffun=bad):
+                with self.assertRaises(ValueError):
+                    run_user_friendly(
+                        Ffun=bad,
+                        n=N,
+                        m=M,
+                        Low=LOW,
+                        Upp=UPP,
+                        X_0=X_0,
+                        nf_max=NF_MAX,
+                        g_tol=G_TOL,
+                        delta_0=DELTA_0,
+                        batched_Ffun=True,
+                    )
 
     def testScalar(self):
         # ----- HARDCODED VALUES
@@ -198,8 +214,12 @@ class TestFfunInterface(unittest.TestCase):
         UPP = np.full(N, np.inf, float)
         X_0 = np.full(N, 0.5, float)
 
-        # ----- DETERMINE BENCHMARK
-        # This returns scalars
+        NF_MAX = 50
+        G_TOL = 1.0e-13
+        DELTA_0 = 1.0
+
+        # ----- DETERMINE m=1 BENCHMARK
+        # This returns nonnegative scalars
         def Ffun(theta):
             return (theta - THETA_STAR) @ C @ (theta - THETA_STAR)
 
@@ -210,16 +230,16 @@ class TestFfunInterface(unittest.TestCase):
             Low=LOW,
             Upp=UPP,
             X_0=X_0,
-            nf_max=50,
-            g_tol=1.0e-13,
-            delta_0=1.0,
+            nf_max=NF_MAX,
+            g_tol=G_TOL,
+            delta_0=DELTA_0,
             batched_Ffun=False,
         )
         self.assertEqual(flag, 0)
         max_rel_err = np.max(np.fabs(1.0 - X_good[xk_in_good, :] / THETA_STAR))
         self.assertTrue(max_rel_err <= 5.0e-5)
         self.assertTrue(np.squeeze(F_good[xk_in_good, :]) <= 7.5e-10)
-        self.assertTrue(np.fabs(hF_good[xk_in_good]) <= 5.625e-19)
+        self.assertTrue(0.0 <= hF_good[xk_in_good] <= 5.625e-19)
 
         # ----- CONFIRM IDENTICAL RESULTS
         # We expect all results produced with acceptable, compatible Ffuns to
@@ -230,7 +250,7 @@ class TestFfunInterface(unittest.TestCase):
             return np.array([Ffun(theta)])
 
         def single_eval_np_2d(theta):
-            return np.array([Ffun(theta)]).reshape((1, 1))
+            return single_eval_np_1d(theta).reshape((1, 1))
 
         def single_eval_list_1d(theta):
             return [Ffun(theta)]
@@ -256,9 +276,9 @@ class TestFfunInterface(unittest.TestCase):
                 Low=LOW,
                 Upp=UPP,
                 X_0=X_0,
-                nf_max=50,
-                g_tol=1.0e-13,
-                delta_0=1.0,
+                nf_max=NF_MAX,
+                g_tol=G_TOL,
+                delta_0=DELTA_0,
                 batched_Ffun=False,
             )
             self.assertEqual(flag, 0)
@@ -309,9 +329,9 @@ class TestFfunInterface(unittest.TestCase):
                 Low=LOW,
                 Upp=UPP,
                 X_0=X_0,
-                nf_max=50,
-                g_tol=1.0e-13,
-                delta_0=1.0,
+                nf_max=NF_MAX,
+                g_tol=G_TOL,
+                delta_0=DELTA_0,
                 batched_Ffun=True,
             )
             self.assertEqual(flag, 0)
@@ -323,6 +343,7 @@ class TestFfunInterface(unittest.TestCase):
         # ----- CONFIRM ERRORS CAUGHT
         # -- Single-evaluation Ffun
         def bad_too_few(theta):
+            # This is a 1D array of length zero
             return np.array([])
 
         def bad_too_many(theta):
@@ -335,19 +356,20 @@ class TestFfunInterface(unittest.TestCase):
             return np.ones((1, 1, 1))
 
         for bad in [bad_too_few, bad_too_many, bad_2d, bad_3d]:
-            with self.assertRaises(ValueError):
-                run_user_friendly(
-                    Ffun=bad,
-                    n=N,
-                    m=M,
-                    Low=LOW,
-                    Upp=UPP,
-                    X_0=X_0,
-                    nf_max=50,
-                    g_tol=1.0e-13,
-                    delta_0=1.0,
-                    batched_Ffun=False,
-                )
+            with self.subTest(Ffun=bad):
+                with self.assertRaises(ValueError):
+                    run_user_friendly(
+                        Ffun=bad,
+                        n=N,
+                        m=M,
+                        Low=LOW,
+                        Upp=UPP,
+                        X_0=X_0,
+                        nf_max=NF_MAX,
+                        g_tol=G_TOL,
+                        delta_0=DELTA_0,
+                        batched_Ffun=False,
+                    )
 
         # -- Batched-evaluation Ffun
         def bad_0d(theta):
@@ -358,6 +380,7 @@ class TestFfunInterface(unittest.TestCase):
             return np.ones((k, 2))
 
         def bad_too_few_k(theta):
+            # This is a 2D array with zero rows if k=1
             k = theta.shape[0]
             return np.ones((k - 1, 1))
 
@@ -370,16 +393,17 @@ class TestFfunInterface(unittest.TestCase):
             return np.ones((k, 1, 1))
 
         for bad in [bad_0d, bad_too_many_m, bad_too_few_k, bad_too_many_k, bad_3d]:
-            with self.assertRaises(ValueError):
-                run_user_friendly(
-                    Ffun=bad,
-                    n=N,
-                    m=M,
-                    Low=LOW,
-                    Upp=UPP,
-                    X_0=X_0,
-                    nf_max=50,
-                    g_tol=1.0e-13,
-                    delta_0=1.0,
-                    batched_Ffun=True,
-                )
+            with self.subTest(Ffun=bad):
+                with self.assertRaises(ValueError):
+                    run_user_friendly(
+                        Ffun=bad,
+                        n=N,
+                        m=M,
+                        Low=LOW,
+                        Upp=UPP,
+                        X_0=X_0,
+                        nf_max=NF_MAX,
+                        g_tol=G_TOL,
+                        delta_0=DELTA_0,
+                        batched_Ffun=True,
+                    )
