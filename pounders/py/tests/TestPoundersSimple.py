@@ -14,9 +14,8 @@ class TestPounders(unittest.TestCase):
         self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
 
     def test_failing_objective(self):
-        # Test that a NaN/Inf encountered at any point during the initial
-        # point evaluation or the model-building points behaves as expected
-        # in both single-evaluation and batched Ffun modes.
+        # Test that pounders correctly handles a NaN/Inf encountered at any point 
+        # evaluated in both single-evaluation and batched Ffun modes.
         def make_Ffun(fail_at_eval, bad_value, use_batched):
             # n_evals counts individual evaluations, not calls to Ffun, so
             # fail_at_eval identifies the same point whether it is evaluated
@@ -67,7 +66,7 @@ class TestPounders(unittest.TestCase):
                     self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])))
                 # Guard against convergence happening too quickly to have
                 # exercised the failure-recovery logic.
-                self.assertTrue(fail_at_eval >= 10)
+                self.assertTrue(fail_at_eval >= 15)
                 self.assertTrue(flag in {-3, 0})
 
     def test_basic_pounders_usage(self):
