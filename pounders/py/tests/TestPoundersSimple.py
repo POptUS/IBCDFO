@@ -14,7 +14,7 @@ class TestPounders(unittest.TestCase):
         self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
 
     def test_failing_objective(self):
-        # Test that pounders correctly handles a NaN/Inf encountered at any point 
+        # Test that pounders correctly handles a NaN/Inf encountered at any point
         # evaluated in both single-evaluation and batched Ffun modes.
         def make_Ffun(fail_at_eval, bad_value, use_batched):
             # n_evals counts individual evaluations, not calls to Ffun, so
