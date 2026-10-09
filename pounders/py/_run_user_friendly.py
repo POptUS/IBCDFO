@@ -4,15 +4,25 @@ from .constants import TRSP_SOLVER_MINQ5
 from .create_trsp_solver import create_trsp_solver
 from .general_h_funs import h_leastsquares, combine_leastsquares
 from .pounders import pounders
-from .pounders_concurrent import pounders as pounders_concurrent
 
 
-def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts=None, Prior=None, concurrent=False):
+def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts=None, Prior=None, batched_Ffun=False):
     r"""
     Run |pounders| on the optimization problem specified by the given arguments.
 
-    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as
-        **m**-element NumPy array for given :math:`\psp`
+    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as an
+        :math:`\nd`-element array for a given :math:`\np`-element 1D NumPy array
+        :math:`\psp`.  If :math:`\nd = 1`, then the returned value can
+        optionally be a scalar.  Alternatively, the user can provide a batched
+        function that returns a :math:`k \times \nd` array of values
+        :math:`\Ffun(\psp_1), \cdots, \Ffun(\psp_k)` corresponding to the points
+        :math:`\psp_1, \cdots, \psp_k` provided as a :math:`k \times \np` NumPy
+        array.  If :math:`\nd = 1`, then the returned values can be a
+        :math:`k`-element 1D array, a :math:`1 \times k` 2D array, or a :math:`k
+        \times 1` 2D array.  **batched_Ffun** must be set appropriately to
+        indicate the evaluation type of **Ffun**.  See the general |pounders|
+        documentation for more information including the possible benefits of
+        batched execution.
     :param X_0:     **n**-element 1D NumPy array that specifies the
         initial point, which must satisfy the boundary constraints
     :param n:       Dimension (number of continuous, real-valued input variables)
@@ -48,13 +58,7 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
           and **X_0** must be identical and still satisfy the boundary
           constraints.
 
-    :param concurrent: Set to ``True`` if **Ffun** accepts a batch of points as
-        a ``(batch_size, n)`` NumPy array and returns their values as a
-        ``(batch_size, m)`` NumPy array, so that |pounders| can request and
-        evaluate all model-building points for a given iteration together
-        (see :py:func:`ibcdfo.run_pounders_concurrent` for the exact calling
-        convention). Leave as ``False`` if **Ffun** evaluates one point at a
-        time.
+    :param batched_Ffun: Set to ``True`` if **Ffun** provides batched evaluations
 
     :return:
         * **X** - :math:`k \times` **n** NumPy array containing all points of
@@ -81,25 +85,10 @@ def run_user_friendly(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, ObjOpts
     if set(Options) != {"hfun", "combinemodels"}:
         raise ValueError("Error: Invalid hfun configuration")
     Options["spsolver"] = create_trsp_solver(TRSP_SOLVER_MINQ5)
+    Options["batched_Ffun"] = batched_Ffun
 
     # ----- OPTIMIZE!
     # Let POUNDERS error check the majority of the arguments.
-    if concurrent:
-        return pounders_concurrent(
-            Ffun=Ffun,
-            X_0=X_0,
-            n=n,
-            nf_max=nf_max,
-            g_tol=g_tol,
-            delta_0=delta_0,
-            m=m,
-            Low=Low,
-            Upp=Upp,
-            Options=Options,
-            Prior=Prior,
-            Model=None,
-        )
-
     return pounders(
         Ffun=Ffun,
         X_0=X_0,

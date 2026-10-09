@@ -55,7 +55,8 @@ the quadratic models of :math:`\Ffun` into a single quadratic model.
 For more detailed information please refer to :cite:t:`POUNDERS_TAO_2017`.  A
 brief description can also be found in :cite:t:`UNEDF0_2010`.
 
-We provide two implementations of |pounders|, namely, `pounders` and `pounders_concurrent`.
+We provide Python and |matlab| implementations of |pounders|, whose interfaces
+are discussed below.
 
 Programmatic Interface
 ----------------------
@@ -82,8 +83,25 @@ to provide language-specific descriptions.
 
 Python
 ^^^^^^
+
+**Single vs. Batched Ffun Evaluations**
+
+The programmatic implementation of :math:`\Ffun` is referred to as "Ffun".
+Python users can provide to |pounders| a single-evaluation Ffun, which accepts a
+single point as input and returns its associated value, or a batched Ffun, which
+accepts a batch of one or more points and returns the values associated with all
+given points.  The evaluation type of the provided Ffun is communicated to
+|pounders| by the **batched_Ffun** optional argument.
+
+Aside from including flexibility in the interface, batched evaluations can also
+potentially provide additional benefits.  In particular, if |pounders|
+identifies the need to evaluate :math:`\Ffun` at multiple, independent points to
+improve its internal models, it will evaluate those points in a single batched
+call to Ffun if possible.  Therefore, significant performance gains might be
+achieved if the user provides a batched Ffun whose evaluation is parallelized
+across points in the batch and executes the |pounders| optimization accordingly.
+
 .. autofunction:: ibcdfo.run_pounders
-.. autofunction:: ibcdfo.run_pounders_concurrent
 
 |matlab|
 ^^^^^^^^

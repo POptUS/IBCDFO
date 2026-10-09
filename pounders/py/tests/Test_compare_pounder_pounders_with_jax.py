@@ -21,7 +21,7 @@ def Ffun(gamma, nostruct=True):
     # This is a synthetic Ffun. The real example calls an expensive-to-evaluate
     # quantum system to obtain G_of_gamma
     G_of_gamma = np.sin(gamma) - np.arange(1, len(gamma) + 1) * np.cos(gamma) * 1j
-    out = np.squeeze(np.hstack((gamma, np.real(G_of_gamma), np.imag(G_of_gamma))))
+    out = np.hstack((gamma, np.real(G_of_gamma), np.imag(G_of_gamma)))
     if nostruct:
         return hfun(out)
     else:

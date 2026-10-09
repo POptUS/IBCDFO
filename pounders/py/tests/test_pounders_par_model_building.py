@@ -7,14 +7,11 @@ def call_beamline_simulation_batch(X):
     # x in rows of X and returns the three values used in the calculation of
     # emittance.
     # out = put_your_sim_call_here(x)
-    print(X.shape)
-
-    X = np.atleast_2d(X)  # Just to make life easier
-
-    out = np.zeros((X.shape[0], 3))  # We will always have a (rows-in-X by 3) output
-    for i, x in enumerate(X):
-        out[i] = x[:3]  # This is not doing any beamline simulation!
-    return np.squeeze(out)
+    k = X.shape[0]
+    out = np.zeros((k, 3))  # We will always have a (rows-in-X by 3) output
+    for i in range(k):
+        out[i, :] = X[i, :3]  # This is not doing any beamline simulation!
+    return out
 
 
 rng = np.random.default_rng(8675309)
@@ -33,17 +30,18 @@ delta_0 = 0.1  # Initial trust-region radius
 nfs = 1  # Number of initial evaluations
 xk_in = 0  # Index in F_0 for starting the optimization (usually the point with minimal emittance)
 X_init = np.atleast_2d(X_0)
-F_init = np.atleast_2d(Ffun(X_0))
+F_init = Ffun(X_init)
 
 Options = {
     "printf": True,
     "hfun": ibcdfo.pounders.h_emittance,
     "combinemodels": ibcdfo.pounders.combine_emittance,
+    "batched_Ffun": True,
 }
 Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xk_in}
 
 # The call to the method
-[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders_concurrent(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
+[Xout, Fout, hFout, flag, xk_inout] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=Prior, Options=Options, Model={})
 
 assert flag >= 0, "pounders crashed"
 
