@@ -87,11 +87,11 @@ Python
 **Single vs. Batched Ffun Evaluations**
 
 The programmatic implementation of :math:`\Ffun` is referred to as "Ffun".
-Python users can provide to |pounders| a single-evaluation Ffun, which accepts a
-single point as input and returns its associated value, or a batched Ffun, which
-accepts a batch of one or more points and returns the values associated with all
-given points.  The evaluation type of the provided Ffun is communicated to
-|pounders| by the **batched_Ffun** optional argument.
+Python users can provide to |pounders| either a single-evaluation Ffun, which 
+accepts a single point as input and returns its associated value, or a batched 
+Ffun, which accepts a batch of one or more points and returns the values 
+associated with all given points.  The evaluation type of the provided Ffun is 
+communicated to |pounders| by the **batched_Ffun** optional argument.
 
 Aside from including flexibility in the interface, batched evaluations can also
 potentially provide additional benefits.  In particular, if |pounders|
