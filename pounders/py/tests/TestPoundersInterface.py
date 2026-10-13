@@ -338,6 +338,8 @@ class TestPoundersInterface(unittest.TestCase):
         self.__test({"Options": bad}, ValueError)
 
     def testFfun(self):
+        # Confirming that Ffun's interface is valid is intentionally tested in
+        # the dedicated TestFfunInterface TestCase.
         for bad in self.__NOT_FUNCTION:
             self.__test({"Ffun": bad}, TypeError)
 
@@ -659,3 +661,7 @@ class TestPoundersInterface(unittest.TestCase):
     def testSpsolver(self):
         for bad in self.__NOT_FUNCTION:
             self.__test({"spsolver": bad}, TypeError)
+
+    def testBatchedFfun(self):
+        for bad in [None, "", 1, 1.1, [], {}]:
+            self.__test({"batched_Ffun": bad}, TypeError)

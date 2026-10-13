@@ -2,17 +2,11 @@ import functools
 
 import numpy as np
 
-from .defaults import (
-    ALL_MODEL_KEYS,
-    ALL_OPTIONS_KEYS,
-    EXPECTED_PRIOR_KEYS,
-    compute_default_prior,
-    compute_default_model,
-    compute_default_options,
-)
-from .._variable_checks import is_integer, is_finite_real
+from .._variable_checks import is_finite_real, is_integer
+from ._force_Ffun_to_batched import force_Ffun_to_batched
 from .bmpts import bmpts
 from .checkinputss import checkinputss
+from .defaults import ALL_MODEL_KEYS, ALL_OPTIONS_KEYS, EXPECTED_PRIOR_KEYS, compute_default_model, compute_default_options, compute_default_prior
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
@@ -31,8 +25,19 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     Run |pounders| on the optimization problem specified by the given
     arguments.
 
-    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as
-        :math:`\nd`-element NumPy array for given :math:`\psp`
+    :param Ffun:    Function that returns :math:`\Ffun(\psp)` as an
+        :math:`\nd`-element array for a given :math:`\np`-element 1D NumPy array
+        :math:`\psp`.  If :math:`\nd = 1`, then the returned value can
+        optionally be a scalar.  Alternatively, the user can provide a batched
+        function that returns a :math:`k \times \nd` array of values
+        :math:`\Ffun(\psp_1), \cdots, \Ffun(\psp_k)` corresponding to the points
+        :math:`\psp_1, \cdots, \psp_k` provided as a :math:`k \times \np` NumPy
+        array.  If :math:`\nd = 1`, then the returned values can be a
+        :math:`k`-element 1D array, a :math:`1 \times k` 2D array, or a :math:`k
+        \times 1` 2D array.  **batched_Ffun** must be set appropriately to
+        indicate the evaluation type of **Ffun**.  See the general |pounders|
+        documentation for more information including the possible benefits of
+        batched execution.
     :param X_0:     :math:`\np`-element 1D NumPy array that specifies the
         initial point, which must satisfy the boundary constraints
     :param n:       Dimension (number of continuous, real-valued input variables)
@@ -69,7 +74,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           created using :py:func:`ibcdfo.pounders.create_trsp_solver`.  If not
           specified, the MINQ5 solver (recommended) is used.  TRSP solvers must
           not alter the contents of the arguments passed to them.
-
+        * **batched_Ffun** - Set to ``False`` (default) if **Ffun** is
+          single-evaluation.
         * **delta_max** - Maximum allowed trust-region radius (default is
           :math:`\min(\min(\mathrm{Upp}-\mathrm{Low})/2, 10^3\cdot\mathrm{delta\_0})`)
         * **delta_min** - Minimum allowed trust-region radius; falling at or
@@ -195,6 +201,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     printf = defaults["printf"]
     spsolver = defaults["spsolver"]
+    batched_Ffun = defaults["batched_Ffun"]
     delta_max = defaults["delta_max"]
     delta_min = defaults["delta_min"]
     delta_inact = defaults["delta_inact"]
@@ -223,6 +230,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     solve_trsp = functools.partial(_solve_trsp_with_copies, solver=spsolver)
     del spsolver
 
+    # User can provide an Ffun that is either single-evaluation or batched.
+    # Wrap their Ffun so that it satisfies the batched Ffun interface as
+    # detailed in force_Ffun_to_batched()'s documentation.  All subsequent code
+    # that calls Ffun should be written to adhere strictly to that single
+    # interface.
+    if not isinstance(batched_Ffun, bool):
+        raise TypeError("Error: batched_Ffun must be a boolean")
+    Ffun = force_Ffun_to_batched(Ffun, n, m, batched_Ffun)
+
     # ----- OPTIMIZE!
     eps = np.finfo(float).eps  # Define machine epsilon
 
@@ -232,11 +248,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         F = np.zeros((nf_max, m))
         hF = np.zeros(nf_max)
         nf = 0  # in Matlab this is 1
-        F_0 = np.atleast_2d(Ffun(X[nf]))
-        if F_0.shape[1] != m:
-            X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -1)
-            return X, F, hF, flag, xk_in
-        F[nf] = F_0
+        F[nf, :] = Ffun(X[nf, :].reshape(1, n))
         if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
             return X, F, hF, flag, xk_in
@@ -261,10 +273,14 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         [Mdir, mp, valid, Gres, Hresdel, Mind] = formquad(X[0 : nf + 1, :], Res[0 : nf + 1, :], delta, xk_in, np_max, Par, False)
         if mp < n:
             [Mdir, mp] = bmpts(X[xk_in], Mdir[0 : n - mp, :], Low, Upp, delta, Par[2])
-            for i in range(int(min(n - mp, nf_max - (nf + 1)))):
+            k_new = int(min(n - mp, nf_max - (nf + 1)))
+            idx_new = nf + 1 + np.arange(k_new)
+
+            X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
+            F[idx_new] = Ffun(X[idx_new])
+
+            for i in range(k_new):
                 nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
-                F[nf] = Ffun(X[nf])
                 if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                     X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                     return X, F, hF, flag, xk_in
@@ -315,7 +331,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 for i in range(min(n - mp, nf_max - (nf + 1))):
                     nf += 1
                     X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
-                    F[nf] = Ffun(X[nf])
+                    F[nf, :] = Ffun(X[nf, :].reshape(1, n))
                     if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                         return X, F, hF, flag, xk_in
@@ -368,7 +384,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 # We don't want to do the expensive F eval if Xsp is already in X
                 F[nf] = F[xk_in]
             else:
-                F[nf] = Ffun(X[nf])
+                F[nf, :] = Ffun(X[nf, :].reshape(1, n))
 
             if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                 X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
@@ -445,7 +461,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                     Xsp = Mdir1[b, :]
                 nf += 1
                 X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
-                F[nf] = Ffun(X[nf])
+                F[nf, :] = Ffun(X[nf, :].reshape(1, n))
                 if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                     X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
                     return X, F, hF, flag, xk_in

@@ -28,9 +28,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[10:11]):
     m = int(m)
 
     def Ffun(y):
-        out = calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[0]
-        # assert len(out) == m, "Incorrect output dimension"
-        return np.squeeze(out)
+        return calfun(y, m, int(nprob), "smooth", 0, num_outs=2)[0]
 
     X_0 = dfoxs(n, nprob, int(10**factor_power))
     Low = -np.inf * np.ones(n)  # 1-by-n Vector of lower bounds [zeros(1, n)]
