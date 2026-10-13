@@ -9,29 +9,36 @@ import ibcdfo
 import numpy as np
 
 
-# I am defining this call to pounders to include calls to pounders
-# and pounders_concurrent without having to duplicate every
-# call in this regression test.
-def both_pounders(*args, **kwargs):
-    ibcdfo.run_pounders_concurrent(*args, **kwargs)
-    return ibcdfo.run_pounders(*args, **kwargs)
-
-
 class TestPounders(unittest.TestCase):
     def setUp(self):
         self.__solvers = copy.deepcopy(ibcdfo.pounders.constants.TRSP_SOLVERS)
 
     def test_failing_objective(self):
-        def failing_objective(x, nan_freq=0.1):
-            fvec = x
+        # Test that pounders correctly handles a NaN/Inf encountered at any point
+        # evaluated in both single-evaluation and batched Ffun modes.
+        def make_Ffun(fail_at_eval, bad_value, use_batched):
+            # n_evals counts individual evaluations, not calls to Ffun, so
+            # fail_at_eval identifies the same point whether it is evaluated
+            # on its own or as part of a batch.
+            n_evals = [0]
 
-            if np.random.uniform() < nan_freq:
-                fvec[0] = np.nan
+            def F_single_eval(X):
+                F = X.copy()
+                if n_evals[0] == fail_at_eval:
+                    F[0] = bad_value
+                n_evals[0] += 1
+                return F
 
-            return fvec
+            def F_batched(X):
+                F = np.full(X.shape, np.nan, float)
+                for i in range(F.shape[0]):
+                    F[i, :] = F_single_eval(X[i, :])
+                return F
+
+            return F_batched if use_batched else F_single_eval
 
         simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
-        nf_max = 1000
+        nf_max = 25
         g_tol = 1e-13
         n = 3
         m = 3
@@ -40,54 +47,51 @@ class TestPounders(unittest.TestCase):
         Low = np.full(n, -np.inf, float)
         Upp = np.full(n, np.inf, float)
         delta = 0.1
-        printf = 1
 
-        np.random.seed(1)
-
-        Opts = {"spsolver": simple_solver, "printf": printf}
-        [X, F, hF, flag, xk_best] = both_pounders(failing_objective, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-        self.assertEqual(flag, -3, f"No NaN was encountered in this test, but should have been. (flag={flag})")
-
-        Ffun_to_fail = lambda x: failing_objective(x, 1.0)
-        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-        self.assertEqual(flag, -3, f"NaN should have been encountered on first eval. (flag={flag})")
-
-        Ffun_to_fail = lambda x: np.hstack((x, x))
-        [X, F, hF, flag, xk_best] = both_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
-        self.assertEqual(flag, -1, f"Dimension error should have occurred on first eval. (flag={flag})")
+        for batched in [True, False]:
+            for bad in [np.nan, np.inf, -np.inf]:
+                # We don't known in advance how many evaluations pounders will
+                # need before converging (if it converges before nf_max is
+                # reached), so we test by looping over every possible failure
+                # point up to the budget and stop early on success.
+                for fail_at_eval in range(nf_max):
+                    Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
+                    Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
+                    [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+                    if flag == 0:
+                        break
+                    self.assertEqual(X.shape[0], fail_at_eval + 1, f"Earlier valid geometry point was lost. (X.shape={X.shape})")
+                    self.assertTrue(np.all(np.isfinite(F[:fail_at_eval, :])))
+                    self.assertTrue(np.array_equal(X[:fail_at_eval, :], F[:fail_at_eval, :]))
+                    self.assertFalse(np.all(np.isfinite(F[fail_at_eval, :])))
+                # Guard against convergence happening too quickly to have
+                # exercised the failure-recovery logic.
+                self.assertTrue(fail_at_eval >= 15)
+                self.assertTrue(flag in {-3, 0})
 
     def test_basic_pounders_usage(self):
-        def vecFun(x):
-            """
-            Input:
-                x is a NumPy array (column / row vector)
-            Output:
-                x + x^2 as a row vector
-            """
-            if np.shape(x)[0] > 1:
-                x = np.reshape(x, (1, max(np.shape(x))))
+        def Ffun(x):
             return x + (x**2)
 
-        # Sample calling syntax for pounders
-        Ffun = vecFun
         # n [int] Dimension (number of continuous variables)
         n = 2
-        # X_0 [dbl] [min(fstart,1)-by-n] Set of initial points  (zeros(1,n))
+        # X_0 [dbl] [min(nfs,1)-by-n] holds nfs points that will be passed in
+        # as Prior; X_0[xind] is the actual starting point for the optimization.
         X_0 = np.zeros((10, 2))
         X_0[0, :] = 0.5 * np.ones((1, 2))
         # nf_max [int] Maximum number of function evaluations (>n+1) (100)
         nf_max = 60
         # g_tol [dbl] Tolerance for the 2-norm of the model gradient (1e-4)
         g_tol = 10**-13
-        # delta [dbl] Positive trust region radius (.1)
+        # delta [dbl] Initial trust region radius (.1)
         delta = 0.1
-        # nfs [int] Number of function values (at X_0) known in advance (0)
+        # nfs [int] Number of rows of X_0/F_init supplied as already-known evaluations
         nfs = 10
-        # m [int] number of residuals
+        # m [int] Dimension of Ffun's output
         m = 2
-        # F_init [dbl] [fstart-by-1] Set of known function values  ([])
-        F_init = np.zeros((10, 2))
-        # xind [int] Index of point in X_0 at which to start from (1)
+        # F_init [dbl] [nfs-by-1] Known Ffun values corresponding to the rows of X_0
+        F_init = np.zeros((X_0.shape[0], m))
+        # xind [int] Index of point in X_0 at which to start from (first index)
         xind = 0
         # Low [dbl] [1-by-n] Vector of lower bounds (-Inf(1,n))
         Low = np.zeros(n)
@@ -96,12 +100,12 @@ class TestPounders(unittest.TestCase):
 
         np.random.seed(1)
         F_init[0, :] = Ffun(X_0[0, :])
-        for i in range(1, 10):
+        for i in range(1, X_0.shape[0]):
             X_0[i, :] = X_0[0, :] + 0.2 * np.random.rand(1, 2) - 0.1
             F_init[i, :] = Ffun(X_0[i, :])
 
         Prior = {"X_init": X_0, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0[xind], n, nf_max, g_tol, delta, m, Low, Upp, Model={"np_max": int(0.5 * (n + 1) * (n + 2))}, Prior=Prior)
 
     def test_pounders_one_output(self):
         simple_solver = ibcdfo.pounders.create_trsp_solver(ibcdfo.pounders.constants.TRSP_SOLVER_SIMPLE)
@@ -109,7 +113,6 @@ class TestPounders(unittest.TestCase):
         hfun = ibcdfo.pounders.h_identity
         combinemodels = ibcdfo.pounders.combine_identity
 
-        # Sample calling syntax for pounders
         Ffun = lambda x: np.sum(x)
         n = 16
 
@@ -127,24 +130,23 @@ class TestPounders(unittest.TestCase):
 
         Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
         Prior = {"X_init": X_init, "F_init": F_init, "nfs": nfs, "xk_in": xind}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(np.linalg.norm(X[xk_in] - Low) <= 1e-8, f"The minimum should be at the lower bounds. (X[xk_in]={X[xk_in]})")
 
         Ffun = lambda x: np.sum(x**2)
         Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -2, f"This test should terminate because mdec == 0.  (flag={flag})")
 
         Opts = {"spsolver": simple_solver, "hfun": hfun, "combinemodels": combinemodels, "delta_min": 1e-1}
-        [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+        [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
         self.assertTrue(flag == -6, f"This test should hit the mindelta termination (flag={flag}).")
 
     def test_pounders_maximizing_sum_squares(self):
-        # Sample calling syntax for pounders
         Ffun = lambda x: x
         n = 16
 
-        X_0 = 0.4 * np.ones(n)  # Test giving of column vector
+        X_0 = 0.4 * np.ones(n)
         nf_max = 200
         g_tol = 10**-13
         delta = 0.1
@@ -168,7 +170,7 @@ class TestPounders(unittest.TestCase):
         for idx in self.__solvers:
             Opts["spsolver"] = ibcdfo.pounders.create_trsp_solver(idx)
 
-            [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
+            [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts, Prior=Prior)
 
             self.assertTrue(np.linalg.norm(X[xk_in] - Upp) <= 1e-8, f"The minimum should be at the upper bounds. (X[xk_in]={X[xk_in]})")
 
@@ -179,7 +181,7 @@ class TestPounders(unittest.TestCase):
             Returns a 3-vector.
             """
             t = x.squeeze() - 0.7
-            return np.array([t, t**2, t**3])
+            return [t, t**2, t**3]
 
         n = 1
         X_0 = 0.4 * np.ones(n)
@@ -194,6 +196,6 @@ class TestPounders(unittest.TestCase):
 
         for idx in self.__solvers:
             Opts["spsolver"] = ibcdfo.pounders.create_trsp_solver(idx)
-            [X, F, hF, flag, xk_in] = both_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
+            [X, F, hF, flag, xk_in] = ibcdfo.run_pounders(Ffun, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
 
             self.assertTrue(np.linalg.norm(X[xk_in] - 0.7) <= 1e-8, f"The minimum should be close to 0.7. (X[xk_in]={X[xk_in]})")
