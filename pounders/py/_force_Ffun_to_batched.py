@@ -78,18 +78,18 @@ def _batched_Ffun_m_eq_1(X, Ffun, n):
 
 
 def force_Ffun_to_batched(Ffun, n, m, batched_Ffun):
-    r"""
-    Wrap the given Ffun so that its interface satisfies a single, batch-based
-    interface.  Calling code
-    * must always pass a :math:`k \times \np` 2D NumPy array to the wrapped
-      Ffun, where :math:`k` is the number of points in the batch;
-    * can assume that the wrapped Ffun always returns a :math:`k \times \nd` 2D
-      NumPy array whose row ordering matches that of the input array; and
-    * can assume that the wrapped Ffun will raise an exception if the
-      user-provided Ffun's interface is invalid.
-
-    The Ffun wrapper does **not** check if the contents of the input and output
-    are valid.
+    """
+    Wraps Ffun to provide a consistent batch-based interface.
+    The wrapped Ffun:
+    * accepts a :math:`k \times n` 2D NumPy array, where :math:`k` is
+      the number of points to evaluate;
+    * returns a :math:`k \times m` 2D NumPy array, with rows ordered
+      consistently with the input; and
+    * raises an exception if the user-provided Ffun does not conform
+      to its expected interface.
+    The wrapper does not check the numerical
+    validity of the values (e.g., whether they are finite) or whether
+    Ffun correctly evaluates the requested points.
     """
     assert m >= 1
     if batched_Ffun and (m == 1):
