@@ -3,6 +3,7 @@ env:
   GH_ACTIONS_PATH:  ${{ github.workspace }}/.github/workflows
   IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
   DOCS_PATH:        ${{ github.workspace }}/docs
+  BRANCH_EXTENDED_AD_PATH: ${{ github.workspace }}/branch_extended_AD
 on:
   push:
     branches: [main]
@@ -41,6 +42,11 @@ jobs:
     ##-- General Setup Steps
     - name: Checkout IBCDFO repository
       uses: actions/checkout@v6
+    - name: Checkout branch_extended_AD repository
+      uses: actions/checkout@v6
+      with:
+        repository: POptUS/branch_extended_AD
+        path: branch_extended_AD
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -53,6 +59,7 @@ jobs:
     - name: Build Sphinx docs
       run: |
         # TODO: Local PDF builds failing at present (Issue 243).
+        export PYTHONPATH=$BRANCH_EXTENDED_AD_PATH
         cd $IBCDFO_PKG
         tox -r -e html
 

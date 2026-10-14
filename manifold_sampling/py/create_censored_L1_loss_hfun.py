@@ -3,7 +3,7 @@ from itertools import product
 import numpy as np
 
 
-def create_censored_L1_loss_hfun(C, D):
+def create_censored_L1_loss_hfun(C, D, tol=1e-8):
     r"""
     A generalized version of
     Womersley's censored :math:`\ell_1` loss function :cite:t:`womersley1986`.
@@ -25,6 +25,9 @@ def create_censored_L1_loss_hfun(C, D):
 
     :param C: 1D NumPy array that provides the censoring values :math:`c_i`.
     :param D: 1D NumPy array that provides the target data :math:`d_i`.
+    :param tol: activity/tie-detection tolerance used when classifying which
+        piece of the loss is active at a given :math:`\zvec` (only affects the
+        ``H0 is None`` evaluation mode).
     :return: ``hfun`` constructed with the given :math:`c_i, d_i` that is
         compatible only with :math:`\zvec` arguments of the same length as ``C``
         and ``D``.
@@ -69,7 +72,7 @@ def create_censored_L1_loss_hfun(C, D):
     # this function.  In this case, they're the local scope copies of the
     # function's arguments.
     def hfun(z, H0=None):
-        eqtol = 1e-8
+        eqtol = tol
 
         p = len(C)
 

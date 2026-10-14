@@ -4,6 +4,7 @@ Getting Started
 ===============
 .. _MINQ: https://github.com/POptUS/minq
 .. _BenDFO: https://github.com/POptUS/BenDFO
+.. _branch_extended_AD: https://github.com/POptUS/branch_extended_AD
 
 Some |ibcdfo| functionality requires the use of the `MINQ`_ code.  Therefore,
 both Python and |matlab| users should install a local |minq| clone prior to
@@ -16,6 +17,12 @@ the commit required by the user's |ibcdfo| installation.
 Similarly, testing |ibcdfo| requires that Python and |matlab| users install a
 `BenDFO`_ local clone.  Prior to running tests, users should ensure that their
 |bendfo| clone is set to the latest commit on ``main``.
+
+The Python |manifold_sampling| tests that compare hand-coded ``h`` functions
+against their automatically-generated, jax-hash counterparts additionally
+depend on the ``branch_extended_AD`` package, provided by a local `branch_extended_AD`_
+clone.  Users who do not need to run those specific tests may skip this
+dependency.
 
 Python Installation
 -------------------
@@ -59,6 +66,13 @@ Before testing the |ibcdfo| package, specify |bendfo|'s location by adding
 .. code:: console
 
     /path/to/BenDFO/py
+
+to your ``PYTHONPATH`` environment variable.  To also run the |manifold_sampling|
+hand-coded-versus-jax-hash tests, further add
+
+.. code:: console
+
+    /path/to/branch_extended_AD
 
 to your ``PYTHONPATH`` environment variable.  To test an installation, from the
 ``/path/to/BenDFO/data`` directory execute
