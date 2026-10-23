@@ -23,7 +23,7 @@ for i = 1:4
     flags(i) = flag;
 
     nval = norm(G_k * lambda);
-    if ~isnan(nval) && nval < best_norm && abs(sum(lambda_smaller) - 1) <= 1e-8 && all(lambda_smaller) >= 0
+    if ~isnan(nval) && nval < best_norm && abs(sum(lambda_smaller) - 1) <= 1e-8 && all(lambda_smaller >= 0)
         best_lambda = lambda;
         best_norm = nval;
         best_flag = flag;

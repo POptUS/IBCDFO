@@ -34,6 +34,33 @@ function [s_k, pred_dec] = save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x1, 
 
 [n, P] = size(g);
 
+% Resolve the GAMS template path before we change directories below.
+gams_file_full = GAMS_options.file;
+if ~(gams_file_full(1) == filesep || (ispc && length(gams_file_full) > 1 && gams_file_full(2) == ':'))
+    gams_file_full = fullfile(pwd, gams_file_full);
+end
+
+% Run everything inside a fresh temporary directory so this call does not
+% write GDX/GAMS files into (and potentially clobber) the current directory.
+orig_dir = pwd;
+tmp_dir = tempname;
+mkdir(tmp_dir);
+cleanupObj = onCleanup(@() cleanup_temp_dir(orig_dir, tmp_dir)); %#ok<NASGU>
+cd(tmp_dir);
+
+% Optionally write the h-specific data (Q/z/c or C/D) into this temp dir,
+% so callers no longer have to do this as a side effect before calling us.
+if isfield(GAMS_options, 'hfun_data') && ~isempty(GAMS_options.hfun_data)
+    hfun_data = GAMS_options.hfun_data;
+    if isfield(hfun_data, 'Q')
+        save_piecewise_quadratic_data(hfun_data.Q, hfun_data.z, hfun_data.c);
+    elseif isfield(hfun_data, 'C')
+        save_censored_L1_loss_data(hfun_data.C, hfun_data.D);
+    else
+        error('GAMS_options.hfun_data must have fields Q/z/c or C/D');
+    end
+end
+
 Ns.name = 'N';
 Ns.ts   = 'elements of x';
 Ns.type = 'set';
@@ -115,13 +142,15 @@ x1s.form = 'full';
 x1s.dim = 1;
 x1s.uels = Ns.uels;
 
-allx = inf * ones(3, n);
-solveStat = inf * ones(3, 1);
-modelStat = inf * ones(3, 1);
-obj_vals_GAMS = inf * ones(3, 1);
+num_solvers = numel(GAMS_options.solvers);
+allx = inf * ones(num_solvers, n);
+solveStat = inf * ones(num_solvers, 1);
+modelStat = inf * ones(num_solvers, 1);
+obj_vals_GAMS = inf * ones(num_solvers, 1);
 
 % Then loop over solvers
-for i = GAMS_options.solvers
+for j = 1:num_solvers
+    i = GAMS_options.solvers(j);
     solver.val = i;
 
     % Put problem data to a gdx file
@@ -135,7 +164,7 @@ for i = GAMS_options.solvers
     end
 
     % Copy the template gams file
-    copyfile(GAMS_options.file, ['./TRSP_' int2str(i) '.gms']);
+    copyfile(gams_file_full, ['./TRSP_' int2str(i) '.gms']);
 
     % Perform the gams run
     flag = system(['gams TRSP_' int2str(i) '.gms lo=2']);
@@ -148,22 +177,22 @@ for i = GAMS_options.solvers
     % now get the outputs from the GDX file produced by the GAMS run
     rs = struct('name', 'modelStat', 'form', 'full');
     r = rgdx (solGDX, rs);
-    modelStat(i) = r.val;
+    modelStat(j) = r.val;
 
     rs.name = 'solveStat';
     r = rgdx (solGDX, rs);
-    solveStat(i) = r.val;
+    solveStat(j) = r.val;
 
     rs.name = 'tau';
     rs.field = 'l';
     r = rgdx (solGDX, rs);
-    obj_vals_GAMS(i) = r.val;
+    obj_vals_GAMS(j) = r.val;
 
     rs.name = 'x';
     rs.uels = Ns.uels;
     r = rgdx (solGDX, rs);
     x = r.val;
-    allx(i, :) = x';
+    allx(j, :) = x';
 end
 
 if ~any(solveStat <= 4)
@@ -180,6 +209,7 @@ for j = 1:size(allx, 1)
 end
 
 z = zeros(1, P);
+obj_vals_MATLAB = inf * ones(size(allx, 1), 1);
 for j = 1:size(allx, 1)
     x = allx(j, :);
     for i = 1:P
@@ -208,4 +238,9 @@ if pred_dec < 0
     pred_dec = 0;
 end
 
+end
+
+function cleanup_temp_dir(orig_dir, tmp_dir)
+cd(orig_dir);
+rmdir(tmp_dir, 's');
 end
