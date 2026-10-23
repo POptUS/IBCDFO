@@ -75,7 +75,7 @@ inner_term
 * Define model equations
 obj(L)..            tau =g= y(L);
 
-each_model(P)..     m_F(P) =e= 0.5*sum{(N, M), (d(N)*gamma(N))*H(N, M, P)*(d(M)*gamma(N))} + sum{N, g(N, P)*d(N)*gamma(N)} + b(P);
+each_model(P)..     m_F(P) =e= 0.5*sum{(N, M), (d(N)*gamma(N))*H(N, M, P)*(d(M)*gamma(M))} + sum{N, g(N, P)*d(N)*gamma(N)} + b(P);
 
 * bounds_LB(N)..      x(N) - x0(N) =g= Low(N);
 * bounds_UB(N)..      x(N) - x0(N) =l= Upp(N);
