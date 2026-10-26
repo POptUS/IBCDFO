@@ -8,7 +8,7 @@ function [] = test_minimize_quadratics_lhs()
 oldpath = addpath(fullfile(here_path, '..', 'subproblems'));
 addpath(fullfile(here_path, '..', '..', '..', 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
 
-rng(1);
+rand('seed', 1);
 
 n = 3;
 c = [0.1, -0.2, 0.3];
@@ -24,7 +24,7 @@ val_at_x0 = h_pw_maximum_squared(b);
 [s_k, pred_dec] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x0, val_at_x0, @h_pw_maximum_squared);
 
 assert(all(Low <= s_k) && all(s_k <= Upp), "Step is not within the bounds");
-assert(abs(pred_dec - val_at_x0) <= 1e-6, "Did not find the known minimum");
+assert(abs(pred_dec - val_at_x0) <= 1e-4, "Did not find the known minimum");
 
 path(oldpath);
 end

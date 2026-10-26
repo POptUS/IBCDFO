@@ -38,11 +38,11 @@ for row = [1, 7]
     for i = 1:length(hfuns)
         hfun = hfuns{i};
 
-        rng(1000 * row + i);
+        rand('seed', 1000 * row + i);
         [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, 'linprog');
         check_outputs(X, F, h, xkin);
 
-        rng(1000 * row + i);
+        rand('seed', 1000 * row + i);
         [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_options);
         check_outputs(X, F, h, xkin);
     end
