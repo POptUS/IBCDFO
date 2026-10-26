@@ -36,6 +36,7 @@ class TestCheckInputss(unittest.TestCase):
             "X_init": np.full((0, N), 0.0, float),
             "F_init": np.full((0, M), 0.0, float),
             "xk_in": 0,
+            "Par": [np.sqrt(N), max(10, np.sqrt(N)), 1.0e-3, 1.0e-3, 0],
         }
         checkinputss(**self.__KWARGS)
 

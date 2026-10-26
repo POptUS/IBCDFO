@@ -2,10 +2,11 @@ import functools
 
 import numpy as np
 
-from .._variable_checks import is_finite_real, is_integer
+from .._variable_checks import is_integer
 from ._force_Ffun_to_batched import force_Ffun_to_batched
 from .bmpts import bmpts
 from .checkinputss import checkinputss
+from .checkoptions import checkoptions
 from .defaults import ALL_MODEL_KEYS, ALL_OPTIONS_KEYS, EXPECTED_PRIOR_KEYS, compute_default_model, compute_default_options, compute_default_prior
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
@@ -162,10 +163,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     np_max = defaults["np_max"]
     Par = defaults["Par"]
 
-    assert isinstance(Par, list) and len(Par) == 5, "Model['Par'] must be a 5-element list"
-    assert all(is_finite_real(p) and p > 0 for p in Par[:4]), "Model['Par'][0:4] must be positive finite reals"
-    assert Par[4] in (0, 1), "Model['Par'][4] must be 0 or 1"
-
     # -- Prior dictionary
     if Prior is None:
         Prior = compute_default_prior(n, m)
@@ -181,7 +178,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # ----- STRICT ERROR CHECKING OF LOCAL VARIABLES
     # This raises exceptions on bad inputs and does not alter any arguments.
-    checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
+    checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp, Par)
 
     # ------ FINALIZE OPTION LOCAL VARIABLES
     # This must be run after error checking main local variables, some of which set default values for options
@@ -211,18 +208,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     hfun = defaults["hfun"]
     combinemodels = defaults["combinemodels"]
 
-    if not callable(spsolver):
-        raise TypeError("Error: spsolver is not a function")
-
-    assert printf in (0, 1, 2), "Options['printf'] must be 0, 1, or 2"
-    assert is_finite_real(delta_max) and delta_max > 0, "Options['delta_max'] must be a positive finite real"
-    assert is_finite_real(delta_min) and delta_min >= 0, "Options['delta_min'] must be a nonnegative finite real"
-    assert is_finite_real(delta_inact) and 0 < delta_inact <= 1, "Options['delta_inact'] must be a finite real in (0, 1]"
-    assert is_finite_real(gamma_dec) and 0 < gamma_dec < 1, "Options['gamma_dec'] must be a finite real in (0, 1)"
-    assert is_finite_real(gamma_inc) and gamma_inc >= 1, "Options['gamma_inc'] must be a finite real >= 1"
-    assert is_finite_real(eta_1) and 0 < eta_1 < 1, "Options['eta1'] must be a finite real in (0, 1)"
-    assert callable(hfun), "Options['hfun'] must be a function"
-    assert callable(combinemodels), "Options['combinemodels'] must be a function"
+    checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels)
 
     # All calls to the TRSP solver should use only this function to avoid
     # unintentional corruption of arguments by the given solver that might break
@@ -235,8 +221,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # detailed in force_Ffun_to_batched()'s documentation.  All subsequent code
     # that calls Ffun should be written to adhere strictly to that single
     # interface.
-    if not isinstance(batched_Ffun, bool):
-        raise TypeError("Error: batched_Ffun must be a boolean")
     Ffun = force_Ffun_to_batched(Ffun, n, m, batched_Ffun)
 
     # ----- OPTIMIZE!
