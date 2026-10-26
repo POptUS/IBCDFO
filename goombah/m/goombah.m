@@ -39,7 +39,6 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, s
     [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
     assert(any(strcmp(GAMS_options.trsp, {'GAMS', 'lhs'})), 'GAMS_options.trsp must be ''GAMS'' or ''lhs''');
 
-
     [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
     Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
