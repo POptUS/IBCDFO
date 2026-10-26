@@ -37,7 +37,7 @@ jobs:
   test_ibcdfo:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26, macos-26-intel]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, macos-15, macos-26, macos-26-intel]
         matlab-release: ["R2023b", "latest"]
         exclude:
           # Cannot load MATLAB R2026a (Issue #278)
