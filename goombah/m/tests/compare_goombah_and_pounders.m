@@ -42,6 +42,7 @@ for row = 1:length(dfo)
 
     GAMS_options.file = '../../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
     GAMS_options.solvers = 1:4;
+    GAMS_options.trsp = 'GAMS';
     subprob_switch = 'linprog';
 
     for hfun_cases = 1:1

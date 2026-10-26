@@ -10,7 +10,10 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, s
     %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
     %  :param L:       [:math:`1 \times \np` dbl] Lower bounds.
     %  :param U:       [:math:`1 \times \np` dbl] Upper bounds.
-    %  :param GAMS_options:
+    %  :param GAMS_options: [struct] TRSP options. Field ``trsp`` is ``'GAMS'``
+    %       (call GAMS via save_quadratics_call_GAMS; also needs ``file`` and
+    %       ``solvers``) or ``'lhs'`` (Latin hypercube sampling and fmincon via
+    %       minimize_quadratics_lhs).
     %  :param subprob_switch:
     %
     %  :return:
@@ -34,6 +37,8 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, s
     end
 
     [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+    assert(any(strcmp(GAMS_options.trsp, {'GAMS', 'lhs'})), 'GAMS_options.trsp must be ''GAMS'' or ''lhs''');
+
 
     [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
     Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
@@ -66,7 +71,11 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, s
         Low = max(L - X(xkin, :), -delta);
         Upp = min(U - X(xkin, :), delta);
 
-        [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), GAMS_options, hfun);
+        if strcmp(GAMS_options.trsp, 'lhs')
+            [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), hfun);
+        else
+            [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), GAMS_options, hfun);
+        end
         if pred_dec == 0
             rho_k = -inf;
         else
