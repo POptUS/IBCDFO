@@ -50,7 +50,7 @@ each_model
 obj..               tau =e= sum(P, power(m_F(P), 2));
 
 * each_model(P)..     m_F(P) =e= 0.5*sum((N, M), (x(N) - x0(N))*H(N, M, P)*(x(M) - x0(M))) + sum(N, g(N, P)*(x(N) - x0(N))) + b(P);
-each_model(P)..     m_F(P) =e= 0.5*sum{(N, M), (d(N)*gamma(N))*H(N, M, P)*(d(M)*gamma(N))} + sum{N, g(N, P)*d(N)*gamma(N)} + b(P);
+each_model(P)..     m_F(P) =e= 0.5*sum{(N, M), (d(N)*gamma(N))*H(N, M, P)*(d(M)*gamma(M))} + sum{N, g(N, P)*d(N)*gamma(N)} + b(P);
 
 * bounds_LB(N)..      x(N) - x0(N) =g= Low(N);
 * bounds_UB(N)..      x(N) - x0(N) =l= Upp(N);

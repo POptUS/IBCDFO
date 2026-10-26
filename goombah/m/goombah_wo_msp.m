@@ -15,6 +15,9 @@
 %  L:       [1 x n dbl]   Lower bounds.
 %  U:       [1 x n dbl]   Upper bounds.
 %  GAMS_options:
+%  Options:  [struct, optional] May contain field 'spsolver', a handle to a
+%            bound-constrained TRSP solver created by create_trsp_solver
+%            (see pounders/m/create_trsp_solver.m). Defaults to minq5.
 %
 % Outputs:
 %   X:      [nf_max x n]   Points evaluated
@@ -22,7 +25,18 @@
 %   h:      [nf_max x 1]   The values h(F(x))
 %   xkin:   [int]         Current trust region center
 
-function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_options)
+function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_options, Options)
+
+    if nargin < 8 || isempty(Options)
+        Options = struct();
+    end
+    if ~isstruct(Options)
+        error('Options must be a struct');
+    end
+    if ~isfield(Options, 'spsolver')
+        Options.spsolver = create_trsp_solver(2); % Use minq5 by default
+    end
+    solve_trsp = Options.spsolver;
 
     % Deduce p from evaluating Ffun at x0
     try
@@ -66,7 +80,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_opt
 
         % ================================
         % Construct Gen_k
-        col_vecs_for_Genk = construct_Gen_k(hfun, xkin, tol.gentype, nf, delta, F, X);
+        col_vecs_for_Genk = construct_Gen_k(hfun, xkin, 2, nf, delta, F, X);
         % ================================
 
         lambda = project_zero_onto_convex_hull_2(Gres * col_vecs_for_Genk);
@@ -100,15 +114,18 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_opt
         if delta < tol.eta2 * ng
             % ================================
             % Solve TRSP
-            sk = mgqt_2(H_k, g_k, delta, 1e-12, 1e5, 1e-16);
+            Low = max(L - X(xkin, :), -delta);
+            Upp = min(U - X(xkin, :), delta);
+
+            [sk, ~, found_solution] = solve_trsp(H_k, g_k, Low, Upp);
+            if ~found_solution
+                sk = zeros(n, 1);
+            end
             sk = sk';
 
             % if printf
             %     plot_again(X, xkin, delta, sk, [], nf, [], L, U);
             % end
-
-            Low = max(L - X(xkin, :), -delta);
-            Upp = min(U - X(xkin, :), delta);
 
             [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), GAMS_options, hfun);
             if pred_dec == 0
