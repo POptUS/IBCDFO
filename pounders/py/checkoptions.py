@@ -1,4 +1,4 @@
-from .._variable_checks import is_finite_real
+from .._variable_checks import is_finite_real, is_integer
 
 
 def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels):
@@ -21,7 +21,7 @@ def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_ina
     if not isinstance(batched_Ffun, bool):
         raise TypeError("Error: Options['batched_Ffun'] must be a boolean")
 
-    if printf not in (0, 1, 2):
+    if not (is_integer(printf) and printf in (0, 1, 2)):
         raise ValueError(f"Error: Options['printf'] must be 0, 1, or 2 ({printf})")
 
     if not (is_finite_real(delta_max) and delta_max > 0.0):
