@@ -3,10 +3,17 @@ from .._variable_checks import is_finite_real
 
 def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels):
     """
-    Raise an exception if POUNDERS option values do not meet the requirements.
+    Raise an exception if any of the given POUNDERS options do
+    not meet the requirements of the POUNDERS implementation.
 
-    For information regarding the arguments, see :py:func:`ibcdfo.pounders.pounders`.
+    For information regarding the arguments, please see the documentation for
+    :py:func:`ibcdfo.pounders.pounders`.
     """
+
+    # IMPORTANT: In error messages, use the name of the argument as passed to
+    # pounders.  The checks performed here should be maintained consistent with
+    # the specifications provided for these arguments in the pounders.py inline
+    # docs and general POUNDERS documentation.
 
     if not callable(spsolver):
         raise TypeError("Error: Options['spsolver'] is not a function")
