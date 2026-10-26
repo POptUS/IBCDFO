@@ -128,6 +128,9 @@ jobs:
 
       # -- Test Execution Step
       # This requires R2023b or higher
+      #
+      # We exclude some files from GOOMBAH's coverage report because CI cannot run them.
+      # The gams_only files call GAMS through GDXMRW, neither of which is available on GitHub.
       - name: Generate code coverage report for MATLAB code
         uses: matlab-actions/run-command@v3
         with:
@@ -142,8 +145,6 @@ jobs:
               cd ${{ env.MSAMP_M_PATH }},
               [results, cov_ms] = runtests("IncludeSubfolders", true, "ReportCoverageFor", pwd),
               assertSuccess(results),
-              # We exclude some files from GOOMBAH's coverage report because CI cannot run them.
-              # The gams_only files call GAMS through GDXMRW, neither of which is available on GitHub.
               cd ${{ env.GOOMBAH_M_PATH }},
               gams_only = ["save_quadratics_call_GAMS.m", "save_censored_L1_loss_data.m", "save_piecewise_quadratic_data.m", "solve_matts_LP.m", "solve_matts_QCP.m"];
               test_helpers = ["compare_goombah_and_pounders.m", "generate_python_reference_data.m"];
