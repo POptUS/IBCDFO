@@ -415,6 +415,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, np_max, Par, False)
                 if len(Mind) < n + 1:
+                    # We expect that this can only occur with Par[4] set to the
+                    # default setting, which most all users would use.
+                    assert Par[4] == 0
                     # This is almost never triggered but is a safeguard for
                     # pathological cases where one needs to recover from
                     # unusual conditioning of recent interpolation sets
