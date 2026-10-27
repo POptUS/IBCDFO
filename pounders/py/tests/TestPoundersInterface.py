@@ -714,6 +714,9 @@ class TestPoundersInterface(unittest.TestCase):
         for bad in BAD_VALUES:
             self.__test({"delta_min": bad}, ValueError)
 
+    def testDeltaMinExceedsDeltaMax(self):
+        self.__test({"delta_min": 2.0, "delta_max": 1.0}, ValueError)
+
     def testDeltaInact(self):
         BAD_VALUES = {-12.3, -1.1, -np.finfo(float).smallest_normal, 0.0, np.nan, np.inf, -np.inf}
 

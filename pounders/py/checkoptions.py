@@ -28,6 +28,8 @@ def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_ina
         raise ValueError(f"Error: Options['delta_max'] must be a positive finite real ({delta_max})")
     if not (is_finite_real(delta_min) and delta_min >= 0.0):
         raise ValueError(f"Error: Options['delta_min'] must be a nonnegative finite real ({delta_min})")
+    if delta_min > delta_max:
+        raise ValueError(f"Error: Options['delta_min'] must not exceed Options['delta_max'] ({delta_min} > {delta_max})")
     if not (is_finite_real(delta_inact) and 0.0 < delta_inact <= 1.0):
         raise ValueError(f"Error: Options['delta_inact'] must be a finite real in (0, 1] ({delta_inact})")
     if not (is_finite_real(gamma_dec) and 0.0 < gamma_dec < 1.0):
