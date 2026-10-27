@@ -662,22 +662,20 @@ class TestPoundersInterface(unittest.TestCase):
         self.__test({"Par": GOOD + [False]}, ValueError)
 
         for i in range(len(GOOD) - 1):
+            bad_par = copy.deepcopy(GOOD)
             for bad in self.__NOT_REAL:
-                bad_par = copy.deepcopy(GOOD)
                 bad_par[i] = bad
                 self.__test({"Par": bad_par}, ValueError)
 
             for bad in BAD_VALUES:
-                bad_par = copy.deepcopy(GOOD)
                 bad_par[i] = bad
                 self.__test({"Par": bad_par}, ValueError)
 
+        bad_par = copy.deepcopy(GOOD)
         for bad in self.__NOT_BOOL:
-            bad_par = copy.deepcopy(GOOD)
             bad_par[-1] = bad
             self.__test({"Par": bad_par}, TypeError)
 
-        bad_par = copy.deepcopy(GOOD)
         bad_par[-1] = True
         self.__test({"Par": bad_par}, NotImplementedError)
 

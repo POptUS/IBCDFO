@@ -104,7 +104,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **np_max** - Integer in :math:`\Z[\np+1, (n+1)(n+2)/2]` that specifies
           the maximum number of interpolation points (default is :math:`2\np+1`)
-        * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, False]`)
+        * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, \mathrm{False}]`)
 
     :return:
         * **X** - :math:`k \times \np` NumPy array containing locations of
