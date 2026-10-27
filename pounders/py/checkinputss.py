@@ -147,5 +147,7 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise ValueError(f"Error: Model['Par'] must be a 5-element list ({len(Par)} elements given)")
     if not all(is_finite_real(p) and p > 0 for p in Par[:4]):
         raise ValueError(f"Error: Model['Par'][0:4] must be positive finite reals ({Par[:4]})")
-    if not (is_integer(Par[4]) and Par[4] in (0, 1)):
-        raise ValueError(f"Error: Model['Par'][4] must be 0 or 1 ({Par[4]})")
+    if not isinstance(Par[4], bool):
+        raise TypeError(f"Error: Model['Par'][4] must be a boolean ({Par[4]})")
+    if Par[4]:
+        raise NotImplementedError("Error: Please contact IBCDFO developers if you have a valid use case for using Model['Par'][4] = True")

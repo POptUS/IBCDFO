@@ -65,7 +65,7 @@ def compute_default_model(n):
     """
     defaults = {
         "np_max": 2 * n + 1,
-        "Par": [np.sqrt(n), np.maximum(10, np.sqrt(n)), 1.0e-3, 1.0e-3, 0],
+        "Par": [np.sqrt(n), np.maximum(10, np.sqrt(n)), 1.0e-3, 1.0e-3, False],
     }
     assert set(defaults) == ALL_MODEL_KEYS
     return defaults

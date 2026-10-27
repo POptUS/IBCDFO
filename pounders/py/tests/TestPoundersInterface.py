@@ -659,7 +659,7 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Par": bad}, TypeError)
 
         self.__test({"Par": GOOD[:-1]}, ValueError)
-        self.__test({"Par": GOOD + [1.1]}, ValueError)
+        self.__test({"Par": GOOD + [False]}, ValueError)
 
         for i in range(len(GOOD) - 1):
             for bad in self.__NOT_REAL:
@@ -672,15 +672,14 @@ class TestPoundersInterface(unittest.TestCase):
                 bad_par[i] = bad
                 self.__test({"Par": bad_par}, ValueError)
 
-        for bad in self.__NOT_INT:
+        for bad in self.__NOT_BOOL:
             bad_par = copy.deepcopy(GOOD)
             bad_par[-1] = bad
-            self.__test({"Par": bad_par}, ValueError)
+            self.__test({"Par": bad_par}, TypeError)
 
-        for bad in {-1, 2}:
-            bad_par = copy.deepcopy(GOOD)
-            bad_par[-1] = bad
-            self.__test({"Par": bad_par}, ValueError)
+        bad_par = copy.deepcopy(GOOD)
+        bad_par[-1] = True
+        self.__test({"Par": bad_par}, NotImplementedError)
 
     def testPrintf(self):
         for bad in self.__NOT_INT:

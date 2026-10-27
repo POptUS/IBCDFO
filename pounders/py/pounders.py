@@ -104,7 +104,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **np_max** - Integer in :math:`\Z[\np+1, (n+1)(n+2)/2]` that specifies
           the maximum number of interpolation points (default is :math:`2\np+1`)
-        * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
+        * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, False]`)
 
     :return:
         * **X** - :math:`k \times \np` NumPy array containing locations of
@@ -417,13 +417,13 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 if len(Mind) < n + 1:
                     # We expect that this can only occur with Par[4] set to the
                     # default setting, which most all users would use.
-                    assert Par[4] == 0
+                    assert not Par[4]
                     # This is almost never triggered but is a safeguard for
                     # pathological cases where one needs to recover from
                     # unusual conditioning of recent interpolation sets
-                    Par[4] = 1
+                    Par[4] = True
                     [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, np_max, Par, False)
-                    Par[4] = 0
+                    Par[4] = False
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)
