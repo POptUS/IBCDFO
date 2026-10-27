@@ -26,5 +26,9 @@ classdef Testgoombah < matlab.unittest.TestCase
             test_goombah_lhs;
         end
 
+        function longTest(testCase)
+            test_goombah_vs_msp;
+        end
+
     end
 end
