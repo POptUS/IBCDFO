@@ -26,5 +26,10 @@ val_at_x0 = h_pw_maximum_squared(b);
 assert(all(Low <= s_k) && all(s_k <= Upp), "Step is not within the bounds");
 assert(abs(pred_dec - val_at_x0) <= 1e-4, "Did not find the known minimum");
 
+% The predicted decrease is never negative, even if the given value at x0 is
+% below every value that can be attained.
+[~, pred_dec] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x0, -1, @h_pw_maximum_squared);
+assert(pred_dec == 0, "Predicted decrease should have been clamped to zero");
+
 path(oldpath);
 end
