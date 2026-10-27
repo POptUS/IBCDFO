@@ -33,7 +33,7 @@ X_init = np.atleast_2d(X_0)
 F_init = Ffun(X_init)
 
 Options = {
-    "printf": True,
+    "printf": 1,
     "hfun": ibcdfo.pounders.h_emittance,
     "combinemodels": ibcdfo.pounders.combine_emittance,
     "batched_Ffun": True,

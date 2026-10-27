@@ -7,8 +7,8 @@ documentation to confirm that it remains consistent.
 import numpy as np
 
 from .constants import TRSP_SOLVER_MINQ5
-from .general_h_funs import h_leastsquares, combine_leastsquares
 from .create_trsp_solver import create_trsp_solver
+from .general_h_funs import combine_leastsquares, h_leastsquares
 
 # ----- SETS OF DICT CONFIG KEYS
 # * EXPECTED_* implies that users have to provide this and only this set of keys
@@ -65,7 +65,7 @@ def compute_default_model(n):
     """
     defaults = {
         "np_max": 2 * n + 1,
-        "Par": [np.sqrt(n), np.maximum(10, np.sqrt(n)), 1.0e-3, 1.0e-3, 0],
+        "Par": [np.sqrt(n), np.maximum(10, np.sqrt(n)), 1.0e-3, 1.0e-3, False],
     }
     assert set(defaults) == ALL_MODEL_KEYS
     return defaults
