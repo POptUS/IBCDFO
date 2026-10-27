@@ -15,6 +15,8 @@ ibcdfo_pypkg/.tox
 ibcdfo_pypkg/dfo.dat
 ibcdfo_pypkg/mpc_test_files_smaller_Q.zip
 ibcdfo_pypkg/mpc_test_files_smaller_Q
+goombah/m/tests/mpc_test_files_smaller_Q.zip
+goombah/m/tests/mpc_test_files_smaller_Q
 ibcdfo_pypkg/benchmark_results
 ibcdfo_pypkg/msp_benchmark_results
 ibcdfo_pypkg/.coverage_ibcdfo

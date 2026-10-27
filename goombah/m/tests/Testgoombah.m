@@ -26,6 +26,7 @@ classdef Testgoombah < matlab.unittest.TestCase
             test_goombah_lhs;
             test_goombah_failures;
             test_goombah_converge;
+            test_goombah_budget_sweep;
         end
 
         function longTest(testCase)
