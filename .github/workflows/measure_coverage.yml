@@ -147,7 +147,7 @@ jobs:
               assertSuccess(results),
               cd ${{ env.GOOMBAH_M_PATH }},
               gams_only = ["save_quadratics_call_GAMS.m", "save_censored_L1_loss_data.m", "save_piecewise_quadratic_data.m", "solve_matts_LP.m", "solve_matts_QCP.m"];
-              test_helpers = ["compare_goombah_and_pounders.m", "generate_python_reference_data.m"];
+              test_helpers = ["generate_python_reference_data.m"];
               m_files = dir("**/*.m");
               m_files = m_files(~ismember({m_files.name}, [gams_only, test_helpers]) & ~contains({m_files.folder}, "mpc_tests"));
               [results, cov_g] = runtests("IncludeSubfolders", true, "ReportCoverageFor", fullfile({m_files.folder}, {m_files.name})),
