@@ -27,7 +27,7 @@ addpath(fullfile(repo_root, 'pounders', 'm'));
 factor = 10;
 nf_max = 100;
 subprob_switch = 'linprog';
-GAMS_options.trsp = 'lhs';
+TRSP_options.solver = 'lhs';
 
 load dfo.dat;
 
@@ -98,12 +98,12 @@ for i = 1:size(rows_and_hfuns, 1)
         assert(decrease_msp > 0, "manifold_sampling_primal did not decrease h on " + problem);
 
         rand('seed', 1000 * row + jj);
-        [X, ~, h, ~] = goombah(hfun, Ffun, nf_max, x0, LB, UB, GAMS_options, subprob_switch);
+        [X, ~, h, ~] = goombah(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options, subprob_switch);
         assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
         assert(h(1) - min(h) >= 0.9 * decrease_msp, "goombah decreased h much less than manifold_sampling_primal on " + problem);
 
         rand('seed', 1000 * row + jj);
-        [X, ~, h, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, LB, UB, GAMS_options);
+        [X, ~, h, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options);
         assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
         assert(h(1) - min(h) >= 0.9 * decrease_msp, "goombah_wo_msp decreased h much less than manifold_sampling_primal on " + problem);
     end

@@ -26,7 +26,7 @@ addpath(fullfile(repo_root, 'pounders', 'm'));
 
 factor = 10;
 subprob_switch = 'linprog';
-GAMS_options.trsp = 'lhs';
+TRSP_options.solver = 'lhs';
 
 load dfo.dat;
 
@@ -53,11 +53,11 @@ for nf_max = n + 1:n + MAX_EXTRA
     problem = ['problem ' num2str(row) ' with nf_max=' int2str(nf_max)];
 
     rand('seed', nf_max);
-    [X, F, h, ~] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, subprob_switch);
+    [X, F, h, ~] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
     check_outputs(X, F, h, hfun, nf_max, "goombah on " + problem);
 
     rand('seed', nf_max);
-    [X, F, h, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_options);
+    [X, F, h, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options);
     check_outputs(X, F, h, hfun, nf_max, "goombah_wo_msp on " + problem);
 end
 

@@ -19,6 +19,17 @@
 %
 
 classdef Testgoombah < matlab.unittest.TestCase
+    methods (TestMethodSetup)
+
+        function disableLhsWarning(testCase)
+            % The tests use the LHS TRSP solver, which warns that it is only
+            % for testing and debugging.
+            oldwarn = warning('off', 'GOOMBAH:lhsTrspSolver');
+            testCase.addTeardown(@warning, oldwarn);
+        end
+
+    end
+
     methods (Test)
 
         function shortTests(testCase)

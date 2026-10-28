@@ -117,24 +117,25 @@ for mw_prob_num = [7] % full tests are 1:53
                         % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                     elseif s == 2
-                        GAMS_options.hfun_data = [];
+                        TRSP_options.solver = 'GAMS';
+                        TRSP_options.hfun_data = [];
                         if strcmp(func2str(hfun{1}), 'pw_minimum_squared')
-                            GAMS_options.file = [trsp_root 'minimize_min_squared_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:3;
+                            TRSP_options.file = [trsp_root 'minimize_min_squared_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:3;
                         elseif strcmp(func2str(hfun{1}), 'pw_maximum_squared')
-                            GAMS_options.file = [trsp_root 'minimize_max_squared_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:4;
+                            TRSP_options.file = [trsp_root 'minimize_max_squared_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'censored_L1_loss')
-                            GAMS_options.hfun_data = struct('C', C, 'D', D);
-                            GAMS_options.file = [trsp_root 'minimize_censored_L1_loss_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:4;
+                            TRSP_options.hfun_data = struct('C', C, 'D', D);
+                            TRSP_options.file = [trsp_root 'minimize_censored_L1_loss_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'piecewise_quadratic')
-                            GAMS_options.hfun_data = struct('Q', Qs, 'z', zs, 'c', cs);
-                            GAMS_options.file = [trsp_root 'minimize_max_quadratic_mapping_of_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:4;
+                            TRSP_options.hfun_data = struct('Q', Qs, 'z', zs, 'c', cs);
+                            TRSP_options.file = [trsp_root 'minimize_max_quadratic_mapping_of_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nf_max, x0, LB, UB, GAMS_options, subprob_switch);
+                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nf_max, x0, LB, UB, TRSP_options, subprob_switch);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -157,24 +158,25 @@ for mw_prob_num = [7] % full tests are 1:53
                         Results{s, seed, mw_prob_num}.X = X;
 
                     elseif s == 4
-                        GAMS_options.hfun_data = [];
+                        TRSP_options.solver = 'GAMS';
+                        TRSP_options.hfun_data = [];
                         if strcmp(func2str(hfun{1}), 'pw_minimum_squared')
-                            GAMS_options.file = [trsp_root 'minimize_min_squared_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:3;
+                            TRSP_options.file = [trsp_root 'minimize_min_squared_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:3;
                         elseif strcmp(func2str(hfun{1}), 'pw_maximum_squared')
-                            GAMS_options.file = [trsp_root 'minimize_max_squared_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:4;
+                            TRSP_options.file = [trsp_root 'minimize_max_squared_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'censored_L1_loss')
-                            GAMS_options.hfun_data = struct('C', C, 'D', D);
-                            GAMS_options.file = [trsp_root 'minimize_censored_L1_loss_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:4;
+                            TRSP_options.hfun_data = struct('C', C, 'D', D);
+                            TRSP_options.file = [trsp_root 'minimize_censored_L1_loss_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'piecewise_quadratic')
-                            GAMS_options.hfun_data = struct('Q', Qs, 'z', zs, 'c', cs);
-                            GAMS_options.file = [trsp_root 'minimize_max_quadratic_mapping_of_quadratic_models.gms'];
-                            GAMS_options.solvers = 1:4;
+                            TRSP_options.hfun_data = struct('Q', Qs, 'z', zs, 'c', cs);
+                            TRSP_options.file = [trsp_root 'minimize_max_quadratic_mapping_of_quadratic_models.gms'];
+                            TRSP_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, nf_max, x0, LB, UB, GAMS_options);
+                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, nf_max, x0, LB, UB, TRSP_options);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];

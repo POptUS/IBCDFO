@@ -15,7 +15,7 @@ addpath(fullfile(repo_root, 'pounders', 'm'));
 
 factor = 10;
 hfuns = {@h_pw_maximum_squared, @h_pw_minimum_squared};
-GAMS_options.trsp = 'lhs';
+TRSP_options.solver = 'lhs';
 
 load dfo.dat;
 
@@ -39,11 +39,11 @@ for row = [1, 7]
         hfun = hfuns{i};
 
         rand('seed', 1000 * row + i);
-        [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, 'linprog');
+        [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, 'linprog');
         check_outputs(X, F, h, xkin);
 
         rand('seed', 1000 * row + i);
-        [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_options);
+        [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options);
         check_outputs(X, F, h, xkin);
     end
 end

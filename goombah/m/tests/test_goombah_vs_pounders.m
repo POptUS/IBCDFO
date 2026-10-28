@@ -31,7 +31,7 @@ g_tol = 1e-13;
 delta_0 = 0.1;
 spsolver = 2; % TRSP Solver
 subprob_switch = 'linprog';
-GAMS_options.trsp = 'lhs';
+TRSP_options.solver = 'lhs';
 
 load dfo.dat;
 
@@ -63,12 +63,12 @@ for row = [7, 43, 44]
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
     rand('seed', row);
-    [X, ~, h, ~] = goombah(@h_sum_squared, Ffun, nf_max, x0, L, U, GAMS_options, subprob_switch);
+    [X, ~, h, ~] = goombah(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
     assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
     assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah decreased h much less than pounders on " + problem);
 
     rand('seed', row);
-    [X, ~, h, ~] = goombah_wo_msp(@h_sum_squared, Ffun, nf_max, x0, L, U, GAMS_options);
+    [X, ~, h, ~] = goombah_wo_msp(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options);
     assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
     assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah_wo_msp decreased h much less than pounders on " + problem);
 end

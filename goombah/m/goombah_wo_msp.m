@@ -14,10 +14,10 @@
 %  x0:      [1 x n dbl]   Starting point.
 %  L:       [1 x n dbl]   Lower bounds.
 %  U:       [1 x n dbl]   Upper bounds.
-%  GAMS_options: [struct] TRSP options. Field 'trsp' is 'GAMS' (call GAMS via
-%            save_quadratics_call_GAMS; also needs 'file' and 'solvers') or
-%            'lhs' (Latin hypercube sampling and fmincon via
-%            minimize_quadratics_lhs).
+%  TRSP_options: [struct] Options for solving the trust-region subproblem. Has
+%            the same fields as the argument of the same name of goombah.m:
+%            'solver' ('GAMS' or 'lhs'), and, for 'GAMS', 'file', 'solvers',
+%            and (optionally) 'hfun_data'.
 %  Options:  [struct, optional] May contain field 'spsolver', a handle to a
 %            bound-constrained TRSP solver created by create_trsp_solver
 %            (see pounders/m/create_trsp_solver.m). Defaults to minq5.
@@ -28,7 +28,7 @@
 %   h:      [nf_max x 1]   The values h(F(x))
 %   xkin:   [int]         Current trust region center
 
-function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_options, Options)
+function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options, Options)
 
     if nargin < 8 || isempty(Options)
         Options = struct();
@@ -55,7 +55,11 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_opt
     end
 
     [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, ~, xkin, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
-    assert(any(strcmp(GAMS_options.trsp, {'GAMS', 'lhs'})), 'GAMS_options.trsp must be ''GAMS'' or ''lhs''');
+    assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
+    if strcmp(TRSP_options.solver, 'lhs')
+        warning("GOOMBAH:lhsTrspSolver", ...
+                "The lhs TRSP solver should only be used for testing or debugging");
+    end
 
     [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
 
@@ -131,10 +135,10 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, GAMS_opt
             %     plot_again(X, xkin, delta, sk, [], nf, [], L, U);
             % end
 
-            if strcmp(GAMS_options.trsp, 'lhs')
+            if strcmp(TRSP_options.solver, 'lhs')
                 [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), hfun);
             else
-                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), GAMS_options, hfun);
+                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), TRSP_options, hfun);
             end
             if pred_dec == 0
                 if delta <= tol.mindelta

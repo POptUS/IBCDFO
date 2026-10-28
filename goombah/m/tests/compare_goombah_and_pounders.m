@@ -40,9 +40,9 @@ for row = 1:length(dfo)
     delta = 0.1;
     printf = 0;
 
-    GAMS_options.file = '../../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
-    GAMS_options.solvers = 1:4;
-    GAMS_options.trsp = 'GAMS';
+    TRSP_options.file = '../../../goombah/m/subproblems/minimize_sum_quad_models_squared.gms';
+    TRSP_options.solvers = 1:4;
+    TRSP_options.solver = 'GAMS';
     subprob_switch = 'linprog';
 
     for hfun_cases = 1:1
@@ -72,7 +72,7 @@ for row = 1:length(dfo)
                 [X, F, flag, xk_best] = pounders(objective, X0, n, npmax, nf_max, gtol, delta, nfs, m, F0, xkin, L, U, printf, spsolver, hfun, combinemodels);
                 Results{method, hfun_cases, row}.alg = 'POUNDERs';
             elseif method == 2
-                [X, F, h, xkin] = goombah(@sum_squared, objective, nf_max, X0, L, U, GAMS_options, subprob_switch);
+                [X, F, h, xkin] = goombah(@sum_squared, objective, nf_max, X0, L, U, TRSP_options, subprob_switch);
                 Results{method, hfun_cases, row}.alg = 'GOOMBAH';
             end
 
