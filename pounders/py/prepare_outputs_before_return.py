@@ -11,6 +11,7 @@ def prepare_outputs_before_return(X, F, hF, nf, exit_flag):
         print("g is sufficiently small.")
     elif exit_flag == -1:
         print("Number of residuals in output of fun does not match supplied m. Exiting.")
+        assert False, "This code shouldn't be reached. We are currently raising exceptions in this case."
     elif exit_flag == -2:
         print("Terminating because no improvement from TRSP solution (mdec == 0) with a valid model and small delta.")
     elif exit_flag == -3:

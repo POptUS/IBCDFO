@@ -56,7 +56,7 @@ class TestPounders(unittest.TestCase):
                 # point up to the budget and stop early on success.
                 for fail_at_eval in range(nf_max):
                     Ffun_to_fail = make_Ffun(fail_at_eval, bad, batched)
-                    Opts = {"spsolver": simple_solver, "printf": False, "batched_Ffun": batched}
+                    Opts = {"spsolver": simple_solver, "printf": 0, "batched_Ffun": batched}
                     [X, F, hF, flag, xk_best] = ibcdfo.run_pounders(Ffun_to_fail, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Options=Opts)
                     if flag == 0:
                         break
