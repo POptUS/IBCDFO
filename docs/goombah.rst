@@ -42,15 +42,39 @@ allows |goombah| to retain the convergence properties of manifold sampling
 while taking more ambitious steps exploiting :math:`\hfun`
 whenever they are demonstrably useful.
 
-The |matlab| implementation includes calls to GAMS for solving |goombah|
-subproblems for particular examples of :math:`\hfun`.
-However, performance in the examples may depend on licensed
-optimization software, such as BARON, for solving these trust-region
-subproblems effectively.
+For algorithmic details and numerical results, see :cite:t:`MSP_2024`.
+
+|goombah| does not prescribe how its trust-region subproblem is solved. 
+Any high-quality global solver for the subproblem can be used, and the performance
+of |goombah| will change with the quality of that solver. 
+The |matlab| implementation provides two ways to solve the subproblems, which
+are selected with the ``solver`` field of ``TRSP_options``:
+
+* ``'GAMS'`` solves |goombah| trust-region subproblems by calling
+  `GAMS <https://www.gams.com/>`__, so using it requires an existing, licensed
+  GAMS installation. The ``gams`` executable must be on the system path and the
+  GDXMRW interface to GAMS (and the ``wgdx`` and ``rgdx`` functions) must be on
+  the MATLAB path. Recent GAMS releases may not include GDXMRW; if yours does
+  not, it must be obtained separately (for example, from an older GAMS
+  release). Other GAMS interfaces to MATLAB are not currently supported. GAMS
+  models for several choices of :math:`\hfun` are
+  provided; see the description of ``TRSP_options`` below. 
+  If possible, we recommend the 
+  `BARON <https://www.gams.com/latest/docs/S_BARON.html>`__
+  optimization software.
+* ``'lhs'`` evaluates :math:`\hfun(\Mfun(\psp))` at a large Latin hypercube
+  sample of the trust region and then runs ``fmincon`` (from the MATLAB
+  Optimization Toolbox) from the best sample point. It requires no GAMS
+  installation, but it does not exploit the composite structure of the
+  subproblem and may produce lower-quality TRSP solution. GOOBMAH performance
+  will degrade relative to a higher-quality global solver. 
+  We currently issue a warning when this solver is used.
 
 .. note::
-    This code does not have a test suite and is not actively tested for
-    correctness.
+    The |matlab| implementation has a test suite that runs on every pull
+    request. Because GAMS is not available in that testing environment, the
+    tests use the ``'lhs'`` solver and do not exercise the GAMS-based
+    subproblem solves.
 
 Programmatic Interface
 ----------------------
