@@ -45,7 +45,7 @@ For algorithmic details and numerical results, see :cite:t:`MSP_2024`.
 
 |goombah| does not prescribe how its trust-region subproblems are solved. 
 Any high-quality global solver for the subproblem can be used, and the performance
-of |goombah| will generally change whever the solver is changed.. 
+of |goombah| will generally change whenever the solver is changed.. 
 The |matlab| implementation provides two ways to solve the subproblems, which
 are selected with the ``solver`` field of ``TRSP_options``:
 
