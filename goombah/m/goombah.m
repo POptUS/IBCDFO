@@ -3,7 +3,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
     %       scalar function value and :math:`k \times \nd` subgradients for all
-    %       :math:`k` limiting gradients at the point given.
+    %       :math:`k` limiting gradients at the given point.
     %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
     %       simulation, returning a :math:`1 \times \nd` vector.
     %  :param nf_max:  [int] Maximum number of function evaluations.
@@ -14,11 +14,11 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %       subproblem. Fields:
     %
     %       * **solver** - ``'GAMS'`` to solve the subproblem with
-    %         GAMS <https://www.gams.com/>`__
+    %         `GAMS <https://www.gams.com>`_
     %         or ``'lhs'`` to use a simple solver that samples the
     %         trust region and refines the best point with ``fmincon``. The
     %         latter is of lower quality and is intended for testing and
-    %         development. The fields below apply only to ``'GAMS'``.
+    %         development. All other fields apply only to ``'GAMS'``.
     %       * **file** - Path to the GAMS model file that corresponds to ``hfun``.
     %         Model files for several choices of :math:`\hfun` are in
     %         ``goombah/m/subproblems``:
