@@ -1,9 +1,9 @@
-% This runs goombah and goombah_wo_msp, using the LHS TRSP solver instead of GAMS,
+% This runs goombah and goombah_wo_msp, using the LHS TRSP solver (not GAMS),
 % on a tiny problem for every evaluation budget nf_max, in steps of one, from its
 % smallest allowed value up through n + MAX_EXTRA. Each budget ends a run at a
 % different point (while building the first models, after the first TRSP solve,
 % ...), and we check that the outputs are consistent however the run ends. The
-% small dimension keeps each run fast.
+% small dimension ensures each run ends quickly.
 %
 % To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data

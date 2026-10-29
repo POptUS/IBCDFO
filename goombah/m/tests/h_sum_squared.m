@@ -1,6 +1,6 @@
 % Smooth sum-of-squares h function, following the [h, grads, Hash] convention of
-% the manifold sampling h functions (always one active "manifold" since it is
-% smooth).
+% the manifold sampling h functions. Note there is always only one active
+% "manifold" since h is smooth.
 
 function [h, grads, Hash] = h_sum_squared(z, H0)
     z = z(:);

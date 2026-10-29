@@ -10,13 +10,10 @@ ibcdfo_pypkg/build/
 ibcdfo_pypkg/src/ibcdfo.egg-info
 
 # Unit test / coverage reports
-.tox/
+**/dfo.dat
+**/mpc_test_files_smaller_Q
+**/mpc_test_files_smaller_Q.zip
 ibcdfo_pypkg/.tox
-ibcdfo_pypkg/dfo.dat
-ibcdfo_pypkg/mpc_test_files_smaller_Q.zip
-ibcdfo_pypkg/mpc_test_files_smaller_Q
-goombah/m/tests/mpc_test_files_smaller_Q.zip
-goombah/m/tests/mpc_test_files_smaller_Q
 ibcdfo_pypkg/benchmark_results
 ibcdfo_pypkg/msp_benchmark_results
 ibcdfo_pypkg/.coverage_ibcdfo
@@ -61,8 +58,3 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
-
-# From benchmarking
-dfo.dat
-
-

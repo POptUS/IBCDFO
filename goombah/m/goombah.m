@@ -3,7 +3,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
     %       scalar function value and :math:`k \times \nd` subgradients for all
-    %       :math:`k` limiting gradients at the point given.
+    %       :math:`k` limiting gradients at the given point.
     %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
     %       simulation, returning a :math:`1 \times \nd` vector.
     %  :param nf_max:  [int] Maximum number of function evaluations.
@@ -14,27 +14,27 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %       subproblem. Fields:
     %
     %       * **solver** - ``'GAMS'`` to solve the subproblem with
-    %         GAMS <https://www.gams.com/>`__
+    %         `GAMS <https://www.gams.com>`_
     %         or ``'lhs'`` to use a simple solver that samples the
     %         trust region and refines the best point with ``fmincon``. The
-    %         latter is of lower quality and is intended for testing and
-    %         development. The fields below apply only to ``'GAMS'``.
+    %         latter is not recommended and is intended for testing and
+    %         development. All other fields apply only to ``'GAMS'``.
     %       * **file** - Path to the GAMS model file that corresponds to ``hfun``.
     %         Model files for several choices of :math:`\hfun` are in
     %         ``goombah/m/subproblems``:
     %
     %       * **solvers** - Vector of integers that selects the GAMS solvers to
-    %         try. The step from the best successful solve is used. Each
-    %         solver must be available with your GAMS license. The solver that
-    %         each integer selects is set in ``file``:
+    %         try. The step from the best successful solve is used as the trial
+    %         point. Each solver must be available with your GAMS license. The
+    %         solver that each integer selects is set in ``file``:
     %
     %       * **hfun_data** - (optional) Data that defines ``hfun`` for the two
     %         model files that need it: fields **C** and **D**, as given to
     %         ``create_censored_L1_loss_hfun``, or fields **Q**, **z**, and
     %         **c**, as given to ``create_piecewise_quadratic_hfun``.
     %
-    %  :param subprob_switch: [str] Solver for the subproblem of the
-    %       manifold sampling iterations that |goombah| falls back to:
+    %  :param subprob_switch: [str] Solver for the subproblem of the manifold sampling
+    %       subproblems that |goombah| solves as a recourse:
     %
     %       * ``'linprog'`` - Solve the linear program with ``linprog``
     %         (requires the MATLAB Optimization Toolbox).
