@@ -32,7 +32,7 @@ assert(isempty(X) && isempty(F) && isempty(h) && isempty(xkin), "Should have fai
 [X, F, h, xkin] = goombah_wo_msp(hfun, x0, 100, x0, L, U, TRSP_options);
 assert(isempty(X) && isempty(F) && isempty(h) && isempty(xkin), "Should have failed");
 
-% Only enough evaluations for the initial simplex and a few more
+% Supplying only enough evaluation budget for the initial simplex and one more
 nf_max = n + 2;
 [X, ~, ~, ~] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
 assert(size(X, 1) <= nf_max, "goombah grew the size of X");
@@ -40,7 +40,7 @@ assert(size(X, 1) <= nf_max, "goombah grew the size of X");
 [X, ~, ~, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options);
 assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X");
 
-% A fixed coordinate (L = U) means that no model can be built in every direction
+% L = U implies that no model can be built in any coordinate direction
 nf_max = 100;
 L_fixed = L;
 U_fixed = U;
