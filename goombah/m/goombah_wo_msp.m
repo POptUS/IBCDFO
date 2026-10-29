@@ -12,8 +12,8 @@
 %                         a [1 x m] vector.
 %  nf_max:   [int]         Maximum number of function evaluations.
 %  x0:      [1 x n dbl]   Starting point.
-%  L:       [1 x n dbl]   Lower bounds.
-%  U:       [1 x n dbl]   Upper bounds.
+%  L:       [1 x n dbl]   Lower bounds; set unbounded entries to ``-Inf``.
+%  U:       [1 x n dbl]   Upper bounds; set unbounded entries to ``Inf``.
 %  TRSP_options: [struct] Options for solving the trust-region subproblem. Has
 %            the same fields as the argument of the same name of goombah.m:
 %            'solver' ('GAMS' or 'lhs'), and, for 'GAMS', 'file', 'solvers',

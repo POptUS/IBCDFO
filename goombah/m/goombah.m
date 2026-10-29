@@ -8,8 +8,8 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %       simulation, returning a :math:`1 \times \nd` vector.
     %  :param nf_max:  [int] Maximum number of function evaluations.
     %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
-    %  :param L:       [:math:`1 \times \np` dbl] Lower bounds.
-    %  :param U:       [:math:`1 \times \np` dbl] Upper bounds.
+    %  :param L:       [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
+    %  :param U:       [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
     %  :param TRSP_options: [struct] Options for solving the trust-region
     %       subproblem. Fields:
     %

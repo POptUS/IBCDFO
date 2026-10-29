@@ -9,7 +9,21 @@ This code solves the problem
 
 where :math:`\Ffun` is a vector-valued, user-provided blackbox function mapping
 from :math:`\R^{\np}` to :math:`\R^{\nd}`, and :math:`\hfun` is a known,
-possibly nonsmooth function mapping from :math:`\R^{\nd}` to :math:`\R`.
+possibly nonsmooth function mapping from :math:`\R^{\nd}` to :math:`\R`,
+subject to
+
+.. math::
+    L_j \leq \pspcomp{j} \le U_j, j=1,...,\np,
+
+where
+
+* :math:`L` is a user-provided lower bound (with :math:`-\infty` meaning a
+  parameter is unconstrained below), and
+* :math:`U` is a user-provided upper bound (with :math:`\infty` meaning a
+  parameter is unconstrained above).
+
+|goombah| will not attempt to evaluate :math:`\Ffun` outside of the provided
+bounds.
 
 |goombah| stands for *Glassbox Optimization Of a Model of a Blackbox in a
 Hypersphere*. At each iteration, |goombah| constructs a local model
