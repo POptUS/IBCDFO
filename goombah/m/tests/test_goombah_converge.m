@@ -1,14 +1,13 @@
 % This tests that goombah and goombah_wo_msp run to termination, as opposed to
-% exhausting their evaluation budget, on a problem where that is easy. Row 1 of
+% exhausting their evaluation budget, on a problem that is easy. Row 1 of
 % the More and Wild SIOPT benchmark "Benchmarking derivative-free optimization
 % algorithms" is linear in x, so the component models are exact, and
 % h(F(x)) = sum(F(x).^2) has the known minimum m - n = 36. The LHS TRSP solver is
 % used instead of GAMS.
 %
-% To run this test, you must first install a BenDFO clone and add
+% To run this test, you must first install a BenDFO and a MINQ clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
-% and a MINQ clone and add
 %    /path/to/MINQ/m/minq5
 % to the MATLAB path.
 

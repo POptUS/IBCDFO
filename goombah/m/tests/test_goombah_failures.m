@@ -1,6 +1,10 @@
 % This tests that goombah and goombah_wo_msp terminate gracefully, or error with
 % an informative message, when given a bad objective, a bad option, or an
 % evaluation budget that is exhausted while building the first models.
+%
+% To run this test, you must first install a MINQ clone and add
+%    /path/to/MINQ/m/minq5
+% to the MATLAB path.
 
 function [] = test_goombah_failures()
 
