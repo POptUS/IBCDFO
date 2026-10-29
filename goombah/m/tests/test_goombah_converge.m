@@ -19,6 +19,8 @@ clear global h_activity_tol;
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
+% Suppress the call stack that MATLAB prints with each warning.
+oldbacktrace = warning('off', 'backtrace');
 addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
 addpath(fullfile(repo_root, 'pounders', 'm'));
@@ -55,14 +57,15 @@ known_min = m - n;
 rand('seed', 1);
 [X, ~, h, ~] = goombah(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
 assert(size(X, 1) < nf_max, "goombah used its entire evaluation budget");
-assert(min(h) <= known_min + 1e-6, "goombah did not converge to the known minimum");
+assert(abs(min(h) - known_min) <= 1e-6, "goombah did not converge to the known minimum");
 
 rand('seed', 1);
 [X, ~, h, ~] = goombah_wo_msp(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options);
 assert(size(X, 1) < nf_max, "goombah_wo_msp used its entire evaluation budget");
-assert(min(h) <= known_min + 1e-6, "goombah_wo_msp did not converge to the known minimum");
+assert(abs(min(h) - known_min) <= 1e-6, "goombah_wo_msp did not converge to the known minimum");
 
 warning(oldwarn);
+warning(oldbacktrace);
 path(oldpath);
 end
 
