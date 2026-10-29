@@ -1,14 +1,14 @@
 % A GAMS-free solver for the GOOMBAH TRSP.
 %
 % This function
-% - Forms the composed objective h_fun(z(s)), where z(s) are the `P` quadratics
-%   in the step s := x - x0
+% - Forms the composed objective h_fun(z(s)), where z(s) are the `P` quadratic
+%   functions of the step s := x - x0
 % - Evaluates that objective on a Latin hypercube sample of [Low, Upp], together
 %   with the zero step and the step x1 - x0
-% - Starts fmincon from the best of those points
-% - Returns the resulting step and its predicted decrease
+% - Runs fmincon from the best of those points
+% - Returns the resulting solution (the trial step) and its predicted decrease
 %
-% This does not exploit the composite structure of the TRSP and is intended for
+% This method does not exploit the composite structure of the TRSP and is intended for
 % testing GOOMBAH where GAMS is unavailable.
 
 %%%%%%%%%%%
@@ -61,7 +61,7 @@ options = optimoptions('fmincon', 'Display', 'off');
 s_k = fmincon(obj, S(ind, :), [], [], [], [], Low, Upp, [], options);
 s_k = min(Upp, max(Low, s_k));
 
-% fmincon may end worse than its (nonsmooth) starting point
+% safeguard in case fmincon returns a worse solution than its starting point
 if obj(s_k) > vals(ind)
     s_k = S(ind, :);
 end
