@@ -5,7 +5,8 @@
 % benchmark_manifold_sampling.m.
 %
 % For each problem, we assert that each GOOMBAH variant decreases h at least 90%
-% as much as manifold_sampling_primal does from the same starting point.
+% as much as manifold_sampling_primal does from the same starting point, and that
+% the outputs are consistent (see check_outputs).
 %
 % To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
@@ -57,7 +58,8 @@ hfun_names = {'create_censored_L1_loss_hfun', ...
 
 % The slow cases (censored_L1_loss and one_norm on row 43) are omitted to keep
 % the runtime reasonable.
-rows_and_hfuns = {7, 1:9; ...
+rows_and_hfuns = {1, [5, 7]; ...
+                  7, 1:9; ...
                   43, [2, 3, 4, 5, 7, 8]};
 
 for i = 1:size(rows_and_hfuns, 1)
@@ -98,18 +100,25 @@ for i = 1:size(rows_and_hfuns, 1)
         assert(decrease_msp > 0, "manifold_sampling_primal did not decrease h on " + problem);
 
         rand('seed', 1000 * row + jj);
-        [X, ~, h, ~] = goombah(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options, subprob_switch);
+        [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options, subprob_switch);
+        check_outputs(X, F, h, xkin);
         assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
         assert(h(1) - min(h) >= 0.9 * decrease_msp, "goombah decreased h much less than manifold_sampling_primal on " + problem);
 
         rand('seed', 1000 * row + jj);
-        [X, ~, h, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options);
+        [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options);
+        check_outputs(X, F, h, xkin);
         assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
         assert(h(1) - min(h) >= 0.9 * decrease_msp, "goombah_wo_msp decreased h much less than manifold_sampling_primal on " + problem);
     end
 end
 
 path(oldpath);
+end
+
+function [] = check_outputs(X, F, h, xkin)
+    assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "Inconsistent output sizes");
+    assert(h(xkin) < h(1), "No decrease from the starting point");
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)
