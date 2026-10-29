@@ -1,6 +1,6 @@
-% This tests the LHS-based GOOMBAH TRSP solver on an instance with a known
+% This tests the GOOMBAH TRSP solver with LHS subproblem solver on an instance with a known
 % minimizer: the linear models z(s) = s - c have a common zero at s = c, which
-% is inside the box, so the minimum of max(z.^2) is 0.
+% is interior the bounding box, so the minimum of max(z(s).^2) over the box is 0.
 
 function [] = test_minimize_quadratics_lhs()
 
@@ -26,8 +26,7 @@ val_at_x0 = h_pw_maximum_squared(b);
 assert(all(Low <= s_k) && all(s_k <= Upp), "Step is not within the bounds");
 assert(abs(pred_dec - val_at_x0) <= 1e-4, "Did not find the known minimum");
 
-% The predicted decrease is never negative, even if the given value at x0 is
-% below every value that can be attained.
+% The predicted decrease should never be negative, even if x0 is a global minimizer. 
 [~, pred_dec] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x0, -1, @h_pw_maximum_squared);
 assert(pred_dec == 0, "Predicted decrease should have been clamped to zero");
 
