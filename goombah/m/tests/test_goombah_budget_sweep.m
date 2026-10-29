@@ -5,10 +5,9 @@
 % ...), and we check that the outputs are consistent however the run ends. The
 % small dimension ensures each run ends quickly.
 %
-% To run this test, you must first install a BenDFO clone and add
+% To run this test, you must first install a BenDFO and a MINQ clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
-% and a MINQ clone and add
 %    /path/to/MINQ/m/minq5
 % to the MATLAB path.
 

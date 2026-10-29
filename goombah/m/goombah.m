@@ -19,16 +19,17 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %         trust region and refines the best point with ``fmincon``. The
     %         latter is not recommended and is intended for testing and
     %         development. All other fields apply only to ``'GAMS'``.
-    %       * **file** - Path to the GAMS model file that corresponds to ``hfun``.
+    %
+    %       * **file** - Path to the GAMS model file that corresponds to **hfun**.
     %         Model files for several choices of :math:`\hfun` are in
-    %         ``goombah/m/subproblems``:
+    %         ``goombah/m/subproblems``.
     %
     %       * **solvers** - Vector of integers that selects the GAMS solvers to
     %         try. The step from the best successful solve is used as the trial
     %         point. Each solver must be available with your GAMS license. The
-    %         solver that each integer selects is set in ``file``:
+    %         solver that each integer selects is set in **TRSP_options.file**.
     %
-    %       * **hfun_data** - (optional) Data that defines ``hfun`` for the two
+    %       * **hfun_data** - (optional) Data that defines **hfun** for the two
     %         model files that need it: fields **C** and **D**, as given to
     %         ``create_censored_L1_loss_hfun``, or fields **Q**, **z**, and
     %         **c**, as given to ``create_piecewise_quadratic_hfun``.
@@ -37,7 +38,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %       subproblems that |goombah| solves as a recourse:
     %
     %       * ``'linprog'`` - Solve the linear program with ``linprog``
-    %         (requires the MATLAB Optimization Toolbox).
+    %         (requires the |matlab| Optimization Toolbox).
     %       * ``'GAMS_LP'`` - Solve the linear program with GAMS.
     %       * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
     %         problem that includes the Hessians of the models.
