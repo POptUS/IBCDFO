@@ -26,7 +26,7 @@ val_at_x0 = h_pw_maximum_squared(b);
 assert(all(Low <= s_k) && all(s_k <= Upp), "Step is not within the bounds");
 assert(abs(pred_dec - val_at_x0) <= 1e-4, "Did not find the known minimum");
 
-% The predicted decrease should never be negative, even if x0 is a global minimizer. 
+% The predicted decrease should never be negative, even if x0 is a global minimizer.
 [~, pred_dec] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x0, -1, @h_pw_maximum_squared);
 assert(pred_dec == 0, "Predicted decrease should have been clamped to zero");
 

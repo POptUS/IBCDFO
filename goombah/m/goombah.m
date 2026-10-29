@@ -24,8 +24,8 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %         ``goombah/m/subproblems``:
     %
     %       * **solvers** - Vector of integers that selects the GAMS solvers to
-    %         try. The step from the best successful solve is used as the trial 
-    %         point. Each solver must be available with your GAMS license. The 
+    %         try. The step from the best successful solve is used as the trial
+    %         point. Each solver must be available with your GAMS license. The
     %         solver that each integer selects is set in ``file``:
     %
     %       * **hfun_data** - (optional) Data that defines ``hfun`` for the two
@@ -33,7 +33,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %         ``create_censored_L1_loss_hfun``, or fields **Q**, **z**, and
     %         **c**, as given to ``create_piecewise_quadratic_hfun``.
     %
-    %  :param subprob_switch: [str] Solver for the subproblem of the manifold sampling 
+    %  :param subprob_switch: [str] Solver for the subproblem of the manifold sampling
     %       subproblems that |goombah| solves as a recourse:
     %
     %       * ``'linprog'`` - Solve the linear program with ``linprog``
