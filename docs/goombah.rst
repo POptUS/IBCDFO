@@ -45,7 +45,7 @@ For algorithmic details and numerical results, see :cite:t:`MSP_2024`.
 
 |goombah| does not prescribe how its trust-region subproblems are solved. 
 Any high-quality global solver for the subproblem can be used, and the performance
-of |goombah| will change with the quality of that solver. 
+of |goombah| will generally change whever the solver is changed.. 
 The |matlab| implementation provides two ways to solve the subproblems, which
 are selected with the ``solver`` field of ``TRSP_options``:
 
@@ -61,12 +61,12 @@ are selected with the ``solver`` field of ``TRSP_options``:
   When available, we recommend the 
   `BARON <https://www.gams.com/latest/docs/S_BARON.html>`__
   optimization software.
-* ``'lhs'`` evaluates :math:`\hfun(\Mfun(\psp))` on a large Latin hypercube
+* ``'lhs'`` evaluates :math:`\hfun(\Mfun(\psp))` on a Latin hypercube
   sampling of the trust region and then runs the |matlab| Optimization Toolbox's
   ``fmincon`` solver from the best sample point. While it requires no GAMS
   installation, it does not exploit the composite structure of the subproblem
   and may produce lower-quality TRSP solutions.  Since |goombah| performance
-  will degrade relative to a higher-quality global solver, this is typically
+  will generally degrade given a lower-quality global solver, this is typically
   used only for testing and development work.
 
 .. note::
