@@ -1,7 +1,7 @@
 % This compares goombah and goombah_wo_msp, using the LHS TRSP solver instead of
 % GAMS, against pounders on least-squares problems h(F(x)) = sum(F(x).^2) from
 % the More and Wild SIOPT paper "Benchmarking derivative-free optimization
-% algorithms". Least squares is the one h function for which pounders applies.
+% algorithms". Least squares is the only h function tested to which pounders applies.
 %
 % For each problem, we assert that each GOOMBAH variant decreases h at least 90%
 % as much as pounders does from the same starting point.
