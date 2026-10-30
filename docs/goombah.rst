@@ -40,6 +40,10 @@ bound constraints. In this sense, |goombah| is a superset of both |pounders| and
 be addressed by |goombah| through the more general subproblem
 :math:`\hfun(\Mfun(\psp))`.
 
+In the |matlab| implementation, :math:`\Mfun` contains quadratic models of each
+component of :math:`\Ffun`, built by ``formquad`` (the same model-building
+routine used by |pounders|).
+
 The |goombah| trust-region subproblem can be significantly harder than the
 corresponding |pounders| or |manifold_sampling| subproblems. For general
 nonsmooth :math:`\hfun` and nonlinear models :math:`\Mfun`, solving this
