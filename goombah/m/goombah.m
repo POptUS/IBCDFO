@@ -1,23 +1,59 @@
-function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, subprob_switch)
+function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
     %       scalar function value and :math:`k \times \nd` subgradients for all
-    %       :math:`k` limiting gradients at the point given.
+    %       :math:`k` limiting gradients at the given point.
     %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
     %       simulation, returning a :math:`1 \times \nd` vector.
     %  :param nf_max:  [int] Maximum number of function evaluations.
     %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
-    %  :param L:       [:math:`1 \times \np` dbl] Lower bounds.
-    %  :param U:       [:math:`1 \times \np` dbl] Upper bounds.
-    %  :param GAMS_options:
-    %  :param subprob_switch:
+    %  :param L:       [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
+    %  :param U:       [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
+    %  :param TRSP_options: [struct] Options for solving the trust-region
+    %       subproblem. Fields:
+    %
+    %       * **solver** - ``'GAMS'`` to solve the subproblem with
+    %         `GAMS <https://www.gams.com>`_
+    %         or ``'lhs'`` to use a simple solver that samples the
+    %         trust region and refines the best point with ``fmincon``. The
+    %         latter is not recommended and is intended for testing and
+    %         development. All other fields apply only to ``'GAMS'``.
+    %
+    %       * **file** - Path to the GAMS model file that corresponds to **hfun**.
+    %
+    %       * **solvers** - Vector of integers that selects the GAMS solvers to
+    %         try. The step from the best successful solve is used as the trial
+    %         point. Each solver must be available with your GAMS license. The
+    %         solver that each integer selects is set in **TRSP_options.file**.
+    %
+    %       * **hfun_data** - (optional) Users that pass an **hfun** that
+    %         corresponds to one of the |goombah|-provided parameterized
+    %         :math:`h` functions must use this field to provide GAMS with the
+    %         same parameters used to construct their **hfun**.  See the general
+    %         |goombah| documentation for more information.
+    %
+    %  :param subprob_switch: [str] Solver for the subproblem of the manifold sampling
+    %       subproblems that |goombah| solves as a recourse:
+    %
+    %       * ``'linprog'`` - Solve the linear program with ``linprog``
+    %         (requires the |matlab| Optimization Toolbox).
+    %       * ``'GAMS_LP'`` - Solve the linear program with GAMS.
+    %       * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
+    %         problem that includes the Hessians of the models.
     %
     %  :return:
-    %       * **X**    [:math:`\mathrm{nf\_max} \times \np`] Points evaluated
-    %       * **F**    [:math:`\mathrm{nf\_max} \times \nd`] Their simulation values
-    %       * **h**    [:math:`\mathrm{nf\_max} \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
+    %       * **X**    [:math:`k \times \np`] Points evaluated, where
+    %         :math:`k \leq \mathrm{nf\_max}`
+    %       * **F**    [:math:`k \times \nd`] Their simulation values
+    %       * **h**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xkin** [int] Current trust region center
+
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    repo_root = fullfile(here_path, '..', '..');
+    addpath(fullfile(repo_root, 'pounders', 'm'));
+    addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
+    addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 
     % Deduce p from evaluating Ffun at x0
     try
@@ -34,6 +70,11 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, s
     end
 
     [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+    assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
+    if strcmp(TRSP_options.solver, 'lhs')
+        warning("GOOMBAH:lhsTrspSolver", ...
+                "The lhs TRSP solver should only be used for testing or debugging");
+    end
 
     [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
     Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
@@ -66,7 +107,11 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, GAMS_options, s
         Low = max(L - X(xkin, :), -delta);
         Upp = min(U - X(xkin, :), delta);
 
-        [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), GAMS_options, hfun);
+        if strcmp(TRSP_options.solver, 'lhs')
+            [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), hfun);
+        else
+            [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), TRSP_options, hfun);
+        end
         if pred_dec == 0
             rho_k = -inf;
         else
