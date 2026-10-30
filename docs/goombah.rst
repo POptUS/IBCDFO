@@ -27,8 +27,8 @@ bounds.
 
 |goombah| stands for *Glassbox Optimization Of a Model of a Blackbox in a
 Hypersphere*. At each iteration, |goombah| constructs a local model
-:math:`\Mfun` of the blackbox mapping :math:`\Ffun` and approximately solves the
-trust-region subproblem (TRSP)
+:math:`\Mfun` from quadratic models of each component of the blackbox mapping
+:math:`\Ffun` and approximately solves the trust-region subproblem (TRSP)
 
 .. math::
 
@@ -39,10 +39,6 @@ bound constraints. In this sense, |goombah| is a superset of both |pounders| and
 |manifold_sampling|: when a problem can be handled by either method, it can also
 be addressed by |goombah| through the more general subproblem
 :math:`\hfun(\Mfun(\psp))`.
-
-In the |matlab| implementation, :math:`\Mfun` contains quadratic models of each
-component of :math:`\Ffun`, built by ``formquad`` (the same model-building
-routine used by |pounders|).
 
 The |goombah| trust-region subproblem can be significantly harder than the
 corresponding |pounders| or |manifold_sampling| subproblems. For general
