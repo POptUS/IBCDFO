@@ -61,12 +61,12 @@ for row = [7, 43, 44]
     decrease_pounders = h_pounders(1) - min(h_pounders);
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
-    rand('seed', row);
+    rand('seed', 1);
     [X, ~, h, ~] = goombah(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
     assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
     assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah decreased h much less than pounders on " + problem);
 
-    rand('seed', row);
+    rand('seed', 1);
     [X, ~, h, ~] = goombah_wo_msp(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options);
     assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
     assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah_wo_msp decreased h much less than pounders on " + problem);

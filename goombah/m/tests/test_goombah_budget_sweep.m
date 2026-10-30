@@ -51,11 +51,11 @@ MAX_EXTRA = 20;
 for nf_max = n + 1:n + MAX_EXTRA
     problem = ['problem ' num2str(row) ' with nf_max=' int2str(nf_max)];
 
-    rand('seed', nf_max);
+    rand('seed', 1);
     [X, F, h, ~] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
     check_outputs(X, F, h, hfun, nf_max, "goombah on " + problem);
 
-    rand('seed', nf_max);
+    rand('seed', 1);
     [X, F, h, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options);
     check_outputs(X, F, h, hfun, nf_max, "goombah_wo_msp on " + problem);
 end

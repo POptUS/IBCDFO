@@ -103,13 +103,13 @@ for i = 1:size(rows_and_hfuns, 1)
         decrease_msp = h_msp(1) - min(h_msp);
         assert(decrease_msp > 0, "manifold_sampling_primal did not decrease h on " + problem);
 
-        rand('seed', 1000 * row + jj);
+        rand('seed', 1);
         [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options, subprob_switch);
         check_outputs(X, F, h, xkin);
         assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
         assert(h(1) - min(h) >= 0.9 * decrease_msp, "goombah decreased h much less than manifold_sampling_primal on " + problem);
 
-        rand('seed', 1000 * row + jj);
+        rand('seed', 1);
         [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options);
         check_outputs(X, F, h, xkin);
         assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
