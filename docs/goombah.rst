@@ -2,14 +2,12 @@
 =========
 General Description
 -------------------
-This code solves the problem
+The *Glassbox Optimization Of a Model of a Blackbox in a Hypersphere* method,
+better known as |goombah|, solves the optimization problem
 
 .. math::
     \min_{\psp \in \R^{\np}} \hfun(\Ffun(\psp)),
 
-where :math:`\Ffun` is a vector-valued, user-provided blackbox function mapping
-from :math:`\R^{\np}` to :math:`\R^{\nd}`, and :math:`\hfun` is a known,
-possibly nonsmooth function mapping from :math:`\R^{\nd}` to :math:`\R`,
 subject to
 
 .. math::
@@ -17,18 +15,20 @@ subject to
 
 where
 
-* :math:`L` is a user-provided lower bound (with :math:`-\infty` meaning a
-  parameter is unconstrained below), and
-* :math:`U` is a user-provided upper bound (with :math:`\infty` meaning a
-  parameter is unconstrained above).
+* :math:`\Ffun` is a vector-valued, user-provided blackbox function mapping from :math:`\R^{\np}` to :math:`\R^{\nd}`, 
+* :math:`\hfun` is a known, possibly nonsmooth function mapping from :math:`\R^{\nd}` to :math:`\R`,
+* :math:`L` is a user-provided boundary constraint that permits values of
+  :math:`-\infty` to specify that the problem is unconstrained for the
+  associated parameter, and
+* :math:`U` is a user-provided boundary constraint that permits values of
+  :math:`+\infty` to specify that the problem is unconstrained for the
+  associated parameter.
 
-|goombah| will not attempt to evaluate :math:`\Ffun` outside of the provided
-bounds.
+|goombah| will never evaluate :math:`\Ffun` outside of the provided bounds.
 
-|goombah| stands for *Glassbox Optimization Of a Model of a Blackbox in a
-Hypersphere*. At each iteration, |goombah| constructs a local model
-:math:`\Mfun` from quadratic models of each component of the blackbox mapping
-:math:`\Ffun` and approximately solves the trust-region subproblem (TRSP)
+At each iteration, |goombah| constructs a local model :math:`\Mfun` from
+quadratic models of each component of the blackbox mapping :math:`\Ffun` and
+approximately solves the trust-region subproblem (TRSP)
 
 .. math::
 
