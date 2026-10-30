@@ -20,8 +20,6 @@ clear global h_activity_tol;
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
-% Suppress the call stack that MATLAB prints with each warning.
-oldbacktrace = warning('off', 'backtrace');
 addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
@@ -119,7 +117,6 @@ for i = 1:size(rows_and_hfuns, 1)
     end
 end
 
-warning(oldbacktrace);
 path(oldpath);
 end
 
