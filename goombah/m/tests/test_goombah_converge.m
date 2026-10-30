@@ -20,6 +20,7 @@ repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
 addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
+addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'tests', 'general_smooth_h_funs'));
 addpath(fullfile(repo_root, 'pounders', 'm'));
 
 % Once the trust region radius is tiny, fmincon warns that its finite-difference
@@ -52,12 +53,12 @@ x0 = dfoxs(n, nprob, factor^factor_power)';
 known_min = m - n;
 
 rand('seed', 1);
-[X, ~, h, ~] = goombah(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
+[X, ~, h, ~] = goombah(@h_leastsquares, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
 assert(size(X, 1) < nf_max, "goombah used its entire evaluation budget");
 assert(abs(min(h) - known_min) <= 1e-6, "goombah did not converge to the known minimum");
 
 rand('seed', 1);
-[X, ~, h, ~] = goombah_wo_msp(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options);
+[X, ~, h, ~] = goombah_wo_msp(@h_leastsquares, Ffun, nf_max, x0, L, U, TRSP_options);
 assert(size(X, 1) < nf_max, "goombah_wo_msp used its entire evaluation budget");
 assert(abs(min(h) - known_min) <= 1e-6, "goombah_wo_msp did not converge to the known minimum");
 

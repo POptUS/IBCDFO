@@ -22,7 +22,7 @@ oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
 addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
 addpath(fullfile(repo_root, 'pounders', 'm'));
-addpath(fullfile(repo_root, 'pounders', 'm', 'general_h_funs'));
+addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'tests', 'general_smooth_h_funs'));
 
 factor = 10;
 nf_max = 100;
@@ -62,12 +62,12 @@ for row = [7, 43, 44]
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
     rand('seed', 1);
-    [X, ~, h, ~] = goombah(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
+    [X, ~, h, ~] = goombah(@h_leastsquares, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
     assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
     assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah decreased h much less than pounders on " + problem);
 
     rand('seed', 1);
-    [X, ~, h, ~] = goombah_wo_msp(@h_sum_squared, Ffun, nf_max, x0, L, U, TRSP_options);
+    [X, ~, h, ~] = goombah_wo_msp(@h_leastsquares, Ffun, nf_max, x0, L, U, TRSP_options);
     assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
     assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah_wo_msp decreased h much less than pounders on " + problem);
 end
