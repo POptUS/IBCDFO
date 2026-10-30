@@ -21,8 +21,6 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %         development. All other fields apply only to ``'GAMS'``.
     %
     %       * **file** - Path to the GAMS model file that corresponds to **hfun**.
-    %         Model files for several choices of :math:`\hfun` are in
-    %         ``goombah/m/subproblems``.
     %
     %       * **solvers** - Vector of integers that selects the GAMS solvers to
     %         try. The step from the best successful solve is used as the trial

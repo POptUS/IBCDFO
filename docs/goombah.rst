@@ -52,7 +52,7 @@ To preserve robustness, |goombah| reverts to a manifold sampling iteration
 (see **subprob_switch** below) whenever the proposed trust-region subproblem solution does not produce
 sufficient objective decrease. This fallback to manifold sampling, which
 identifies only a local descent step, allows |goombah| to retain the convergence
-properties of manifold sampling while otherwise potentially taking more
+properties of the chosen manifold sampling solver while otherwise potentially taking more
 ambitious steps whenever they are demonstrably useful.
 
 For algorithmic details and numerical results, see :cite:t:`MSP_2024`.
@@ -92,7 +92,7 @@ are selected with the ``solver`` field of ``TRSP_options``:
 Programmatic Interface
 ----------------------
 
-The interface requires that users pass in a function handle to a MATLAB function
+The interface requires that users pass in a handle to a MATLAB function
 that computes :math:`h`.  When GAMS is employed, users must also set in
 **TRSP_Options.file** the path of a GAMS model file that is matched to
 their **hfun** argument.  Model files for several choices of :math:`\hfun` are
@@ -104,16 +104,15 @@ The model files
 * ``minimize_censored_L1_loss_quadratic_models.gms`` and
 * ``minimize_max_quadratic_mapping_of_quadratic_models.gms``
 
-correspond to parameterized :math:`h` functions that require that users first
-create their actual **hfun** argument using, respectively, the MATLAB versions
-of
+correspond to parameterized :math:`h` functions that require users to create
+their actual **hfun** argument using, respectively, the MATLAB versions of
 
 * :py:func:`ibcdfo.manifold_sampling.create_censored_L1_loss_hfun` and
 * :py:func:`ibcdfo.manifold_sampling.create_piecewise_quadratic_hfun`
 
 located in ``manifold_sampling/m/general_nonsmooth_h_funs``.  In addition they
-must use **TRSP_Options.hfun_data** to pass to |goombah| the exact same
-**C**/**D** or **Q**/**z**/**c** parameters used to construct their **hfun**
+must use **TRSP_Options.hfun_data** to provide to GAMS the exact same **C**/**D**
+or **Q**/**z**/**c** parameters used to construct their **hfun**
 
 |matlab|
 ^^^^^^^^
