@@ -29,10 +29,11 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %         point. Each solver must be available with your GAMS license. The
     %         solver that each integer selects is set in **TRSP_options.file**.
     %
-    %       * **hfun_data** - (optional) Data that defines **hfun** for the two
-    %         model files that need it: fields **C** and **D**, as given to
-    %         ``create_censored_L1_loss_hfun``, or fields **Q**, **z**, and
-    %         **c**, as given to ``create_piecewise_quadratic_hfun``.
+    %       * **hfun_data** - (optional) Users that pass an **hfun** that
+    %         corresponds to one of the |goombah|-provided parameterized
+    %         :math:`h` functions must use this field to provide GAMS with the
+    %         same parameters used to construct their **hfun**.  See the general
+    %         |goombah| documentation for more information.
     %
     %  :param subprob_switch: [str] Solver for the subproblem of the manifold sampling
     %       subproblems that |goombah| solves as a recourse:
