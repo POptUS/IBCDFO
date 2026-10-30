@@ -92,7 +92,7 @@ are selected with the ``solver`` field of ``TRSP_options``:
 Programmatic Interface
 ----------------------
 
-The interface requires that users pass in a handle to a MATLAB function
+The interface requires that users pass in a handle to a |matlab| function
 that computes :math:`h`.  When GAMS is employed, users must also set in
 **TRSP_Options.file** the path of a GAMS model file that is matched to
 their **hfun** argument.  Model files for several choices of :math:`\hfun` are
@@ -105,7 +105,7 @@ The model files
 * ``minimize_max_quadratic_mapping_of_quadratic_models.gms``
 
 correspond to parameterized :math:`h` functions that require users to create
-their actual **hfun** argument using, respectively, the MATLAB versions of
+their actual **hfun** argument using, respectively, the |matlab| versions of
 
 * :py:func:`ibcdfo.manifold_sampling.create_censored_L1_loss_hfun` and
 * :py:func:`ibcdfo.manifold_sampling.create_piecewise_quadratic_hfun`

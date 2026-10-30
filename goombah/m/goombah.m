@@ -43,9 +43,10 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %         problem that includes the Hessians of the models.
     %
     %  :return:
-    %       * **X**    [:math:`\mathrm{nf\_max} \times \np`] Points evaluated
-    %       * **F**    [:math:`\mathrm{nf\_max} \times \nd`] Their simulation values
-    %       * **h**    [:math:`\mathrm{nf\_max} \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
+    %       * **X**    [:math:`k \times \np`] Points evaluated, where
+    %         :math:`k \leq \mathrm{nf\_max}
+    %       * **F**    [:math:`k \times \nd`] Their simulation values
+    %       * **h**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xkin** [int] Current trust region center
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));

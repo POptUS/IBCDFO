@@ -23,10 +23,10 @@
 %            (see pounders/m/create_trsp_solver.m). Defaults to minq5.
 %
 % Outputs:
-%   X:      [nf_max x n]   Points evaluated
-%   F:      [nf_max x p]   Their simulation values
-%   h:      [nf_max x 1]   The values h(F(x))
-%   xkin:   [int]         Current trust region center
+%   X:      [k x n]   Points evaluated
+%   F:      [k x p]   Their simulation values
+%   h:      [k x 1]   The values h(F(x))
+%   xkin:   [int]     Current trust region center
 
 function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options, Options)
 
