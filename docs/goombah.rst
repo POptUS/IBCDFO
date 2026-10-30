@@ -15,16 +15,16 @@ subject to
 
 where
 
-* :math:`\Ffun : \R^{\np} \to \R^{\nd}` is a vector-valued, user-provided blackbox function,
-* :math:`\hfun : \R^{\nd} \to \R` is a user-provided, possibly nonsmooth function,
-* :math:`L` is a user-provided boundary constraint that permits values of
+* :math:`\Ffun : \R^{\np} \to \R^{\nd}` is a vector-valued blackbox function,
+* :math:`\hfun : \R^{\nd} \to \R` is a possibly nonsmooth function,
+* :math:`L` is a boundary constraint that permits values of
   :math:`-\infty` to specify that the problem is unconstrained for the
   associated parameter, and
-* :math:`U` is a user-provided boundary constraint that permits values of
+* :math:`U` is a boundary constraint that permits values of
   :math:`+\infty` to specify that the problem is unconstrained for the
   associated parameter.
 
-|goombah| will never evaluate :math:`\Ffun` outside of the provided bounds.
+|goombah| will never evaluate :math:`\Ffun` outside of the provided bounds :math:`[L, U]`.
 
 At each iteration, |goombah| constructs a local model :math:`\Mfun` from
 quadratic models of each component of the blackbox mapping :math:`\Ffun` and
@@ -40,11 +40,11 @@ bound constraints. In this sense, |goombah| is a superset of both
 one of these methods, it can also be addressed by |goombah| through the more general
 subproblem :math:`\hfun(\Mfun(\psp))`.
 
-Solving the |goombah| trust-region subproblem can be significantly harder than solving the
-corresponding |pounders| or |manifold_sampling| subproblems. For general
-nonsmooth :math:`\hfun` and nonlinear models :math:`\Mfun`, solving this
-subproblem to tight tolerances may require a global optimization solver, and
-individual solves can take minutes or hours. Thus, users should ensure that
+The intention of |goombah| is to globally solve the trust-region subproblem,
+which is generally more expensive than the approximate solvers employed in
+|pounders| or |manifold_sampling|. For general nonsmooth :math:`\hfun` and
+nonlinear models :math:`\Mfun`, solving this subproblem to tight tolerances can
+take minutes or hours. Thus, users should ensure that
 the time spent solving the trust-region subproblem is commensurate with the
 cost of evaluating :math:`\Ffun`.
 
