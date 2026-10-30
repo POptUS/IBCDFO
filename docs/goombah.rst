@@ -2,14 +2,12 @@
 =========
 General Description
 -------------------
-This code solves the problem
+The *Glassbox Optimization Of a Model of a Blackbox in A Hypersphere* method,
+better known as |goombah|, solves the optimization problem
 
 .. math::
-    \min_{\psp \in \R^{\np}} \hfun(\Ffun(\psp)),
+    \min_{\psp \in \R^{\np}} \hfun(\Ffun(\psp))
 
-where :math:`\Ffun` is a vector-valued, user-provided blackbox function mapping
-from :math:`\R^{\np}` to :math:`\R^{\nd}`, and :math:`\hfun` is a known,
-possibly nonsmooth function mapping from :math:`\R^{\nd}` to :math:`\R`,
 subject to
 
 .. math::
@@ -17,34 +15,32 @@ subject to
 
 where
 
-* :math:`L` is a user-provided lower bound (with :math:`-\infty` meaning a
-  parameter is unconstrained below), and
-* :math:`U` is a user-provided upper bound (with :math:`\infty` meaning a
-  parameter is unconstrained above).
+* :math:`\Ffun : \R^{\np} \to \R^{\nd}` is a vector-valued, user-provided blackbox function,
+* :math:`\hfun : \R^{\nd} \to \R` is a user-provided, possibly nonsmooth function,
+* :math:`L` is a user-provided boundary constraint that permits values of
+  :math:`-\infty` to specify that the problem is unconstrained for the
+  associated parameter, and
+* :math:`U` is a user-provided boundary constraint that permits values of
+  :math:`+\infty` to specify that the problem is unconstrained for the
+  associated parameter.
 
-|goombah| will not attempt to evaluate :math:`\Ffun` outside of the provided
-bounds.
+|goombah| will never evaluate :math:`\Ffun` outside of the provided bounds.
 
-|goombah| stands for *Glassbox Optimization Of a Model of a Blackbox in a
-Hypersphere*. At each iteration, |goombah| constructs a local model
-:math:`\Mfun` of the blackbox mapping :math:`\Ffun` and approximately solves the
-trust-region subproblem (TRSP)
+At each iteration, |goombah| constructs a local model :math:`\Mfun` from
+quadratic models of each component of the blackbox mapping :math:`\Ffun` and
+approximates the solution to the trust-region subproblem (TRSP)
 
 .. math::
 
     \min_{\psp \in \Omega_k} \hfun(\Mfun(\psp)),
 
 where :math:`\Omega_k` is the current trust region, possibly intersected with
-bound constraints. In this sense, |goombah| is a superset of both |pounders| and
-|manifold_sampling|: when a problem can be handled by either method, it can also
-be addressed by |goombah| through the more general subproblem
-:math:`\hfun(\Mfun(\psp))`.
+bound constraints. In this sense, |goombah| is a superset of both
+:ref:`pounders_section` and :ref:`msp_section`: when a problem can be handled by
+one of these methods, it can also be addressed by |goombah| through the more general
+subproblem :math:`\hfun(\Mfun(\psp))`.
 
-In the |matlab| implementation, :math:`\Mfun` contains quadratic models of each
-component of :math:`\Ffun`, built by ``formquad`` (the same model-building
-routine used by |pounders|).
-
-The |goombah| trust-region subproblem can be significantly harder than the
+Solving the |goombah| trust-region subproblem can be significantly harder than solving the
 corresponding |pounders| or |manifold_sampling| subproblems. For general
 nonsmooth :math:`\hfun` and nonlinear models :math:`\Mfun`, solving this
 subproblem to tight tolerances may require a global optimization solver, and
@@ -53,17 +49,17 @@ the time spent solving the trust-region subproblem is commensurate with the
 cost of evaluating :math:`\Ffun`.
 
 To preserve robustness, |goombah| reverts to a manifold sampling iteration
-whenever the proposed trust-region subproblem solution does not produce
+(see **subprob_switch** below) whenever the proposed trust-region subproblem solution does not produce
 sufficient objective decrease. This fallback to manifold sampling, which
 identifies only a local descent step, allows |goombah| to retain the convergence
-properties of manifold sampling while otherwise potentially taking more
+properties of the chosen manifold sampling solver while otherwise potentially taking more
 ambitious steps whenever they are demonstrably useful.
 
 For algorithmic details and numerical results, see :cite:t:`MSP_2024`.
 
 |goombah| does not prescribe how its trust-region subproblems are solved. 
 Any high-quality global solver for the subproblem can be used, and the performance
-of |goombah| will generally change whenever the solver is changed.. 
+of |goombah| will generally change whenever the solver is changed.
 The |matlab| implementation provides two ways to solve the subproblems, which
 are selected with the ``solver`` field of ``TRSP_options``:
 
@@ -95,6 +91,28 @@ are selected with the ``solver`` field of ``TRSP_options``:
 
 Programmatic Interface
 ----------------------
+
+The interface requires that users pass in a handle to a MATLAB function
+that computes :math:`h`.  When GAMS is employed, users must also set in
+**TRSP_Options.file** the path of a GAMS model file that is matched to
+their **hfun** argument.  Model files for several choices of :math:`\hfun` are
+provided as ``minimize_*.gms`` files in 
+`goombah/m/subproblems <https://github.com/POptUS/IBCDFO/tree/main/goombah/m/subproblems>`_.
+
+The model files
+
+* ``minimize_censored_L1_loss_quadratic_models.gms`` and
+* ``minimize_max_quadratic_mapping_of_quadratic_models.gms``
+
+correspond to parameterized :math:`h` functions that require users to create
+their actual **hfun** argument using, respectively, the MATLAB versions of
+
+* :py:func:`ibcdfo.manifold_sampling.create_censored_L1_loss_hfun` and
+* :py:func:`ibcdfo.manifold_sampling.create_piecewise_quadratic_hfun`
+
+located in ``manifold_sampling/m/general_nonsmooth_h_funs``.  In addition they
+must use **TRSP_Options.hfun_data** to provide to GAMS the exact same **C**/**D**
+or **Q**/**z**/**c** parameters used to construct their **hfun**
 
 |matlab|
 ^^^^^^^^

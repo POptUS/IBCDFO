@@ -1,3 +1,5 @@
+.. _msp_section:
+
 |manifold_sampling|
 ===================
 General Description

@@ -1,9 +1,12 @@
-% This runs goombah and goombah_wo_msp, using the LHS TRSP solver (not GAMS),
-% on a tiny problem for every evaluation budget nf_max, in steps of one, from its
-% smallest allowed value up through n + MAX_EXTRA. Each budget ends a run at a
-% different point (while building the first models, after the first TRSP solve,
-% ...), and we check that the outputs are consistent however the run ends. The
-% small dimension ensures each run ends quickly.
+% This runs goombah and goombah_wo_msp, using the LHS TRSP solver (not GAMS), on
+% a tiny problem for every evaluation budget nf_max, in steps of one, from its
+% smallest allowed value up through n + MAX_EXTRA. The goal is for the test to
+% increase the likelihood that each execution termination path in GOOMBAH is
+% exercised by the test with basic sanity checking of returned values.  Since
+% the test cannot interrogate at each iteration which termination path was
+% exercised, this test cannot determine how good a job it does at covering all
+% paths.  Rather, users would need to manually inspect code-coverage-by-line
+% reports.  The small dimension ensures each run ends quickly.
 %
 % To run this test, you must first install a BenDFO and a MINQ clone and add
 %    /path/to/BenDFO/data
