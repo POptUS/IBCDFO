@@ -8,9 +8,10 @@
 % as much as manifold_sampling_primal does from the same starting point, and that
 % the outputs are consistent (see check_outputs).
 %
-% To run this test, you must first install a BenDFO clone and add
+% To run this test, you must first install a BenDFO and a MINQ clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
+%    /path/to/MINQ/m/minq5
 % to the MATLAB path.
 
 function [] = test_goombah_vs_msp()
@@ -20,10 +21,8 @@ clear global h_activity_tol;
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
-addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
-addpath(fullfile(repo_root, 'pounders', 'm'));
 
 factor = 10;
 nf_max = 100;

@@ -16,7 +16,7 @@
 %%%%%%%%%%%
 % H:          [n-by-n-by-P] array of P model quadratic terms
 % g:          [n-by-P] array of P model linear terms
-% b:          [P-by-1] array of P model constant terms
+% b:          [1-by-P] array of P model constant terms
 % Low:        [1-by-n] lower bounds on the step
 % Upp:        [1-by-n] upper bounds on the step
 % x0:         [1-by-n] trust region center
@@ -34,8 +34,8 @@ function [s_k, pred_dec] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x1, va
 
 [n, P] = size(g);
 
-assert(size(H, 1) == n && size(H, 2) == n && size(H, 3) == P, 'H must be n-by-n-by-P');
-assert(numel(b) == P, 'b must have P entries');
+assert(all(size(H) == [n, n, P]), 'H must be n-by-n-by-P');
+assert(all(size(b) == [1, P]), "b must be 1-by-P");
 assert(all(size(Low) == [1, n]) && all(size(Upp) == [1, n]), 'Low and Upp must be 1-by-n');
 assert(all(size(x0) == [1, n]) && all(size(x1) == [1, n]), 'x0 and x1 must be 1-by-n');
 assert(all(Low <= Upp), 'Low must not exceed Upp');

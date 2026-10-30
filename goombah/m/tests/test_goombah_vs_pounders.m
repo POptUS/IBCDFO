@@ -19,9 +19,10 @@ clear global h_activity_tol;
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
-addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
-addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
 addpath(fullfile(repo_root, 'pounders', 'm'));
+% While both POUNDERS and Manifold Sampling provide an h_leastsquares, both of
+% which are used here, the two functions have different interfaces.
+addpath(fullfile(repo_root, 'pounders', 'm', 'general_h_funs'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'tests', 'general_smooth_h_funs'));
 
 factor = 10;

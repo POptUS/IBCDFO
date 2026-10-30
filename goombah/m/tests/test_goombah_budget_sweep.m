@@ -21,10 +21,7 @@ clear global h_activity_tol;
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
-addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
-addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
-addpath(fullfile(repo_root, 'pounders', 'm'));
 
 factor = 10;
 subprob_switch = 'linprog';

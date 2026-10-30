@@ -48,6 +48,12 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %       * **h**    [:math:`\mathrm{nf\_max} \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xkin** [int] Current trust region center
 
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    repo_root = fullfile(here_path, '..', '..');
+    addpath(fullfile(repo_root, 'pounders', 'm'));
+    addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
+    addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
+
     % Deduce p from evaluating Ffun at x0
     try
         F0 = Ffun(x0);

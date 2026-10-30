@@ -30,6 +30,12 @@
 
 function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options, Options)
 
+    [here_path, ~, ~] = fileparts(mfilename('fullpath'));
+    repo_root = fullfile(here_path, '..', '..');
+    addpath(fullfile(repo_root, 'pounders', 'm'));
+    addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
+    addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
+
     if nargin < 8 || isempty(Options)
         Options = struct();
     end
