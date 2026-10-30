@@ -44,7 +44,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %
     %  :return:
     %       * **X**    [:math:`k \times \np`] Points evaluated, where
-    %         :math:`k \leq \mathrm{nf\_max}
+    %         :math:`k \leq \mathrm{nf\_max}`
     %       * **F**    [:math:`k \times \nd`] Their simulation values
     %       * **h**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xkin** [int] Current trust region center
