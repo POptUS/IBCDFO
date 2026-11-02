@@ -77,9 +77,11 @@ class TestPoundersInterface(unittest.TestCase):
         self.assertEqual(set(self.__KWARGS["Model"]), ALL_MODEL_KEYS)
         self.assertEqual(set(self.__KWARGS["Options"]), ALL_OPTIONS_KEYS)
 
+        self.__NOT_BOOL = (None, "", 0, 1, 1.1, [], {}, [1], {1})
         self.__NOT_REAL = (None, "", True, False, {}, [1.1], {1.1})
         self.__NOT_INT = (None, "", True, False, 1.0, 1.1, {}, [1], {1})
         self.__NOT_NUMPY_ARRAY = (None, "", 1, 1.1, {}, [1], {1})
+        self.__NOT_LIST = (None, "", 1, 1.1, {}, (1,), {1}, np.ones(1))
         self.__NOT_FUNCTION = (None, "", 1, 1.1, {}, [1], {1})
 
     def __test(self, new_args, expected_exception):
@@ -326,15 +328,6 @@ class TestPoundersInterface(unittest.TestCase):
         bad = copy.deepcopy(self.__KWARGS["Options"])
         bad["!NOT A KEY!"] = 1.1
         self.assertNotEqual(set(bad), ALL_OPTIONS_KEYS)
-        self.__test({"Options": bad}, ValueError)
-
-        # We either don't pass hfun/combinemodels or we pass both
-        bad = copy.deepcopy(self.__KWARGS["Options"])
-        del bad["hfun"]
-        self.__test({"Options": bad}, ValueError)
-
-        bad = copy.deepcopy(self.__KWARGS["Options"])
-        del bad["combinemodels"]
         self.__test({"Options": bad}, ValueError)
 
     def testFfun(self):
@@ -658,10 +651,125 @@ class TestPoundersInterface(unittest.TestCase):
             self.__test({"Low": Low_good}, self.__SUCCESS_MSG)
             self.__test({"Low": Low_good, "Upp": Upp_to_fail}, ValueError)
 
+    def testPar(self):
+        GOOD = copy.deepcopy(self.__KWARGS["Model"]["Par"])
+        BAD_VALUES = {-1.1, -np.finfo(float).smallest_normal, 0.0, np.nan, np.inf, -np.inf}
+
+        for bad in self.__NOT_LIST:
+            self.__test({"Par": bad}, TypeError)
+
+        self.__test({"Par": GOOD[:-1]}, ValueError)
+        self.__test({"Par": GOOD + [False]}, ValueError)
+
+        for i in range(len(GOOD) - 1):
+            bad_par = copy.deepcopy(GOOD)
+            for bad in self.__NOT_REAL:
+                bad_par[i] = bad
+                self.__test({"Par": bad_par}, ValueError)
+
+            for bad in BAD_VALUES:
+                bad_par[i] = bad
+                self.__test({"Par": bad_par}, ValueError)
+
+        bad_par = copy.deepcopy(GOOD)
+        for bad in self.__NOT_BOOL:
+            bad_par[-1] = bad
+            self.__test({"Par": bad_par}, TypeError)
+
+        bad_par[-1] = True
+        self.__test({"Par": bad_par}, NotImplementedError)
+
+    def testPrintf(self):
+        for bad in self.__NOT_INT:
+            self.__test({"printf": bad}, ValueError)
+
+        for bad in {-1, 3}:
+            self.__test({"printf": bad}, ValueError)
+
     def testSpsolver(self):
         for bad in self.__NOT_FUNCTION:
             self.__test({"spsolver": bad}, TypeError)
 
     def testBatchedFfun(self):
-        for bad in [None, "", 1, 1.1, [], {}]:
+        for bad in self.__NOT_BOOL:
             self.__test({"batched_Ffun": bad}, TypeError)
+
+    def testDeltaMax(self):
+        BAD_VALUES = {-12.3, -1.1, -np.finfo(float).smallest_normal, 0.0, np.nan, np.inf, -np.inf}
+
+        for bad in self.__NOT_REAL:
+            self.__test({"delta_max": bad}, ValueError)
+
+        for bad in BAD_VALUES:
+            self.__test({"delta_max": bad}, ValueError)
+
+    def testDeltaMin(self):
+        BAD_VALUES = {-12.3, -1.1, -np.finfo(float).smallest_normal, np.nan, np.inf, -np.inf}
+
+        self.__test({"delta_min": 0.0}, self.__SUCCESS_MSG)
+
+        for bad in self.__NOT_REAL:
+            self.__test({"delta_min": bad}, ValueError)
+
+        for bad in BAD_VALUES:
+            self.__test({"delta_min": bad}, ValueError)
+
+    def testDeltaMinExceedsDeltaMax(self):
+        self.__test({"delta_min": 2.0, "delta_max": 1.0}, ValueError)
+
+    def testDeltaInact(self):
+        BAD_VALUES = {-12.3, -1.1, -np.finfo(float).smallest_normal, 0.0, np.nan, np.inf, -np.inf}
+
+        self.__test({"delta_inact": 1.0}, "")
+
+        for bad in self.__NOT_REAL:
+            self.__test({"delta_inact": bad}, ValueError)
+
+        for bad in BAD_VALUES:
+            self.__test({"delta_inact": bad}, ValueError)
+
+    def testGammaDec(self):
+        BAD_VALUES = {-12.3, -1.1, -np.finfo(float).smallest_normal, 0.0, 1.0, np.nan, np.inf, -np.inf}
+
+        for bad in self.__NOT_REAL:
+            self.__test({"gamma_dec": bad}, ValueError)
+
+        for bad in BAD_VALUES:
+            self.__test({"gamma_dec": bad}, ValueError)
+
+    def testGammaInc(self):
+        BAD_VALUES = {-12.3, -1.1, 0.0, 1.0 - np.finfo(float).eps, np.nan, np.inf, -np.inf}
+
+        self.__test({"gamma_inc": 1.0}, "")
+
+        for bad in self.__NOT_REAL:
+            self.__test({"gamma_inc": bad}, ValueError)
+
+        for bad in BAD_VALUES:
+            self.__test({"gamma_inc": bad}, ValueError)
+
+    def testEta1(self):
+        BAD_VALUES = {-12.3, -1.1, -np.finfo(float).smallest_normal, 0.0, 1.0, np.nan, np.inf, -np.inf}
+
+        for bad in self.__NOT_REAL:
+            self.__test({"eta1": bad}, ValueError)
+
+        for bad in BAD_VALUES:
+            self.__test({"eta1": bad}, ValueError)
+
+    def testHfunAndCombineModels(self):
+        GOOD_HFUN = self.__KWARGS["Options"]["hfun"]
+        GOOD_COMBINE = self.__KWARGS["Options"]["combinemodels"]
+
+        # We either don't pass hfun/combinemodels or we pass both
+        bad = copy.deepcopy(self.__KWARGS["Options"])
+        del bad["hfun"]
+        self.__test({"Options": bad}, ValueError)
+
+        bad = copy.deepcopy(self.__KWARGS["Options"])
+        del bad["combinemodels"]
+        self.__test({"Options": bad}, ValueError)
+
+        for bad in self.__NOT_FUNCTION:
+            self.__test({"hfun": bad, "combinemodels": GOOD_COMBINE}, TypeError)
+            self.__test({"hfun": GOOD_HFUN, "combinemodels": bad}, TypeError)

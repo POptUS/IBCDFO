@@ -8,7 +8,7 @@ from .._variable_checks import (
 )
 
 
-def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp):
+def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp, Par):
     """
     Raise an exception if any of the given POUNDERS specification variables do
     not meet the requirements of the POUNDERS implementation.
@@ -139,3 +139,15 @@ def checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F
         raise TypeError("Error: F_init must be a finite, real 2D NumPy array")
     if F_init.shape != (nfs, m):
         raise ValueError(f"Error: F_init has shape {F_init.shape} instead of ({nfs}, {m})")
+
+    # Check model parameters
+    if not isinstance(Par, list):
+        raise TypeError("Error: Model['Par'] must be a list")
+    if len(Par) != 5:
+        raise ValueError(f"Error: Model['Par'] must be a 5-element list ({len(Par)} elements given)")
+    if not all(is_finite_real(p) and p > 0 for p in Par[:4]):
+        raise ValueError(f"Error: Model['Par'][0:4] must be positive finite reals ({Par[:4]})")
+    if not isinstance(Par[4], bool):
+        raise TypeError(f"Error: Model['Par'][4] must be a boolean ({Par[4]})")
+    if Par[4]:
+        raise NotImplementedError("Error: Please contact IBCDFO developers if you have a valid use case for using Model['Par'][4] = True")

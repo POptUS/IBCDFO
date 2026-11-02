@@ -2,7 +2,7 @@ import copy
 
 from .constants import TRSP_SOLVER_MINQ5
 from .create_trsp_solver import create_trsp_solver
-from .general_h_funs import h_leastsquares, combine_leastsquares
+from .general_h_funs import combine_leastsquares, h_leastsquares
 from .pounders import pounders
 
 

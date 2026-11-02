@@ -1,19 +1,14 @@
+import copy
 import functools
 
 import numpy as np
 
-from .defaults import (
-    ALL_MODEL_KEYS,
-    ALL_OPTIONS_KEYS,
-    EXPECTED_PRIOR_KEYS,
-    compute_default_prior,
-    compute_default_model,
-    compute_default_options,
-)
 from .._variable_checks import is_integer
 from ._force_Ffun_to_batched import force_Ffun_to_batched
 from .bmpts import bmpts
 from .checkinputss import checkinputss
+from .checkoptions import checkoptions
+from .defaults import ALL_MODEL_KEYS, ALL_OPTIONS_KEYS, EXPECTED_PRIOR_KEYS, compute_default_model, compute_default_options, compute_default_prior
 from .formquad import formquad
 from .prepare_outputs_before_return import prepare_outputs_before_return
 
@@ -110,7 +105,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
         * **np_max** - Integer in :math:`\Z[\np+1, (n+1)(n+2)/2]` that specifies
           the maximum number of interpolation points (default is :math:`2\np+1`)
-        * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, 0]`)
+        * **Par** - Five-element ``list`` for ``formquad`` (default :math:`[\sqrt{n}, \max\{10,\sqrt{n}\}, 10^{-3}, 10^{-3}, \mathrm{False}]`)
 
     :return:
         * **X** - :math:`k \times \np` NumPy array containing locations of
@@ -167,7 +162,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         defaults[key] = value
 
     np_max = defaults["np_max"]
-    Par = defaults["Par"]
+    Par = copy.deepcopy(defaults["Par"])
 
     # -- Prior dictionary
     if Prior is None:
@@ -184,11 +179,10 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
 
     # ----- STRICT ERROR CHECKING OF LOCAL VARIABLES
     # This raises exceptions on bad inputs and does not alter any arguments.
-    checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp)
+    checkinputss(Ffun, X_0, n, np_max, nf_max, g_tol, delta_0, nfs, m, X_init, F_init, xk_in, Low, Upp, Par)
 
     # ------ FINALIZE OPTION LOCAL VARIABLES
     # This must be run after error checking main local variables, some of which set default values for options
-    # NOTE: None of these local variables are submitted to error checking.
     if Options is None:
         Options = {}
     if not isinstance(Options, dict):
@@ -215,8 +209,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     hfun = defaults["hfun"]
     combinemodels = defaults["combinemodels"]
 
-    if not callable(spsolver):
-        raise TypeError("Error: spsolver is not a function")
+    checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels)
 
     # All calls to the TRSP solver should use only this function to avoid
     # unintentional corruption of arguments by the given solver that might break
@@ -229,8 +222,6 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     # detailed in force_Ffun_to_batched()'s documentation.  All subsequent code
     # that calls Ffun should be written to adhere strictly to that single
     # interface.
-    if not isinstance(batched_Ffun, bool):
-        raise TypeError("Error: batched_Ffun must be a boolean")
     Ffun = force_Ffun_to_batched(Ffun, n, m, batched_Ffun)
 
     # ----- OPTIMIZE!
@@ -425,12 +416,18 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 Res[: nf + 1, :] = (F[: nf + 1, :] - Cres) - np.diagonal(0.5 * D @ (np.tensordot(D, Hres, axes=1))).T
                 [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, np_max, Par, False)
                 if len(Mind) < n + 1:
+                    # The fallback below sets Par[4] = True and afterwards blindly
+                    # resets it to False.  That reset is only correct if Par[4]
+                    # was False on entry (the only value checkinputss currently
+                    # allows).  Assert it here so that this block stays correct
+                    # on its own, even if other values are allowed in the future.
+                    assert not Par[4]
                     # This is almost never triggered but is a safeguard for
                     # pathological cases where one needs to recover from
                     # unusual conditioning of recent interpolation sets
-                    Par[4] = 1
+                    Par[4] = True
                     [_, _, valid, Gres, Hresdel, Mind] = formquad(X[: nf + 1, :], Res[: nf + 1, :], delta, xk_in, np_max, Par, False)
-                    Par[4] = 0
+                    Par[4] = False
                 Hres = Hres + Hresdel
                 # Update for modelimp; Cres unchanged b/c xk_in unchanged
                 G, H = combinemodels(Cres, Gres, Hres)

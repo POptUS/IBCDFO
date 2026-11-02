@@ -3,10 +3,10 @@ import warnings
 
 import numpy as np
 
-from .constants import TRSP_SOLVER_SIMPLE, TRSP_SOLVER_MINQ5, TRSP_SOLVER_ROL, WARNING_SIMPLE_TRSP
 from .._get_minq_installation import get_minq_installation
 from .._variable_checks import is_finite_real_numpy_array
 from .bqmin import bqmin
+from .constants import TRSP_SOLVER_MINQ5, TRSP_SOLVER_ROL, TRSP_SOLVER_SIMPLE, WARNING_SIMPLE_TRSP
 
 
 def create_trsp_solver(spsolver):

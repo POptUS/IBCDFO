@@ -1,3 +1,5 @@
+.. _pounders_section:
+
 |pounders|
 ==========
 General Description

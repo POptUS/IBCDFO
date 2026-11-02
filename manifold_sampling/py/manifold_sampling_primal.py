@@ -93,7 +93,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
 
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xkin, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
     # This raises exceptions on bad inputs and does not alter any arguments.
-    checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xkin, L, U)
+    checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xkin, L, U, fq_pars["Par"])
 
     # Evaluate user scripts at x_0
     h[nf], __, hashes_at_nf = hfun(F[nf])

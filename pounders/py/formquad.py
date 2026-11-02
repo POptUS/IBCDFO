@@ -28,12 +28,12 @@ def formquad(X, F, delta, xk_in, np_max, Pars, vf):
     Pars[1] [dbl] delta multiplier for all interpolation points
     Pars[2] [dbl] Pivot threshold for validity
     Pars[3] [dbl] Pivot threshold for additional points (.001)
-    Pars[4] [log] Flag to find affine points in forward order (0)
-    vf      [log] Flag indicating you just want to check model validity
+    Pars[4] [bool] Flag to find affine points in forward order (False)
+    vf      [bool] Flag indicating you just want to check model validity
     --OUTPUTS----------------------------------------------------------------
     Mdir    [dbl] [(n-np+1)-by-n]  Unit directions to improve model
     np      [int] Number of interpolation points (=length(Mind))
-    valid   [log] Flag saying if model is valid within Pars[2]*delta
+    valid   [bool] Flag saying if model is valid within Pars[2]*delta
     G       [dbl] [n-by-m]  Matrix of model gradients centered at X[xkin]
     H       [dbl] [n-by-n-by-m]  Array of model Hessians centered at X[xkin]
     Mind    [int] [npmax-by-1] Integer vector of model interpolation indices
