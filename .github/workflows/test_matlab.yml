@@ -8,6 +8,7 @@ env:
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   POUNDERS_M_PATH:  ${{ github.workspace }}/IBCDFO/pounders/m
   MSAMP_M_PATH:     ${{ github.workspace }}/IBCDFO/manifold_sampling/m
+  GOOMBAH_M_PATH:   ${{ github.workspace }}/IBCDFO/goombah/m
 on:
   push:
     branches: [main]
@@ -90,5 +91,16 @@ jobs:
             addpath("${{ env.BENDFO_M_PATH }}"),
             addpath("${{ env.BENDFO_DATA_PATH }}"),
             cd ${{ env.MSAMP_M_PATH }},
+            results = runtests("IncludeSubfolders", true),
+            assertSuccess(results),
+
+    - name: Test GOOMBAH
+      uses: matlab-actions/run-command@v3
+      with:
+        command: >
+            addpath("${{ env.MINQ5_M_PATH }}"),
+            addpath("${{ env.BENDFO_M_PATH }}"),
+            addpath("${{ env.BENDFO_DATA_PATH }}"),
+            cd ${{ env.GOOMBAH_M_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results),
