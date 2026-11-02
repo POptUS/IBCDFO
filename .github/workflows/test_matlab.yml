@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Load Official MINQ SHA
       id: load_sha
       run: |
@@ -51,17 +51,17 @@ jobs:
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         path: IBCDFO
     - name: Checkout MINQ repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: POptUS/MINQ
         path: MINQ
         ref: ${{ env.MINQ_SHA }}
     - name: Checkout BenDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: POptUS/BenDFO
         path: BenDFO

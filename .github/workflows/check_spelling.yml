@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Spell Check Repo
       uses: crate-ci/typos@v1.51.1
       with:

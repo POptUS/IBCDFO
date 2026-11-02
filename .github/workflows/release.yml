@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Load Official MINQ SHA
       id: load_sha
       run: |
@@ -62,7 +62,7 @@ jobs:
       # Clone the repository with the full history since setuptools-scm needs
       # the tags to set the correct version.
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -104,15 +104,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Checkout MINQ repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: POptUS/MINQ
           path: MINQ
           ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: POptUS/BenDFO
           path: BenDFO
@@ -155,15 +155,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Checkout MINQ repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: POptUS/MINQ
           path: MINQ
           ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: POptUS/BenDFO
           path: BenDFO
