@@ -38,7 +38,7 @@ jobs:
       # use (Issue 235).  This means that this action is **not** running any mac
       # tests using Intel chips.
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, macos-15, macos-26]
     runs-on: ${{ matrix.os }}
     needs: load_minq_sha
     env:
