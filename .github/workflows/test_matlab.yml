@@ -8,6 +8,7 @@ env:
   BENDFO_DATA_PATH: ${{ github.workspace }}/BenDFO/data
   POUNDERS_M_PATH:  ${{ github.workspace }}/IBCDFO/pounders/m
   MSAMP_M_PATH:     ${{ github.workspace }}/IBCDFO/manifold_sampling/m
+  GOOMBAH_M_PATH:   ${{ github.workspace }}/IBCDFO/goombah/m
 on:
   push:
     branches: [main]
@@ -30,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Load Official MINQ SHA
       id: load_sha
       run: |
@@ -43,7 +44,7 @@ jobs:
   test_ibcdfo:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26, macos-26-intel]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, macos-15, macos-26, macos-26-intel]
         matlab-release: ["R2023b", "latest"]
         exclude:
           # Cannot load MATLAB R2026a (Issue #278)
@@ -56,17 +57,17 @@ jobs:
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         path: IBCDFO
     - name: Checkout MINQ repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: POptUS/MINQ
         path: MINQ
         ref: ${{ env.MINQ_SHA }}
     - name: Checkout BenDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: POptUS/BenDFO
         path: BenDFO
@@ -96,5 +97,16 @@ jobs:
             addpath("${{ env.BENDFO_M_PATH }}"),
             addpath("${{ env.BENDFO_DATA_PATH }}"),
             cd ${{ env.MSAMP_M_PATH }},
+            results = runtests("IncludeSubfolders", true),
+            assertSuccess(results),
+
+    - name: Test GOOMBAH
+      uses: matlab-actions/run-command@v3
+      with:
+        command: >
+            addpath("${{ env.MINQ5_M_PATH }}"),
+            addpath("${{ env.BENDFO_M_PATH }}"),
+            addpath("${{ env.BENDFO_DATA_PATH }}"),
+            cd ${{ env.GOOMBAH_M_PATH }},
             results = runtests("IncludeSubfolders", true),
             assertSuccess(results),

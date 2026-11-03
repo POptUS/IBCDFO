@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Load Official MINQ SHA
       id: load_sha
       run: |
@@ -47,20 +47,20 @@ jobs:
       # -- General Setup Steps
       # This action requires minq
       - name: Checkout IBCDFO repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Checkout MINQ repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: POptUS/MINQ
           path: MINQ
           ref: ${{ env.MINQ_SHA }}
       - name: Checkout BenDFO repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.14"
       - name: Setup Python with tox

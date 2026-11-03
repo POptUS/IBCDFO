@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Load Official MINQ SHA
       id: load_sha
       run: |
@@ -48,7 +48,7 @@ jobs:
       # use (Issue 235).  This means that this action is **not** running any mac
       # tests using Intel chips.
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-15, macos-26]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, macos-15, macos-26]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     needs: load_minq_sha
@@ -57,20 +57,20 @@ jobs:
     steps:
     # -- General Setup Steps
     - name: Checkout IBCDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Checkout MINQ repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: POptUS/MINQ
         path: MINQ
         ref: ${{ env.MINQ_SHA }}
     - name: Checkout BenDFO repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: POptUS/BenDFO
         path: BenDFO
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup Python with tox
