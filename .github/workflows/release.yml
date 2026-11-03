@@ -64,7 +64,7 @@ jobs:
       - name: Checkout IBCDFO repository
         uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.14"
       - name: Construct sdist and wheel
@@ -117,7 +117,7 @@ jobs:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Obtain release candidate
@@ -168,7 +168,7 @@ jobs:
           repository: POptUS/BenDFO
           path: BenDFO
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Obtain release candidate
