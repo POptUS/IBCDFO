@@ -192,7 +192,16 @@ jobs:
           name: matlab-coverage-results
           path: ${{ env.CLONE_PATH }}
 
+      # Branches created by dependabot do not have access to the repo's secrets
+      # and, therefore, the CodeCov token.  Therefore, this step fails on those
+      # branches.  Rather than grant more permissions to dependabot, we just
+      # skip publishing on those branches.  See Issue #340 for more details and
+      # justifications.
+      #
+      # List all report filenames on a single line with no spaces.  See Issue
+      # #279 for more information.
       - name: Upload coverage report to Codecov
+        if: github.actor != 'dependabot[bot]'
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
