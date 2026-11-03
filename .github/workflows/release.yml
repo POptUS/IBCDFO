@@ -79,7 +79,7 @@ jobs:
           python -m build
           popd
       - name: Archive both distributions
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ibcdfo-release-candidate
           path: |

@@ -90,7 +90,7 @@ jobs:
 
       # -- Publish as artifact for users and subsequent jobs
       - name: Archive Python coverage results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: python-coverage-results
           path: |
@@ -161,7 +161,7 @@ jobs:
 
       # -- Publish as artifact for users and subsequent jobs
       - name: Archive MATLAB coverage results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: matlab-coverage-results
           path: |
