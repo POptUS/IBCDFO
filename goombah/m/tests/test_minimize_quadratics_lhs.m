@@ -18,17 +18,17 @@ Gres = eye(n);
 Cres = -c;
 Lows = -0.5 * ones(1, n);
 Upps = 0.5 * ones(1, n);
-x0 = ones(1, n);
+x_center = ones(1, n);
 
 val_at_x0 = h_pw_maximum_squared(Cres);
 
-[s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x0, x0, val_at_x0, @h_pw_maximum_squared);
+[s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x_center, val_at_x0, @h_pw_maximum_squared);
 
 assert(all(Lows <= s_k) && all(s_k <= Upps), "Step is not within the bounds");
 assert(abs(pred_dec - val_at_x0) <= 1e-4, "Did not find the known minimum");
 
-% The predicted decrease should never be negative, even if x0 is a global minimizer.
-[~, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x0, x0, -1, @h_pw_maximum_squared);
+% The predicted decrease should never be negative, even if x_center is a global minimizer.
+[~, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x_center, -1, @h_pw_maximum_squared);
 assert(pred_dec == 0, "Predicted decrease should have been clamped to zero");
 
 path(oldpath);

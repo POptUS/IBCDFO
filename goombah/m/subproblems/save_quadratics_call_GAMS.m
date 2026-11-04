@@ -23,11 +23,11 @@
 % Hres:         [n-by-n-by-P] array of P model quadratic terms
 % Gres:         [n-by-P] array of P model linear terms
 % Cres:         [1-by-P] array of P model constant terms
-% Lows:         [1-by-n] lower bounds on the step (relative to x0)
-% Upps:         [1-by-n] upper bounds on the step (relative to x0)
-% x0:           [1-by-n] trust region center
+% Lows:         [1-by-n] lower bounds on the step (relative to x_center)
+% Upps:         [1-by-n] upper bounds on the step (relative to x_center)
+% x_center:     [1-by-n] trust region center
 % x1:           [1-by-n] a candidate starting point (a point, not a step) for use by GAMS
-% val_at_x0:    [scalar] the objective value h_fun(Cres) at x0
+% val_at_x0:    [scalar] the objective value h_fun(Cres) at x_center
 % GAMS_options: [struct] options for the GAMS calls. Fields:
 %                 file      - path to the GAMS model file (a relative path is
 %                             resolved against the current directory)
@@ -39,10 +39,10 @@
 %%%%%%%%%%%
 % Outputs:
 %%%%%%%%%%%
-% s_k:          [1-by-n] array containing the step from x0
-% pred_dec:     [scalar] predicted decrease from x0 to x0 + s_k (never negative)
+% s_k:          [1-by-n] array containing the step from x_center
+% pred_dec:     [scalar] predicted decrease from x_center to x_center + s_k (never negative)
 
-function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, Cres, Lows, Upps, x0, x1, val_at_x0, GAMS_options, h_fun)
+function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, Cres, Lows, Upps, x_center, x1, val_at_x0, GAMS_options, h_fun)
 
 % First put all of the problem information into the correct data structures
 
@@ -115,7 +115,7 @@ bs_mod.uels = Ps.uels;
 x0s.name = 'x0';
 x0s.ts   = 'Trust region center';
 x0s.type = 'parameter';
-x0s.val = x0;
+x0s.val = x_center;
 x0s.form = 'full';
 x0s.dim = 1;
 x0s.uels = Ns.uels;
@@ -219,7 +219,7 @@ obj_vals_GAMS = obj_vals_GAMS(solved);
 allx = allx(solved, :);
 
 for j = 1:size(allx, 1)
-    allx(j, :) =  min(Upps + x0, max(Lows + x0, allx(j, :)));
+    allx(j, :) =  min(Upps + x_center, max(Lows + x_center, allx(j, :)));
 end
 
 z = zeros(1, P);
@@ -227,7 +227,7 @@ obj_vals_MATLAB = inf * ones(size(allx, 1), 1);
 for j = 1:size(allx, 1)
     x = allx(j, :);
     for i = 1:P
-        z(i) = 0.5 * (x - x0) * Hres(:, :, i) * (x - x0)' + (x - x0) * Gres(:, i) + Cres(i);
+        z(i) = 0.5 * (x - x_center) * Hres(:, :, i) * (x - x_center)' + (x - x_center) * Gres(:, i) + Cres(i);
     end
     obj_vals_MATLAB(j) = h_fun(z);
 end
@@ -243,7 +243,7 @@ end
 % assert(all(abs(obj_vals_GAMS(:) - obj_vals_MATLAB(:)) <= atol + rtol * abs(obj_vals_MATLAB(:))), "MATLAB and GAMS calculated different objective values for some reason");
 
 [val_at_new, ind] = min(obj_vals_MATLAB);
-s_k = allx(ind, :) - x0;
+s_k = allx(ind, :) - x_center;
 pred_dec = val_at_x0 - val_at_new;
 
 % assert(pred_dec >= 0)
