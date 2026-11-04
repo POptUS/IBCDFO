@@ -157,7 +157,6 @@ for mw_prob_num = [7] % full tests are 1:53
                         Results{s, seed, mw_prob_num}.H = h;
                         Results{s, seed, mw_prob_num}.X = X;
 
-
                     end % switch on s
 
                     save(filename, 'Results');
