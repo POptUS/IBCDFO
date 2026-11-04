@@ -142,9 +142,9 @@ function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TR
             % end
 
             if strcmp(TRSP_options.solver, 'lhs')
-                [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), hfun);
+                [s_k_trial, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), hfun);
             else
-                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), TRSP_options, hfun);
+                [s_k_trial, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), TRSP_options, hfun);
             end
             if pred_dec == 0
                 if delta <= tol.mindelta
@@ -160,13 +160,13 @@ function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TR
 
             % if printf
             %     trsp_fun = @(x) h_of_quad_models(x, X(xk_in, :), F(xk_in, :), Gres, Hres, hfun);
-            %     plot_again(X, xk_in, delta, sk1, [], nf, trsp_fun, Low, Upp);
+            %     plot_again(X, xk_in, delta, s_k_trial, [], nf, trsp_fun, Low, Upp);
             % end
 
             if pred_dec > 0
                 % ================================
                 % Evaluate F
-                [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + sk1, tol, Low, Upp, 1);
+                [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + s_k_trial, tol, Low, Upp, 1);
                 rho_k = (hF(xk_in) - hF(nf)) / pred_dec;
             end
         else
