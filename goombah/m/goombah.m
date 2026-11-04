@@ -104,13 +104,13 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
             return
         end
 
-        Low = max(L - X(xkin, :), -delta);
-        Upp = min(U - X(xkin, :), delta);
+        Lows = max(L - X(xkin, :), -delta);
+        Upps = min(U - X(xkin, :), delta);
 
         if strcmp(TRSP_options.solver, 'lhs')
-            [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), hfun);
+            [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Lows, Upps, X(xkin, :), X(xkin, :), h(xkin), hfun);
         else
-            [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :), h(xkin), TRSP_options, hfun);
+            [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Lows, Upps, X(xkin, :), X(xkin, :), h(xkin), TRSP_options, hfun);
         end
         if pred_dec == 0
             rho_k = -inf;
@@ -161,14 +161,14 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
                 end
 
                 % Line 7: Find a candidate s_k by solving QP
-                Low = max(L - X(xkin, :), -delta);
-                Upp = min(U - X(xkin, :), delta);
-                [s_k, tau_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
+                Lows = max(L - X(xkin, :), -delta);
+                Upps = min(U - X(xkin, :), delta);
+                [s_k, tau_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
 
                 % Line 8: Compute stationary measure chi_k
-                Low = max(L - X(xkin, :), -1.0);
-                Upp = min(U - X(xkin, :), 1.0);
-                [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
+                Lows = max(L - X(xkin, :), -1.0);
+                Upps = min(U - X(xkin, :), 1.0);
+                [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
                 % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
                 if chi_k <= tol.gtol && delta <= tol.mindelta

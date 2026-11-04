@@ -128,10 +128,10 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_opt
         if delta < tol.eta2 * ng
             % ================================
             % Solve TRSP
-            Low = max(L - X(xkin, :), -delta);
-            Upp = min(U - X(xkin, :), delta);
+            Lows = max(L - X(xkin, :), -delta);
+            Upps = min(U - X(xkin, :), delta);
 
-            [sk, ~, found_solution] = solve_trsp(H_k, g_k, Low, Upp);
+            [sk, ~, found_solution] = solve_trsp(H_k, g_k, Lows, Upps);
             if ~found_solution
                 sk = zeros(n, 1);
             end
@@ -142,9 +142,9 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_opt
             % end
 
             if strcmp(TRSP_options.solver, 'lhs')
-                [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), hfun);
+                [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Lows, Upps, X(xkin, :), X(xkin, :) + sk, h(xkin), hfun);
             else
-                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Low, Upp, X(xkin, :), X(xkin, :) + sk, h(xkin), TRSP_options, hfun);
+                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Lows, Upps, X(xkin, :), X(xkin, :) + sk, h(xkin), TRSP_options, hfun);
             end
             if pred_dec == 0
                 if delta <= tol.mindelta
