@@ -88,14 +88,14 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-        X, F, h, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
+        X, F, hF, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["problem"] = ["problem " + str(probs_to_solve[row] + 1) + " from More/Wild with hfun=" + hfun_name]
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["hfun_name"] = hfun_name
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["Fvec"] = F
-        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = h
+        Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["H"] = hF
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["X"] = X
 
     sp.io.savemat("./msp_benchmark_results/manifold_sampling_py_nf_max=" + str(nf_max) + ".mat", Results)

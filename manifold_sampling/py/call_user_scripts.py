@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_recalc=0):
+def call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_recalc=0):
     if len(x_in) != len(Upp) or len(x_in) != len(Low):
         raise ValueError("Input vector dimensions do not match the bounds.")
 
@@ -26,7 +26,7 @@ def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_
     nf += 1
     X[nf] = xnew
     F[nf] = Ffun(X[nf])
-    h[nf], _, hashes_at_nf = hfun(F[nf])
+    hF[nf], _, hashes_at_nf = hfun(F[nf])
     Hash[nf] = hashes_at_nf
     if np.any(np.isnan(F[nf, :])):
         raise ValueError("Got a NaN. FAIL!")
@@ -42,4 +42,4 @@ def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_
         assert np.any(np.abs(h_dummy1 - h_dummy2) <= 1e-8), "hfun values don't agree when " + hfun.__name__ + " is re-called with the same inputs"
         assert np.all(grad_dummy1 == grad_dummy2), "hfun gradients don't agree when " + hfun.__name__ + " is being re-called with the same inputs"
 
-    return nf, X, F, h, Hash, hashes_at_nf
+    return nf, X, F, hF, Hash, hashes_at_nf

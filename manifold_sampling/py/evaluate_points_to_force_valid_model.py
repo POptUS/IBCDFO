@@ -5,7 +5,7 @@ from ibcdfo.pounders import _formquad as formquad
 from .call_user_scripts import call_user_scripts
 
 
-def evaluate_points_to_force_valid_model(n, nf, xk_in, delta, X, F, h, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nf_max, Low, Upp):
+def evaluate_points_to_force_valid_model(n, nf, xk_in, delta, X, F, hF, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nf_max, Low, Upp):
     # Evaluate model-improving points to pick best one
     # ! May eventually want to normalize Mdir first for infty norm
     # Plus directions
@@ -23,7 +23,7 @@ def evaluate_points_to_force_valid_model(n, nf, xk_in, delta, X, F, h, Mdir, mp,
         Xsp = Mdir1[i, :]
         # Only do this evaluation if the point is new and nf < nf_max
         if not np.any(np.all(X[xk_in, :] + Xsp == X[: nf + 1], axis=1)) and nf + 1 < nf_max:
-            nf, X, F, h, Hash, _ = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xk_in, :] + Xsp, tol, Low, Upp, 1)
+            nf, X, F, hF, Hash, _ = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X[xk_in, :] + Xsp, tol, Low, Upp, 1)
 
     valid = formquad(X[: nf + 1], F[: nf + 1], delta, xk_in, fq_pars["npmax"], fq_pars["Par"], 1)[2]
     if not valid and nf + 1 < nf_max:
@@ -32,4 +32,4 @@ def evaluate_points_to_force_valid_model(n, nf, xk_in, delta, X, F, h, Mdir, mp,
         # save(['first_failure_for_row_in_dfo_dat=' int2str(mw_prob_num) '_hfun=' func2str(hfun{1}) ], 'A');
         # error('a')
 
-    return X, F, h, nf, Hash
+    return X, F, hF, nf, Hash

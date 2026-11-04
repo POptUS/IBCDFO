@@ -57,11 +57,11 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
         Selects the trust-region subproblem solver/variant used internally.
 
     :return:
-        Tuple ``(X, F, h, xk_in, flag)`` where
+        Tuple ``(X, F, hF, xk_in, flag)`` where
 
         * ``X`` -- array of evaluated points in evaluation order
         * ``F`` -- array with rows :math:`\Ffun(X[i])`
-        * ``h`` -- array with :math:`h[i] = \hfun(\Ffun(X[i]))`
+        * ``hF`` -- array with ``hF[i]`` = :math:`\hfun(\Ffun(X[i]))`
         * ``xk_in`` -- zero-based index in ``X`` of the final trust-region center
         * ``flag`` -- termination code (See general documentation)
     """
@@ -91,19 +91,19 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     X_init = np.atleast_2d(x0)
     F_init = np.atleast_2d(F0)
 
-    n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
+    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
     # This raises exceptions on bad inputs and does not alter any arguments.
     checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
 
     # Evaluate user scripts at x_0
-    h[nf], __, hashes_at_nf = hfun(F[nf])
+    hF[nf], __, hashes_at_nf = hfun(F[nf])
     Hash[nf] = hashes_at_nf
 
     H_mm = np.zeros((n, n))
 
     while nf + 1 < nf_max and delta > tol["mindelta"]:
         if printf:
-            print("MSP: nf: %4d; fval: %8e; delta: %8.3e; chi: %8.3e;" % (nf, np.squeeze(h[xk_in]), delta, chi_k))
+            print("MSP: nf: %4d; fval: %8e; delta: %8.3e; chi: %8.3e;" % (nf, np.squeeze(hF[xk_in]), delta, chi_k))
 
         bar_delta = delta
 
@@ -111,16 +111,16 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
         # Line 3: manifold sampling while loop
         while nf + 1 < nf_max:
             # Line 4: build models
-            Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp)
+            Gres, Hres, X, F, hF, nf, Hash = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp)
             if len(Gres) == 0:
-                return prepare_outputs_before_return(X, F, h, nf, xk_in, -1)
+                return prepare_outputs_before_return(X, F, hF, nf, xk_in, -1)
             if nf + 1 >= nf_max:
-                return prepare_outputs_before_return(X, F, h, nf, xk_in, 0)
+                return prepare_outputs_before_return(X, F, hF, nf, xk_in, 0)
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun)
             G_k = Gres @ D_k
-            beta = np.maximum(0, f_bar - h[xk_in])
+            beta = np.maximum(0, f_bar - hF[xk_in])
 
             # Line 6: Choose Hessians
             H_k = np.zeros((G_k.shape[1], n + 1, n + 1))
@@ -131,25 +131,25 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             # Line 7: Find a candidate s_k by solving QP
             Lows = np.maximum(Low - X[xk_in], -delta)
             Upps = np.minimum(Upp - X[xk_in], delta)
-            s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xk_in], f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch, eng)
+            s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(hF[xk_in], f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch, eng)
             if lp_fail_flag:
-                return prepare_outputs_before_return(X, F, h, nf, xk_in, -2)
+                return prepare_outputs_before_return(X, F, hF, nf, xk_in, -2)
 
             # Line 8: Compute stationary measure chi_k
             Lows = np.maximum(Low - X[xk_in], -1.0)
             Upps = np.minimum(Upp - X[xk_in], 1.0)
-            __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xk_in], f_bar, beta, G_k, np.zeros((n, n)), delta, Lows, Upps, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
+            __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(hF[xk_in], f_bar, beta, G_k, np.zeros((n, n)), delta, Lows, Upps, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
             if lp_fail_flag:
-                return prepare_outputs_before_return(X, F, h, nf, xk_in, -2)
+                return prepare_outputs_before_return(X, F, hF, nf, xk_in, -2)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
-                return prepare_outputs_before_return(X, F, h, nf, xk_in, chi_k)
+                return prepare_outputs_before_return(X, F, hF, nf, xk_in, chi_k)
 
             # Line 12: Evaluate F
-            nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xk_in] + np.transpose(s_k), tol, Low, Upp, 1)
+            nf, X, F, hF, Hash, hashes_at_nf = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X[xk_in] + np.transpose(s_k), tol, Low, Upp, 1)
             # Line 13: Compute rho_k
-            ared = h[xk_in] - h[nf]
+            ared = hF[xk_in] - hF[nf]
             pred = -tau_k
             if pred == 0:
                 rho_k = -np.inf
@@ -185,6 +185,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             # h_activity_tol = min(1e-8, delta);
 
     if nf + 1 >= nf_max:
-        return prepare_outputs_before_return(X, F, h, nf, xk_in, 0)
+        return prepare_outputs_before_return(X, F, hF, nf, xk_in, 0)
     else:
-        return prepare_outputs_before_return(X, F, h, nf, xk_in, chi_k)
+        return prepare_outputs_before_return(X, F, hF, nf, xk_in, chi_k)

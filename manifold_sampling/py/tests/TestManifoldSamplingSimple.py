@@ -27,8 +27,8 @@ class TestManifoldSampling(unittest.TestCase):
         np.random.seed(1)
 
         with self.assertRaises(ValueError):
-            X, F, h, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max, subprob_switch)
+            X, F, hF, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max, subprob_switch)
 
         Low = np.append(Low, Low)
         with self.assertRaises(ValueError):
-            X, F, h, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max, subprob_switch)
+            X, F, hF, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max, subprob_switch)
