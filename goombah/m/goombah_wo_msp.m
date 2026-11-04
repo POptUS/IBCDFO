@@ -26,9 +26,9 @@
 %   X:      [k x n]   Points evaluated
 %   F:      [k x p]   Their simulation values
 %   h:      [k x 1]   The values h(F(x))
-%   xkin:   [int]     Current trust region center
+%   xk_in:  [int]     Current trust region center
 
-function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, Options)
+function [X, F, h, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, Options)
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     repo_root = fullfile(here_path, '..', '..');
@@ -55,12 +55,12 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP
         X = [];
         F = [];
         h = [];
-        xkin = [];
+        xk_in = [];
         flag = -1;
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, ~, xkin, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+    [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, ~, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
     assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
@@ -71,14 +71,14 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP
 
     I_n = eye(n);
     for i = 1:n
-        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + delta * I_n(i, :), tol, Low, Upp, 1);
+        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
     end
 
     while nf < nf_max
-        [~, xkin] = min(h(1:nf));
+        [~, xk_in] = min(h(1:nf));
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
+        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
@@ -94,7 +94,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP
 
         % ================================
         % Construct Gen_k
-        col_vecs_for_Genk = construct_Gen_k(hfun, xkin, 2, nf, delta, F, X);
+        col_vecs_for_Genk = construct_Gen_k(hfun, xk_in, 2, nf, delta, F, X);
         % ================================
 
         lambda = project_zero_onto_convex_hull_2(Gres * col_vecs_for_Genk);
@@ -128,8 +128,8 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP
         if delta < tol.eta2 * ng
             % ================================
             % Solve TRSP
-            Lows = max(Low - X(xkin, :), -delta);
-            Upps = min(Upp - X(xkin, :), delta);
+            Lows = max(Low - X(xk_in, :), -delta);
+            Upps = min(Upp - X(xk_in, :), delta);
 
             [sk, ~, found_solution] = solve_trsp(H_k, g_k, Lows, Upps);
             if ~found_solution
@@ -138,13 +138,13 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP
             sk = sk';
 
             % if printf
-            %     plot_again(X, xkin, delta, sk, [], nf, [], Low, Upp);
+            %     plot_again(X, xk_in, delta, sk, [], nf, [], Low, Upp);
             % end
 
             if strcmp(TRSP_options.solver, 'lhs')
-                [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Lows, Upps, X(xkin, :), X(xkin, :) + sk, h(xkin), hfun);
+                [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, h(xk_in), hfun);
             else
-                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xkin, :), Lows, Upps, X(xkin, :), X(xkin, :) + sk, h(xkin), TRSP_options, hfun);
+                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, h(xk_in), TRSP_options, hfun);
             end
             if pred_dec == 0
                 if delta <= tol.mindelta
@@ -159,29 +159,29 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP
             % ================================
 
             % if printf
-            %     trsp_fun = @(x) h_of_quad_models(x, X(xkin, :), F(xkin, :), Gres, Hres, hfun);
-            %     plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, Low, Upp);
+            %     trsp_fun = @(x) h_of_quad_models(x, X(xk_in, :), F(xk_in, :), Gres, Hres, hfun);
+            %     plot_again(X, xk_in, delta, sk1, [], nf, trsp_fun, Low, Upp);
             % end
 
             if pred_dec > 0
                 % ================================
                 % Evaluate F
-                [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk1, tol, Low, Upp, 1);
-                rho_k = (h(xkin) - h(nf)) / pred_dec;
+                [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + sk1, tol, Low, Upp, 1);
+                rho_k = (h(xk_in) - h(nf)) / pred_dec;
             end
         else
             rho_k = -inf;
         end
 
         if rho_k > tol.eta1
-            if norm(X(xkin, :) - X(nf, :), 'inf') >= 0.9 * delta
+            if norm(X(xk_in, :) - X(nf, :), 'inf') >= 0.9 * delta
                 delta = min(delta * tol.gamma_inc, tol.maxdelta);
             end
-            xkin = nf;
+            xk_in = nf;
         else
             delta = max(delta * tol.gamma_dec, tol.mindelta);
         end
-        fprintf('nf: %8d; fval: %8e; ||g||: %8e; radius: %8e; \n', nf, h(xkin), ng, delta);
+        fprintf('nf: %8d; fval: %8e; ||g||: %8e; radius: %8e; \n', nf, h(xk_in), ng, delta);
     end
 
 end
@@ -197,12 +197,12 @@ function [g_k, H_k, ng] = build_master_model(col_vecs_for_Genk, Gres, lambda, Hr
     end
 end
 
-function col_vecs_for_Genk = construct_Gen_k(hfun, xkin, gentype, nf, delta, F, X)
-    [~, grads_at_x] = hfun(F(xkin, :));
+function col_vecs_for_Genk = construct_Gen_k(hfun, xk_in, gentype, nf, delta, F, X)
+    [~, grads_at_x] = hfun(F(xk_in, :));
     col_vecs_for_Genk = grads_at_x;
     if gentype == 2
         for i = 1:nf
-            if norm(X(xkin, :) - X(i, :)) <= delta
+            if norm(X(xk_in, :) - X(i, :)) <= delta
                 [~, grads_at_pt_near_x] = hfun(F(i, :));
                 col_vecs_for_Genk = unique([col_vecs_for_Genk, grads_at_pt_near_x]', 'rows')';
             end

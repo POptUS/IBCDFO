@@ -29,11 +29,11 @@ nf_max = 100; % Setting a budget that won't be used for the calls below that are
 rand('seed', 1);
 
 % Intentionally not passing a function for an objective
-[X, F, h, xkin] = goombah(hfun, x0, x0, L, U, nf_max, TRSP_options, subprob_switch);
-assert(isempty(X) && isempty(F) && isempty(h) && isempty(xkin), "Should have failed");
+[X, F, h, xk_in] = goombah(hfun, x0, x0, L, U, nf_max, TRSP_options, subprob_switch);
+assert(isempty(X) && isempty(F) && isempty(h) && isempty(xk_in), "Should have failed");
 
-[X, F, h, xkin] = goombah_wo_msp(hfun, x0, x0, L, U, nf_max, TRSP_options);
-assert(isempty(X) && isempty(F) && isempty(h) && isempty(xkin), "Should have failed");
+[X, F, h, xk_in] = goombah_wo_msp(hfun, x0, x0, L, U, nf_max, TRSP_options);
+assert(isempty(X) && isempty(F) && isempty(h) && isempty(xk_in), "Should have failed");
 
 % Supplying only enough evaluation budget for the initial simplex and one more
 nf_max_small = n + 2;
