@@ -93,12 +93,12 @@ function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TR
         % ================================
 
         % ================================
-        % Construct Gen_k
-        D_k = construct_Gen_k(hfun, xk_in, 2, nf, delta, F, X);
+        % col_vecs_for_Gen_k are not the same as D_k in goombah.m; see construct_Gen_k below
+        col_vecs_for_Gen_k = construct_Gen_k(hfun, xk_in, 2, nf, delta, F, X);
         % ================================
 
-        lambda = project_zero_onto_convex_hull_2(Gres * D_k);
-        [g_k, H_k, ng] = build_master_model(D_k, Gres, lambda, Hres, n);
+        lambda = project_zero_onto_convex_hull_2(Gres * col_vecs_for_Gen_k);
+        [g_k, H_k, ng] = build_master_model(col_vecs_for_Gen_k, Gres, lambda, Hres, n);
 
         %     if printf
         %         if norm(g_k) < 1e-12
@@ -186,25 +186,35 @@ function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TR
 
 end
 
-function [g_k, H_k, ng] = build_master_model(D_k, Gres, lambda, Hres, n)
+function [g_k, H_k, ng] = build_master_model(col_vecs_for_Gen_k, Gres, lambda, Hres, n)
 
-    w_k = D_k * lambda;
+    w_k = col_vecs_for_Gen_k * lambda;
     g_k = Gres * w_k;
     ng = norm(g_k);
     H_k = zeros(n);
-    for model = 1:size(D_k, 1)
+    for model = 1:size(col_vecs_for_Gen_k, 1)
         H_k = H_k + w_k(model) * Hres(:, :, model);
     end
 end
 
-function D_k = construct_Gen_k(hfun, xk_in, gentype, nf, delta, F, X)
+% Construct the generator set Gen_k (a set of gradients of selection functions).
+%
+% NOTE: this is not built the same way as the generator set D_k in goombah.m and
+% manifold_sampling_primal.m (see choose_generator_set.m):
+%   * Here, for every evaluated point within delta (2-norm) of the center, the
+%     gradients of the selection functions active at that point are taken at that
+%     point's own F, with no test on their value.
+%   * choose_generator_set takes the selection functions active at nearby points
+%     (inf-norm ball) but evaluates them at the center's F, and keeps them
+%     depending on h_i and hF_at_xk_in.
+function col_vecs_for_Gen_k = construct_Gen_k(hfun, xk_in, gentype, nf, delta, F, X)
     [~, grads_at_x] = hfun(F(xk_in, :));
-    D_k = grads_at_x;
+    col_vecs_for_Gen_k = grads_at_x;
     if gentype == 2
         for i = 1:nf
             if norm(X(xk_in, :) - X(i, :)) <= delta
                 [~, grads_at_pt_near_x] = hfun(F(i, :));
-                D_k = unique([D_k, grads_at_pt_near_x]', 'rows')';
+                col_vecs_for_Gen__k = unique([col_vecs_for_Genk, grads_at_pt_near_x]', 'rows')';
             end
         end
     end
