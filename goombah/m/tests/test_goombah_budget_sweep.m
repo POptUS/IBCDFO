@@ -39,8 +39,8 @@ BenDFO.nprob = nprob;
 BenDFO.n = n;
 BenDFO.m = m;
 
-L = -5000 * ones(1, n);
-U = 5000 * ones(1, n);
+Low = -5000 * ones(1, n);
+Upp = 5000 * ones(1, n);
 
 Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 x0 = dfoxs(n, nprob, factor^factor_power)';
@@ -52,11 +52,11 @@ for nf_max = n + 1:n + MAX_EXTRA
     problem = ['problem ' num2str(row) ' with nf_max=' int2str(nf_max)];
 
     rand('seed', 1);
-    [X, F, hF, ~] = goombah(hfun, Ffun, x0, L, U, nf_max, TRSP_options, subprob_switch);
+    [X, F, hF, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
     check_outputs(X, F, hF, hfun, nf_max, "goombah on " + problem);
 
     rand('seed', 1);
-    [X, F, hF, ~] = goombah_wo_msp(hfun, Ffun, x0, L, U, nf_max, TRSP_options);
+    [X, F, hF, ~] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options);
     check_outputs(X, F, hF, hfun, nf_max, "goombah_wo_msp on " + problem);
 end
 

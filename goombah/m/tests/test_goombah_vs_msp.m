@@ -67,8 +67,8 @@ for i = 1:size(rows_and_hfuns, 1)
     BenDFO.n = n;
     BenDFO.m = m;
 
-    LB = -5000 * ones(1, n);
-    UB = 5000 * ones(1, n);
+    Low = -5000 * ones(1, n);
+    Upp = 5000 * ones(1, n);
 
     Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
     x0 = dfoxs(n, nprob, factor^factor_power)';
@@ -98,18 +98,18 @@ for i = 1:size(rows_and_hfuns, 1)
         hfun = hfuns{jj, 2};
         problem = ['problem ' num2str(row) ' with hfun=' hfuns{jj, 1}];
 
-        [~, ~, h_msp, ~, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+        [~, ~, h_msp, ~, ~] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch);
         decrease_msp = h_msp(1) - min(h_msp);
         assert(decrease_msp > 0, "manifold_sampling_primal did not decrease h on " + problem);
 
         rand('seed', 1);
-        [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, LB, UB, nf_max, TRSP_options, subprob_switch);
+        [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
         check_outputs(X, F, hF, xk_in);
         assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
         assert(hF(1) - min(hF) >= 0.9 * decrease_msp, "goombah decreased h much less than manifold_sampling_primal on " + problem);
 
         rand('seed', 1);
-        [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, LB, UB, nf_max, TRSP_options);
+        [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options);
         check_outputs(X, F, hF, xk_in);
         assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
         assert(hF(1) - min(hF) >= 0.9 * decrease_msp, "goombah_wo_msp decreased h much less than manifold_sampling_primal on " + problem);

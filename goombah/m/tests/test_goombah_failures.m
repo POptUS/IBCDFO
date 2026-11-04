@@ -17,8 +17,8 @@ addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'
 
 n = 3;
 x0 = [10, 20, 30];
-L = -Inf(1, n);
-U = Inf(1, n);
+Low = -Inf(1, n);
+Upp = Inf(1, n);
 hfun = @h_pw_maximum_squared;
 Ffun = @(x)x;
 TRSP_options.solver = 'lhs';
@@ -29,43 +29,43 @@ nf_max = 100; % Setting a budget that won't be used for the calls below that are
 rand('seed', 1);
 
 % Intentionally not passing a function for an objective
-[X, F, hF, xk_in] = goombah(hfun, x0, x0, L, U, nf_max, TRSP_options, subprob_switch);
+[X, F, hF, xk_in] = goombah(hfun, x0, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
 assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
 
-[X, F, hF, xk_in] = goombah_wo_msp(hfun, x0, x0, L, U, nf_max, TRSP_options);
+[X, F, hF, xk_in] = goombah_wo_msp(hfun, x0, x0, Low, Upp, nf_max, TRSP_options);
 assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
 
 % Supplying only enough evaluation budget for the initial simplex and one more
 nf_max_small = n + 2;
-[X, ~, ~, ~] = goombah(hfun, Ffun, x0, L, U, nf_max_small, TRSP_options, subprob_switch);
+[X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max_small, TRSP_options, subprob_switch);
 assert(size(X, 1) <= nf_max_small, "goombah grew the size of X");
 
-[X, ~, ~, ~] = goombah_wo_msp(hfun, Ffun, x0, L, U, nf_max_small, TRSP_options);
+[X, ~, ~, ~] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max_small, TRSP_options);
 assert(size(X, 1) <= nf_max_small, "goombah_wo_msp grew the size of X");
 
-% L = U implies that no model can be built in any coordinate direction
-L_fixed = L;
-U_fixed = U;
-L_fixed(1) = x0(1);
-U_fixed(1) = x0(1);
-[X, F, hF, ~] = goombah(hfun, Ffun, x0, L_fixed, U_fixed, nf_max, TRSP_options, subprob_switch);
+% Low = Upp implies that no model can be built in any coordinate direction
+Low_fixed = Low;
+Upp_fixed = Upp;
+Low_fixed(1) = x0(1);
+Upp_fixed(1) = x0(1);
+[X, F, hF, ~] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options, subprob_switch);
 assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah should have stopped early with consistent outputs");
 
-[X, F, hF, ~] = goombah_wo_msp(hfun, Ffun, x0, L_fixed, U_fixed, nf_max, TRSP_options);
+[X, F, hF, ~] = goombah_wo_msp(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options);
 assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah_wo_msp should have stopped early with consistent outputs");
 
 % Bad options
 bad_solver.solver = 'bad';
 solver_message = "TRSP_options.solver must be 'GAMS' or 'lhs'";
-assert_errors(@()goombah(hfun, Ffun, x0, L, U, nf_max, bad_solver, subprob_switch), solver_message);
-assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, L, U, nf_max, bad_solver), solver_message);
-assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, L, U, nf_max, TRSP_options, 'not a struct'), "Options must be a struct");
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, bad_solver, subprob_switch), solver_message);
+assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, bad_solver), solver_message);
+assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, 'not a struct'), "Options must be a struct");
 
 % The solver intended only for testing and debugging warns
 oldwarn = warning('error', 'GOOMBAH:lhsTrspSolver');
 lhs_message = "The lhs TRSP solver should only be used for testing or debugging";
-assert_errors(@()goombah(hfun, Ffun, x0, L, U, nf_max, TRSP_options, subprob_switch), lhs_message);
-assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, L, U, nf_max, TRSP_options), lhs_message);
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch), lhs_message);
+assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options), lhs_message);
 warning(oldwarn);
 
 path(oldpath);
