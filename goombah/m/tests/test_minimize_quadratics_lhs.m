@@ -14,7 +14,7 @@ rand('seed', 1);
 n = 3;
 c = [0.1, -0.2, 0.3];
 H = zeros(n, n, n);
-g = eye(n);
+Gres = eye(n);
 b = -c;
 Lows = -0.5 * ones(1, n);
 Upps = 0.5 * ones(1, n);
@@ -22,13 +22,13 @@ x0 = ones(1, n);
 
 val_at_x0 = h_pw_maximum_squared(b);
 
-[s_k, pred_dec] = minimize_quadratics_lhs(H, g, b, Lows, Upps, x0, x0, val_at_x0, @h_pw_maximum_squared);
+[s_k, pred_dec] = minimize_quadratics_lhs(H, Gres, b, Lows, Upps, x0, x0, val_at_x0, @h_pw_maximum_squared);
 
 assert(all(Lows <= s_k) && all(s_k <= Upps), "Step is not within the bounds");
 assert(abs(pred_dec - val_at_x0) <= 1e-4, "Did not find the known minimum");
 
 % The predicted decrease should never be negative, even if x0 is a global minimizer.
-[~, pred_dec] = minimize_quadratics_lhs(H, g, b, Lows, Upps, x0, x0, -1, @h_pw_maximum_squared);
+[~, pred_dec] = minimize_quadratics_lhs(H, Gres, b, Lows, Upps, x0, x0, -1, @h_pw_maximum_squared);
 assert(pred_dec == 0, "Predicted decrease should have been clamped to zero");
 
 path(oldpath);

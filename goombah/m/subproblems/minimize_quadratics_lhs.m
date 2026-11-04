@@ -15,7 +15,7 @@
 % Inputs:
 %%%%%%%%%%%
 % H:          [n-by-n-by-P] array of P model quadratic terms
-% g:          [n-by-P] array of P model linear terms
+% Gres:       [n-by-P] array of P model linear terms
 % b:          [1-by-P] array of P model constant terms
 % Lows:       [1-by-n] lower bounds on the step
 % Upps:       [1-by-n] upper bounds on the step
@@ -30,9 +30,9 @@
 % s_k:        [1-by-n] array containing the step
 % pred_dec:   [scalar] predicted decrease from x0 to x0 + s_k
 
-function [s_k, pred_dec] = minimize_quadratics_lhs(H, g, b, Lows, Upps, x0, x1, val_at_x0, h_fun)
+function [s_k, pred_dec] = minimize_quadratics_lhs(H, Gres, b, Lows, Upps, x0, x1, val_at_x0, h_fun)
 
-[n, P] = size(g);
+[n, P] = size(Gres);
 
 assert(all(size(H) == [n, n, P]), 'H must be n-by-n-by-P');
 assert(all(size(b) == [1, P]), "b must be 1-by-P");
@@ -40,7 +40,7 @@ assert(all(size(Lows) == [1, n]) && all(size(Upps) == [1, n]), 'Lows and Upps mu
 assert(all(size(x0) == [1, n]) && all(size(x1) == [1, n]), 'x0 and x1 must be 1-by-n');
 assert(all(Lows <= Upps), 'Lows must not exceed Upps');
 
-obj = @(s) h_fun(eval_quadratics(H, g, b, s));
+obj = @(s) h_fun(eval_quadratics(H, Gres, b, s));
 
 % Latin hypercube sample: each coordinate's num_samples values fall in
 % distinct equal-width slices of [Lows(j), Upps(j)].
@@ -74,10 +74,10 @@ end
 
 end
 
-function z = eval_quadratics(H, g, b, s)
-P = size(g, 2);
+function z = eval_quadratics(H, Gres, b, s)
+P = size(Gres, 2);
 z = zeros(1, P);
 for i = 1:P
-    z(i) = 0.5 * s * H(:, :, i) * s' + s * g(:, i) + b(i);
+    z(i) = 0.5 * s * H(:, :, i) * s' + s * Gres(:, i) + b(i);
 end
 end
