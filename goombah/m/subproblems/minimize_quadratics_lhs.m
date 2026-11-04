@@ -3,7 +3,7 @@
 % This function
 % - Forms the composed objective h_fun(z(s)), where z(s) are the `P` quadratic
 %   functions of the step s := x - x0
-% - Evaluates that objective on a Latin hypercube sample of [Low, Upp], together
+% - Evaluates that objective on a Latin hypercube sample of [Lows, Upps], together
 %   with the zero step and the step x1 - x0
 % - Runs fmincon from the best of those points
 % - Returns the resulting solution (the trial step) and its predicted decrease
@@ -17,8 +17,8 @@
 % H:          [n-by-n-by-P] array of P model quadratic terms
 % g:          [n-by-P] array of P model linear terms
 % b:          [1-by-P] array of P model constant terms
-% Low:        [1-by-n] lower bounds on the step
-% Upp:        [1-by-n] upper bounds on the step
+% Lows:       [1-by-n] lower bounds on the step
+% Upps:       [1-by-n] upper bounds on the step
 % x0:         [1-by-n] trust region center
 % x1:         [1-by-n] a candidate starting point
 % val_at_x0:  [scalar] the objective value at x0
@@ -30,26 +30,26 @@
 % s_k:        [1-by-n] array containing the step
 % pred_dec:   [scalar] predicted decrease from x0 to x0 + s_k
 
-function [s_k, pred_dec] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x1, val_at_x0, h_fun)
+function [s_k, pred_dec] = minimize_quadratics_lhs(H, g, b, Lows, Upps, x0, x1, val_at_x0, h_fun)
 
 [n, P] = size(g);
 
 assert(all(size(H) == [n, n, P]), 'H must be n-by-n-by-P');
 assert(all(size(b) == [1, P]), "b must be 1-by-P");
-assert(all(size(Low) == [1, n]) && all(size(Upp) == [1, n]), 'Low and Upp must be 1-by-n');
+assert(all(size(Lows) == [1, n]) && all(size(Upps) == [1, n]), 'Lows and Upps must be 1-by-n');
 assert(all(size(x0) == [1, n]) && all(size(x1) == [1, n]), 'x0 and x1 must be 1-by-n');
-assert(all(Low <= Upp), 'Low must not exceed Upp');
+assert(all(Lows <= Upps), 'Lows must not exceed Upps');
 
 obj = @(s) h_fun(eval_quadratics(H, g, b, s));
 
 % Latin hypercube sample: each coordinate's num_samples values fall in
-% distinct equal-width slices of [Low(j), Upp(j)].
+% distinct equal-width slices of [Lows(j), Upps(j)].
 num_samples = 1000 * n;
 S = zeros(num_samples, n);
 for j = 1:n
-    S(:, j) = Low(j) + (Upp(j) - Low(j)) * (randperm(num_samples)' - rand(num_samples, 1)) / num_samples;
+    S(:, j) = Lows(j) + (Upps(j) - Lows(j)) * (randperm(num_samples)' - rand(num_samples, 1)) / num_samples;
 end
-S = [zeros(1, n); min(Upp, max(Low, x1 - x0)); S];
+S = [zeros(1, n); min(Upps, max(Lows, x1 - x0)); S];
 
 vals = zeros(size(S, 1), 1);
 for i = 1:size(S, 1)
@@ -58,8 +58,8 @@ end
 [~, ind] = min(vals);
 
 options = optimoptions('fmincon', 'Display', 'off');
-s_k = fmincon(obj, S(ind, :), [], [], [], [], Low, Upp, [], options);
-s_k = min(Upp, max(Low, s_k));
+s_k = fmincon(obj, S(ind, :), [], [], [], [], Lows, Upps, [], options);
+s_k = min(Upps, max(Lows, s_k));
 
 % safeguard in case fmincon returns a worse solution than its starting point
 if obj(s_k) > vals(ind)
