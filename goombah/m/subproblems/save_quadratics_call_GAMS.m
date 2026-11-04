@@ -20,29 +20,29 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% Hres:         [n-by-n-by-P] array of P model quadratic terms
-% Gres:         [n-by-P] array of P model linear terms
-% Cres:         [1-by-P] array of P model constant terms
-% Lows:         [1-by-n] lower bounds on the step (relative to x_center)
-% Upps:         [1-by-n] upper bounds on the step (relative to x_center)
-% x_center:     [1-by-n] trust region center
-% x1:           [1-by-n] a candidate starting point (a point, not a step) for use by GAMS
-% val_at_x0:    [scalar] the objective value h_fun(Cres) at x_center
-% GAMS_options: [struct] options for the GAMS calls. Fields:
-%                 file      - path to the GAMS model file (a relative path is
-%                             resolved against the current directory)
-%                 solvers   - vector of integers: the solver flags to try
-%                 hfun_data - (optional) struct with fields Q/z/c or C/D that
-%                             is saved for the GAMS model of the h function
-% h_fun:        [func handle] evaluates h at a 1-by-P vector of model values
+% Hres:           [n-by-n-by-P] array of P model quadratic terms
+% Gres:           [n-by-P] array of P model linear terms
+% Cres:           [1-by-P] array of P model constant terms
+% Lows:           [1-by-n] lower bounds on the step (relative to x_center)
+% Upps:           [1-by-n] upper bounds on the step (relative to x_center)
+% x_center:       [1-by-n] trust region center
+% x1:             [1-by-n] a candidate starting point (a point, not a step) for use by GAMS
+% hF_at_x_center: [scalar] the objective value h_fun(Cres) at x_center
+% GAMS_options:   [struct] options for the GAMS calls. Fields:
+%                   file      - path to the GAMS model file (a relative path is
+%                               resolved against the current directory)
+%                   solvers   - vector of integers: the solver flags to try
+%                   hfun_data - (optional) struct with fields Q/z/c or C/D that
+%                               is saved for the GAMS model of the h function
+% h_fun:          [func handle] evaluates h at a 1-by-P vector of model values
 
 %%%%%%%%%%%
 % Outputs:
 %%%%%%%%%%%
-% s_k:          [1-by-n] array containing the step from x_center
-% pred_dec:     [scalar] predicted decrease from x_center to x_center + s_k (never negative)
+% s_k:            [1-by-n] array containing the step from x_center
+% pred_dec:       [scalar] predicted decrease from x_center to x_center + s_k (never negative)
 
-function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, Cres, Lows, Upps, x_center, x1, val_at_x0, GAMS_options, h_fun)
+function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, Cres, Lows, Upps, x_center, x1, hF_at_x_center, GAMS_options, h_fun)
 
 % First put all of the problem information into the correct data structures
 
@@ -236,7 +236,7 @@ end
 
 [val_at_new, ind] = min(obj_vals_MATLAB);
 s_k = allx(ind, :) - x_center;
-pred_dec = val_at_x0 - val_at_new;
+pred_dec = hF_at_x_center - val_at_new;
 
 % assert(pred_dec >= 0)
 

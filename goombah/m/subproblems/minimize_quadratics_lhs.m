@@ -14,23 +14,23 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% Hres:       [n-by-n-by-P] array of P model quadratic terms
-% Gres:       [n-by-P] array of P model linear terms
-% Cres:       [1-by-P] array of P model constant terms
-% Lows:       [1-by-n] lower bounds on the step
-% Upps:       [1-by-n] upper bounds on the step
-% x_center:   [1-by-n] trust region center
-% x1:         [1-by-n] a candidate starting point
-% val_at_x0:  [scalar] the objective value at x_center
-% h_fun:      [func handle] evaluates h
+% Hres:           [n-by-n-by-P] array of P model quadratic terms
+% Gres:           [n-by-P] array of P model linear terms
+% Cres:           [1-by-P] array of P model constant terms
+% Lows:           [1-by-n] lower bounds on the step
+% Upps:           [1-by-n] upper bounds on the step
+% x_center:       [1-by-n] trust region center
+% x1:             [1-by-n] a candidate starting point
+% hF_at_x_center: [scalar] the objective value at x_center
+% h_fun:          [func handle] evaluates h
 
 %%%%%%%%%%%
 % Outputs:
 %%%%%%%%%%%
-% s_k:        [1-by-n] array containing the step
-% pred_dec:   [scalar] predicted decrease from x_center to x_center + s_k
+% s_k:            [1-by-n] array containing the step
+% pred_dec:       [scalar] predicted decrease from x_center to x_center + s_k
 
-function [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x1, val_at_x0, h_fun)
+function [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x1, hF_at_x_center, h_fun)
 
 [n, P] = size(Gres);
 
@@ -66,7 +66,7 @@ if obj(s_k) > vals(ind)
     s_k = S(ind, :);
 end
 
-pred_dec = val_at_x0 - obj(s_k);
+pred_dec = hF_at_x_center - obj(s_k);
 
 if pred_dec < 0
     pred_dec = 0;
