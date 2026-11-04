@@ -148,14 +148,6 @@ Upps_gdx.form = 'full';
 Upps_gdx.dim = 1;
 Upps_gdx.uels = Ns.uels;
 
-x1s.name = 'x1';
-x1s.ts   = 'Starting point for optimization';
-x1s.type = 'parameter';
-x1s.val = x1;
-x1s.form = 'full';
-x1s.dim = 1;
-x1s.uels = Ns.uels;
-
 num_solvers = numel(GAMS_options.solvers);
 allx = inf * ones(num_solvers, n);
 solveStat = inf * ones(num_solvers, 1);
