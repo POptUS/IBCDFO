@@ -118,21 +118,21 @@ solver.name = 'solver';
 solver.ts   = 'Solver flag';
 solver.type = 'parameter';
 
-Lows.name = 'Low';
-Lows.ts   = 'Lower bounds on step';
-Lows.type = 'parameter';
-Lows.val = Low;
-Lows.form = 'full';
-Lows.dim = 1;
-Lows.uels = Ns.uels;
+Lows_gdx.name = 'Low';
+Lows_gdx.ts   = 'Lower bounds on step';
+Lows_gdx.type = 'parameter';
+Lows_gdx.val = Low;
+Lows_gdx.form = 'full';
+Lows_gdx.dim = 1;
+Lows_gdx.uels = Ns.uels;
 
-Upps.name = 'Upp';
-Upps.ts   = 'Upper bounds on step';
-Upps.type = 'parameter';
-Upps.val = Upp;
-Upps.form = 'full';
-Upps.dim = 1;
-Upps.uels = Ns.uels;
+Upps_gdx.name = 'Upp';
+Upps_gdx.ts   = 'Upper bounds on step';
+Upps_gdx.type = 'parameter';
+Upps_gdx.val = Upp;
+Upps_gdx.form = 'full';
+Upps_gdx.dim = 1;
+Upps_gdx.uels = Ns.uels;
 
 x1s.name = 'x1';
 x1s.ts   = 'Starting point for optimization';
@@ -154,7 +154,7 @@ for j = 1:num_solvers
     solver.val = i;
 
     % Put problem data to a gdx file
-    wgdx('quad_model_data', Ns, Ps, Hs_mod, gs_mod, bs_mod, x0s, x1s, solver, Lows, Upps);
+    wgdx('quad_model_data', Ns, Ps, Hs_mod, gs_mod, bs_mod, x0s, x1s, solver, Lows_gdx, Upps_gdx);
     fprintf('Matlab data written to GDX file quads_model_data.gdx\n');
 
     % Remove old solutions file for safety
