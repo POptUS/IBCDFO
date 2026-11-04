@@ -98,7 +98,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
 
-        [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+        [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
 
         Results{jj, row}.alg = 'Manifold sampling';
         Results{jj, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun=' hfun_name];

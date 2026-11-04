@@ -1,4 +1,4 @@
-function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hres] = check_inputs_and_initialize(x0, F0, nf_max)
+function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max)
 
     global h_activity_tol
 
@@ -41,6 +41,6 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hr
     nf = 1;
     trust_rho = 1;
 
-    xkin = 1;
+    xk_in = 1;
     Hres = zeros(n, n, p);
 end

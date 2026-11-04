@@ -32,9 +32,9 @@ for row = [1, 2]
     Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
     x0 = xs';
 
-    [~, ~, hF, xkin, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+    [~, ~, hF, xk_in, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
     if row == 1 || row == 2
-        assert(hF(xkin) <= 36.0 + 1e-8, "Not within 1e-8 of known minima");
+        assert(hF(xk_in) <= 36.0 + 1e-8, "Not within 1e-8 of known minima");
     end
 end
 path(oldpath);

@@ -147,7 +147,7 @@ for mw_prob_num = [7] % full tests are 1:53
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % PRIMAL MANIFOLD SAMPLING %%%%
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        [X, F, h, xkin, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, LB, UB, nf_max, subprob_switch);
+                        [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, LB, UB, nf_max, subprob_switch);
 
                         assert(size(X, 1) <= nf_max, "Method grew the size of X");
 
