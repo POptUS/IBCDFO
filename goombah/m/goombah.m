@@ -108,15 +108,15 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
         Upps = min(Upp - X(xk_in, :), delta);
 
         if strcmp(TRSP_options.solver, 'lhs')
-            [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), hfun);
+            [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), hfun);
         else
-            [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), TRSP_options, hfun);
+            [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), TRSP_options, hfun);
         end
         if pred_dec == 0
             rho_k = -inf;
         else
             % Evaluate F
-            [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + sk, tol, Low, Upp, 1);
+            [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + s_k, tol, Low, Upp, 1);
             rho_k = (hF(xk_in) - hF(nf)) / min(1.0, delta^(1.0 + beta_exp));
         end
 

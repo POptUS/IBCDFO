@@ -131,20 +131,20 @@ function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TR
             Lows = max(Low - X(xk_in, :), -delta);
             Upps = min(Upp - X(xk_in, :), delta);
 
-            [sk, ~, found_solution] = solve_trsp(H_k, g_k, Lows, Upps);
+            [s_k, ~, found_solution] = solve_trsp(H_k, g_k, Lows, Upps);
             if ~found_solution
-                sk = zeros(n, 1);
+                s_k = zeros(n, 1);
             end
-            sk = sk';
+            s_k = s_k';
 
             % if printf
-            %     plot_again(X, xk_in, delta, sk, [], nf, [], Low, Upp);
+            %     plot_again(X, xk_in, delta, s_k, [], nf, [], Low, Upp);
             % end
 
             if strcmp(TRSP_options.solver, 'lhs')
-                [s_k_trial, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), hfun);
+                [s_k_trial, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + s_k, hF(xk_in), hfun);
             else
-                [s_k_trial, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), TRSP_options, hfun);
+                [s_k_trial, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + s_k, hF(xk_in), TRSP_options, hfun);
             end
             if pred_dec == 0
                 if delta <= tol.mindelta
