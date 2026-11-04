@@ -214,7 +214,7 @@ function col_vecs_for_Gen_k = construct_Gen_k(hfun, xk_in, gentype, nf, delta, F
         for i = 1:nf
             if norm(X(xk_in, :) - X(i, :)) <= delta
                 [~, grads_at_pt_near_x] = hfun(F(i, :));
-                col_vecs_for_Gen__k = unique([col_vecs_for_Genk, grads_at_pt_near_x]', 'rows')';
+                col_vecs_for_Gen_k = unique([col_vecs_for_Gen_k, grads_at_pt_near_x]', 'rows')';
             end
         end
     end
