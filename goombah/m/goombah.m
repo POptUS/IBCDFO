@@ -160,10 +160,10 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
                     end
                 end
 
-                % Line 7: Find a candidate s_k by solving QP
+                % Line 7: Find a candidate s_k_msp by solving QP
                 Lows = max(Low - X(xk_in, :), -delta);
                 Upps = min(Upp - X(xk_in, :), delta);
-                [s_k, tau_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
+                [s_k_msp, tau_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
 
                 % Line 8: Compute stationary measure chi_k
                 Lows = max(Low - X(xk_in, :), -1.0);
@@ -182,12 +182,12 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
 
                 if printf
                     trsp_fun = @(x) max_affine(x, hF(xk_in), f_bar, beta, G_k, H_mm);
-        %             plot_again_j(X, xk_in, delta, s_k, [], nf, trsp_fun, Low, Upp);
+        %             plot_again_j(X, xk_in, delta, s_k_msp, [], nf, trsp_fun, Low, Upp);
                 end
 
                 % Line 12: Evaluate F
                 [nf, X, F, hF, Hash, hashes_at_nf] = ...
-                    call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + s_k', tol, Low, Upp, 1);
+                    call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + s_k_msp', tol, Low, Upp, 1);
 
                 % Line 13: Compute rho_k
                 ared = hF(xk_in) - hF(nf);
@@ -220,7 +220,7 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
 
             if successful
                 xk_in = nf; % Line 15: Update TR center and radius
-                if rho_k > tol.eta3 && norm(s_k, "inf") > 0.8 * bar_delta
+                if rho_k > tol.eta3 && norm(s_k_msp, "inf") > 0.8 * bar_delta
                     % Update delta if rho is sufficiently large
                     delta = bar_delta * tol.gamma_inc;
                     % h_activity_tol = min(1e-8, delta);
