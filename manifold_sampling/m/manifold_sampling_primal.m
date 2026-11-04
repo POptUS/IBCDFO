@@ -123,14 +123,14 @@ while nf < nf_max && delta > tol.mindelta
         end
 
         % Line 7: Find a candidate s_k by solving QP
-        Low = max(L - X(xk_in, :), -delta);
-        Upp = min(U - X(xk_in, :), delta);
-        [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, H_mm, delta, Low, Upp, H_k, subprob_switch);
+        Lows = max(L - X(xk_in, :), -delta);
+        Upps = min(U - X(xk_in, :), delta);
+        [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
 
         % Line 8: Compute stationary measure chi_k
-        Low = max(L - X(xk_in, :), -1.0);
-        Upp = min(U - X(xk_in, :), 1.0);
-        [~, ~, chi_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, zeros(n), delta, Low, Upp, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
+        Lows = max(L - X(xk_in, :), -1.0);
+        Upps = min(U - X(xk_in, :), 1.0);
+        [~, ~, chi_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
         % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
         if chi_k <= tol.gtol && delta <= tol.mindelta
