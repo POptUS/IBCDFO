@@ -1,32 +1,46 @@
-% A general MATLAB-to-GAMS interface.
+% A general MATLAB-to-GAMS interface for the GOOMBAH TRSP.
 %
 % This function
-% - Writes out information defining `P` quadratics out a gdx file in the current directory
-% - Copies the gams_file_path file to the current directory
-% - Calls GAMS on that copied file (needs to be written to read-in & write-out its solution) for many solver flags
-% - Asserts that the GAMS call produced a file and reads in the solution.
-% - Checks that the GAMS solver status indicates success for at least one of the solvers
-% - Computes h_fun on all solver solutions that were successful
-% - Returns the min of those solutions
+% - Creates a fresh temporary directory, works in it, and removes it on return
+% - Writes the data defining the `P` model quadratics, the bounds, the center,
+%   and the starting point to a GDX file there, via GDXMRW's wgdx()
+% - Optionally writes the h-specific data (see GAMS_options.hfun_data)
+% - Copies the GAMS model file GAMS_options.file there and calls GAMS on it once
+%   for each solver flag in GAMS_options.solvers (the model file must be written
+%   to read the GDX file and write out its solution)
+% - Asserts that each GAMS call produced a solution file and reads in the solution
+% - Checks that the GAMS solver status indicates success for at least one solver
+% - Clips the solutions of the successful solvers to the step bounds, and computes
+%   h_fun on the corresponding model values
+% - Returns the step with the smallest value
 %
-% This function writes a GDX file via a GDXMRW's wgdx() call.
+% If the objective values computed by GAMS and by MATLAB disagree, the zero step
+% and zero predicted decrease are returned.
 
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% H:          [n-by-n-by-P] array of P model quadratic terms
-% g:          [n-by-P] array of P model linear terms
-% b:          [P-by-1] array of P model constant terms
-% delta:      [scalar] trust region radius
-% x0:         [n-by-1] trust region center
-% x1:         [n-by-1] a candidate starting point for use by GAMS
-% val_at_x0:  [scalar] the objective value at x0
+% H:            [n-by-n-by-P] array of P model quadratic terms
+% g:            [n-by-P] array of P model linear terms
+% b:            [1-by-P] array of P model constant terms
+% Lows:         [1-by-n] lower bounds on the step (relative to x0)
+% Upps:         [1-by-n] upper bounds on the step (relative to x0)
+% x0:           [1-by-n] trust region center
+% x1:           [1-by-n] a candidate starting point (a point, not a step) for use by GAMS
+% val_at_x0:    [scalar] the objective value h_fun(b) at x0
+% GAMS_options: [struct] options for the GAMS calls. Fields:
+%                 file      - path to the GAMS model file (a relative path is
+%                             resolved against the current directory)
+%                 solvers   - vector of integers: the solver flags to try
+%                 hfun_data - (optional) struct with fields Q/z/c or C/D that
+%                             is saved for the GAMS model of the h function
+% h_fun:        [func handle] evaluates h at a 1-by-P vector of model values
 
 %%%%%%%%%%%
 % Outputs:
 %%%%%%%%%%%
-% x:          [1-by-n] array containing the solution
-% pred_dec:   [scalar] predicted decrease from x0 to x
+% s_k:          [1-by-n] array containing the step from x0
+% pred_dec:     [scalar] predicted decrease from x0 to x0 + s_k (never negative)
 
 function [s_k, pred_dec] = save_quadratics_call_GAMS(H, g, b, Lows, Upps, x0, x1, val_at_x0, GAMS_options, h_fun)
 
