@@ -5,7 +5,7 @@ from ibcdfo.pounders import _formquad as formquad
 from .call_user_scripts import call_user_scripts
 
 
-def update_models(hfun, Ffun, n, p, nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U):
+def update_models(hfun, Ffun, n, p, nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, Low, Upp):
     Cres = F[xk_in, :]
     Res = np.zeros(F.shape)  # Stores the residuals for model updates
 
@@ -18,10 +18,10 @@ def update_models(hfun, Ffun, n, p, nf, nf_max, xk_in, delta, F, X, h, Hres, fq_
 
     # Evaluate geometry points
     if mp < n and geometry_pt_flag:  # Must obtain and evaluate bounded geometry points
-        Mdir, mp = bmpts(X[xk_in], Mdir[: n - mp], L, U, delta, fq_pars["Par"][2])
+        Mdir, mp = bmpts(X[xk_in], Mdir[: n - mp], Low, Upp, delta, fq_pars["Par"][2])
 
         for i in range(min(n - mp, nf_max - nf - 1)):
-            nf, X, F, h, Hash, _ = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xk_in, :] + Mdir[i, :], tol, L, U, 1)
+            nf, X, F, h, Hash, _ = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xk_in, :] + Mdir[i, :], tol, Low, Upp, 1)
             Di = Mdir[i, :]
             Res[nf, :] = (F[nf, :] - Cres[:]) - 0.5 * np.einsum("i,ijk,j->k", Di, Hres, Di)
 

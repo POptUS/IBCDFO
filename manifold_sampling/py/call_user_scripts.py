@@ -1,21 +1,21 @@
 import numpy as np
 
 
-def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, L, U, allow_recalc=0):
-    if len(x_in) != len(U) or len(x_in) != len(L):
+def call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_recalc=0):
+    if len(x_in) != len(Upp) or len(x_in) != len(Low):
         raise ValueError("Input vector dimensions do not match the bounds.")
 
     if allow_recalc is None:
         allow_recalc = 0
 
-    xnew = np.minimum(U, np.maximum(L, x_in))
+    xnew = np.minimum(Upp, np.maximum(Low, x_in))
 
     for i in range(len(xnew)):
-        if U[i] - xnew[i] < np.finfo(float).eps * np.abs(U[i]) and U[i] > xnew[i]:
-            xnew[i] = U[i]
+        if Upp[i] - xnew[i] < np.finfo(float).eps * np.abs(Upp[i]) and Upp[i] > xnew[i]:
+            xnew[i] = Upp[i]
             print("eps project!")
-        elif xnew[i] - L[i] < np.finfo(float).eps * np.abs(L[i]) and L[i] < xnew[i]:
-            xnew[i] = L[i]
+        elif xnew[i] - Low[i] < np.finfo(float).eps * np.abs(Low[i]) and Low[i] < xnew[i]:
+            xnew[i] = Low[i]
             print("eps project!")
 
     xnew_hashable = tuple(xnew)

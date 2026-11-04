@@ -15,7 +15,7 @@ from .prepare_outputs_before_return import prepare_outputs_before_return
 eng = []
 
 
-def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
+def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     r"""
     Run manifold sampling to solve the composite nonsmooth optimization problem.
 
@@ -47,9 +47,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
 
     :param x0: Initial point (length :math:`\np` array).
 
-    :param L: Lower bounds for ``x`` (length :math:`\np` array).
+    :param Low: Lower bounds for ``x`` (length :math:`\np` array).
 
-    :param U: Upper bounds for ``x`` (length :math:`\np` array).
+    :param Upp: Upper bounds for ``x`` (length :math:`\np` array).
 
     :param nf_max: Maximum number of evaluations of ``Ffun``.
 
@@ -93,7 +93,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
 
     n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
     # This raises exceptions on bad inputs and does not alter any arguments.
-    checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, L, U, fq_pars["Par"])
+    checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
 
     # Evaluate user scripts at x_0
     h[nf], __, hashes_at_nf = hfun(F[nf])
@@ -111,7 +111,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
         # Line 3: manifold sampling while loop
         while nf + 1 < nf_max:
             # Line 4: build models
-            Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U)
+            Gres, Hres, X, F, h, nf, Hash = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp)
             if len(Gres) == 0:
                 return prepare_outputs_before_return(X, F, h, nf, xk_in, -1)
             if nf + 1 >= nf_max:
@@ -129,15 +129,15 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                     H_k[i, 1:, 1:] = np.squeeze(H_k[i, 1:, 1:]) + D_k[j, i] * Hres[:, :, j]
 
             # Line 7: Find a candidate s_k by solving QP
-            Lows = np.maximum(L - X[xk_in], -delta)
-            Upps = np.minimum(U - X[xk_in], delta)
+            Lows = np.maximum(Low - X[xk_in], -delta)
+            Upps = np.minimum(Upp - X[xk_in], delta)
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(h[xk_in], f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch, eng)
             if lp_fail_flag:
                 return prepare_outputs_before_return(X, F, h, nf, xk_in, -2)
 
             # Line 8: Compute stationary measure chi_k
-            Lows = np.maximum(L - X[xk_in], -1.0)
-            Upps = np.minimum(U - X[xk_in], 1.0)
+            Lows = np.maximum(Low - X[xk_in], -1.0)
+            Upps = np.minimum(Upp - X[xk_in], 1.0)
             __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(h[xk_in], f_bar, beta, G_k, np.zeros((n, n)), delta, Lows, Upps, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
             if lp_fail_flag:
                 return prepare_outputs_before_return(X, F, h, nf, xk_in, -2)
@@ -147,7 +147,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch):
                 return prepare_outputs_before_return(X, F, h, nf, xk_in, chi_k)
 
             # Line 12: Evaluate F
-            nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xk_in] + np.transpose(s_k), tol, L, U, 1)
+            nf, X, F, h, Hash, hashes_at_nf = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xk_in] + np.transpose(s_k), tol, Low, Upp, 1)
             # Line 13: Compute rho_k
             ared = h[xk_in] - h[nf]
             pred = -tau_k
