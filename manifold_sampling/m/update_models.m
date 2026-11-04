@@ -1,4 +1,4 @@
-function [valid, Gres, Hres, X, F, h, nf, Hash] = update_models(hfun, Ffun, n, p, nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, L, U)
+function [valid, Gres, Hres, X, F, h, nf, Hash] = update_models(hfun, Ffun, n, p, nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, geometry_pt_flag, Hash, tol, Low, Upp)
     Cres = F(xk_in, :);
     Res = zeros(size(F)); % Stores the residuals for model updates
 
@@ -14,9 +14,9 @@ function [valid, Gres, Hres, X, F, h, nf, Hash] = update_models(hfun, Ffun, n, p
     [Mdir, np, valid, Gres, Hresdel, ~] = formquad(X(1:nf, :), Res(1:nf, :), delta, xk_in, fq_pars.npmax, fq_pars.Par, 0);
     % Evaluate geometry points
     if np < n && geometry_pt_flag % Must obtain and evaluate bounded geometry points
-        [Mdir, np] = bmpts(X(xk_in, :), Mdir(1:n - np, :), L, U, delta, fq_pars.Par(3));
+        [Mdir, np] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, fq_pars.Par(3));
         for i = 1:min(n - np, nf_max - nf)
-            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + Mdir(i, :), tol, L, U, 1);
+            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + Mdir(i, :), tol, Low, Upp, 1);
             D = Mdir(i, :);
             for j = 1:p
                 Res(nf, j) = (F(nf, j) - Cres(j)) - .5 * D * Hres(:, :, j) * D';

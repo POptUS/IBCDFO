@@ -1,4 +1,4 @@
-function [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U, nf_max, subprob_switch)
+function [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch)
 % Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
 % :param hfun: Handle to function that, given a :math:`\np \times 1` point
@@ -20,8 +20,8 @@ function [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, L, U,
 %     blackbox simulation as an :math:`1 \times \nd` vector for given
 %     :math:`\psp`
 % :param x0: :math:`1 \times \np` vector that specifies the starting point
-% :param L: :math:`1 \times \np` vector of lower bounds
-% :param U: :math:`1 \times \np` vector of upper bounds
+% :param Low: :math:`1 \times \np` vector of lower bounds
+% :param Upp: :math:`1 \times \np` vector of upper bounds
 % :param nf_max: [int] Maximum number of function evaluations
 % :param subprob_switch: Selects the trust-region subproblem solver used internally.
 %
@@ -72,7 +72,7 @@ catch e
 end
 
 [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
-[flag, x0, ~, F0, L, U] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, L, U);
+[flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = x0;
     F = F0;
@@ -95,7 +95,7 @@ while nf < nf_max && delta > tol.mindelta
     while nf < nf_max
 
         % Line 4: build models
-        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
+        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
         if isempty(Gres)
             disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
             X = X(1:nf, :);
@@ -123,13 +123,13 @@ while nf < nf_max && delta > tol.mindelta
         end
 
         % Line 7: Find a candidate s_k by solving QP
-        Lows = max(L - X(xk_in, :), -delta);
-        Upps = min(U - X(xk_in, :), delta);
+        Lows = max(Low - X(xk_in, :), -delta);
+        Upps = min(Upp - X(xk_in, :), delta);
         [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
 
         % Line 8: Compute stationary measure chi_k
-        Lows = max(L - X(xk_in, :), -1.0);
-        Upps = min(U - X(xk_in, :), 1.0);
+        Lows = max(Low - X(xk_in, :), -1.0);
+        Upps = min(Upp - X(xk_in, :), 1.0);
         [~, ~, chi_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
         % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
@@ -144,12 +144,12 @@ while nf < nf_max && delta > tol.mindelta
 
         if printf
             trsp_fun = @(x) max_affine(x, h(xk_in), f_bar, beta, G_k, H_mm);
-%             plot_again_j(X, xk_in, delta, s_k, [], nf, trsp_fun, L, U);
+%             plot_again_j(X, xk_in, delta, s_k, [], nf, trsp_fun, Low, Upp);
         end
 
         % Line 12: Evaluate F
         [nf, X, F, h, Hash, hashes_at_nf] = ...
-            call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + s_k', tol, L, U, 1);
+            call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + s_k', tol, Low, Upp, 1);
 
         % Line 13: Compute rho_k
         ared = h(xk_in) - h(nf);
