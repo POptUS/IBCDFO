@@ -2,10 +2,10 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
-    %       scalar function value and the :math:`\nd \times l` matrix whose
+    %       scalar function value and the :math:`p \times l` matrix whose
     %       columns are the :math:`l` limiting gradients at the given point.
     %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
-    %       simulation, returning a :math:`1 \times \nd` vector.
+    %       simulation, returning a :math:`1 \times p` vector.
     %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
     %  :param Low:     [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
     %  :param Upp:     [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
@@ -45,7 +45,7 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     %  :return:
     %       * **X**     [:math:`k \times \np`] Points evaluated, where
     %         :math:`k \leq \mathrm{nf\_max}`
-    %       * **F**     [:math:`k \times \nd`] Their simulation values
+    %       * **F**     [:math:`k \times p`] Their simulation values
     %       * **hF**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xk_in** [int] Current trust region center
 

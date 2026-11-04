@@ -1,11 +1,11 @@
 function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch)
 % Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
-% :param hfun: Handle to function that, given a :math:`\np \times 1` point
+% :param hfun: Handle to function that, given a :math:`p \times 1` point
 %     :math:`\zvec`, returns
 %
 %     * the value :math:`h(\zvec)`
-%     * :math:`\np \times l` matrix that contains gradients for all
+%     * :math:`p \times l` matrix that contains gradients for all
 %       :math:`l` active selections at :math:`\zvec`
 %     * :math:`1 \times l` vector of hashes for each manifold active at :math:`\zvec`
 %
@@ -17,7 +17,7 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %       :math:`h_i(\zvec)` for each hash in :math:`H`
 %
 % :param Ffun: Function that returns the value :math:`\Ffun(\psp)` of the
-%     blackbox simulation as an :math:`1 \times \nd` vector for given
+%     blackbox simulation as an :math:`1 \times p` vector for given
 %     :math:`\psp`
 % :param x0: :math:`1 \times \np` vector that specifies the starting point
 % :param Low: :math:`1 \times \np` vector of lower bounds
@@ -28,7 +28,7 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 % :return:
 %      * **X** - :math:`\mathrm{nf\_max} \times \np` matrix containing the
 %        points evaluated in the order in which they were evaluated
-%      * **F** - :math:`\mathrm{nf\_max} \times \nd` matrix containing the
+%      * **F** - :math:`\mathrm{nf\_max} \times p` matrix containing the
 %        blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
 %        with matching ordering
 %      * **hF** - :math:`\mathrm{nf\_max} \times 1` matrix containing the values
