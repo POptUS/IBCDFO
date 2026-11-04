@@ -1,4 +1,4 @@
-function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max)
+function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, trust_rho, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max)
 
     global h_activity_tol
 
@@ -35,7 +35,7 @@ function [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xk_in, H
 
     X = [x0; zeros(nf_max - 1, n)]; % Stores the point locations
     F = [F0; zeros(nf_max - 1, p)];         % Stores the simulation values
-    h = zeros(nf_max, 1);         % Stores the function values
+    hF = zeros(nf_max, 1);        % Stores the function values
     Hash = cell(nf_max, 1);       % Stores the hashes
 
     nf = 1;

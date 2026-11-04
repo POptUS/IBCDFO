@@ -98,13 +98,13 @@ for row = [1, 2, 7, 8, 43, 44, 45]
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
 
-        [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
 
         Results{jj, row}.alg = 'Manifold sampling';
         Results{jj, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun=' hfun_name];
         Results{jj, row}.hfun_name = hfun_name;
         Results{jj, row}.Fvec = F;
-        Results{jj, row}.H = h;
+        Results{jj, row}.H = hF;
         Results{jj, row}.X = X;
         jj = jj + 1;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

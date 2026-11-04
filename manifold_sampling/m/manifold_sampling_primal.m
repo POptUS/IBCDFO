@@ -1,4 +1,4 @@
-function [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch)
+function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch)
 % Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
 % :param hfun: Handle to function that, given a :math:`\np \times 1` point
@@ -31,7 +31,7 @@ function [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, 
 %      * **F** - :math:`\mathrm{nf\_max} \times \nd` matrix containing the
 %        blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
 %        with matching ordering
-%      * **h** - :math:`\mathrm{nf\_max} \times 1` matrix containing the values
+%      * **hF** - :math:`\mathrm{nf\_max} \times 1` matrix containing the values
 %        :math:`\hfun(\Ffun(\psp))` for all points in ``X`` with matching
 %        ordering.
 %      * **xk_in** - One-based index of current trust region center.
@@ -65,23 +65,23 @@ catch e
     warning('Problem using Ffun. Exiting');
     X = [];
     F = [];
-    h = [];
+    hF = [];
     xk_in = [];
     flag = -1;
     return
 end
 
-[n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
 [flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = x0;
     F = F0;
-    h = [];
+    hF = [];
     return
 end
 
 % Evaluate user scripts at x_0
-[h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
+[hF(nf), ~, hashes_at_nf] = hfun(F(nf, :));
 Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
 H_mm = zeros(n);
@@ -95,12 +95,12 @@ while nf < nf_max && delta > tol.mindelta
     while nf < nf_max
 
         % Line 4: build models
-        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
+        [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
         if isempty(Gres)
             disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
             X = X(1:nf, :);
             F = F(1:nf, :);
-            h = h(1:nf, :);
+            hF = hF(1:nf, :);
             flag = -1;
             return
         end
@@ -112,7 +112,7 @@ while nf < nf_max && delta > tol.mindelta
         % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
         [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun);
         G_k = Gres * D_k;
-        beta = max(0, f_bar' - h(xk_in));
+        beta = max(0, f_bar' - hF(xk_in));
 
         % Line 6: Choose Hessians
         H_k = zeros(size(G_k, 2), n + 1, n + 1);
@@ -125,34 +125,34 @@ while nf < nf_max && delta > tol.mindelta
         % Line 7: Find a candidate s_k by solving QP
         Lows = max(Low - X(xk_in, :), -delta);
         Upps = min(Upp - X(xk_in, :), delta);
-        [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
+        [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
 
         % Line 8: Compute stationary measure chi_k
         Lows = max(Low - X(xk_in, :), -1.0);
         Upps = min(Upp - X(xk_in, :), 1.0);
-        [~, ~, chi_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
+        [~, ~, chi_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
         % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
         if chi_k <= tol.gtol && delta <= tol.mindelta
             disp('Convergence satisfied: small stationary measure and small delta');
             X = X(1:nf, :);
             F = F(1:nf, :);
-            h = h(1:nf, :);
+            hF = hF(1:nf, :);
             flag = chi_k;
             return
         end
 
         if printf
-            trsp_fun = @(x) max_affine(x, h(xk_in), f_bar, beta, G_k, H_mm);
+            trsp_fun = @(x) max_affine(x, hF(xk_in), f_bar, beta, G_k, H_mm);
 %             plot_again_j(X, xk_in, delta, s_k, [], nf, trsp_fun, Low, Upp);
         end
 
         % Line 12: Evaluate F
-        [nf, X, F, h, Hash, hashes_at_nf] = ...
-            call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + s_k', tol, Low, Upp, 1);
+        [nf, X, F, hF, Hash, hashes_at_nf] = ...
+            call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + s_k', tol, Low, Upp, 1);
 
         % Line 13: Compute rho_k
-        ared = h(xk_in) - h(nf);
+        ared = hF(xk_in) - hF(nf);
         pred = -tau_k;
         rho_k = ared / pred;
 
@@ -192,7 +192,7 @@ while nf < nf_max && delta > tol.mindelta
         % h_activity_tol = min(1e-8, delta);
     end
 
-    fprintf('nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n', nf, h(xk_in), chi_k, delta);
+    fprintf('nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n', nf, hF(xk_in), chi_k, delta);
 
     % Build primal master model Hessian for next iteration
     % H_mm = zeros(n);
@@ -210,7 +210,7 @@ if nf >= nf_max
 else
     X = X(1:nf, :);
     F = F(1:nf, :);
-    h = h(1:nf, :);
+    hF = hF(1:nf, :);
     flag = chi_k;
 end
 end

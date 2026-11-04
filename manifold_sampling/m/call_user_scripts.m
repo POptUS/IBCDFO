@@ -1,4 +1,4 @@
-function [nf, X, F, h, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_recalc)
+function [nf, X, F, hF, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_recalc)
     % Call user scripts Ffun and hfun; saves their output to the appropriate arrays
     if nargin < 12
         allow_recalc = 0;
@@ -23,7 +23,7 @@ function [nf, X, F, h, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, h, Hash
     nf = nf + 1;
     X(nf, :) = xnew;
     F(nf, :) = Ffun(X(nf, :));
-    [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
+    [hF(nf), ~, hashes_at_nf] = hfun(F(nf, :));
     Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
     assert(~any(isnan(F(nf, :))), 'Got a NaN. FAIL!');

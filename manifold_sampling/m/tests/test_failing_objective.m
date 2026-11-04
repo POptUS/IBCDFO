@@ -18,15 +18,15 @@ rand('seed', 1);
 objective = @(x)failing_objective(x);
 hfun = @this_is_never_used;
 
-% [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, objective, X0, Low, Upp, nf_max, 'linprog');
+% [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, objective, X0, Low, Upp, nf_max, 'linprog');
 % assert(flag == -3, "No NaN was encountered in this test, but (with high probability) should have been.");
 
 % Intentionally not passing a function for an objective
-[X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, X0, X0, Low, Upp, nf_max, 'linprog');
+[X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, X0, X0, Low, Upp, nf_max, 'linprog');
 assert(flag == -1, "Should have failed");
 
 objective = @(x) x;
-[X, F, h, xk_in, flag] = manifold_sampling_primal(hfun, objective, X0, [Low 1], Upp, nf_max, 'linprog');
+[X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, objective, X0, [Low 1], Upp, nf_max, 'linprog');
 assert(flag == -1, "Should have failed");
 
 path(oldpath);

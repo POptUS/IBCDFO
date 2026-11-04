@@ -1,4 +1,4 @@
-function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch)
+function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -46,7 +46,7 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
     %       * **X**     [:math:`k \times \np`] Points evaluated, where
     %         :math:`k \leq \mathrm{nf\_max}`
     %       * **F**     [:math:`k \times \nd`] Their simulation values
-    %       * **h**     [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
+    %       * **hF**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xk_in** [int] Current trust region center
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
@@ -63,41 +63,41 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
         warning('Problem using Ffun. Exiting');
         X = [];
         F = [];
-        h = [];
+        hF = [];
         xk_in = [];
         flag = -1;
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
     assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
                 "The lhs TRSP solver should only be used for testing or debugging");
     end
 
-    [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
+    [hF(nf), ~, hashes_at_nf] = hfun(F(nf, :));
     Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
     I_n = eye(n);
     for i = 1:n
-        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
+        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
     end
 
     H_mm = zeros(n);
     beta_exp = 1.0;
 
     while nf < nf_max && delta > tol.mindelta
-        [~, xk_in] = min(h(1:nf));
+        [~, xk_in] = min(hF(1:nf));
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
+        [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
             X = X(1:nf, :);
             F = F(1:nf, :);
-            h = h(1:nf, :);
+            hF = hF(1:nf, :);
             return
         end
         if nf >= nf_max
@@ -108,16 +108,16 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
         Upps = min(Upp - X(xk_in, :), delta);
 
         if strcmp(TRSP_options.solver, 'lhs')
-            [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), h(xk_in), hfun);
+            [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), hfun);
         else
-            [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), h(xk_in), TRSP_options, hfun);
+            [sk, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), TRSP_options, hfun);
         end
         if pred_dec == 0
             rho_k = -inf;
         else
             % Evaluate F
-            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + sk, tol, Low, Upp, 1);
-            rho_k = (h(xk_in) - h(nf)) / min(1.0, delta^(1.0 + beta_exp));
+            [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + sk, tol, Low, Upp, 1);
+            rho_k = (hF(xk_in) - hF(nf)) / min(1.0, delta^(1.0 + beta_exp));
         end
 
         if rho_k > tol.eta1 % Success with GOOMBAH step
@@ -134,12 +134,12 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
             while nf < nf_max
 
                 % Line 4: build models
-                [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
+                [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
                 if isempty(Gres)
                     disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
                     X = X(1:nf, :);
                     F = F(1:nf, :);
-                    h = h(1:nf, :);
+                    hF = hF(1:nf, :);
                     flag = -1;
                     return
                 end
@@ -150,7 +150,7 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
                 % Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
                 [D_k, Act_Z_k, f_bar] = choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun);
                 G_k = Gres * D_k;
-                beta = max(0, f_bar' - h(xk_in));
+                beta = max(0, f_bar' - hF(xk_in));
 
                 % Line 6: Choose Hessions
                 H_k = zeros(size(G_k, 2), n + 1, n + 1);
@@ -163,34 +163,34 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
                 % Line 7: Find a candidate s_k by solving QP
                 Lows = max(Low - X(xk_in, :), -delta);
                 Upps = min(Upp - X(xk_in, :), delta);
-                [s_k, tau_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
+                [s_k, tau_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
 
                 % Line 8: Compute stationary measure chi_k
                 Lows = max(Low - X(xk_in, :), -1.0);
                 Upps = min(Upp - X(xk_in, :), 1.0);
-                [~, ~, chi_k] = minimize_affine_envelope(h(xk_in), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
+                [~, ~, chi_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
                 % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
                 if chi_k <= tol.gtol && delta <= tol.mindelta
                     disp('Convergence satisfied: small stationary measure and small delta');
                     X = X(1:nf, :);
                     F = F(1:nf, :);
-                    h = h(1:nf, :);
+                    hF = hF(1:nf, :);
                     flag = chi_k;
                     return
                 end
 
                 if printf
-                    trsp_fun = @(x) max_affine(x, h(xk_in), f_bar, beta, G_k, H_mm);
+                    trsp_fun = @(x) max_affine(x, hF(xk_in), f_bar, beta, G_k, H_mm);
         %             plot_again_j(X, xk_in, delta, s_k, [], nf, trsp_fun, Low, Upp);
                 end
 
                 % Line 12: Evaluate F
-                [nf, X, F, h, Hash, hashes_at_nf] = ...
-                    call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + s_k', tol, Low, Upp, 1);
+                [nf, X, F, hF, Hash, hashes_at_nf] = ...
+                    call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + s_k', tol, Low, Upp, 1);
 
                 % Line 13: Compute rho_k
-                ared = h(xk_in) - h(nf);
+                ared = hF(xk_in) - hF(nf);
                 pred = -tau_k;
                 rho_k = ared / pred;
 
@@ -232,7 +232,7 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
             end
 
         end
-        fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, h(xk_in), delta);
+        fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, hF(xk_in), delta);
     end
 
     if nf >= nf_max
@@ -240,6 +240,6 @@ function [X, F, h, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_optio
     else
         X = X(1:nf, :);
         F = F(1:nf, :);
-        h = h(1:nf, :);
+        hF = hF(1:nf, :);
     end
 end

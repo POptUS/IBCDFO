@@ -29,11 +29,11 @@ nf_max = 100; % Setting a budget that won't be used for the calls below that are
 rand('seed', 1);
 
 % Intentionally not passing a function for an objective
-[X, F, h, xk_in] = goombah(hfun, x0, x0, L, U, nf_max, TRSP_options, subprob_switch);
-assert(isempty(X) && isempty(F) && isempty(h) && isempty(xk_in), "Should have failed");
+[X, F, hF, xk_in] = goombah(hfun, x0, x0, L, U, nf_max, TRSP_options, subprob_switch);
+assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
 
-[X, F, h, xk_in] = goombah_wo_msp(hfun, x0, x0, L, U, nf_max, TRSP_options);
-assert(isempty(X) && isempty(F) && isempty(h) && isempty(xk_in), "Should have failed");
+[X, F, hF, xk_in] = goombah_wo_msp(hfun, x0, x0, L, U, nf_max, TRSP_options);
+assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
 
 % Supplying only enough evaluation budget for the initial simplex and one more
 nf_max_small = n + 2;
@@ -48,11 +48,11 @@ L_fixed = L;
 U_fixed = U;
 L_fixed(1) = x0(1);
 U_fixed(1) = x0(1);
-[X, F, h, ~] = goombah(hfun, Ffun, x0, L_fixed, U_fixed, nf_max, TRSP_options, subprob_switch);
-assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(h) == size(X, 1), "goombah should have stopped early with consistent outputs");
+[X, F, hF, ~] = goombah(hfun, Ffun, x0, L_fixed, U_fixed, nf_max, TRSP_options, subprob_switch);
+assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah should have stopped early with consistent outputs");
 
-[X, F, h, ~] = goombah_wo_msp(hfun, Ffun, x0, L_fixed, U_fixed, nf_max, TRSP_options);
-assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(h) == size(X, 1), "goombah_wo_msp should have stopped early with consistent outputs");
+[X, F, hF, ~] = goombah_wo_msp(hfun, Ffun, x0, L_fixed, U_fixed, nf_max, TRSP_options);
+assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah_wo_msp should have stopped early with consistent outputs");
 
 % Bad options
 bad_solver.solver = 'bad';

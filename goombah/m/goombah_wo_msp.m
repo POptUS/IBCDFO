@@ -25,10 +25,10 @@
 % Outputs:
 %   X:      [k x n]   Points evaluated
 %   F:      [k x p]   Their simulation values
-%   h:      [k x 1]   The values h(F(x))
+%   hF:     [k x 1]   The values h(F(x))
 %   xk_in:  [int]     Current trust region center
 
-function [X, F, h, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, Options)
+function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, Options)
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     repo_root = fullfile(here_path, '..', '..');
@@ -54,37 +54,37 @@ function [X, F, h, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRS
         warning('Problem using Ffun. Exiting');
         X = [];
         F = [];
-        h = [];
+        hF = [];
         xk_in = [];
         flag = -1;
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, ~, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, ~, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
     assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
                 "The lhs TRSP solver should only be used for testing or debugging");
     end
 
-    [h(nf), ~, hashes_at_nf] = hfun(F(nf, :));
+    [hF(nf), ~, hashes_at_nf] = hfun(F(nf, :));
 
     I_n = eye(n);
     for i = 1:n
-        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
+        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
     end
 
     while nf < nf_max
-        [~, xk_in] = min(h(1:nf));
+        [~, xk_in] = min(hF(1:nf));
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nf_max, xk_in, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
+        [Gres, Hres, X, F, hF, nf] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
             X = X(1:nf, :);
             F = F(1:nf, :);
-            h = h(1:nf, :);
+            hF = hF(1:nf, :);
             return
         end
         if nf >= nf_max
@@ -121,7 +121,7 @@ function [X, F, h, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRS
             disp('g is sufficiently small');
             X = X(1:nf, :);
             F = F(1:nf, :);
-            h = h(1:nf, :);
+            hF = hF(1:nf, :);
             return
         end
 
@@ -142,15 +142,15 @@ function [X, F, h, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRS
             % end
 
             if strcmp(TRSP_options.solver, 'lhs')
-                [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, h(xk_in), hfun);
+                [sk1, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), hfun);
             else
-                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, h(xk_in), TRSP_options, hfun);
+                [sk1, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :) + sk, hF(xk_in), TRSP_options, hfun);
             end
             if pred_dec == 0
                 if delta <= tol.mindelta
                     X = X(1:nf, :);
                     F = F(1:nf, :);
-                    h = h(1:nf, :);
+                    hF = hF(1:nf, :);
                     return
                 else
                     rho_k = -inf;
@@ -166,8 +166,8 @@ function [X, F, h, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRS
             if pred_dec > 0
                 % ================================
                 % Evaluate F
-                [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xk_in, :) + sk1, tol, Low, Upp, 1);
-                rho_k = (h(xk_in) - h(nf)) / pred_dec;
+                [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + sk1, tol, Low, Upp, 1);
+                rho_k = (hF(xk_in) - hF(nf)) / pred_dec;
             end
         else
             rho_k = -inf;
@@ -181,7 +181,7 @@ function [X, F, h, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRS
         else
             delta = max(delta * tol.gamma_dec, tol.mindelta);
         end
-        fprintf('nf: %8d; fval: %8e; ||g||: %8e; radius: %8e; \n', nf, h(xk_in), ng, delta);
+        fprintf('nf: %8d; fval: %8e; ||g||: %8e; radius: %8e; \n', nf, hF(xk_in), ng, delta);
     end
 
 end

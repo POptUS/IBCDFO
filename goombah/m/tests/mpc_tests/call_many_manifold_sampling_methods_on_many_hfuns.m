@@ -112,7 +112,7 @@ for mw_prob_num = [7] % full tests are 1:53
                         % Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         % Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
                         % Results{s, seed, mw_prob_num}.Fvec = F;
-                        % Results{s, seed, mw_prob_num}.H = h;
+                        % Results{s, seed, mw_prob_num}.H = hF;
                         % Results{s, seed, mw_prob_num}.X = X;
                         % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -135,26 +135,26 @@ for mw_prob_num = [7] % full tests are 1:53
                             TRSP_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xk_in] = goombah(hfun{1}, Ffun, x0, LB, UB, nf_max, TRSP_options, subprob_switch);
+                        [X, F, hF, xk_in] = goombah(hfun{1}, Ffun, x0, LB, UB, nf_max, TRSP_options, subprob_switch);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
                         Results{s, seed, mw_prob_num}.Fvec = F;
-                        Results{s, seed, mw_prob_num}.H = h;
+                        Results{s, seed, mw_prob_num}.H = hF;
                         Results{s, seed, mw_prob_num}.X = X;
 
                     elseif s == 3
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % PRIMAL MANIFOLD SAMPLING %%%%
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        [X, F, h, xk_in, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, LB, UB, nf_max, subprob_switch);
+                        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, LB, UB, nf_max, subprob_switch);
 
                         assert(size(X, 1) <= nf_max, "Method grew the size of X");
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
                         Results{s, seed, mw_prob_num}.Fvec = F;
-                        Results{s, seed, mw_prob_num}.H = h;
+                        Results{s, seed, mw_prob_num}.H = hF;
                         Results{s, seed, mw_prob_num}.X = X;
 
                     elseif s == 4
@@ -176,12 +176,12 @@ for mw_prob_num = [7] % full tests are 1:53
                             TRSP_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xk_in] = goombah_wo_msp(hfun{1}, Ffun, x0, LB, UB, nf_max, TRSP_options);
+                        [X, F, hF, xk_in] = goombah_wo_msp(hfun{1}, Ffun, x0, LB, UB, nf_max, TRSP_options);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
                         Results{s, seed, mw_prob_num}.Fvec = F;
-                        Results{s, seed, mw_prob_num}.H = h;
+                        Results{s, seed, mw_prob_num}.H = hF;
                         Results{s, seed, mw_prob_num}.X = X;
 
                     end % switch on s
