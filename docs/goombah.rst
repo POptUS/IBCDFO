@@ -11,20 +11,20 @@ better known as |goombah|, solves the optimization problem
 subject to
 
 .. math::
-    L_j \leq \pspcomp{j} \le U_j, j=1,...,\np,
+    Low_j \leq \pspcomp{j} \le Upp_j, j=1,...,\np,
 
 where
 
 * :math:`\Ffun : \R^{\np} \to \R^{\nd}` is a vector-valued blackbox function,
 * :math:`\hfun : \R^{\nd} \to \R` is a possibly nonsmooth function,
-* :math:`L` is a boundary constraint that permits values of
+* :math:`Low` is a boundary constraint that permits values of
   :math:`-\infty` to specify that the problem is unconstrained for the
   associated parameter, and
-* :math:`U` is a boundary constraint that permits values of
+* :math:`Upp` is a boundary constraint that permits values of
   :math:`+\infty` to specify that the problem is unconstrained for the
   associated parameter.
 
-|goombah| will never evaluate :math:`\Ffun` outside of the provided bounds :math:`[L, U]`.
+|goombah| will never evaluate :math:`\Ffun` outside of the provided bounds :math:`[Low, Upp]`.
 
 At each iteration, |goombah| constructs a local model :math:`\Mfun` from
 quadratic models of each component of the blackbox mapping :math:`\Ffun` and
