@@ -28,7 +28,7 @@
 % x:          [1-by-n] array containing the solution
 % pred_dec:   [scalar] predicted decrease from x0 to x
 
-function [s_k, pred_dec] = save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x1, val_at_x0, GAMS_options, h_fun)
+function [s_k, pred_dec] = save_quadratics_call_GAMS(H, g, b, Lows, Upps, x0, x1, val_at_x0, GAMS_options, h_fun)
 
 % First put all of the problem information into the correct data structures
 
@@ -121,7 +121,7 @@ solver.type = 'parameter';
 Lows_gdx.name = 'Low';
 Lows_gdx.ts   = 'Lower bounds on step';
 Lows_gdx.type = 'parameter';
-Lows_gdx.val = Low;
+Lows_gdx.val = Lows;
 Lows_gdx.form = 'full';
 Lows_gdx.dim = 1;
 Lows_gdx.uels = Ns.uels;
@@ -129,7 +129,7 @@ Lows_gdx.uels = Ns.uels;
 Upps_gdx.name = 'Upp';
 Upps_gdx.ts   = 'Upper bounds on step';
 Upps_gdx.type = 'parameter';
-Upps_gdx.val = Upp;
+Upps_gdx.val = Upps;
 Upps_gdx.form = 'full';
 Upps_gdx.dim = 1;
 Upps_gdx.uels = Ns.uels;
@@ -205,7 +205,7 @@ obj_vals_GAMS = obj_vals_GAMS(solved);
 allx = allx(solved, :);
 
 for j = 1:size(allx, 1)
-    allx(j, :) =  min(Upp + x0, max(Low + x0, allx(j, :)));
+    allx(j, :) =  min(Upps + x0, max(Lows + x0, allx(j, :)));
 end
 
 z = zeros(1, P);
