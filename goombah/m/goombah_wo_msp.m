@@ -10,10 +10,10 @@
 %                         gradients at the point given.
 %  Ffun:    [func handle] Evaluates F, the black box simulation, returning
 %                         a [1 x m] vector.
-%  nf_max:   [int]         Maximum number of function evaluations.
 %  x0:      [1 x n dbl]   Starting point.
 %  Low:     [1 x n dbl]   Lower bounds; set unbounded entries to ``-Inf``.
 %  Upp:     [1 x n dbl]   Upper bounds; set unbounded entries to ``Inf``.
+%  nf_max:   [int]         Maximum number of function evaluations.
 %  TRSP_options: [struct] Options for solving the trust-region subproblem. Has
 %            the same fields as the argument of the same name of goombah.m:
 %            'solver' ('GAMS' or 'lhs'), and, for 'GAMS', 'file', 'solvers',
@@ -28,7 +28,7 @@
 %   h:      [k x 1]   The values h(F(x))
 %   xkin:   [int]     Current trust region center
 
-function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, Low, Upp, TRSP_options, Options)
+function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, Options)
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     repo_root = fullfile(here_path, '..', '..');

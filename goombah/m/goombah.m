@@ -1,4 +1,4 @@
-function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, Low, Upp, TRSP_options, subprob_switch)
+function [X, F, h, xkin] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -6,10 +6,10 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, Low, Upp, TRSP_option
     %       :math:`k` limiting gradients at the given point.
     %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
     %       simulation, returning a :math:`1 \times \nd` vector.
-    %  :param nf_max:  [int] Maximum number of function evaluations.
     %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
     %  :param Low:     [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
     %  :param Upp:     [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
+    %  :param nf_max:  [int] Maximum number of function evaluations.
     %  :param TRSP_options: [struct] Options for solving the trust-region
     %       subproblem. Fields:
     %

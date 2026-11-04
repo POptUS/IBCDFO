@@ -135,7 +135,7 @@ for mw_prob_num = [7] % full tests are 1:53
                             TRSP_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, nf_max, x0, LB, UB, TRSP_options, subprob_switch);
+                        [X, F, h, xkin] = goombah(hfun{1}, Ffun, x0, LB, UB, nf_max, TRSP_options, subprob_switch);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -176,7 +176,7 @@ for mw_prob_num = [7] % full tests are 1:53
                             TRSP_options.solvers = 1:4;
                         end
 
-                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, nf_max, x0, LB, UB, TRSP_options);
+                        [X, F, h, xkin] = goombah_wo_msp(hfun{1}, Ffun, x0, LB, UB, nf_max, TRSP_options);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
