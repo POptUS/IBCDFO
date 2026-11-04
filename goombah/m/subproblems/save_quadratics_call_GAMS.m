@@ -20,7 +20,7 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% H:            [n-by-n-by-P] array of P model quadratic terms
+% Hres:         [n-by-n-by-P] array of P model quadratic terms
 % Gres:         [n-by-P] array of P model linear terms
 % b:            [1-by-P] array of P model constant terms
 % Lows:         [1-by-n] lower bounds on the step (relative to x0)
@@ -42,7 +42,7 @@
 % s_k:          [1-by-n] array containing the step from x0
 % pred_dec:     [scalar] predicted decrease from x0 to x0 + s_k (never negative)
 
-function [s_k, pred_dec] = save_quadratics_call_GAMS(H, Gres, b, Lows, Upps, x0, x1, val_at_x0, GAMS_options, h_fun)
+function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, b, Lows, Upps, x0, x1, val_at_x0, GAMS_options, h_fun)
 
 % First put all of the problem information into the correct data structures
 
@@ -88,7 +88,7 @@ Ps.uels = {1:P};
 Hs_mod.name = 'H';
 Hs_mod.ts   = 'quadratic terms';
 Hs_mod.type = 'parameter';
-Hs_mod.val = H;
+Hs_mod.val = Hres;
 Hs_mod.form = 'full';
 Hs_mod.dim = 3;
 Hs_mod.uels{1} = Ns.uels;
@@ -227,7 +227,7 @@ obj_vals_MATLAB = inf * ones(size(allx, 1), 1);
 for j = 1:size(allx, 1)
     x = allx(j, :);
     for i = 1:P
-        z(i) = 0.5 * (x - x0) * H(:, :, i) * (x - x0)' + (x - x0) * Gres(:, i) + b(i);
+        z(i) = 0.5 * (x - x0) * Hres(:, :, i) * (x - x0)' + (x - x0) * Gres(:, i) + b(i);
     end
     obj_vals_MATLAB(j) = h_fun(z);
 end
