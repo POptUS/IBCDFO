@@ -33,8 +33,8 @@ addpath([root_dir 'pounders/m/']); % formquad, bmpts, boxline, phi2eval
 % Declare parameters for benchmark study
 nf_max_c = 20; % Full tests used 100; % Multiplied by dimension to set max evals
 factor = 10; % Multiple for x0 declaration
-num_solvers = 3; % Number of solvers being benchmarked
-solver_names = {'MS-D', 'GOOMBAH', 'MS-P'}; % Used when saving filenames for ease of reference
+num_solvers = 2; % Number of solvers being benchmarked
+solver_names = {'GOOMBAH', 'MS-P'}; % Used when saving filenames for ease of reference
 
 num_seeds = 1; % Replications of each problem instance
 mkdir('./benchmark_results');
@@ -92,7 +92,7 @@ for mw_prob_num = [7] % full tests are 1:53
                     UB = inf(1, n);
                 end
 
-                for s = 1:3
+                for s = 1:num_solvers
 
                     filename = ['./benchmark_results/' solver_names{s} '_prob=' int2str(mw_prob_num) '_seed=' int2str(seed) '_' func2str(hfun{1}) '_nf_max_c=' num2str(nf_max_c) '_constr=' int2str(constr) '.mat'];
                     if exist(filename, 'file')
@@ -101,22 +101,6 @@ for mw_prob_num = [7] % full tests are 1:53
                     system(['touch ' filename]);
 
                     if s == 1
-                        continue
-                        % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        % % Dual (SIOPT) manifold sampling
-                        % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        % [X, F, h, xkin, flag] = manifold_sampling_SIOPT(hfun{1}, Ffun, x0, nf_max);
-
-                        % assert(size(X, 1) <= nf_max, "Method grew the size of X");
-
-                        % Results{s, seed, mw_prob_num}.alg = solver_names{s};
-                        % Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
-                        % Results{s, seed, mw_prob_num}.Fvec = F;
-                        % Results{s, seed, mw_prob_num}.H = h;
-                        % Results{s, seed, mw_prob_num}.X = X;
-                        % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-                    elseif s == 2
                         TRSP_options.solver = 'GAMS';
                         TRSP_options.hfun_data = [];
                         if strcmp(func2str(hfun{1}), 'pw_minimum_squared')
@@ -143,7 +127,7 @@ for mw_prob_num = [7] % full tests are 1:53
                         Results{s, seed, mw_prob_num}.H = h;
                         Results{s, seed, mw_prob_num}.X = X;
 
-                    elseif s == 3
+                    elseif s == 2
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % PRIMAL MANIFOLD SAMPLING %%%%
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
