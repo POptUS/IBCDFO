@@ -15,6 +15,12 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded runs when a PR is updated.  Scoped to a single PR, and
+# never applied to pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
   # Load this eagerly so that it is available for immediate use in all

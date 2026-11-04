@@ -23,7 +23,6 @@ env:
   MINQ5_PY_PATH:    ${{ github.workspace }}/MINQ/py/minq5
   IBCDFO_PKG:       ${{ github.workspace }}/ibcdfo_pypkg
   DIST_PATH:        ${{ github.workspace }}/ibcdfo_pypkg/dist
-
 on:
   # This action is run only on main to produce release candidate distributions
   # and test each of these independently and thoroughly on a full set of test
@@ -35,6 +34,12 @@ on:
     branches: [main]
   release:
     types:    [published]
+
+# Put a new action to be run on main in a pending queue if an action is already
+# running on main.  However, actions executing on main should never be canceled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   # ----- LOAD OFFICIAL MINQ COMMIT INFO FOR PROPER SETUP FOR IBCDFO
