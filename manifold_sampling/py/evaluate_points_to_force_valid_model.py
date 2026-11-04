@@ -5,12 +5,12 @@ from ibcdfo.pounders import _formquad as formquad
 from .call_user_scripts import call_user_scripts
 
 
-def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nf_max, L, U):
+def evaluate_points_to_force_valid_model(n, nf, xk_in, delta, X, F, h, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nf_max, L, U):
     # Evaluate model-improving points to pick best one
     # ! May eventually want to normalize Mdir first for infty norm
     # Plus directions
     # *** Dec 2016: THIS ASSUMES UNCONSTRAINED, proceed with caution
-    Mdir1, np1 = bmpts(X[xkin, :], Mdir[: n - mp + 1], L, U, delta, fq_pars["Par"][3])
+    Mdir1, np1 = bmpts(X[xk_in, :], Mdir[: n - mp + 1], L, U, delta, fq_pars["Par"][3])
     # Res = zeros(n-np, 1);
     for i in range(n - np1):
         # if ~all(isinf(L)) || ~all(isinf(U))
@@ -22,10 +22,10 @@ def evaluate_points_to_force_valid_model(n, nf, xkin, delta, X, F, h, Mdir, mp, 
         # end
         Xsp = Mdir1[i, :]
         # Only do this evaluation if the point is new and nf < nf_max
-        if not np.any(np.all(X[xkin, :] + Xsp == X[: nf + 1], axis=1)) and nf + 1 < nf_max:
-            nf, X, F, h, Hash, _ = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xkin, :] + Xsp, tol, L, U, 1)
+        if not np.any(np.all(X[xk_in, :] + Xsp == X[: nf + 1], axis=1)) and nf + 1 < nf_max:
+            nf, X, F, h, Hash, _ = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X[xk_in, :] + Xsp, tol, L, U, 1)
 
-    valid = formquad(X[: nf + 1], F[: nf + 1], delta, xkin, fq_pars["npmax"], fq_pars["Par"], 1)[2]
+    valid = formquad(X[: nf + 1], F[: nf + 1], delta, xk_in, fq_pars["npmax"], fq_pars["Par"], 1)[2]
     if not valid and nf + 1 < nf_max:
         print("Proceeding with nonvalid model! Report this to Stefan in Alg1", nf)
         # uuid = char(java.util.UUID.randomUUID);

@@ -1,4 +1,4 @@
-def prepare_outputs_before_return(X, F, h, nf, xkin, exit_flag):
+def prepare_outputs_before_return(X, F, h, nf, xk_in, exit_flag):
     """
     This function is called to cleanup X and F, set the exit value, and display
     reason for exiting.
@@ -17,4 +17,4 @@ def prepare_outputs_before_return(X, F, h, nf, xkin, exit_flag):
     elif exit_flag > 0:
         print("MSP: Trust-region radius less than mindelta. Exiting with chi_k as exit_flag.")
 
-    return X, F, h, xkin, exit_flag
+    return X, F, h, xk_in, exit_flag

@@ -51,5 +51,5 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-        X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+        X, F, h, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
         assert flag == 0

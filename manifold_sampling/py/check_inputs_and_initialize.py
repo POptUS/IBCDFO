@@ -38,8 +38,8 @@ def check_inputs_and_initialize(x0, F0, nf_max):
 
     nf = 0
     trust_rho = 1
-    xkin = 0
+    xk_in = 0
     Hres = np.zeros((n, n, p))
     chi_k = np.inf
 
-    return n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hres, chi_k
+    return n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xk_in, Hres, chi_k

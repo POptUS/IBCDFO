@@ -88,7 +88,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-        X, F, h, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
+        X, F, h, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"
