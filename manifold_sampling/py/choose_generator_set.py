@@ -5,7 +5,7 @@ from scipy.spatial.distance import cdist
 def choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun):
     Act_Z_k = Hash[xk_in]
 
-    hxkin, _ = hfun(F[xk_in, :], Act_Z_k)
+    hF_at_xk_in, _ = hfun(F[xk_in, :], Act_Z_k)
     XkDist = cdist(X[: nf + 1], X[xk_in : xk_in + 1], metric="chebyshev")
     delta1 = delta * (1 + 1e-8)
     delta2 = min(1, delta) ** 2 * (1 + 1e-8)
@@ -14,7 +14,7 @@ def choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun):
         if XkDi <= delta1:
             Act_tmp = Hash[i]
             h_i, _ = hfun(F[xk_in], Act_tmp)
-            if h_i[0] <= hxkin[0] or XkDi <= delta2:
+            if h_i[0] <= hF_at_xk_in[0] or XkDi <= delta2:
                 if i != xk_in:
                     Act_Z_k = np.unique(np.concatenate((Act_Z_k, Act_tmp)), axis=0)
 

@@ -6,13 +6,13 @@ function [D_k, Act_Z_k, f_k] = choose_generator_set(X, Hash, xk_in, nf, delta, F
 
 Act_Z_k = Hash(xk_in, ~cellfun(@isempty, Hash(xk_in, :)));
 
-hxkin = hfun(F(xk_in, :), Act_Z_k);
+hF_at_xk_in = hfun(F(xk_in, :), Act_Z_k);
 for i = [1:xk_in - 1 xk_in + 1:nf]
     Act_tmp = Hash(i, ~cellfun(@isempty, Hash(i, :)));
     h_i = hfun(F(xk_in, :), Act_tmp);
-    if norm(X(xk_in, :) - X(i, :), "inf") <= delta * (1 + 1e-8) && h_i(1) <= hxkin(1)
+    if norm(X(xk_in, :) - X(i, :), "inf") <= delta * (1 + 1e-8) && h_i(1) <= hF_at_xk_in(1)
         Act_Z_k = [Act_Z_k, Act_tmp];
-    elseif norm(X(xk_in, :) - X(i, :), "inf") <= delta^2 * (1 + 1e-8) && h_i(1) > hxkin(1)
+    elseif norm(X(xk_in, :) - X(i, :), "inf") <= delta^2 * (1 + 1e-8) && h_i(1) > hF_at_xk_in(1)
         Act_Z_k = [Act_Z_k, Act_tmp];
     end
 end
