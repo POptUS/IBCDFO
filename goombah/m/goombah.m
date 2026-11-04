@@ -2,8 +2,8 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
-    %       scalar function value and :math:`k \times \nd` subgradients for all
-    %       :math:`k` limiting gradients at the given point.
+    %       scalar function value and the :math:`\nd \times l` matrix whose
+    %       columns are the :math:`l` limiting gradients at the given point.
     %  :param Ffun:    [func handle] Evaluates :math:`\Ffun`, the black box
     %       simulation, returning a :math:`1 \times \nd` vector.
     %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
@@ -152,7 +152,7 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
                 G_k = Gres * D_k;
                 beta = max(0, f_bar' - hF(xk_in));
 
-                % Line 6: Choose Hessions
+                % Line 6: Choose Hessians
                 H_k = zeros(size(G_k, 2), n + 1, n + 1);
                 for i = 1:size(G_k, 2) % would like to vectorize this tensor product ...
                     for j = 1:size(Hres, 3) % p

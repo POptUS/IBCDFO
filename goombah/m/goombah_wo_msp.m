@@ -1,19 +1,19 @@
 % This code solves the problem
 %     minimize h(F(x))
-% where x is an [n by 1] vector, F is a blackbox function mapping from R^n to
+% where x is a [1 by n] vector, F is a blackbox function mapping from R^n to
 % R^p, and h is a nonsmooth function mapping from R^p to R.
 %
 %
 % Inputs:
 %  hfun:    [func handle] Evaluates h, returning the [scalar] function
-%                         value and [k x m] subgradients for all k limiting
-%                         gradients at the point given.
+%                         value and the [p x l] matrix whose columns are the
+%                         l limiting gradients at the point given.
 %  Ffun:    [func handle] Evaluates F, the black box simulation, returning
-%                         a [1 x m] vector.
+%                         a [1 x p] vector.
 %  x0:      [1 x n dbl]   Starting point.
 %  Low:     [1 x n dbl]   Lower bounds; set unbounded entries to ``-Inf``.
 %  Upp:     [1 x n dbl]   Upper bounds; set unbounded entries to ``Inf``.
-%  nf_max:   [int]         Maximum number of function evaluations.
+%  nf_max:  [int]         Maximum number of function evaluations.
 %  TRSP_options: [struct] Options for solving the trust-region subproblem. Has
 %            the same fields as the argument of the same name of goombah.m:
 %            'solver' ('GAMS' or 'lhs'), and, for 'GAMS', 'file', 'solvers',
