@@ -94,11 +94,11 @@ function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TR
 
         % ================================
         % Construct Gen_k
-        col_vecs_for_Genk = construct_Gen_k(hfun, xk_in, 2, nf, delta, F, X);
+        D_k = construct_Gen_k(hfun, xk_in, 2, nf, delta, F, X);
         % ================================
 
-        lambda = project_zero_onto_convex_hull_2(Gres * col_vecs_for_Genk);
-        [g_k, H_k, ng] = build_master_model(col_vecs_for_Genk, Gres, lambda, Hres, n);
+        lambda = project_zero_onto_convex_hull_2(Gres * D_k);
+        [g_k, H_k, ng] = build_master_model(D_k, Gres, lambda, Hres, n);
 
         %     if printf
         %         if norm(g_k) < 1e-12
@@ -186,25 +186,25 @@ function [X, F, hF, xk_in] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TR
 
 end
 
-function [g_k, H_k, ng] = build_master_model(col_vecs_for_Genk, Gres, lambda, Hres, n)
+function [g_k, H_k, ng] = build_master_model(D_k, Gres, lambda, Hres, n)
 
-    w_k = col_vecs_for_Genk * lambda;
+    w_k = D_k * lambda;
     g_k = Gres * w_k;
     ng = norm(g_k);
     H_k = zeros(n);
-    for model = 1:size(col_vecs_for_Genk, 1)
+    for model = 1:size(D_k, 1)
         H_k = H_k + w_k(model) * Hres(:, :, model);
     end
 end
 
-function col_vecs_for_Genk = construct_Gen_k(hfun, xk_in, gentype, nf, delta, F, X)
+function D_k = construct_Gen_k(hfun, xk_in, gentype, nf, delta, F, X)
     [~, grads_at_x] = hfun(F(xk_in, :));
-    col_vecs_for_Genk = grads_at_x;
+    D_k = grads_at_x;
     if gentype == 2
         for i = 1:nf
             if norm(X(xk_in, :) - X(i, :)) <= delta
                 [~, grads_at_pt_near_x] = hfun(F(i, :));
-                col_vecs_for_Genk = unique([col_vecs_for_Genk, grads_at_pt_near_x]', 'rows')';
+                D_k = unique([D_k, grads_at_pt_near_x]', 'rows')';
             end
         end
     end
