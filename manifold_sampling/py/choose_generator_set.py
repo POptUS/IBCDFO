@@ -31,7 +31,7 @@ def choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun):
         the values and gradients of those selection functions.
 
     :return: ``(D_k, Act_Z_k, f_k)`` where ``D_k`` is the generator set, a
-        :math:`(\nd, l)` array whose columns are the gradients, at ``F[xk_in]``, of
+        :math:`(p, l)` array whose columns are the gradients, at ``F[xk_in]``, of
         the ``l`` chosen selection functions, ``Act_Z_k`` holds their hashes (in the
         order of the columns of ``D_k``), and ``f_k`` holds their values at
         ``F[xk_in]``.
