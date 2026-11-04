@@ -2,7 +2,7 @@
 %
 % This function
 % - Creates a fresh temporary directory, works in it, and removes it on return
-% - Writes the data defining the `P` model quadratics, the bounds, the center,
+% - Writes the data defining the `p` model quadratics, the bounds, the center,
 %   and the starting point to a GDX file there, via GDXMRW's wgdx()
 % - Optionally writes the h-specific data (see GAMS_options.hfun_data)
 % - Copies the GAMS model file GAMS_options.file there and calls GAMS on it once
@@ -20,9 +20,9 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% Hres:           [n-by-n-by-P] array of P model quadratic terms
-% Gres:           [n-by-P] array of P model linear terms
-% Cres:           [1-by-P] array of P model constant terms
+% Hres:           [n-by-n-by-p] array of p model quadratic terms
+% Gres:           [n-by-p] array of p model linear terms
+% Cres:           [1-by-p] array of p model constant terms
 % Lows:           [1-by-n] lower bounds on the step (relative to x_center)
 % Upps:           [1-by-n] upper bounds on the step (relative to x_center)
 % x_center:       [1-by-n] trust region center
@@ -34,7 +34,7 @@
 %                   solvers   - vector of integers: the solver flags to try
 %                   hfun_data - (optional) struct with fields Q/z/c or C/D that
 %                               is saved for the GAMS model of the h function
-% h_fun:          [func handle] evaluates h at a 1-by-P vector of model values
+% h_fun:          [func handle] evaluates h at a 1-by-p vector of model values
 
 %%%%%%%%%%%
 % Outputs:
@@ -46,7 +46,7 @@ function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, Cres, Lows, Upp
 
 % First put all of the problem information into the correct data structures
 
-[n, P] = size(Gres);
+[n, p] = size(Gres);
 
 % Resolve the GAMS template path before we change directories below.
 gams_file_full = GAMS_options.file;
@@ -80,10 +80,11 @@ Ns.ts   = 'elements of x';
 Ns.type = 'set';
 Ns.uels = {1:n};
 
+% The GAMS models (.gms files) name this set 'P'; it has p elements here.
 Ps.name = 'P';
 Ps.ts   = 'elements of z';
 Ps.type = 'set';
-Ps.uels = {1:P};
+Ps.uels = {1:p};
 
 Hs_mod.name = 'H';
 Hs_mod.ts   = 'quadratic terms';
@@ -214,11 +215,11 @@ for j = 1:size(allx, 1)
     allx(j, :) =  min(Upps + x_center, max(Lows + x_center, allx(j, :)));
 end
 
-z = zeros(1, P);
+z = zeros(1, p);
 obj_vals_MATLAB = inf * ones(size(allx, 1), 1);
 for j = 1:size(allx, 1)
     x = allx(j, :);
-    for i = 1:P
+    for i = 1:p
         z(i) = 0.5 * (x - x_center) * Hres(:, :, i) * (x - x_center)' + (x - x_center) * Gres(:, i) + Cres(i);
     end
     obj_vals_MATLAB(j) = h_fun(z);

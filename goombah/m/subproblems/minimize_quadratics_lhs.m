@@ -1,7 +1,7 @@
 % A GAMS-free solver for the GOOMBAH TRSP.
 %
 % This function
-% - Forms the composed objective h_fun(z(s)), where z(s) are the `P` quadratic
+% - Forms the composed objective h_fun(z(s)), where z(s) are the `p` quadratic
 %   functions of the step s := x - x_center
 % - Evaluates that objective on a Latin hypercube sample of [Lows, Upps], together
 %   with the zero step and the step x1 - x_center
@@ -14,9 +14,9 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% Hres:           [n-by-n-by-P] array of P model quadratic terms
-% Gres:           [n-by-P] array of P model linear terms
-% Cres:           [1-by-P] array of P model constant terms
+% Hres:           [n-by-n-by-p] array of p model quadratic terms
+% Gres:           [n-by-p] array of p model linear terms
+% Cres:           [1-by-p] array of p model constant terms
 % Lows:           [1-by-n] lower bounds on the step
 % Upps:           [1-by-n] upper bounds on the step
 % x_center:       [1-by-n] trust region center
@@ -32,10 +32,10 @@
 
 function [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x1, hF_at_x_center, h_fun)
 
-[n, P] = size(Gres);
+[n, p] = size(Gres);
 
-assert(all(size(Hres) == [n, n, P]), 'Hres must be n-by-n-by-P');
-assert(all(size(Cres) == [1, P]), "Cres must be 1-by-P");
+assert(all(size(Hres) == [n, n, p]), 'Hres must be n-by-n-by-p');
+assert(all(size(Cres) == [1, p]), "Cres must be 1-by-p");
 assert(all(size(Lows) == [1, n]) && all(size(Upps) == [1, n]), 'Lows and Upps must be 1-by-n');
 assert(all(size(x_center) == [1, n]) && all(size(x1) == [1, n]), 'x_center and x1 must be 1-by-n');
 assert(all(Lows <= Upps), 'Lows must not exceed Upps');
@@ -75,9 +75,9 @@ end
 end
 
 function z = eval_quadratics(Hres, Gres, Cres, s)
-P = size(Gres, 2);
-z = zeros(1, P);
-for i = 1:P
+p = size(Gres, 2);
+z = zeros(1, p);
+for i = 1:p
     z(i) = 0.5 * s * Hres(:, :, i) * s' + s * Gres(:, i) + Cres(i);
 end
 end
