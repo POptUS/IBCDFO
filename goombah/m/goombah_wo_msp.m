@@ -12,8 +12,8 @@
 %                         a [1 x m] vector.
 %  nf_max:   [int]         Maximum number of function evaluations.
 %  x0:      [1 x n dbl]   Starting point.
-%  L:       [1 x n dbl]   Lower bounds; set unbounded entries to ``-Inf``.
-%  U:       [1 x n dbl]   Upper bounds; set unbounded entries to ``Inf``.
+%  Low:     [1 x n dbl]   Lower bounds; set unbounded entries to ``-Inf``.
+%  Upp:     [1 x n dbl]   Upper bounds; set unbounded entries to ``Inf``.
 %  TRSP_options: [struct] Options for solving the trust-region subproblem. Has
 %            the same fields as the argument of the same name of goombah.m:
 %            'solver' ('GAMS' or 'lhs'), and, for 'GAMS', 'file', 'solvers',
@@ -28,7 +28,7 @@
 %   h:      [k x 1]   The values h(F(x))
 %   xkin:   [int]     Current trust region center
 
-function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options, Options)
+function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, Low, Upp, TRSP_options, Options)
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     repo_root = fullfile(here_path, '..', '..');
@@ -71,14 +71,14 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_opt
 
     I_n = eye(n);
     for i = 1:n
-        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + delta * I_n(i, :), tol, L, U, 1);
+        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + delta * I_n(i, :), tol, Low, Upp, 1);
     end
 
     while nf < nf_max
         [~, xkin] = min(h(1:nf));
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
+        [Gres, Hres, X, F, h, nf] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
@@ -128,8 +128,8 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_opt
         if delta < tol.eta2 * ng
             % ================================
             % Solve TRSP
-            Lows = max(L - X(xkin, :), -delta);
-            Upps = min(U - X(xkin, :), delta);
+            Lows = max(Low - X(xkin, :), -delta);
+            Upps = min(Upp - X(xkin, :), delta);
 
             [sk, ~, found_solution] = solve_trsp(H_k, g_k, Lows, Upps);
             if ~found_solution
@@ -138,7 +138,7 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_opt
             sk = sk';
 
             % if printf
-            %     plot_again(X, xkin, delta, sk, [], nf, [], L, U);
+            %     plot_again(X, xkin, delta, sk, [], nf, [], Low, Upp);
             % end
 
             if strcmp(TRSP_options.solver, 'lhs')
@@ -160,13 +160,13 @@ function [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_opt
 
             % if printf
             %     trsp_fun = @(x) h_of_quad_models(x, X(xkin, :), F(xkin, :), Gres, Hres, hfun);
-            %     plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, L, U);
+            %     plot_again(X, xkin, delta, sk1, [], nf, trsp_fun, Low, Upp);
             % end
 
             if pred_dec > 0
                 % ================================
                 % Evaluate F
-                [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk1, tol, L, U, 1);
+                [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk1, tol, Low, Upp, 1);
                 rho_k = (h(xkin) - h(nf)) / pred_dec;
             end
         else

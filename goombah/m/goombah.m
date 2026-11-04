@@ -1,4 +1,4 @@
-function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch)
+function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, Low, Upp, TRSP_options, subprob_switch)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -8,8 +8,8 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
     %       simulation, returning a :math:`1 \times \nd` vector.
     %  :param nf_max:  [int] Maximum number of function evaluations.
     %  :param x0:      [:math:`1 \times \np` dbl] Starting point.
-    %  :param L:       [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
-    %  :param U:       [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
+    %  :param Low:     [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
+    %  :param Upp:     [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
     %  :param TRSP_options: [struct] Options for solving the trust-region
     %       subproblem. Fields:
     %
@@ -81,7 +81,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
 
     I_n = eye(n);
     for i = 1:n
-        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + delta * I_n(i, :), tol, L, U, 1);
+        [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + delta * I_n(i, :), tol, Low, Upp, 1);
     end
 
     H_mm = zeros(n);
@@ -91,7 +91,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
         [~, xkin] = min(h(1:nf));
         % ================================
         % Build p component models
-        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
+        [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
 
         if isempty(Gres)
             disp(['Empty Gres. Delta = ' num2str(delta)]);
@@ -104,8 +104,8 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
             return
         end
 
-        Lows = max(L - X(xkin, :), -delta);
-        Upps = min(U - X(xkin, :), delta);
+        Lows = max(Low - X(xkin, :), -delta);
+        Upps = min(Upp - X(xkin, :), delta);
 
         if strcmp(TRSP_options.solver, 'lhs')
             [sk, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xkin, :), Lows, Upps, X(xkin, :), X(xkin, :), h(xkin), hfun);
@@ -116,7 +116,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
             rho_k = -inf;
         else
             % Evaluate F
-            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk, tol, L, U, 1);
+            [nf, X, F, h, Hash] = call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + sk, tol, Low, Upp, 1);
             rho_k = (h(xkin) - h(nf)) / min(1.0, delta^(1.0 + beta_exp));
         end
 
@@ -134,7 +134,7 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
             while nf < nf_max
 
                 % Line 4: build models
-                [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, L, U);
+                [Gres, Hres, X, F, h, nf, Hash] = build_p_models(nf, nf_max, xkin, delta, F, X, h, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
                 if isempty(Gres)
                     disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
                     X = X(1:nf, :);
@@ -161,13 +161,13 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
                 end
 
                 % Line 7: Find a candidate s_k by solving QP
-                Lows = max(L - X(xkin, :), -delta);
-                Upps = min(U - X(xkin, :), delta);
+                Lows = max(Low - X(xkin, :), -delta);
+                Upps = min(Upp - X(xkin, :), delta);
                 [s_k, tau_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
 
                 % Line 8: Compute stationary measure chi_k
-                Lows = max(L - X(xkin, :), -1.0);
-                Upps = min(U - X(xkin, :), 1.0);
+                Lows = max(Low - X(xkin, :), -1.0);
+                Upps = min(Upp - X(xkin, :), 1.0);
                 [~, ~, chi_k] = minimize_affine_envelope(h(xkin), f_bar, beta, G_k, zeros(n), delta, Lows, Upps, zeros(size(G_k, 2), n + 1, n + 1), subprob_switch);
 
                 % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
@@ -182,12 +182,12 @@ function [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, s
 
                 if printf
                     trsp_fun = @(x) max_affine(x, h(xkin), f_bar, beta, G_k, H_mm);
-        %             plot_again_j(X, xkin, delta, s_k, [], nf, trsp_fun, L, U);
+        %             plot_again_j(X, xkin, delta, s_k, [], nf, trsp_fun, Low, Upp);
                 end
 
                 % Line 12: Evaluate F
                 [nf, X, F, h, Hash, hashes_at_nf] = ...
-                    call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + s_k', tol, L, U, 1);
+                    call_user_scripts(nf, X, F, h, Hash, Ffun, hfun, X(xkin, :) + s_k', tol, Low, Upp, 1);
 
                 % Line 13: Compute rho_k
                 ared = h(xkin) - h(nf);
