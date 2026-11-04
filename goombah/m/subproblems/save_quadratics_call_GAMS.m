@@ -22,12 +22,12 @@
 %%%%%%%%%%%
 % Hres:         [n-by-n-by-P] array of P model quadratic terms
 % Gres:         [n-by-P] array of P model linear terms
-% b:            [1-by-P] array of P model constant terms
+% Cres:         [1-by-P] array of P model constant terms
 % Lows:         [1-by-n] lower bounds on the step (relative to x0)
 % Upps:         [1-by-n] upper bounds on the step (relative to x0)
 % x0:           [1-by-n] trust region center
 % x1:           [1-by-n] a candidate starting point (a point, not a step) for use by GAMS
-% val_at_x0:    [scalar] the objective value h_fun(b) at x0
+% val_at_x0:    [scalar] the objective value h_fun(Cres) at x0
 % GAMS_options: [struct] options for the GAMS calls. Fields:
 %                 file      - path to the GAMS model file (a relative path is
 %                             resolved against the current directory)
@@ -42,7 +42,7 @@
 % s_k:          [1-by-n] array containing the step from x0
 % pred_dec:     [scalar] predicted decrease from x0 to x0 + s_k (never negative)
 
-function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, b, Lows, Upps, x0, x1, val_at_x0, GAMS_options, h_fun)
+function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, Cres, Lows, Upps, x0, x1, val_at_x0, GAMS_options, h_fun)
 
 % First put all of the problem information into the correct data structures
 
@@ -107,7 +107,7 @@ gs_mod.uels{2} = Ps.uels;
 bs_mod.name = 'b';
 bs_mod.ts   = 'constant terms';
 bs_mod.type = 'parameter';
-bs_mod.val = b;
+bs_mod.val = Cres;
 bs_mod.form = 'full';
 bs_mod.dim = 1;
 bs_mod.uels = Ps.uels;
@@ -227,7 +227,7 @@ obj_vals_MATLAB = inf * ones(size(allx, 1), 1);
 for j = 1:size(allx, 1)
     x = allx(j, :);
     for i = 1:P
-        z(i) = 0.5 * (x - x0) * Hres(:, :, i) * (x - x0)' + (x - x0) * Gres(:, i) + b(i);
+        z(i) = 0.5 * (x - x0) * Hres(:, :, i) * (x - x0)' + (x - x0) * Gres(:, i) + Cres(i);
     end
     obj_vals_MATLAB(j) = h_fun(z);
 end
