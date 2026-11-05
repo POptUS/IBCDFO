@@ -34,6 +34,9 @@ class TestMSPLeastSquares(unittest.TestCase):
                 assert len(out) == m, "Incorrect output dimension"
                 return np.squeeze(out)
 
-            _, _, hF, xk_in, flag = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
+            X, _, hF, xk_in, flag = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
             self.assertTrue(flag > 0.0)
             self.assertTrue(hF[xk_in] <= 36.0 + 1.0e-8)
+            # Every point evaluated must remain feasible (to within roundoff)
+            self.assertTrue(np.all(X >= LB - 1.0e-15))
+            self.assertTrue(np.all(X <= UB + 1.0e-15))

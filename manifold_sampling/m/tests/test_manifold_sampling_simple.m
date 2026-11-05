@@ -32,7 +32,9 @@ for row = [1, 2]
     Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
     x0 = xs';
 
-    [~, ~, hF, xk_in, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+    [X, ~, hF, xk_in, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+    % Every point evaluated must remain feasible (to within roundoff)
+    assert(all(all(X >= LB - 1e-15)) && all(all(X <= UB + 1e-15)), "Evaluated point violates bounds");
     if row == 1 || row == 2
         assert(hF(xk_in) <= 36.0 + 1e-8, "Not within 1e-8 of known minima");
     end
