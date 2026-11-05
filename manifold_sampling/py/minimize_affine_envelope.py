@@ -4,7 +4,7 @@ from scipy.optimize import linprog
 # import matlab # You'll need to uncomment this if you are going to use matlab's linprog below.
 
 
-def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subprob_switch, eng):
+def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Lows, Upps, H_k, subprob_switch, eng):
     G_k_smaller, cols = np.unique(G_k, axis=1, return_index=True)
 
     n, p = G_k_smaller.shape
@@ -26,7 +26,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
     if subprob_switch == "linprog":
         options = {"disp": False, "ipm_optimality_tolerance": 1e-12}
         try:
-            res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, method="highs-ipm")
+            res = linprog(c=ff.flatten(), A_ub=A, b_ub=bk_smaller, bounds=list(zip([None] + list(Lows), [None] + list(Upps))), options=options, method="highs-ipm")
             assert res["success"], "Error in minimize_affine_envelope. We will try rescaling now."
             x = res.x
             duals_g = -1.0 * res.ineqlin.marginals
@@ -38,8 +38,8 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
             # c_matlab = matlab.double(ff.flatten().tolist())
             # A_matlab = matlab.double(A.tolist())
             # b_matlab = matlab.double(bk_smaller.tolist())
-            # lb_matlab = matlab.double([float('-inf')] + Low.tolist())
-            # ub_matlab = matlab.double([float('inf')] + Upp.tolist())
+            # lb_matlab = matlab.double([float('-inf')] + Lows.tolist())
+            # ub_matlab = matlab.double([float('inf')] + Upps.tolist())
             # # options_matlab = eng.optimoptions('linprog', 'Algorithm', 'dual-simplex', 'Display', 'None')
             # options_matlab = eng.optimoptions('linprog', 'Display', 'None')
             # result = eng.linprog(c_matlab, A_matlab, b_matlab, matlab.double([]), matlab.double([]), lb_matlab, ub_matlab, options_matlab, nargout=5)
@@ -63,7 +63,7 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
                 rescaledA = np.zeros_like(A)
                 rescaledA[:, 0] = -np.ones(p)
                 rescaledA[:, 1:] = A[:, 1:] / normA
-                res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Low), [None] + list(Upp))), options=options, method="highs-ipm")
+                res = linprog(c=ff.flatten(), A_ub=rescaledA, b_ub=bk_smaller, bounds=list(zip([None] + list(Lows), [None] + list(Upps))), options=options, method="highs-ipm")
                 assert res["success"], "Error in minimize_affine_envelope, even after rescaling."
 
                 x = res.x
@@ -98,9 +98,9 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Low, Upp, H_k, subpr
         tau = 0
         s = np.zeros(n)
 
-    Low[duals_l <= 0] = 0
-    Upp[duals_u <= 0] = 0
+    Lows[duals_l <= 0] = 0
+    Upps[duals_u <= 0] = 0
 
-    chi = np.linalg.norm(np.dot(G_k, lambda_star) - duals_l + duals_u) + np.dot(bk, lambda_star) - np.dot(Low, duals_l) + np.dot(Upp, duals_u)
+    chi = np.linalg.norm(np.dot(G_k, lambda_star) - duals_l + duals_u) + np.dot(bk, lambda_star) - np.dot(Lows, duals_l) + np.dot(Upps, duals_u)
 
     return s, tau, chi, lambda_star, False

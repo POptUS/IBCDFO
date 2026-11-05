@@ -39,7 +39,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return out
 
-    X, F, h_msp, xkin, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+    X, F, h_msp, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
     assert flag >= 0
 
     # --- Run pounders without using the structure ---

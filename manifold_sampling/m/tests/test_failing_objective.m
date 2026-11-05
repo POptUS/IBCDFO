@@ -10,23 +10,23 @@ oldpath = addpath(fullfile(here_path, '..'));
 nf_max = 1000;
 n = 3;
 xs = [10; 20; 30];
-L = -Inf(1, n);
-U = Inf(1, n);
+Low = -Inf(1, n);
+Upp = Inf(1, n);
 X0 = xs';
 
 rand('seed', 1);
 objective = @(x)failing_objective(x);
 hfun = @this_is_never_used;
 
-% [X, F, h, xkin, flag] = manifold_sampling_primal(hfun, objective, X0, L, U, nf_max, 'linprog');
+% [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, objective, X0, Low, Upp, nf_max, 'linprog');
 % assert(flag == -3, "No NaN was encountered in this test, but (with high probability) should have been.");
 
 % Intentionally not passing a function for an objective
-[X, F, h, xkin, flag] = manifold_sampling_primal(hfun, X0, X0, L, U, nf_max, 'linprog');
+[X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, X0, X0, Low, Upp, nf_max, 'linprog');
 assert(flag == -1, "Should have failed");
 
 objective = @(x) x;
-[X, F, h, xkin, flag] = manifold_sampling_primal(hfun, objective, X0, [L 1], U, nf_max, 'linprog');
+[X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, objective, X0, [Low 1], Upp, nf_max, 'linprog');
 assert(flag == -1, "Should have failed");
 
 path(oldpath);

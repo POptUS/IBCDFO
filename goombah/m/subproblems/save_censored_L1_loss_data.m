@@ -4,8 +4,8 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% C:       [P-by-1] array of P censors
-% D:       [P-by-1] array of P data
+% C:       [p-by-1] array of p censors
+% D:       [p-by-1] array of p data
 
 function [] = save_censored_L1_loss_data(C, D)
 
@@ -13,6 +13,7 @@ function [] = save_censored_L1_loss_data(C, D)
 
     cardI = length(C);
 
+    % C and D have p elements; the GAMS model (.gms file) indexes them by its set 'P'.
     Is.name = 'I';
     Is.ts   = 'set of quadratic functions';
     Is.type = 'set';

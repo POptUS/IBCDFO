@@ -4,20 +4,21 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% Q:       [P-by-P-by-L] array of objective quadratic terms
-% z:       [P-by-L]      array of objective linear terms
+% Q:       [p-by-p-by-L] array of objective quadratic terms
+% z:       [p-by-L]      array of objective linear terms
 % c:       [L-by-1]      array of objective constant terms
 
 function [] = save_piecewise_quadratic_data(Q, z, c)
 
     % Put all of the problem information into the correct data structures
 
-    [cardP, cardL] = size(z);
+    [p, cardL] = size(z);
 
+    % The GAMS models (.gms files) name this set 'P'; it has p elements here.
     Ps.name = 'P';
     Ps.ts   = 'domain of quadratic functions';
     Ps.type = 'set';
-    Ps.uels = {1:cardP};
+    Ps.uels = {1:p};
 
     Ls.name = 'L';
     Ls.ts   = 'set of quadratic functions';

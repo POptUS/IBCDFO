@@ -1,38 +1,52 @@
-% A general MATLAB-to-GAMS interface.
+% A general MATLAB-to-GAMS interface for the GOOMBAH TRSP.
 %
 % This function
-% - Writes out information defining `P` quadratics out a gdx file in the current directory
-% - Copies the gams_file_path file to the current directory
-% - Calls GAMS on that copied file (needs to be written to read-in & write-out its solution) for many solver flags
-% - Asserts that the GAMS call produced a file and reads in the solution.
-% - Checks that the GAMS solver status indicates success for at least one of the solvers
-% - Computes h_fun on all solver solutions that were successful
-% - Returns the min of those solutions
+% - Creates a fresh temporary directory, works in it, and removes it on return
+% - Writes the data defining the `p` model quadratics, the bounds, the center,
+%   and the starting point to a GDX file there, via GDXMRW's wgdx()
+% - Optionally writes the h-specific data (see GAMS_options.hfun_data)
+% - Copies the GAMS model file GAMS_options.file there and calls GAMS on it once
+%   for each solver flag in GAMS_options.solvers (the model file must be written
+%   to read the GDX file and write out its solution)
+% - Asserts that each GAMS call produced a solution file and reads in the solution
+% - Checks that the GAMS solver status indicates success for at least one solver
+% - Clips the solutions of the successful solvers to the step bounds, and computes
+%   h_fun on the corresponding model values
+% - Returns the step with the smallest value
 %
-% This function writes a GDX file via a GDXMRW's wgdx() call.
+% If the objective values computed by GAMS and by MATLAB disagree, the zero step
+% and zero predicted decrease are returned.
 
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% H:          [n-by-n-by-P] array of P model quadratic terms
-% g:          [n-by-P] array of P model linear terms
-% b:          [P-by-1] array of P model constant terms
-% delta:      [scalar] trust region radius
-% x0:         [n-by-1] trust region center
-% x1:         [n-by-1] a candidate starting point for use by GAMS
-% val_at_x0:  [scalar] the objective value at x0
+% Hres:           [n-by-n-by-p] array of p model quadratic terms
+% Gres:           [n-by-p] array of p model linear terms
+% Cres:           [1-by-p] array of p model constant terms
+% Lows:           [1-by-n] lower bounds on the step (relative to x_center)
+% Upps:           [1-by-n] upper bounds on the step (relative to x_center)
+% x_center:       [1-by-n] trust region center
+% x1:             [1-by-n] a candidate starting point (a point, not a step) for use by GAMS
+% hF_at_x_center: [scalar] the objective value h_fun(Cres) at x_center
+% GAMS_options:   [struct] options for the GAMS calls. Fields:
+%                   file      - path to the GAMS model file (a relative path is
+%                               resolved against the current directory)
+%                   solvers   - vector of integers: the solver flags to try
+%                   hfun_data - (optional) struct with fields Q/z/c or C/D that
+%                               is saved for the GAMS model of the h function
+% h_fun:          [func handle] evaluates h at a 1-by-p vector of model values
 
 %%%%%%%%%%%
 % Outputs:
 %%%%%%%%%%%
-% x:          [1-by-n] array containing the solution
-% pred_dec:   [scalar] predicted decrease from x0 to x
+% s_k:            [1-by-n] array containing the step from x_center
+% pred_dec:       [scalar] predicted decrease from x_center to x_center + s_k (never negative)
 
-function [s_k, pred_dec] = save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x1, val_at_x0, GAMS_options, h_fun)
+function [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, Cres, Lows, Upps, x_center, x1, hF_at_x_center, GAMS_options, h_fun)
 
 % First put all of the problem information into the correct data structures
 
-[n, P] = size(g);
+[n, p] = size(Gres);
 
 % Resolve the GAMS template path before we change directories below.
 gams_file_full = GAMS_options.file;
@@ -66,15 +80,16 @@ Ns.ts   = 'elements of x';
 Ns.type = 'set';
 Ns.uels = {1:n};
 
+% The GAMS models (.gms files) name this set 'P'; it has p elements here.
 Ps.name = 'P';
 Ps.ts   = 'elements of z';
 Ps.type = 'set';
-Ps.uels = {1:P};
+Ps.uels = {1:p};
 
 Hs_mod.name = 'H';
 Hs_mod.ts   = 'quadratic terms';
 Hs_mod.type = 'parameter';
-Hs_mod.val = H;
+Hs_mod.val = Hres;
 Hs_mod.form = 'full';
 Hs_mod.dim = 3;
 Hs_mod.uels{1} = Ns.uels;
@@ -84,7 +99,7 @@ Hs_mod.uels{3} = Ps.uels;
 gs_mod.name = 'g';
 gs_mod.ts   = 'linear terms';
 gs_mod.type = 'parameter';
-gs_mod.val = g;
+gs_mod.val = Gres;
 gs_mod.form = 'full';
 gs_mod.dim = 2;
 gs_mod.uels{1} = Ns.uels;
@@ -93,7 +108,7 @@ gs_mod.uels{2} = Ps.uels;
 bs_mod.name = 'b';
 bs_mod.ts   = 'constant terms';
 bs_mod.type = 'parameter';
-bs_mod.val = b;
+bs_mod.val = Cres;
 bs_mod.form = 'full';
 bs_mod.dim = 1;
 bs_mod.uels = Ps.uels;
@@ -101,7 +116,7 @@ bs_mod.uels = Ps.uels;
 x0s.name = 'x0';
 x0s.ts   = 'Trust region center';
 x0s.type = 'parameter';
-x0s.val = x0;
+x0s.val = x_center;
 x0s.form = 'full';
 x0s.dim = 1;
 x0s.uels = Ns.uels;
@@ -118,29 +133,21 @@ solver.name = 'solver';
 solver.ts   = 'Solver flag';
 solver.type = 'parameter';
 
-Lows.name = 'Low';
-Lows.ts   = 'Lower bounds on step';
-Lows.type = 'parameter';
-Lows.val = Low;
-Lows.form = 'full';
-Lows.dim = 1;
-Lows.uels = Ns.uels;
+Lows_gdx.name = 'Low';
+Lows_gdx.ts   = 'Lower bounds on step';
+Lows_gdx.type = 'parameter';
+Lows_gdx.val = Lows;
+Lows_gdx.form = 'full';
+Lows_gdx.dim = 1;
+Lows_gdx.uels = Ns.uels;
 
-Upps.name = 'Upp';
-Upps.ts   = 'Upper bounds on step';
-Upps.type = 'parameter';
-Upps.val = Upp;
-Upps.form = 'full';
-Upps.dim = 1;
-Upps.uels = Ns.uels;
-
-x1s.name = 'x1';
-x1s.ts   = 'Starting point for optimization';
-x1s.type = 'parameter';
-x1s.val = x1;
-x1s.form = 'full';
-x1s.dim = 1;
-x1s.uels = Ns.uels;
+Upps_gdx.name = 'Upp';
+Upps_gdx.ts   = 'Upper bounds on step';
+Upps_gdx.type = 'parameter';
+Upps_gdx.val = Upps;
+Upps_gdx.form = 'full';
+Upps_gdx.dim = 1;
+Upps_gdx.uels = Ns.uels;
 
 num_solvers = numel(GAMS_options.solvers);
 allx = inf * ones(num_solvers, n);
@@ -154,7 +161,7 @@ for j = 1:num_solvers
     solver.val = i;
 
     % Put problem data to a gdx file
-    wgdx('quad_model_data', Ns, Ps, Hs_mod, gs_mod, bs_mod, x0s, x1s, solver, Lows, Upps);
+    wgdx('quad_model_data', Ns, Ps, Hs_mod, gs_mod, bs_mod, x0s, x1s, solver, Lows_gdx, Upps_gdx);
     fprintf('Matlab data written to GDX file quads_model_data.gdx\n');
 
     % Remove old solutions file for safety
@@ -205,15 +212,15 @@ obj_vals_GAMS = obj_vals_GAMS(solved);
 allx = allx(solved, :);
 
 for j = 1:size(allx, 1)
-    allx(j, :) =  min(Upp + x0, max(Low + x0, allx(j, :)));
+    allx(j, :) =  min(Upps + x_center, max(Lows + x_center, allx(j, :)));
 end
 
-z = zeros(1, P);
+z = zeros(1, p);
 obj_vals_MATLAB = inf * ones(size(allx, 1), 1);
 for j = 1:size(allx, 1)
     x = allx(j, :);
-    for i = 1:P
-        z(i) = 0.5 * (x - x0) * H(:, :, i) * (x - x0)' + (x - x0) * g(:, i) + b(i);
+    for i = 1:p
+        z(i) = 0.5 * (x - x_center) * Hres(:, :, i) * (x - x_center)' + (x - x_center) * Gres(:, i) + Cres(i);
     end
     obj_vals_MATLAB(j) = h_fun(z);
 end
@@ -229,8 +236,8 @@ end
 % assert(all(abs(obj_vals_GAMS(:) - obj_vals_MATLAB(:)) <= atol + rtol * abs(obj_vals_MATLAB(:))), "MATLAB and GAMS calculated different objective values for some reason");
 
 [val_at_new, ind] = min(obj_vals_MATLAB);
-s_k = allx(ind, :) - x0;
-pred_dec = val_at_x0 - val_at_new;
+s_k = allx(ind, :) - x_center;
+pred_dec = hF_at_x_center - val_at_new;
 
 % assert(pred_dec >= 0)
 

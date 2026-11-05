@@ -111,11 +111,11 @@ for mw_prob_num = [7] % 1:53 % The More-Wild benchmark problem number
 
                     if constr
                         bounds = load(['../../regression_tests/test_problems/' func2str(hfun{1}) '_bounds.mat']);
-                        LB = bounds.Masterbounds{mw_prob_num}.LB;
-                        UB = bounds.Masterbounds{mw_prob_num}.UB;
+                        Low = bounds.Masterbounds{mw_prob_num}.LB;
+                        Upp = bounds.Masterbounds{mw_prob_num}.UB;
                     else
-                        LB = -Inf * ones(1, n);
-                        UB = Inf * ones(1, n);
+                        Low = -Inf * ones(1, n);
+                        Upp = Inf * ones(1, n);
                     end
 
                     % Then sample num_sample_pts around each evaluated point,
@@ -152,9 +152,9 @@ for mw_prob_num = [7] % 1:53 % The More-Wild benchmark problem number
                         end
                         beta = max(0, f_bar' - Hist_h(i, s));
                         subprob_switch = 'GAMS_LP';
-                        Low = max(LB - A.X(i, :), -1.0);
-                        Upp = min(UB - A.X(i, :), 1.0);
-                        [~, ~, chi, ~] = minimize_affine_envelope(Hist_h(i, s), f_bar, beta, sampled_grads, zeros(n), 1.0, Low, Upp, zeros(size(sampled_grads, 2), n + 1, n + 1), subprob_switch);
+                        Lows = max(Low - A.X(i, :), -1.0);
+                        Upps = min(Upp - A.X(i, :), 1.0);
+                        [~, ~, chi, ~] = minimize_affine_envelope(Hist_h(i, s), f_bar, beta, sampled_grads, zeros(n), 1.0, Lows, Upps, zeros(size(sampled_grads, 2), n + 1, n + 1), subprob_switch);
 
                         assert(chi >= -1e-12, "This stationary metric should not be this negative.");
 
