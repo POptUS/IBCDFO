@@ -1,5 +1,5 @@
-% This tests that goombah and goombah_wo_msp run to termination, as opposed to
-% exhausting their evaluation budget, on a problem that is easy. Row 1 of
+% This tests that goombah runs to termination, as opposed to
+% exhausting its evaluation budget, on a problem that is easy. Row 1 of
 % the More and Wild SIOPT benchmark "Benchmarking derivative-free optimization
 % algorithms" is linear in x, so the component models are exact, and
 % h(F(x)) = sum(F(x).^2) has the known minimum m - n = 36. The LHS TRSP solver is
@@ -53,11 +53,6 @@ rand('seed', 1);
 [X, ~, hF, ~] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
 assert(size(X, 1) < nf_max, "goombah used its entire evaluation budget");
 assert(abs(min(hF) - known_min) <= 1e-6, "goombah did not converge to the known minimum");
-
-rand('seed', 1);
-[X, ~, hF, ~] = goombah_wo_msp(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options);
-assert(size(X, 1) < nf_max, "goombah_wo_msp used its entire evaluation budget");
-assert(abs(min(hF) - known_min) <= 1e-6, "goombah_wo_msp did not converge to the known minimum");
 
 warning(oldwarn);
 path(oldpath);

@@ -1,4 +1,4 @@
-% This tests that goombah and goombah_wo_msp terminate gracefully, or error with
+% This tests that goombah terminates gracefully, or error with
 % an informative message, when given a bad objective, a bad option, or an
 % evaluation budget that is exhausted while building the first models.
 %
@@ -32,16 +32,10 @@ rand('seed', 1);
 [X, F, hF, xk_in] = goombah(hfun, x0, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
 assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
 
-[X, F, hF, xk_in] = goombah_wo_msp(hfun, x0, x0, Low, Upp, nf_max, TRSP_options);
-assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
-
 % Supplying only enough evaluation budget for the initial simplex and one more
 nf_max_small = n + 2;
 [X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max_small, TRSP_options, subprob_switch);
 assert(size(X, 1) <= nf_max_small, "goombah grew the size of X");
-
-[X, ~, ~, ~] = goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max_small, TRSP_options);
-assert(size(X, 1) <= nf_max_small, "goombah_wo_msp grew the size of X");
 
 % Low = Upp implies that no model can be built in any coordinate direction
 Low_fixed = Low;
@@ -51,21 +45,15 @@ Upp_fixed(1) = x0(1);
 [X, F, hF, ~] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options, subprob_switch);
 assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah should have stopped early with consistent outputs");
 
-[X, F, hF, ~] = goombah_wo_msp(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options);
-assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah_wo_msp should have stopped early with consistent outputs");
-
 % Bad options
 bad_solver.solver = 'bad';
 solver_message = "TRSP_options.solver must be 'GAMS' or 'lhs'";
 assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, bad_solver, subprob_switch), solver_message);
-assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, bad_solver), solver_message);
-assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, 'not a struct'), "Options must be a struct");
 
 % The solver intended only for testing and debugging warns
 oldwarn = warning('error', 'GOOMBAH:lhsTrspSolver');
 lhs_message = "The lhs TRSP solver should only be used for testing or debugging";
 assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch), lhs_message);
-assert_errors(@()goombah_wo_msp(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options), lhs_message);
 warning(oldwarn);
 
 path(oldpath);

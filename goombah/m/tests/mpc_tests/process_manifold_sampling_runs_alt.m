@@ -27,8 +27,8 @@ vecout = 1;
 % Declare parameters for benchmark study
 nf_max_c = 20; % Multiplied by dimension to set max evals
 factor = 10; % Multiple for x0 declaration
-num_solvers = 4; % Number of solvers being benchmarked
-solver_names = {'MS-D', 'GOOMBAH', 'MS-P', 'GOOMBAH+MS-P'}; % Used when saving filenames for ease of reference
+num_solvers = 2; % Number of solvers being benchmarked
+solver_names = {'GOOMBAH', 'MS-P'}; % Used when saving filenames for ease of reference
 num_seeds = 1; % Replications of each problem instance
 mkdir('processed_results');
 

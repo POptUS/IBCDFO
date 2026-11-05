@@ -1,9 +1,9 @@
-% This compares goombah and goombah_wo_msp, using the LHS TRSP solver instead of
+% This compares goombah, using the LHS TRSP solver instead of
 % GAMS, against pounders on least-squares problems h(F(x)) = sum(F(x).^2) from
 % the More and Wild SIOPT paper "Benchmarking derivative-free optimization
 % algorithms". Least squares is the only h function tested to which pounders applies.
 %
-% For each problem, we assert that each GOOMBAH variant decreases h at least 90%
+% For each problem, we assert that goombah decreases h at least 90%
 % as much as pounders does from the same starting point.
 %
 % To run this test, you must first install a BenDFO and a MINQ clone and add
@@ -66,11 +66,6 @@ for row = [7, 43, 44]
     [X, ~, hF, ~] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
     assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
     assert(hF(1) - min(hF) >= 0.9 * decrease_pounders, "goombah decreased h much less than pounders on " + problem);
-
-    rand('seed', 1);
-    [X, ~, hF, ~] = goombah_wo_msp(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options);
-    assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
-    assert(hF(1) - min(hF) >= 0.9 * decrease_pounders, "goombah_wo_msp decreased h much less than pounders on " + problem);
 end
 
 path(oldpath);
