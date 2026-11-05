@@ -1,4 +1,4 @@
-The following instructions will run the four numerical optimization methods on
+The following instructions will run the two numerical optimization methods (GOOMBAH and MS-P) on
 a subset of problems, process the runs to determine if each point evaluated is
 approximately stationary, and then produce numerous data profiles. 
 
