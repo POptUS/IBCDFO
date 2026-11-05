@@ -38,8 +38,11 @@ function test_evaluate_points_bounds()
         nf_max = 50;
         fq_pars.Par = [sqrt(n), max(10, sqrt(n)), 0.001, 0.001, false];
         fq_pars.npmax = 2 * n + 1;
-        X = zeros(nf_max, n); X(1, :) = xk;
-        F = X; h = zeros(nf_max, 1); Hash = {};
+        X = zeros(nf_max, n);
+        X(1, :) = xk;
+        F = X;
+        h = zeros(nf_max, 1);
+        Hash = {};
         tol.hfun_test_mode = 0;
         evaluate_points_to_force_valid_model(n, 1, 1, delta, X, F, h, eye(n), 0, [], [], Hash, fq_pars, tol, nf_max, L, U);
 
