@@ -8,8 +8,10 @@ from .call_user_scripts import call_user_scripts
 def evaluate_points_to_force_valid_model(n, nf, xk_in, delta, X, F, hF, Mdir, mp, hfun, Ffun, Hash, fq_pars, tol, nf_max, Low, Upp):
     # Evaluate model-improving points to pick best one
     # ! May eventually want to normalize Mdir first for infty norm
-    # Plus directions
-    # *** Dec 2016: THIS ASSUMES UNCONSTRAINED, proceed with caution
+    # bmpts respects the bounds Low and Upp: for each direction it picks the sign (+/-)
+    # with the larger feasible step and scales the step to stay inside the box (or
+    # falls back to coordinate directions), so every X[xk_in, :] + Xsp below is
+    # bound-feasible. The sign is chosen geometrically, not by predicted model decrease.
     Mdir1, np1 = bmpts(X[xk_in, :], Mdir[: n - mp + 1], Low, Upp, delta, fq_pars["Par"][3])
     # Res = zeros(n-np, 1);
     for i in range(n - np1):
