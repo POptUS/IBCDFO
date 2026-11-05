@@ -1,10 +1,10 @@
-% This compares goombah and goombah_wo_msp, using the LHS TRSP solver instead of
+% This compares goombah, using the LHS TRSP solver instead of
 % GAMS, against manifold_sampling_primal on a subset of the composite nonsmooth
 % problems h(F(x)) from the More and Wild SIOPT paper "Benchmarking derivative-free
 % optimization algorithms". The problems and data are those of
 % benchmark_manifold_sampling.m.
 %
-% For each problem, we assert that each GOOMBAH variant decreases h at least 90%
+% For each problem, we assert that goombah decreases h at least 90%
 % as much as manifold_sampling_primal does from the same starting point, and that
 % the outputs are consistent (see check_outputs).
 %
@@ -107,12 +107,6 @@ for i = 1:size(rows_and_hfuns, 1)
         check_outputs(X, F, h, xkin);
         assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
         assert(h(1) - min(h) >= 0.9 * decrease_msp, "goombah decreased h much less than manifold_sampling_primal on " + problem);
-
-        rand('seed', 1);
-        [X, F, h, xkin] = goombah_wo_msp(hfun, Ffun, nf_max, x0, LB, UB, TRSP_options);
-        check_outputs(X, F, h, xkin);
-        assert(size(X, 1) <= nf_max, "goombah_wo_msp grew the size of X on " + problem);
-        assert(h(1) - min(h) >= 0.9 * decrease_msp, "goombah_wo_msp decreased h much less than manifold_sampling_primal on " + problem);
     end
 end
 

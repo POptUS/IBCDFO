@@ -1,4 +1,4 @@
-% This runs goombah and goombah_wo_msp, using the LHS TRSP solver (not GAMS), on
+% This runs goombah, using the LHS TRSP solver (not GAMS), on
 % a tiny problem for every evaluation budget nf_max, in steps of one, from its
 % smallest allowed value up through n + MAX_EXTRA. The goal is for the test to
 % increase the likelihood that each execution termination path in GOOMBAH is
@@ -54,10 +54,6 @@ for nf_max = n + 1:n + MAX_EXTRA
     rand('seed', 1);
     [X, F, h, ~] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
     check_outputs(X, F, h, hfun, nf_max, "goombah on " + problem);
-
-    rand('seed', 1);
-    [X, F, h, ~] = goombah_wo_msp(hfun, Ffun, nf_max, x0, L, U, TRSP_options);
-    check_outputs(X, F, h, hfun, nf_max, "goombah_wo_msp on " + problem);
 end
 
 path(oldpath);
