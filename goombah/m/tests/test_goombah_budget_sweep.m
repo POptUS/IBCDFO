@@ -39,8 +39,8 @@ BenDFO.nprob = nprob;
 BenDFO.n = n;
 BenDFO.m = m;
 
-L = -5000 * ones(1, n);
-U = 5000 * ones(1, n);
+Low = -5000 * ones(1, n);
+Upp = 5000 * ones(1, n);
 
 Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 x0 = dfoxs(n, nprob, factor^factor_power)';
@@ -52,21 +52,21 @@ for nf_max = n + 1:n + MAX_EXTRA
     problem = ['problem ' num2str(row) ' with nf_max=' int2str(nf_max)];
 
     rand('seed', 1);
-    [X, F, h, ~] = goombah(hfun, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
-    check_outputs(X, F, h, hfun, nf_max, "goombah on " + problem);
+    [X, F, hF, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
+    check_outputs(X, F, hF, hfun, nf_max, "goombah on " + problem);
 end
 
 path(oldpath);
 end
 
-function [] = check_outputs(X, F, h, hfun, nf_max, description)
+function [] = check_outputs(X, F, hF, hfun, nf_max, description)
     nf = size(X, 1);
     assert(nf <= nf_max, "Exceeded the evaluation budget: " + description);
-    assert(size(F, 1) == nf && numel(h) == nf, "Inconsistent output sizes: " + description);
+    assert(size(F, 1) == nf && numel(hF) == nf, "Inconsistent output sizes: " + description);
     for j = 1:nf
-        assert(abs(h(j) - hfun(F(j, :))) <= 1e-12 * max(1, abs(h(j))), "h is not hfun(F) at evaluation " + int2str(j) + ": " + description);
+        assert(abs(hF(j) - hfun(F(j, :))) <= 1e-12 * max(1, abs(hF(j))), "h is not hfun(F) at evaluation " + int2str(j) + ": " + description);
     end
-    assert(min(h) <= h(1), "Ended worse than the starting point: " + description);
+    assert(min(hF) <= hF(1), "Ended worse than the starting point: " + description);
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)

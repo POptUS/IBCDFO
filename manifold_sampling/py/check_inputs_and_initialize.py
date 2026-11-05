@@ -33,13 +33,13 @@ def check_inputs_and_initialize(x0, F0, nf_max):
 
     X = np.vstack((x0, np.zeros((nf_max - 1, n))))
     F = np.vstack((F0, np.zeros((nf_max - 1, p))))
-    h = np.zeros((nf_max, 1))
+    hF = np.zeros((nf_max, 1))
     Hash = {}
 
     nf = 0
-    trust_rho = 1
-    xkin = 0
+    successful = 1
+    xk_in = 0
     Hres = np.zeros((n, n, p))
     chi_k = np.inf
 
-    return n, delta, printf, fq_pars, tol, X, F, h, Hash, nf, trust_rho, xkin, Hres, chi_k
+    return n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k

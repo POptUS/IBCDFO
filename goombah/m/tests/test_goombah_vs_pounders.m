@@ -45,8 +45,8 @@ for row = [7, 43, 44]
     BenDFO.n = n;
     BenDFO.m = m;
 
-    L = -Inf(1, n);
-    U = Inf(1, n);
+    Low = -Inf(1, n);
+    Upp = Inf(1, n);
 
     Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
     x0 = dfoxs(n, nprob, factor^factor_power)';
@@ -57,15 +57,15 @@ for row = [7, 43, 44]
     Options.printf = 0;
     Options.spsolver = create_trsp_solver(spsolver);
 
-    [~, ~, h_pounders, flag] = pounders(@(x)Ffun(x)', x0, n, nf_max, g_tol, delta_0, m, L, U, [], Options);
+    [~, ~, h_pounders, flag] = pounders(@(x)Ffun(x)', x0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], Options);
     assert(flag ~= -1, "pounders failed on " + problem);
     decrease_pounders = h_pounders(1) - min(h_pounders);
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
     rand('seed', 1);
-    [X, ~, h, ~] = goombah(@h_leastsquares, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
+    [X, ~, hF, ~] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
     assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
-    assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah decreased h much less than pounders on " + problem);
+    assert(hF(1) - min(hF) >= 0.9 * decrease_pounders, "goombah decreased h much less than pounders on " + problem);
 end
 
 path(oldpath);

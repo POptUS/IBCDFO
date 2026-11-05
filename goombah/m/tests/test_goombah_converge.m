@@ -41,8 +41,8 @@ BenDFO.nprob = nprob;
 BenDFO.n = n;
 BenDFO.m = m;
 
-L = -Inf(1, n);
-U = Inf(1, n);
+Low = -Inf(1, n);
+Upp = Inf(1, n);
 
 Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
 x0 = dfoxs(n, nprob, factor^factor_power)';
@@ -50,9 +50,9 @@ x0 = dfoxs(n, nprob, factor^factor_power)';
 known_min = m - n;
 
 rand('seed', 1);
-[X, ~, h, ~] = goombah(@h_leastsquares, Ffun, nf_max, x0, L, U, TRSP_options, subprob_switch);
+[X, ~, hF, ~] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
 assert(size(X, 1) < nf_max, "goombah used its entire evaluation budget");
-assert(abs(min(h) - known_min) <= 1e-6, "goombah did not converge to the known minimum");
+assert(abs(min(hF) - known_min) <= 1e-6, "goombah did not converge to the known minimum");
 
 warning(oldwarn);
 path(oldpath);

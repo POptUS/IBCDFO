@@ -1,10 +1,10 @@
 % A GAMS-free solver for the GOOMBAH TRSP.
 %
 % This function
-% - Forms the composed objective h_fun(z(s)), where z(s) are the `P` quadratic
-%   functions of the step s := x - x0
-% - Evaluates that objective on a Latin hypercube sample of [Low, Upp], together
-%   with the zero step and the step x1 - x0
+% - Forms the composed objective h_fun(z(s)), where z(s) are the `p` quadratic
+%   functions of the step s := x - x_center
+% - Evaluates that objective on a Latin hypercube sample of [Lows, Upps], together
+%   with the zero step and the step x1 - x_center
 % - Runs fmincon from the best of those points
 % - Returns the resulting solution (the trial step) and its predicted decrease
 %
@@ -14,42 +14,42 @@
 %%%%%%%%%%%
 % Inputs:
 %%%%%%%%%%%
-% H:          [n-by-n-by-P] array of P model quadratic terms
-% g:          [n-by-P] array of P model linear terms
-% b:          [1-by-P] array of P model constant terms
-% Low:        [1-by-n] lower bounds on the step
-% Upp:        [1-by-n] upper bounds on the step
-% x0:         [1-by-n] trust region center
-% x1:         [1-by-n] a candidate starting point
-% val_at_x0:  [scalar] the objective value at x0
-% h_fun:      [func handle] evaluates h
+% Hres:           [n-by-n-by-p] array of p model quadratic terms
+% Gres:           [n-by-p] array of p model linear terms
+% Cres:           [1-by-p] array of p model constant terms
+% Lows:           [1-by-n] lower bounds on the step
+% Upps:           [1-by-n] upper bounds on the step
+% x_center:       [1-by-n] trust region center
+% x1:             [1-by-n] a candidate starting point
+% hF_at_x_center: [scalar] the objective value at x_center
+% h_fun:          [func handle] evaluates h
 
 %%%%%%%%%%%
 % Outputs:
 %%%%%%%%%%%
-% s_k:        [1-by-n] array containing the step
-% pred_dec:   [scalar] predicted decrease from x0 to x0 + s_k
+% s_k:            [1-by-n] array containing the step
+% pred_dec:       [scalar] predicted decrease from x_center to x_center + s_k
 
-function [s_k, pred_dec] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x1, val_at_x0, h_fun)
+function [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x1, hF_at_x_center, h_fun)
 
-[n, P] = size(g);
+[n, p] = size(Gres);
 
-assert(all(size(H) == [n, n, P]), 'H must be n-by-n-by-P');
-assert(all(size(b) == [1, P]), "b must be 1-by-P");
-assert(all(size(Low) == [1, n]) && all(size(Upp) == [1, n]), 'Low and Upp must be 1-by-n');
-assert(all(size(x0) == [1, n]) && all(size(x1) == [1, n]), 'x0 and x1 must be 1-by-n');
-assert(all(Low <= Upp), 'Low must not exceed Upp');
+assert(all(size(Hres) == [n, n, p]), 'Hres must be n-by-n-by-p');
+assert(all(size(Cres) == [1, p]), "Cres must be 1-by-p");
+assert(all(size(Lows) == [1, n]) && all(size(Upps) == [1, n]), 'Lows and Upps must be 1-by-n');
+assert(all(size(x_center) == [1, n]) && all(size(x1) == [1, n]), 'x_center and x1 must be 1-by-n');
+assert(all(Lows <= Upps), 'Lows must not exceed Upps');
 
-obj = @(s) h_fun(eval_quadratics(H, g, b, s));
+obj = @(s) h_fun(eval_quadratics(Hres, Gres, Cres, s));
 
 % Latin hypercube sample: each coordinate's num_samples values fall in
-% distinct equal-width slices of [Low(j), Upp(j)].
+% distinct equal-width slices of [Lows(j), Upps(j)].
 num_samples = 1000 * n;
 S = zeros(num_samples, n);
 for j = 1:n
-    S(:, j) = Low(j) + (Upp(j) - Low(j)) * (randperm(num_samples)' - rand(num_samples, 1)) / num_samples;
+    S(:, j) = Lows(j) + (Upps(j) - Lows(j)) * (randperm(num_samples)' - rand(num_samples, 1)) / num_samples;
 end
-S = [zeros(1, n); min(Upp, max(Low, x1 - x0)); S];
+S = [zeros(1, n); min(Upps, max(Lows, x1 - x_center)); S];
 
 vals = zeros(size(S, 1), 1);
 for i = 1:size(S, 1)
@@ -58,15 +58,15 @@ end
 [~, ind] = min(vals);
 
 options = optimoptions('fmincon', 'Display', 'off');
-s_k = fmincon(obj, S(ind, :), [], [], [], [], Low, Upp, [], options);
-s_k = min(Upp, max(Low, s_k));
+s_k = fmincon(obj, S(ind, :), [], [], [], [], Lows, Upps, [], options);
+s_k = min(Upps, max(Lows, s_k));
 
 % safeguard in case fmincon returns a worse solution than its starting point
 if obj(s_k) > vals(ind)
     s_k = S(ind, :);
 end
 
-pred_dec = val_at_x0 - obj(s_k);
+pred_dec = hF_at_x_center - obj(s_k);
 
 if pred_dec < 0
     pred_dec = 0;
@@ -74,10 +74,10 @@ end
 
 end
 
-function z = eval_quadratics(H, g, b, s)
-P = size(g, 2);
-z = zeros(1, P);
-for i = 1:P
-    z(i) = 0.5 * s * H(:, :, i) * s' + s * g(:, i) + b(i);
+function z = eval_quadratics(Hres, Gres, Cres, s)
+p = size(Gres, 2);
+z = zeros(1, p);
+for i = 1:p
+    z(i) = 0.5 * s * Hres(:, :, i) * s' + s * Gres(:, i) + Cres(i);
 end
 end
