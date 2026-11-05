@@ -177,11 +177,11 @@ for row = rows
 
         assert(all(size(s_gams) == [1, n]), "GAMS step has wrong size on " + problem);
         assert(all(s_gams >= Low - 1e-6) && all(s_gams <= Upp + 1e-6), "GAMS step infeasible on " + problem);
-        z = zeros(1, m);
+        z_model = zeros(1, m);
         for i = 1:m
-            z(i) = b(i) + g(:, i)' * s_gams(:) + 0.5 * s_gams(:)' * H(:, :, i) * s_gams(:);
+            z_model(i) = b(i) + g(:, i)' * s_gams(:) + 0.5 * s_gams(:)' * H(:, :, i) * s_gams(:);
         end
-        assert(abs((val_at_x0 - hfun(z)) - pred_gams) <= 1e-6 * max(1, abs(val_at_x0)), ...
+        assert(abs((val_at_x0 - hfun(z_model)) - pred_gams) <= 1e-6 * max(1, abs(val_at_x0)), ...
                "GAMS predicted decrease inconsistent with its step on " + problem);
         % The min-type TRSPs are nonconvex across pieces: the GAMS NLP solvers
         % find a local solution from x0 while lhs samples globally, so GAMS can
