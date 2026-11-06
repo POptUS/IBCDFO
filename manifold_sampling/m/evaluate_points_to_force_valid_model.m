@@ -4,18 +4,13 @@ function [X, F, hF, nf, Hash] = evaluate_points_to_force_valid_model(n, nf, xk_i
 
     % Evaluate model-improving points to pick best one
     % ! May eventually want to normalize Mdir first for infty norm
-    % Plus directions
-    % *** Dec 2016: THIS ASSUMES UNCONSTRAINED, proceed with caution
+    % bmpts respects the bounds Low and Upp: for each direction it picks the sign (+/-)
+    % with the larger feasible step and scales the step to stay inside the box (or
+    % falls back to coordinate directions), so every X(xk_in, :) + Xsp below is
+    % bound-feasible. The sign is chosen geometrically, not by predicted model decrease.
+    % (Maybe a model-informed sign choice could be added here?)
     [Mdir1, np1] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, fq_pars.Par(3));
-    % Res = zeros(n-np, 1);
     for i = 1:n - np1
-        % if ~all(isinf(Low)) || ~all(isinf(Upp))
-        %     D = Mdir1(i, :);
-        %     Res(i, 1) = D*(g_k+.5*H_k*D');
-        %     if Res(i, 1)> D*(-g_k+.5*H_k*D');
-        %         Mdir1(i, :)=-Mdir1(i, :); %neg dir predicted 2b better
-        %     end
-        % end
         Xsp = Mdir1(i, :);
         % Only do this evaluation if the point is new and nf < nf_max
         if ~ismember(X(xk_in, :) + Xsp, X(1:nf, :), 'rows') && nf < nf_max
