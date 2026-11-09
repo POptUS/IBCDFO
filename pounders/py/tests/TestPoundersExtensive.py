@@ -114,6 +114,15 @@ class TestPounders(unittest.TestCase):
 
                 if flag == 0:
                     self.assertTrue(evals <= nf_max + nfs, f"POUNDERs evaluated more than nf_max evaluations: evals={evals}, limit={nf_max + nfs}")
+                elif flag == -3 and int(nprob) == 18 and not np.all(np.isfinite(F[-1])):
+                    # Osborne 2 (BenDFO nprob 18) is known to overflow to Inf,
+                    # although whether this occurs can depend on small
+                    # numerical differences across platforms. This function is
+                    # a test function for exactly this reason. When overflow
+                    # occurs, POUNDERS may legitimately exit early with
+                    # flag=-3. Accept this exit only for this problem and
+                    # only when the final evaluation is non-finite.
+                    pass
                 elif flag != -6 and flag != -4:
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
 
