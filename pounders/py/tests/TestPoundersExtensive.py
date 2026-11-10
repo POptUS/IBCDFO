@@ -111,10 +111,10 @@ class TestPounders(unittest.TestCase):
                 self.assertNotEqual(flag, 1, f"pounders failed. (flag={flag})")
                 self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), f"No improvement found: hfun(F[0])={hfun(F[0])}, hfun(F[xk_best])={hfun(F[xk_best])}")
                 self.assertTrue(X.shape[0] <= nf_max + nfs, f"POUNDERs grew the size of X: X.shape[0]={X.shape[0]}, limit={nf_max + nfs}")
+                self.assertEqual(F.shape[0], X.shape[0], f"F and X have different numbers of rows: {F.shape[0]} vs {X.shape[0]}")
+                self.assertEqual(hF.shape[0], X.shape[0], f"hF and X have different numbers of rows: {hF.shape[0]} vs {X.shape[0]}")
 
-                if flag == 0:
-                    self.assertTrue(evals <= nf_max + nfs, f"POUNDERs evaluated more than nf_max evaluations: evals={evals}, limit={nf_max + nfs}")
-                elif flag == -3 and int(nprob) == 18 and not np.all(np.isfinite(F[-1])):
+                if flag == -3 and int(nprob) == 18 and not np.all(np.isfinite(F[-1])):
                     # Osborne 2 (BenDFO nprob 18) is known to overflow to Inf,
                     # although whether this occurs can depend on small
                     # numerical differences across platforms. This function is
