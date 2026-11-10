@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch)
+function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -48,6 +48,12 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     %       * **F**     [:math:`k \times p`] Their simulation values
     %       * **hF**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xk_in** [int] Current trust region center
+    %       * **flag**  [dbl] Termination criteria flag. The values are the same as
+    %         for ``manifold_sampling_primal``: 0 for normal termination, positive
+    %         if the budget was exhausted (the value is the final stationary
+    %         measure), -1 if model building failed or **Ffun** failed, and -6 if
+    %         the trust-region radius reached its minimum without satisfying the
+    %         stationarity tolerance
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     repo_root = fullfile(here_path, '..', '..');
@@ -87,6 +93,7 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     H_mm = zeros(n);
     beta_exp = 1.0;
 
+    chi_k = inf; % Stationary measure; set whenever it is computed
     while nf < nf_max && delta > tol.mindelta
         [~, xk_in] = min(hF(1:nf));
         % ================================
@@ -94,13 +101,11 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
         [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
 
         if isempty(Gres)
-            disp(['Empty Gres. Delta = ' num2str(delta)]);
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            hF = hF(1:nf, :);
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, -1, printf);
             return
         end
         if nf >= nf_max
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, max(chi_k, realmin), printf); % Budget exceeded
             return
         end
 
@@ -136,14 +141,11 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
                 % Line 4: build models
                 [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
                 if isempty(Gres)
-                    disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
-                    X = X(1:nf, :);
-                    F = F(1:nf, :);
-                    hF = hF(1:nf, :);
-                    flag = -1;
+                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, -1, printf);
                     return
                 end
                 if nf >= nf_max
+                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, max(chi_k, realmin), printf); % Budget exceeded
                     return
                 end
 
@@ -172,11 +174,7 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
 
                 % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
                 if chi_k <= tol.gtol && delta <= tol.mindelta
-                    disp('Convergence satisfied: small stationary measure and small delta');
-                    X = X(1:nf, :);
-                    F = F(1:nf, :);
-                    hF = hF(1:nf, :);
-                    flag = chi_k;
+                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 0, printf);
                     return
                 end
 
@@ -236,10 +234,11 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     end
 
     if nf >= nf_max
-        flag = 0; % Budget exceeded
+        exit_flag = max(chi_k, realmin); % Budget exceeded
+    elseif chi_k <= tol.gtol
+        exit_flag = 0;
     else
-        X = X(1:nf, :);
-        F = F(1:nf, :);
-        hF = hF(1:nf, :);
+        exit_flag = -6; % delta_min reached without satisfying g_tol
     end
+    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, exit_flag, printf);
 end
