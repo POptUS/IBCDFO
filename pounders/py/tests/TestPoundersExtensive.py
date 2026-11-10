@@ -112,10 +112,10 @@ class TestPounders(unittest.TestCase):
                 self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
                 self.assertTrue(np.array_equal(X, Xc), f"Mismatch: ‖X−Xc‖={np.linalg.norm(X - Xc):.3e}")
 
-                # For some reason, we know and accept that one or more test will
-                # terminate with flag == -4.  We intentionally include tests
-                # that terminate with -6.
-                self.assertTrue(flag not in {-5, -2, -1})
+                # This test suite has been designed so that at least one test
+                # should terminate with flag = -6.  Noncovergent optimizations
+                # are acceptable.
+                self.assertTrue(flag not in {-5, -4, -2, -1})
                 if flag > 0:
                     evals = F.shape[0]
                     self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
@@ -128,7 +128,7 @@ class TestPounders(unittest.TestCase):
                     # flag=-3. Accept this exit only for this problem and
                     # only when the final evaluation is non-finite.
                     self.assertEqual(nprob, 18)
-                    self.assertFalse(np.all(np.isfinite(F[-1])))
+                    self.assertFalse(np.all(np.isfinite(F[-1, :])))
                 elif flag == -6:
                     n_delta_min += 1
 
