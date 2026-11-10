@@ -7,10 +7,9 @@
 % "Benchmarking derivative-free optimization algorithms", which is linear in x
 % and has the known minimum m - n = 36.
 %
-% To run this test, you must first install a BenDFO and a MINQ clone and add
+% To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
-%    /path/to/MINQ/m/minq5
 % to the MATLAB path.
 
 function [] = test_manifold_sampling_flags()
