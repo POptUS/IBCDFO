@@ -103,18 +103,23 @@ class TestPounders(unittest.TestCase):
                 X, F, hF, flag, xk_best = run_user_friendly(Ffun_single_eval, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts)
                 Xc, Fc, hFc, flagc, xk_bestc = run_user_friendly(Ffun_batch, X_0, n, nf_max, g_tol, delta, m, Low, Upp, Prior=Prior, ObjOpts=ObjOpts, batched_Ffun=True)
 
-                self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
-                self.assertTrue(np.array_equal(X, Xc), f"Mismatch: ‖X−Xc‖={np.linalg.norm(X - Xc):.3e}")
-
-                evals = F.shape[0]
-
-                self.assertNotEqual(flag, 1, f"pounders failed. (flag={flag})")
-                self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), f"No improvement found: hfun(F[0])={hfun(F[0])}, hfun(F[xk_best])={hfun(F[xk_best])}")
                 self.assertTrue(X.shape[0] <= nf_max + nfs, f"POUNDERs grew the size of X: X.shape[0]={X.shape[0]}, limit={nf_max + nfs}")
                 self.assertEqual(F.shape[0], X.shape[0], f"F and X have different numbers of rows: {F.shape[0]} vs {X.shape[0]}")
                 self.assertEqual(hF.shape[0], X.shape[0], f"hF and X have different numbers of rows: {hF.shape[0]} vs {X.shape[0]}")
 
-                if flag == -3 and int(nprob) == 18 and not np.all(np.isfinite(F[-1])):
+                self.assertTrue(hfun(F[0]) > hfun(F[xk_best]), f"No improvement found: hfun(F[0])={hfun(F[0])}, hfun(F[xk_best])={hfun(F[xk_best])}")
+
+                self.assertEqual(X.shape, Xc.shape, f"Shape mismatch: X.shape={X.shape}, Xc.shape={Xc.shape}")
+                self.assertTrue(np.array_equal(X, Xc), f"Mismatch: ‖X−Xc‖={np.linalg.norm(X - Xc):.3e}")
+
+                # For some reason, we know and accept that one or more test will
+                # terminate with flag == -4.  We intentionally include tests
+                # that terminate with -6.
+                self.assertTrue(flag not in {-5, -2, -1})
+                if flag > 0:
+                    evals = F.shape[0]
+                    self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
+                elif flag == -3:
                     # Osborne 2 (BenDFO nprob 18) is known to overflow to Inf,
                     # although whether this occurs can depend on small
                     # numerical differences across platforms. This function is
@@ -122,11 +127,9 @@ class TestPounders(unittest.TestCase):
                     # occurs, POUNDERS may legitimately exit early with
                     # flag=-3. Accept this exit only for this problem and
                     # only when the final evaluation is non-finite.
-                    pass
-                elif flag != -6 and flag != -4:
-                    self.assertTrue(evals == nf_max + nfs, f"POUNDERs didn't use nf_max evaluations: evals={evals}, expected={nf_max + nfs}, flag={flag}")
-
-                if flag == -6:
+                    self.assertEqual(nprob, 18)
+                    self.assertFalse(np.all(np.isfinite(F[-1])))
+                elif flag == -6:
                     n_delta_min += 1
 
                 # Write results to .mat file using the same format as used by
