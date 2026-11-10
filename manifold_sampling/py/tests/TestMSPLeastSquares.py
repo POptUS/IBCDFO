@@ -35,7 +35,7 @@ class TestMSPLeastSquares(unittest.TestCase):
                 return np.squeeze(out)
 
             X, _, hF, xk_in, flag = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
-            self.assertIn(flag, (0, 1, -6))  # Not a model-building or subproblem failure
+            self.assertIn(flag, (0, -6))  # Converged: 0, or -6 when delta_min is reached first
             self.assertTrue(hF[xk_in] <= 36.0 + 1.0e-8)
             # Every point evaluated must remain feasible (to within roundoff)
             self.assertTrue(np.all(X >= LB - 1.0e-15))

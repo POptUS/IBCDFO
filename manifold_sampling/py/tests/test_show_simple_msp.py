@@ -52,4 +52,4 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
             hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
         X, F, hF, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
-        assert flag in (0, 1, -6)  # 0: converged, 1: budget exhausted, -6: delta_min reached
+        assert flag == 1  # The small budget nfmax is exhausted

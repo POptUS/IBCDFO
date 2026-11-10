@@ -40,7 +40,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return out
 
     X, F, h_msp, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
-    assert flag in (0, 1, -6)  # 0: converged, 1: budget exhausted, -6: delta_min reached
+    assert flag == 1  # The small budget nfmax is exhausted
 
     # --- Run pounders without using the structure ---
     identity_hfun = ibcdfo.pounders.h_identity
