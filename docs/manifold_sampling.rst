@@ -54,13 +54,16 @@ All Manifold Sampling implementations return a termination criteria flag. The
 interpretation of the value of the flag is identical across implementations and
 possible values are
 
-* > 0 - successful termination; the value of the flag is the final
-  stationarity measure (:math:`\chi_k`)
-* 0 - the budget of ``nf_max`` function evaluations was exhausted.
+* 0 - normal termination; the stationary measure (:math:`\chi_k`) and the
+  trust-region radius satisfied their tolerances.
+* > 0 - the budget of ``nf_max`` function evaluations was exhausted; the value
+  of the flag is the final stationarity measure (:math:`\chi_k`)
 * -1 - model construction failed (an empty or invalid local model
   was constructed)
 * -2 - trust-region subproblem failed, likely due to an unbounded
   or poorly scaled affine-envelope subproblem
+* -6 - the trust-region radius reached its minimum without satisfying the
+  stationarity tolerance
 
 The programmatic interface is generally maintained identically across all
 implementations. Nevertheless, we provide the interface for each implementation

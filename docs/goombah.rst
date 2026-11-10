@@ -114,6 +114,20 @@ located in ``manifold_sampling/m/general_nonsmooth_h_funs``.  In addition they
 must use **TRSP_Options.hfun_data** to provide to GAMS the exact same **C**/**D**
 or **Q**/**z**/**c** parameters used to construct their **hfun**
 
+Status Code
+^^^^^^^^^^^
+|goombah| returns a termination criteria flag whose values are identical to
+those of manifold sampling (see :ref:`msp_section`):
+
+* 0 - normal termination; the stationary measure and the trust-region radius
+  satisfied their tolerances.
+* > 0 - the budget of ``nf_max`` function evaluations was exhausted; the value
+  of the flag is the final stationarity measure.
+* -1 - model construction failed, or the blackbox could not be evaluated at
+  the starting point.
+* -6 - the trust-region radius reached its minimum without satisfying the
+  stationarity tolerance.
+
 |matlab|
 ^^^^^^^^
 .. mat:autofunction:: goombah.m.goombah
