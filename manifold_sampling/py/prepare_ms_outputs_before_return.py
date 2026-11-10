@@ -3,8 +3,8 @@ def prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, exit_flag):
     This function is called to cleanup X and F, set the exit value, and display
     reason for exiting.
 
-    The exit_flag follows the pounders convention: 0 is normal termination, > 0
-    means the budget was exhausted (the value is the final stationary measure),
+    The exit_flag follows the pounders convention: 0 is normal termination, 1
+    means the budget was exhausted,
     -1 is a model-building failure, -2 is a subproblem failure, and -6 means
     mindelta was reached without satisfying gtol.
     """
@@ -15,8 +15,8 @@ def prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, exit_flag):
 
     if exit_flag == 0:
         print("MSP: Convergence satisfied: small stationary measure and small delta.")
-    elif exit_flag > 0:
-        print("MSP: Evaluation budget exceeded. Exiting with the final chi_k as exit_flag.")
+    elif exit_flag == 1:
+        print("MSP: Evaluation budget exceeded. Exiting.")
     elif exit_flag == -1:
         print("MSP: Model building failed. Empty Gres.")
     elif exit_flag == -2:

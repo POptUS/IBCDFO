@@ -49,11 +49,11 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %       * **hF**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xk_in** [int] Current trust region center
     %       * **flag**  [dbl] Termination criteria flag. The values are the same as
-    %         for ``manifold_sampling_primal``: 0 for normal termination, positive
-    %         if the budget was exhausted (the value is the final stationary
-    %         measure), -1 if model building failed or **Ffun** failed, and -6 if
+    %         for ``manifold_sampling_primal``: 0 for normal termination, 1 if
+    %         the budget was exhausted, -1 if model building failed or **Ffun** failed, and -6 if
     %         the trust-region radius reached its minimum without satisfying the
-    %         stationarity tolerance
+    %         stationarity tolerance. A flag of -6 is a common way for a successful
+    %         run to end; check the final ``chi_k`` that is displayed, and ``hF``
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     repo_root = fullfile(here_path, '..', '..');
@@ -105,7 +105,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
             return
         end
         if nf >= nf_max
-            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, max(chi_k, realmin), printf); % Budget exceeded
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 1, printf); % Budget exceeded
             return
         end
 
@@ -145,7 +145,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
                     return
                 end
                 if nf >= nf_max
-                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, max(chi_k, realmin), printf); % Budget exceeded
+                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 1, printf); % Budget exceeded
                     return
                 end
 
@@ -234,11 +234,11 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     end
 
     if nf >= nf_max
-        exit_flag = max(chi_k, realmin); % Budget exceeded
+        exit_flag = 1; % Budget exceeded
     elseif chi_k <= tol.gtol
         exit_flag = 0;
     else
         exit_flag = -6; % delta_min reached without satisfying g_tol
     end
-    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, exit_flag, printf);
+    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, exit_flag, printf, chi_k);
 end

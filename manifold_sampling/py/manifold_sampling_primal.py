@@ -115,7 +115,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             if len(Gres) == 0:
                 return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, -1)
             if nf + 1 >= nf_max:
-                return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, max(chi_k, np.finfo(float).tiny))  # Budget exceeded
+                return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, 1)  # Budget exceeded
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun)
@@ -185,7 +185,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             # h_activity_tol = min(1e-8, delta);
 
     if nf + 1 >= nf_max:
-        return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, max(chi_k, np.finfo(float).tiny))  # Budget exceeded
+        return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, 1)  # Budget exceeded
     elif chi_k <= tol["gtol"]:
         return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, 0)
     else:

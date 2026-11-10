@@ -36,9 +36,10 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %        ordering.
 %      * **xk_in** - One-based index of current trust region center.
 %      * **flag** - Termination criteria flag (See general documentation):
-%        0 for normal termination, > 0 if the budget was exhausted (the value
-%        is the final stationary measure), -1 if model building failed, -6 if
-%        ``delta_min`` was reached without satisfying ``g_tol``.
+%        0 for normal termination, 1 if the budget was exhausted, -1 if model
+%        building failed, -6 if ``delta_min`` was reached without satisfying
+%        ``g_tol``. A flag of -6 is a common way for a successful run to end;
+%        check the final ``chi_k`` that is displayed, and ``hF``.
 
 % Some other values
 %  n:       [int]     Dimension of the domain of F (deduced from x0)
@@ -105,7 +106,7 @@ while nf < nf_max && delta > tol.mindelta
             return
         end
         if nf >= nf_max
-            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, max(chi_k, realmin), printf); % Budget exceeded
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 1, printf); % Budget exceeded
             return
         end
 
@@ -202,11 +203,11 @@ while nf < nf_max && delta > tol.mindelta
 end
 
 if nf >= nf_max
-    exit_flag = max(chi_k, realmin); % Budget exceeded
+    exit_flag = 1; % Budget exceeded
 elseif chi_k <= tol.gtol
     exit_flag = 0;
 else
     exit_flag = -6; % delta_min reached without satisfying g_tol
 end
-[X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, exit_flag, printf);
+[X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, exit_flag, printf, chi_k);
 end

@@ -119,14 +119,19 @@ Status Code
 |goombah| returns a termination criteria flag whose values are identical to
 those of manifold sampling (see :ref:`msp_section`):
 
+* 1 - budget of ``nf_max`` function evaluations was exhausted. For
+  manifold sampling, the final stationarity measure is deliberately not
+  returned, because it can be near zero while the trust-region radius is still
+  large.
 * 0 - normal termination; the stationary measure and the trust-region radius
   satisfied their tolerances.
-* > 0 - the budget of ``nf_max`` function evaluations was exhausted; the value
-  of the flag is the final stationarity measure.
 * -1 - model construction failed, or the blackbox could not be evaluated at
   the starting point.
 * -6 - the trust-region radius reached its minimum without satisfying the
-  stationarity tolerance.
+  stationarity tolerance. This is a common way for a successful run to end; 
+  it should not be read as a failure. The final :math:`\chi_k` is displayed
+  when output is enabled. A small :math:`\chi_k` together with the small radius
+  indicates a good result. Inspect ``hF`` as well.
 
 |matlab|
 ^^^^^^^^
