@@ -50,6 +50,14 @@ bad_solver.solver = 'bad';
 solver_message = "TRSP_options.solver must be 'GAMS' or 'lhs'";
 assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, bad_solver, subprob_switch), solver_message);
 
+% Exit flag: a failing objective gives -1 and an exhausted budget gives a
+% positive flag (the final stationary measure)
+[~, ~, ~, ~, flag] = goombah(hfun, x0, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
+assert(flag == -1, "flag should be -1 when Ffun fails");
+[X, F, hF, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, n + 5, TRSP_options, subprob_switch);
+assert(flag > 0, "flag should be positive when the budget is exhausted");
+assert(size(X, 1) == n + 5 && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "outputs should have nf rows");
+
 % The solver intended only for testing and debugging warns
 oldwarn = warning('error', 'GOOMBAH:lhsTrspSolver');
 lhs_message = "The lhs TRSP solver should only be used for testing or debugging";
