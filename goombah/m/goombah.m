@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch)
+function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -27,6 +27,10 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %         point. Each solver must be available with your GAMS license. The
     %         solver that each integer selects is set in **TRSP_options.file**.
     %
+    %       * **atol**, **rtol** - (optional) Absolute and relative tolerances
+    %         (default ``1e-4`` each) for the check that the GAMS and |matlab|
+    %         objective values agree. If they do not, the step is rejected.
+    %
     %       * **hfun_data** - (optional) Users that pass an **hfun** that
     %         corresponds to one of the |goombah|-provided parameterized
     %         :math:`h` functions must use this field to provide GAMS with the
@@ -41,6 +45,23 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %       * ``'GAMS_LP'`` - Solve the linear program with GAMS.
     %       * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
     %         problem that includes the Hessians of the models.
+    %
+    %  :param Options: [struct] (optional) Solver options. Omit or pass ``[]``
+    %       for the defaults. Any missing field takes its default:
+    %
+    %       * **printf**         [int] 0 for no output, 1 for one line per iteration
+    %         and the exit message, 2 to also report each GAMS run (1)
+    %       * **delta_0**        [dbl] Initial trust-region radius (0.1)
+    %       * **delta_max**      [dbl] Maximum trust-region radius (1e8)
+    %       * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
+    %       * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
+    %       * **eta_1**          [dbl] In (0, 1); rho above this is a successful iteration (0.01)
+    %       * **eta_3**          [dbl] rho above this allows the radius to grow (0.5)
+    %       * **gamma_dec**      [dbl] In (0, 1); factor for shrinking delta (0.5)
+    %       * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
+    %       * **beta_exp**       [dbl] Exponent in the denominator of the |goombah| step ratio (1.0)
+    %       * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
+    %       * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
     %
     %  :return:
     %       * **X**     [:math:`k \times \np`] Points evaluated, where
@@ -61,6 +82,10 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
     addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 
+    if nargin < 9
+        Options = [];
+    end
+
     % Deduce p from evaluating Ffun at x0
     try
         F0 = Ffun(x0);
@@ -75,7 +100,13 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
+    if ~isfield(Options, 'beta_exp')
+        beta_exp = 1.0; % [dbl] Exponent in the denominator of the step ratio (1.0)
+    else
+        beta_exp = Options.beta_exp;
+    end
+    TRSP_options.printf = printf;
     assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
@@ -91,8 +122,6 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     end
 
     H_mm = zeros(n);
-    beta_exp = 1.0;
-
     chi_k = inf; % Stationary measure; set whenever it is computed
     while nf < nf_max && delta > tol.mindelta
         [~, xk_in] = min(hF(1:nf));
@@ -230,7 +259,9 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
             end
 
         end
-        fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, hF(xk_in), delta);
+        if printf
+            fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, hF(xk_in), delta);
+        end
     end
 
     if nf >= nf_max
