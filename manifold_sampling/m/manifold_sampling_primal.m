@@ -26,16 +26,20 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 % :param subprob_switch: Selects the trust-region subproblem solver used internally.
 %
 % :return:
-%      * **X** - :math:`\mathrm{nf\_max} \times \np` matrix containing the
+%      * **X** - :math:`\mathrm{nf} \times \np` matrix containing the
 %        points evaluated in the order in which they were evaluated
-%      * **F** - :math:`\mathrm{nf\_max} \times p` matrix containing the
+%      * **F** - :math:`\mathrm{nf} \times p` matrix containing the
 %        blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
 %        with matching ordering
-%      * **hF** - :math:`\mathrm{nf\_max} \times 1` matrix containing the values
+%      * **hF** - :math:`\mathrm{nf} \times 1` matrix containing the values
 %        :math:`\hfun(\Ffun(\psp))` for all points in ``X`` with matching
 %        ordering.
 %      * **xk_in** - One-based index of current trust region center.
-%      * **flag** - Termination criteria flag (See general documentation)
+%      * **flag** - Termination criteria flag (See general documentation):
+%        0 for normal termination, 1 if the budget was exhausted, -1 if model
+%        building failed, -6 if ``delta_min`` was reached without satisfying
+%        ``g_tol``. A flag of -6 is a common way for a successful run to end;
+%        check the final ``chi_k`` that is displayed, and ``hF``.
 
 % Some other values
 %  n:       [int]     Dimension of the domain of F (deduced from x0)
@@ -85,6 +89,7 @@ end
 Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
 H_mm = zeros(n);
+chi_k = inf; % Stationary measure; set whenever it is computed
 
 while nf < nf_max && delta > tol.mindelta
     bar_delta = delta;
@@ -97,15 +102,11 @@ while nf < nf_max && delta > tol.mindelta
         % Line 4: build models
         [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
         if isempty(Gres)
-            disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            hF = hF(1:nf, :);
-            flag = -1;
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, -1, printf);
             return
         end
         if nf >= nf_max
-            flag = 0; % Budget exceeded
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 1, printf); % Budget exceeded
             return
         end
 
@@ -134,11 +135,7 @@ while nf < nf_max && delta > tol.mindelta
 
         % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
         if chi_k <= tol.gtol && delta <= tol.mindelta
-            disp('Convergence satisfied: small stationary measure and small delta');
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            hF = hF(1:nf, :);
-            flag = chi_k;
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 0, printf);
             return
         end
 
@@ -206,11 +203,11 @@ while nf < nf_max && delta > tol.mindelta
 end
 
 if nf >= nf_max
-    flag = 0; % Budget exceeded
+    exit_flag = 1; % Budget exceeded
+elseif chi_k <= tol.gtol
+    exit_flag = 0;
 else
-    X = X(1:nf, :);
-    F = F(1:nf, :);
-    hF = hF(1:nf, :);
-    flag = chi_k;
+    exit_flag = -6; % delta_min reached without satisfying g_tol
 end
+[X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, exit_flag, printf, chi_k);
 end
