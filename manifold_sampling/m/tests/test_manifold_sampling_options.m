@@ -1,7 +1,5 @@
 % This tests that manifold_sampling_primal accepts an Options struct and
 % rejects one that is not a struct.
-%
-% No external packages are needed.
 
 function [] = test_manifold_sampling_options()
 
