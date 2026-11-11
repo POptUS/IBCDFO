@@ -64,7 +64,7 @@ Options.delta_0 = 0.5;
 assert(max(abs(X(2, :) - x0)) == 0.5, "Options.delta_0 was not used for the initial simplex");
 
 % The following covers beta_exp setting and actually tests that there is an
-% effect. Both runs use the same seed and budget, so they evaluate the same 
+% effect. Both runs use the same seed and budget, so they evaluate the same
 % n + 2 points and differ only after that test is made.
 x0_near = [0.03, 0.04, 0.05];
 Options_beta = struct('printf', 0, 'beta_exp', 1.0);
@@ -99,7 +99,7 @@ rand('seed', 1);
 assert(flag == 0, "flag should be 0 when the MS-P loop meets both the stationarity and the radius test");
 assert(size(X_msp, 1) < nf_max, "goombah should have returned from the MS-P loop well before exhausting its budget");
 
-% The following covers the budget check within the MS-P loop. 
+% The following covers the budget check within the MS-P loop.
 % The same h and starting point, but with the default radii, takes a second
 % pass through the MS-P loop, and nf_max =n + 4 is exhausted by the
 % models that pass builds, so goombah returns a flag of
