@@ -1,6 +1,6 @@
 function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options)
-    % Validates the inputs shared by |manifold_sampling| and |goombah|. 
-    % Fills in defaults for any missing fields of Options. 
+    % Validates the inputs shared by |manifold_sampling| and |goombah|.
+    % Fills in defaults for any missing fields of Options.
     % Makes/allocates variables used by the solvers.
     %
     % :param Options: [struct] (optional) Solver options. Any field that is
