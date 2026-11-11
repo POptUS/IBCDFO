@@ -49,8 +49,8 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %  :param Options: [struct] (optional) Solver options. Omit or pass ``[]``
     %       for the defaults. Any missing field takes its default:
     %
-    %       * **printf**         [int] 0 for no output, 1 for one line per iteration
-    %         and the exit message, 2 to also report each GAMS run (1)
+    %       * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output,
+    %         including each GAMS run (1)
     %       * **delta_0**        [dbl] Initial trust-region radius (0.1)
     %       * **delta_max**      [dbl] Maximum trust-region radius (1e8)
     %       * **delta_min**      [dbl] Minimum trust-region radius (1e-13)

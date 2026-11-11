@@ -27,8 +27,7 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 % :param Options: [struct] (optional) Solver options. Omit or pass ``[]`` for
 %     the defaults. Any missing field takes its default:
 %
-%     * **printf**         [int] 0 for no output, 1 for one line per iteration
-%       and the exit message (1)
+%     * **printf**         [int] 0 for no output, 1 for standard output (1)
 %     * **delta_0**        [dbl] Initial trust-region radius (0.1)
 %     * **delta_max**      [dbl] Maximum trust-region radius (1e8)
 %     * **delta_min**      [dbl] Minimum trust-region radius (1e-13)

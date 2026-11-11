@@ -1,13 +1,14 @@
 function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options)
-    % Validates the inputs shared by |manifold_sampling| and |goombah|, fills
-    % in defaults for any missing fields of Options, and allocates the storage
-    % used by the solvers.
+    % Validates the inputs shared by |manifold_sampling| and |goombah|. 
+    % Fills in defaults for any missing fields of Options. 
+    % Makes/allocates variables used by the solvers.
     %
     % :param Options: [struct] (optional) Solver options. Any field that is
     %     missing takes the default given below:
     %
-    %     * **printf**         [int] 0 for no output, 1 for one line per iteration,
-    %       2 for additional diagnostics (1)
+    %     * **printf**         [int] 0 for no output, 1 for standard output, 2 for
+    %       additional output in |goombah|, including each GAMS run. Level 2 has no
+    %       further effect in |manifold_sampling| (1)
     %     * **delta_0**        [dbl] Initial trust-region radius (0.1)
     %     * **delta_max**      [dbl] Maximum trust-region radius (1e8)
     %     * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
@@ -29,7 +30,7 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     end
 
     if ~isfield(Options, 'printf')
-        Options.printf = 1; % [int] 0: silent, 1: one line per iteration, 2: diagnostics (1)
+        Options.printf = 1; % [int] 0: silent, 1: standard output, 2: additional output in goombah (1)
     end
     if ~isfield(Options, 'delta_0')
         Options.delta_0 = 0.1; % [dbl] Initial trust-region radius (0.1)
