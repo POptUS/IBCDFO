@@ -50,6 +50,28 @@ bad_solver.solver = 'bad';
 solver_message = "TRSP_options.solver must be 'GAMS' or 'lhs'";
 assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, bad_solver, subprob_switch), solver_message);
 
+% Bad Options
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, 'bad'), "Options must be a struct");
+
+% Options: printf = 0 is silent
+Options.printf = 0;
+out = evalc('goombah(hfun, Ffun, x0, Low, Upp, n + 5, TRSP_options, subprob_switch, Options);');
+assert(isempty(out), "printf = 0 should produce no output");
+
+% Options: delta_0 sets the initial trust-region radius
+Options.delta_0 = 0.5;
+[X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 2, TRSP_options, subprob_switch, Options);
+assert(max(abs(X(2, :) - x0)) == 0.5, "Options.delta_0 was not used for the initial simplex");
+
+% Exit flags 0 and -6. Setting delta_min = delta_0 means that the main loop is
+% never entered, so no trust-region subproblem is solved and chi_k is never computed.
+Options_flags = struct('printf', 0, 'delta_0', 0.1, 'delta_min', 0.1);
+[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options_flags);
+assert(flag == -6, "flag should be -6 when delta_min is reached without satisfying g_tol");
+Options_flags.g_tol = Inf; % Any stationary measure satisfies this
+[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options_flags);
+assert(flag == 0, "flag should be 0 when delta_min is reached and g_tol is satisfied");
+
 % Exit flag: a failing objective gives -1 and an exhausted budget gives a
 % flag of 1
 [~, ~, ~, ~, flag] = goombah(hfun, x0, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
