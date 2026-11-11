@@ -40,7 +40,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         return out
 
     X, F, h_msp, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
-    assert flag >= 0
+    assert flag == 1, f"MSP should exhaust its small budget nfmax (flag 1), but returned flag {flag}"
 
     # --- Run pounders without using the structure ---
     identity_hfun = ibcdfo.pounders.h_identity
@@ -58,7 +58,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
     Opts = {"spsolver": simple_solver, "hfun": identity_hfun, "combinemodels": combinemodels}
 
     X, F, h_pounders, flag, xk_in = ibcdfo.run_pounders(unstructured_obj, x0, n, nf_max, g_tol, delta, 1, LB, UB, Options=Opts)
-    assert flag >= 0
+    assert flag >= 0, f"pounders returned an error flag ({flag}); expected 0 (converged) or > 0 (budget exhausted)"
 
     # # --- Plotting ---
     # plt.figure(figsize=(10, 4))
