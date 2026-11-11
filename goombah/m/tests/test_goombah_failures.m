@@ -92,7 +92,7 @@ assert(flag == 0, "flag should be 0 when delta_min is reached and g_tol is satis
 % delta, the loop returns with a flag of 0. h_pw_minimum_squared is used
 % because a selection function that is active at a nearby point can be
 % inactive at the trust-region center, which is what triggers the delta
-% shrink within the MS-P loop. 
+% shrink within the MS-P loop.
 Options_msp = struct('printf', 0, 'g_tol', Inf, 'delta_0', 0.1, 'delta_min', 0.09);
 rand('seed', 1);
 [X_msp, ~, ~, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, nf_max, TRSP_options, subprob_switch, Options_msp);
@@ -102,8 +102,8 @@ assert(size(X_msp, 1) < nf_max, "goombah should have returned from the MS-P loop
 % The following covers the budget check within the MS-P loop.
 % The same h and starting point as the prior test, but with the default radii.
 % This takes a second pass through the MS-P loop, but the budget
-% nf_max =n + 4 is exhausted by model building in the second pass, so goombah 
-% returns a flag of 1. 
+% nf_max =n + 4 is exhausted by model building in the second pass, so goombah
+% returns a flag of 1.
 rand('seed', 1);
 [X_msp, F_msp, hF_msp, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, n + 4, TRSP_options, subprob_switch, struct('printf', 0));
 assert(flag == 1, "flag should be 1 when the MS-P loop exhausts the budget while building its models");
