@@ -100,6 +100,19 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     end
 
     [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
+
+    % Validate the problem the way manifold_sampling_primal does. This is what
+    % rejects Upp <= Low and an x0 outside the bounds, neither of which
+    % |goombah| used to notice.
+    [flag, ~, ~, ~, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
+    if flag == -1 % Problem with the input
+        X = [];
+        F = [];
+        hF = [];
+        xk_in = [];
+        return
+    end
+
     if ~isfield(Options, 'beta_exp')
         beta_exp = 1.0; % [dbl] Exponent in the denominator of the step ratio (1.0)
     else
