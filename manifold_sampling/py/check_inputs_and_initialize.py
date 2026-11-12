@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def check_inputs_and_initialize(x0, F0, nf_max):
+def check_inputs_and_initialize(x0, F0, nf_max, Low, Upp):
     x0 = x0.squeeze()
     n = int(len(x0))
     p = int(len(F0))
@@ -12,9 +12,18 @@ def check_inputs_and_initialize(x0, F0, nf_max):
 
     fq_pars = {"Par": [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001, False], "npmax": 2 * n + 1}
 
+    # Never let the radius exceed half the narrowest side of the box; a larger
+    # radius cannot be realised by any feasible step anyway. checkinputss
+    # validates the bounds, but only after this runs, so fall back to the flat
+    # ceiling when they do not conform and leave the complaining to it.
+    if np.shape(Low) == np.shape(Upp):
+        maxdelta = min(1.0e8, 0.5 * np.min(Upp - Low))
+    else:
+        maxdelta = 1.0e8
+
     # Internal parameters/tolerances for manifold sampling
     tol = {
-        "maxdelta": 1e8,
+        "maxdelta": maxdelta,
         "mindelta": 1e-13,
         "gtol": 1e-13,
         "norm_g_change": 0.001,

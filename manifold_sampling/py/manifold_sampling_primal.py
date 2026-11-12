@@ -92,7 +92,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     X_init = np.atleast_2d(x0)
     F_init = np.atleast_2d(F0)
 
-    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
+    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max, Low, Upp)
     # This raises exceptions on bad inputs and does not alter any arguments.
     checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
 

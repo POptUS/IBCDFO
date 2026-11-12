@@ -29,7 +29,7 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %
 %     * **printf**         [int] 0 for no output, 1 for standard output (1)
 %     * **delta_0**        [dbl] Initial trust-region radius (0.1)
-%     * **delta_max**      [dbl] Maximum trust-region radius (1e8)
+%     * **delta_max**      [dbl] Maximum trust-region radius (1e8, or half the narrowest side of the box if that is smaller)
 %     * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
 %     * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
 %     * **eta_1**          [dbl] In (0, 1); rho at or above this is a successful iteration (0.01)
@@ -95,7 +95,7 @@ catch e
     return
 end
 
-[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
+[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Low, Upp, Options);
 [flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = x0;
