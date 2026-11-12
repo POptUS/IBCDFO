@@ -33,6 +33,7 @@ classdef Testgoombah < matlab.unittest.TestCase
 
         function shortTests(testCase)
             test_minimize_quadratics_lhs;
+            test_goombah_initial_simplex;
             test_goombah_failures;
             test_goombah_converge;
             test_goombah_budget_sweep;
