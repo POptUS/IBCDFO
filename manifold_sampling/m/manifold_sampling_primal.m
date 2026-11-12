@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch)
+function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options)
 % Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
 % :param hfun: Handle to function that, given a :math:`p \times 1` point
@@ -24,6 +24,21 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 % :param Upp: :math:`1 \times \np` vector of upper bounds
 % :param nf_max: [int] Maximum number of function evaluations
 % :param subprob_switch: Selects the trust-region subproblem solver used internally.
+% :param Options: [struct] (optional) Solver options. Omit or pass ``[]`` for
+%     the defaults. Any missing field takes its default:
+%
+%     * **printf**         [int] 0 for no output, 1 for standard output (1)
+%     * **delta_0**        [dbl] Initial trust-region radius (0.1)
+%     * **delta_max**      [dbl] Maximum trust-region radius (1e8)
+%     * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
+%     * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
+%     * **eta_1**          [dbl] In (0, 1); rho at or above this is a successful iteration (0.01)
+%     * **eta_3**          [dbl] rho above this allows the radius to grow (0.5)
+%     * **gamma_dec**      [dbl] In (0, 1); factor for shrinking delta (0.5)
+%     * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
+%     * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
+%     * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+%
 %
 % :return:
 %      * **X** - :math:`\mathrm{nf} \times \np` matrix containing the
@@ -60,6 +75,10 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 addpath(fullfile(here_path, '..', '..', 'pounders', 'm'));
 
+if nargin < 8
+    Options = [];
+end
+
 % Deduce p from evaluating Ffun at x0
 try
     F0 = Ffun(x0);
@@ -75,7 +94,7 @@ catch e
     return
 end
 
-[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
 [flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = x0;
@@ -189,7 +208,9 @@ while nf < nf_max && delta > tol.mindelta
         % h_activity_tol = min(1e-8, delta);
     end
 
-    fprintf('nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n', nf, hF(xk_in), chi_k, delta);
+    if printf
+        fprintf('nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n', nf, hF(xk_in), chi_k, delta);
+    end
 
     % Build primal master model Hessian for next iteration
     % H_mm = zeros(n);

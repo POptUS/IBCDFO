@@ -50,6 +50,65 @@ bad_solver.solver = 'bad';
 solver_message = "TRSP_options.solver must be 'GAMS' or 'lhs'";
 assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, bad_solver, subprob_switch), solver_message);
 
+% Bad Options
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, 'bad'), "Options must be a struct");
+
+% Options: printf = 0 prints nothing
+Options.printf = 0;
+out = evalc('goombah(hfun, Ffun, x0, Low, Upp, n + 5, TRSP_options, subprob_switch, Options);');
+assert(isempty(out), "printf = 0 should produce no output");
+
+% Options: delta_0 sets the initial trust-region radius
+Options.delta_0 = 0.5;
+[X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 2, TRSP_options, subprob_switch, Options);
+assert(max(abs(X(2, :) - x0)) == 0.5, "Options.delta_0 was not used for the initial simplex");
+
+% The following covers beta_exp and tests that there is an actual
+% effect. Both runs use the same seed and budget, so they evaluate the same
+% n + 2 points and differ only after that test is made.
+x0_near = [0.03, 0.04, 0.05];
+Options_beta = struct('printf', 0, 'beta_exp', 1.0);
+rand('seed', 1);
+[X_accepted, ~, hF_accepted] = goombah(hfun, Ffun, x0_near, Low, Upp, n + 3, TRSP_options, subprob_switch, Options_beta);
+Options_beta.beta_exp = -1.0;
+rand('seed', 1);
+[X_rejected, ~, hF_rejected] = goombah(hfun, Ffun, x0_near, Low, Upp, n + 3, TRSP_options, subprob_switch, Options_beta);
+assert(isequal(X_accepted(1:n + 2, :), X_rejected(1:n + 2, :)), "The two runs should agree until the first GOOMBAH step is accepted or rejected");
+assert(~isequal(X_accepted(n + 3, :), X_rejected(n + 3, :)), "Options.beta_exp was not used when deciding whether to take the GOOMBAH step");
+assert(min(hF_accepted) < min(hF_rejected), "Accepting the GOOMBAH step should find a better point within the same budget");
+
+% Exit flags 0 and -6. Setting delta_min = delta_0 means that the main loop is
+% never entered, so no trust-region subproblem is solved and chi_k is never computed.
+Options_flags = struct('printf', 0, 'delta_0', 0.1, 'delta_min', 0.1);
+[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options_flags);
+assert(flag == -6, "flag should be -6 when delta_min is reached without satisfying g_tol");
+Options_flags.g_tol = Inf; % Any stationary measure satisfies this
+[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options_flags);
+assert(flag == 0, "flag should be 0 when delta_min is reached and g_tol is satisfied");
+
+% The following covers the convergence test within the MS-P loop. g_tol = Inf
+% means every point is a stationary point. Because delta_min is between
+% delta_0 and gamma_dec * delta_0, the first time the MS-P loop shrinks
+% delta, the loop returns with a flag of 0. h_pw_minimum_squared is used
+% because a selection function that is active at a nearby point can be
+% inactive at the trust-region center, which is what triggers the delta
+% shrink within the MS-P loop.
+Options_msp = struct('printf', 0, 'g_tol', Inf, 'delta_0', 0.1, 'delta_min', 0.09);
+rand('seed', 1);
+[X_msp, ~, ~, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, nf_max, TRSP_options, subprob_switch, Options_msp);
+assert(flag == 0, "flag should be 0 when the MS-P loop meets both the stationarity and the radius test");
+assert(size(X_msp, 1) < nf_max, "goombah should have returned from the MS-P loop well before exhausting its budget");
+
+% The following covers the budget check within the MS-P loop.
+% The same h and starting point as the prior test, but with the default radii.
+% This takes a second pass through the MS-P loop, but the budget
+% nf_max =n + 4 is exhausted by model building in the second pass, so goombah
+% returns a flag of 1.
+rand('seed', 1);
+[X_msp, F_msp, hF_msp, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, n + 4, TRSP_options, subprob_switch, struct('printf', 0));
+assert(flag == 1, "flag should be 1 when the MS-P loop exhausts the budget while building its models");
+assert(size(X_msp, 1) == n + 4 && size(F_msp, 1) == n + 4 && numel(hF_msp) == n + 4, "outputs should have nf rows");
+
 % Exit flag: a failing objective gives -1 and an exhausted budget gives a
 % flag of 1
 [~, ~, ~, ~, flag] = goombah(hfun, x0, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
