@@ -34,6 +34,11 @@
 %                   solvers   - vector of integers: the solver flags to try
 %                   hfun_data - (optional) struct with fields Q/z/c or C/D that
 %                               is saved for the GAMS model of the h function
+%                   atol,rtol - (optional) tolerances (default 1e-4 each) for the
+%                               check that GAMS and MATLAB objective values agree
+%                   printf    - (optional) 0 for no output, 1 to report a
+%                               GAMS/MATLAB mismatch, 2 to also report each GAMS
+%                               run (default 2 if the field is absent)
 % h_fun:          [func handle] evaluates h at a 1-by-p vector of model values
 
 %%%%%%%%%%%
@@ -162,7 +167,9 @@ for j = 1:num_solvers
 
     % Put problem data to a gdx file
     wgdx('quad_model_data', Ns, Ps, Hs_mod, gs_mod, bs_mod, x0s, x1s, solver, Lows_gdx, Upps_gdx);
-    fprintf('Matlab data written to GDX file quads_model_data.gdx\n');
+    if ~isfield(GAMS_options, 'printf') || GAMS_options.printf >= 2
+        fprintf('Matlab data written to GDX file quads_model_data.gdx\n');
+    end
 
     % Remove old solutions file for safety
     solGDX = 'solution.gdx';
@@ -179,7 +186,9 @@ for j = 1:num_solvers
     assert(flag == 0, 'gams run failed: rc = %d', flag);
     assert(exist(solGDX, 'file') == 2, ['Results file ', solGDX, ' does not exist after gams run']);
 
-    fprintf(['TRSP_' int2str(i) '.gms finished\n']);
+    if ~isfield(GAMS_options, 'printf') || GAMS_options.printf >= 2
+        fprintf(['TRSP_' int2str(i) '.gms finished\n']);
+    end
 
     % now get the outputs from the GDX file produced by the GAMS run
     rs = struct('name', 'modelStat', 'form', 'full');
@@ -226,9 +235,17 @@ for j = 1:size(allx, 1)
 end
 
 atol = 1e-4;
+if isfield(GAMS_options, 'atol')
+    atol = GAMS_options.atol;
+end
 rtol = 1e-4;
+if isfield(GAMS_options, 'rtol')
+    rtol = GAMS_options.rtol;
+end
 if any(abs(obj_vals_GAMS(:) - obj_vals_MATLAB(:)) > atol + rtol * abs(obj_vals_MATLAB(:)))
-    disp("MATLAB and GAMS calculated different objective values for some reason");
+    if ~isfield(GAMS_options, 'printf') || GAMS_options.printf >= 1
+        disp("MATLAB and GAMS calculated different objective values for some reason");
+    end
     pred_dec = 0;
     s_k = zeros(1, n);
     return
