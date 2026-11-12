@@ -37,13 +37,15 @@ nf_max_small = n + 2;
 [X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max_small, TRSP_options, subprob_switch);
 assert(size(X, 1) <= nf_max_small, "goombah grew the size of X");
 
-% Low = Upp implies that no model can be built in any coordinate direction
+% Low = Upp in a coordinate is rejected by checkinputss (the same check used
+% by pounders and manifold_sampling_primal), before any model is built.
 Low_fixed = Low;
 Upp_fixed = Upp;
 Low_fixed(1) = x0(1);
 Upp_fixed(1) = x0(1);
-[X, F, hF, ~] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options, subprob_switch);
-assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah should have stopped early with consistent outputs");
+[X, F, hF, ~, flag] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options, subprob_switch);
+assert(flag == -1, "goombah should reject Low(j) == Upp(j)");
+assert(isequal(X, x0) && isequal(F, Ffun(x0)) && isempty(hF), "goombah should return only the starting point");
 
 % Bad options
 bad_solver.solver = 'bad';
