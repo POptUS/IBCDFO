@@ -181,7 +181,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
 
         if rho_k > tol.eta1 % Success with GOOMBAH step
             if norm(X(xk_in, :) - X(nf, :), 'inf') >= 0.8 * delta
-                delta = delta * tol.gamma_inc;
+                delta = min(delta * tol.gamma_inc, tol.maxdelta);
             end
             xk_in = nf;
         else
@@ -274,7 +274,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
                 xk_in = nf; % Line 15: Update TR center and radius
                 if rho_k > tol.eta3 && norm(s_k_msp, "inf") > 0.8 * bar_delta
                     % Update delta if rho is sufficiently large
-                    delta = bar_delta * tol.gamma_inc;
+                    delta = min(bar_delta * tol.gamma_inc, tol.maxdelta);
                     % h_activity_tol = min(1e-8, delta);
                 end
             else

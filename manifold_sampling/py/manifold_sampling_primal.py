@@ -177,7 +177,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             xk_in = nf
             if rho_k > tol["eta3"] and np.linalg.norm(s_k, ord=np.inf) > 0.8 * bar_delta:
                 # Update delta if rho is sufficiently large
-                delta = bar_delta * tol["gamma_inc"]
+                delta = min(bar_delta * tol["gamma_inc"], tol["maxdelta"])
                 # h_activity_tol = min(1e-8, delta);
         else:
             # Line 21: iteration is unsuccessful; shrink Delta
