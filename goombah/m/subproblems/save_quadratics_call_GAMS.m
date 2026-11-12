@@ -10,8 +10,9 @@
 %   to read the GDX file and write out its solution)
 % - Asserts that each GAMS call produced a solution file and reads in the solution
 % - Checks that the GAMS solver status indicates success for at least one solver
-% - Clips the solutions of the successful solvers to the step bounds, and computes
-%   h_fun on the corresponding model values
+% - Snaps the solutions of the successful solvers onto the step bounds, erroring
+%   if GAMS returned a point that is more than snap_tol outside of them, and
+%   computes h_fun on the corresponding model values
 % - Returns the step with the smallest value
 %
 % If the objective values computed by GAMS and by MATLAB disagree, the zero step
@@ -36,6 +37,9 @@
 %                               is saved for the GAMS model of the h function
 %                   atol,rtol - (optional) tolerances (default 1e-4 each) for the
 %                               check that GAMS and MATLAB objective values agree
+%                   snap_tol  - (optional) largest violation of [Lows, Upps] that
+%                               GAMS is allowed to return (default 1e-6);
+%                               see snap_to_bounds
 %                   printf    - (optional) 0 for no output, 1 to report a
 %                               GAMS/MATLAB mismatch, 2 to also report each GAMS
 %                               run (default 2 if the field is absent)
@@ -220,9 +224,11 @@ solved = find(solveStat <= 4);
 obj_vals_GAMS = obj_vals_GAMS(solved);
 allx = allx(solved, :);
 
-for j = 1:size(allx, 1)
-    allx(j, :) =  min(Upps + x_center, max(Lows + x_center, allx(j, :)));
+snap_tol = 1e-6;
+if isfield(GAMS_options, 'snap_tol')
+    snap_tol = GAMS_options.snap_tol;
 end
+allx = snap_to_bounds(allx, Lows + x_center, Upps + x_center, snap_tol, 'A point returned by GAMS');
 
 z = zeros(1, p);
 obj_vals_MATLAB = inf * ones(size(allx, 1), 1);

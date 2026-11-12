@@ -61,6 +61,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %       * **beta_exp**       [dbl] Exponent in the denominator of the |goombah| step ratio (1.0)
     %       * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
     %       * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+    %       * **snap_tol**       [dbl] Largest bound violation that is snapped away instead of being an error (1e-6)
     %
     %  :return:
     %       * **X**     [:math:`k \times \np`] Points evaluated, where
@@ -101,9 +102,6 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
 
     [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
 
-    % Validate the problem the way manifold_sampling_primal does. This is what
-    % rejects Upp <= Low and an x0 outside the bounds, neither of which
-    % |goombah| used to notice.
     [flag, ~, ~, ~, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
     if flag == -1 % Problem with the input
         X = [];
@@ -119,6 +117,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
         beta_exp = Options.beta_exp;
     end
     TRSP_options.printf = printf;
+    TRSP_options.snap_tol = tol.snap_tol;
     assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
@@ -167,7 +166,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
         Upps = min(Upp - X(xk_in, :), delta);
 
         if strcmp(TRSP_options.solver, 'lhs')
-            [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), hfun);
+            [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), hfun, tol.snap_tol);
         else
             [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), TRSP_options, hfun);
         end
@@ -220,6 +219,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
                 Lows = max(Low - X(xk_in, :), -delta);
                 Upps = min(Upp - X(xk_in, :), delta);
                 [s_k_msp, tau_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
+                s_k_msp = snap_to_bounds(s_k_msp', Lows, Upps, tol.snap_tol, 'The MS-P subproblem solution')';
 
                 % Line 8: Compute stationary measure chi_k
                 Lows = max(Low - X(xk_in, :), -1.0);
