@@ -52,6 +52,24 @@ class TestGoombahLhsConverge(unittest.TestCase):
         self.assertLessEqual(abs(np.min(h) - known_min), 1e-6, "goombah did not converge to the known minimum")
         self.assertIn(flag, (0, -6), "flag should be 0 or -6 when the budget is not exhausted")
 
+    def test_converges_to_known_minimum_rosenbrock(self):
+        # Row 7 of the More and Wild SIOPT benchmark is the 2D Rosenbrock
+        # function, whose unique minimum is 0 at x* = (1, 1), where both
+        # residuals are exactly 0. This holds for both the sum-of-squares and
+        # pointwise-maximum-of-squares h, unlike row 1's known minimum above.
+        Ffun, x0, n, m = _bendfo_problem(7)
+        L, U = -np.inf * np.ones(n), np.inf * np.ones(n)
+        nf_max = 200
+        known_min = 0.0
+
+        for h_type, hfun in {"sum_squared": h_leastsquares, "pw_maximum_squared": h_pw_maximum_squared}.items():
+            with self.subTest(h_type=h_type):
+                X, F, h, xkin, flag = goombah(hfun, Ffun, nf_max, x0, L, U, _lhs_trsp(1), subprob_switch="linprog")
+
+                self.assertLess(X.shape[0], nf_max, "goombah used its entire evaluation budget")
+                self.assertLessEqual(abs(np.min(h) - known_min), 1e-6, "goombah did not converge to the known minimum")
+                self.assertIn(flag, (0, -6), "flag should be 0 or -6 when the budget is not exhausted")
+
 
 class TestGoombahLhsBudgetSweep(unittest.TestCase):
     def test_every_budget_in_a_small_range(self):
