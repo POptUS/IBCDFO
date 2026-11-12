@@ -264,7 +264,7 @@ while nf < nf_max
         [Mdir, np] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, Model.Par(3));
         for i = 1:min(n - np, nf_max - nf)
             nf = nf + 1;
-            X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeguard
+            X(nf, :) = snap_to_bounds(X(xk_in, :) + Mdir(i, :), Low, Upp, snap_tol, 'A geometry point');
             F(nf, :) = Ffun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
@@ -326,7 +326,7 @@ while nf < nf_max
             [Mdir, np] = bmpts(X(xk_in, :), Mdir, Low, Upp, delta, Model.Par(3));
             for i = 1:min(n - np, nf_max - nf)
                 nf = nf + 1;
-                X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeg.
+                X(nf, :) = snap_to_bounds(X(xk_in, :) + Mdir(i, :), Low, Upp, snap_tol, 'A geometry point');
                 F(nf, :) = Ffun(X(nf, :));
                 if any(isnan(F(nf, :)))
                     [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
@@ -371,9 +371,8 @@ while nf < nf_max
     % valid, or the step is sufficiently large and mdec isn't zero)
     if valid || (step_norm >= 0.01 * delta && mdec ~= 0)
 
-        % Xsp is not a step anymore. The step is already inside [Lows, Upps], so
-        % this only removes the rounding in the sum.
-        Xsp = min(Upp, max(Low, X(xk_in, :) + Xsp));
+        % Xsp is not a step anymore.
+        Xsp = snap_to_bounds(X(xk_in, :) + Xsp, Low, Upp, snap_tol, 'The trial point');
 
         % Project if we're within machine precision
         for i = 1:n % ! This will need to be cleaned up eventually
@@ -492,7 +491,7 @@ while nf < nf_max
             end
 
             nf = nf + 1;
-            X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Xsp)); % Temp safeguard
+            X(nf, :) = snap_to_bounds(X(xk_in, :) + Xsp, Low, Upp, snap_tol, 'A model-improving point');
             F(nf, :) = Ffun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);

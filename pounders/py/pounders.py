@@ -266,7 +266,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             k_new = int(min(n - mp, nf_max - (nf + 1)))
             idx_new = nf + 1 + np.arange(k_new)
 
-            X[idx_new] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[:k_new, :]))
+            X[idx_new] = snap_to_bounds(X[xk_in] + Mdir[:k_new, :], Low, Upp, snap_tol, "A geometry point")
             F[idx_new] = Ffun(X[idx_new])
 
             for i in range(k_new):
@@ -320,7 +320,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 [Mdir, mp] = bmpts(X[xk_in], Mdir, Low, Upp, delta, Par[2])
                 for i in range(min(n - mp, nf_max - (nf + 1))):
                     nf += 1
-                    X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Mdir[i, :]))
+                    X[nf] = snap_to_bounds(X[xk_in] + Mdir[i, :], Low, Upp, snap_tol, "A geometry point")
                     F[nf, :] = Ffun(X[nf, :].reshape(1, n))
                     if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                         X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
@@ -354,9 +354,8 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
         # 4. Evaluate the function at the new point (provided the model is
         # valid, or the step is sufficiently large and mdec isn't zero)
         if valid or (step_norm >= 0.01 * delta and mdec != 0):
-            # Xsp is not a step anymore. The step is already inside [Lows, Upps],
-            # so this only removes the rounding in the sum.
-            Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))
+            # Xsp is not a step anymore.
+            Xsp = snap_to_bounds(X[xk_in] + Xsp, Low, Upp, snap_tol, "The trial point")
 
             # Project if we're within machine precision
             for i in range(n):  # This will need to be cleaned up eventually
@@ -459,7 +458,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
                 if a2 < a1:
                     Xsp = Mdir1[b, :]
                 nf += 1
-                X[nf] = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard
+                X[nf] = snap_to_bounds(X[xk_in] + Xsp, Low, Upp, snap_tol, "A model-improving point")
                 F[nf, :] = Ffun(X[nf, :].reshape(1, n))
                 if np.any(np.isnan(F[nf])) or np.any(np.isinf(F[nf])):
                     X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -3)
