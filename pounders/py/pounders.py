@@ -3,6 +3,7 @@ import functools
 
 import numpy as np
 
+from .._bound_checks import snap_to_bounds
 from .._variable_checks import is_integer
 from ._force_Ffun_to_batched import force_Ffun_to_batched
 from .bmpts import bmpts
@@ -99,6 +100,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
           from the models of :math:`\Ffun` into a single quadratic model
           (default is ``ibcdfo.pounders.combine_leastsquares`` to match
           the default **hfun**)
+        * **snap_tol** - Largest amount by which **spsolver** may violate the
+          subproblem bounds before |pounders| raises instead of snapping the
+          step back (default is 1e-6)
 
     :param Model: ``dict`` of model building options.  Set to ``None`` to use
         default values.
@@ -208,8 +212,9 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     eta_1 = defaults["eta1"]
     hfun = defaults["hfun"]
     combinemodels = defaults["combinemodels"]
+    snap_tol = defaults["snap_tol"]
 
-    checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels)
+    checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels, snap_tol)
 
     # All calls to the TRSP solver should use only this function to avoid
     # unintentional corruption of arguments by the given solver that might break
@@ -343,12 +348,15 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
             X, F, hF, flag = prepare_outputs_before_return(X, F, hF, nf, -4)
             return X, F, hF, flag, xk_in
 
+        Xsp = snap_to_bounds(Xsp, Lows, Upps, snap_tol, "The step spsolver returned")
         step_norm = np.linalg.norm(Xsp, np.inf) if n > 1 else np.abs(Xsp)
 
         # 4. Evaluate the function at the new point (provided the model is
         # valid, or the step is sufficiently large and mdec isn't zero)
         if valid or (step_norm >= 0.01 * delta and mdec != 0):
-            Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))  # Temp safeguard; note Xsp is not a step anymore
+            # Xsp is not a step anymore. The step is already inside [Lows, Upps],
+            # so this only removes the rounding in the sum.
+            Xsp = np.minimum(Upp, np.maximum(Low, X[xk_in] + Xsp))
 
             # Project if we're within machine precision
             for i in range(n):  # This will need to be cleaned up eventually

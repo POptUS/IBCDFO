@@ -48,6 +48,9 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %       * **combinemodels** - Handle to function that maps the linear and
 %         quadratic terms from the models of :math:`\Ffun` into a single
 %         quadratic model (default is ordinary least squares)
+%       * **snap_tol** - Largest amount by which **spsolver** may violate the
+%         subproblem bounds before |pounders| errors out instead of snapping
+%         the step back (default is 1e-6)
 %
 % :param Model: ``struct`` of model building options.  Do not provide or set to
 %     an empty ``struct`` to use default values.
@@ -134,6 +137,9 @@ end
 if ~isfield(Options, 'printf')
     Options.printf = 0; % Don't print by default
 end
+if ~isfield(Options, 'snap_tol')
+    Options.snap_tol = 1e-6; % [dbl] Largest bound violation that is snapped, not refused (1e-6)
+end
 
 if ~isfield(Model, 'np_max')
     Model.np_max = 2 * n + 1;
@@ -159,6 +165,7 @@ gamma_inc = Options.gamma_inc;
 eta_1 = Options.eta_1;
 printf = Options.printf;
 delta_inact = Options.delta_inact;
+snap_tol = Options.snap_tol;
 if ~isa(solve_trsp, 'function_handle')
     % TODO: Should this be moved into checkinputss?  Is that compatible with
     % MSP?  Should we call it to confirm that it implements the necessary
@@ -357,13 +364,16 @@ while nf < nf_max
     end
 
     Xsp = Xsp'; % Solvers currently work with column vectors
+    Xsp = snap_to_bounds(Xsp, Lows, Upps, snap_tol, 'The step spsolver returned');
     step_norm = norm(Xsp, inf);
 
     % 4. Evaluate the function at the new point (provided the model is
     % valid, or the step is sufficiently large and mdec isn't zero)
     if valid || (step_norm >= 0.01 * delta && mdec ~= 0)
 
-        Xsp = min(Upp, max(Low, X(xk_in, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
+        % Xsp is not a step anymore. The step is already inside [Lows, Upps], so
+        % this only removes the rounding in the sum.
+        Xsp = min(Upp, max(Low, X(xk_in, :) + Xsp));
 
         % Project if we're within machine precision
         for i = 1:n % ! This will need to be cleaned up eventually
