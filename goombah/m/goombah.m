@@ -117,7 +117,20 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
 
     I_n = eye(n);
     for i = 1:n
-        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
+        % Step +delta, try -delta if +delta would leave the box,
+        % or stopping at the bound when the box is narrower than +/-delta.
+        gap_up = Upp(i) - X(xk_in, i);
+        gap_lo = X(xk_in, i) - Low(i);
+        if gap_up >= delta
+            step_i = delta;
+        elseif gap_lo >= delta
+            step_i = -delta;
+        elseif gap_up >= gap_lo
+            step_i = gap_up;
+        else
+            step_i = -gap_lo;
+        end
+        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + step_i * I_n(i, :), tol, Low, Upp, 1);
     end
 
     H_mm = zeros(n);
