@@ -102,9 +102,6 @@ if ~isstruct(Model)
 end
 
 % --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
-if ~isfield(Options, 'delta_max')
-    Options.delta_max = min(.5 * min(Upp - Low), 1e3 * delta_0); % [dbl] Maximum tr radius
-end
 if ~isfield(Options, 'delta_min')
     Options.delta_min = min(delta_0 * 1e-13, g_tol / 10); % [dbl] Min tr radius (technically 0)
 end
@@ -158,7 +155,6 @@ nfs = Prior.nfs;
 
 delta = delta_0;
 solve_trsp = Options.spsolver;
-delta_max = Options.delta_max;
 delta_min = Options.delta_min;
 gamma_dec = Options.gamma_dec;
 gamma_inc = Options.gamma_inc;
@@ -188,6 +184,15 @@ if flag == -1 % Problem with the input
     hF = [];
     return
 end
+
+% delta_max is derived from the bounds, so it is set only now that
+% checkinputss has accepted them. Setting it earlier turns a malformed Low or
+% Upp into a size error from the subtraction instead of the flag of -1 that
+% checkinputss returns. pounders.py orders these the same way.
+if ~isfield(Options, 'delta_max')
+    Options.delta_max = min(.5 * min(Upp - Low), 1e3 * delta_0); % [dbl] Maximum tr radius
+end
+delta_max = Options.delta_max;
 
 if printf
     disp('  nf   delta    fl  np       f0           g0       ierror');
