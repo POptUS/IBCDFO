@@ -15,7 +15,8 @@ CLONE_PATH=$SCRIPT_PATH/..
 # symlink.
 declare -a FOLDERS=("tools" \
                     "pounders/py" \
-                    "manifold_sampling/py")
+                    "manifold_sampling/py" \
+                    "goombah/py")
 
 pushd $CLONE_PATH &> /dev/null  || exit 1
 

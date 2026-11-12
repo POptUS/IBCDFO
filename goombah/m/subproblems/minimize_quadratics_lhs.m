@@ -44,7 +44,7 @@ obj = @(s) h_fun(eval_quadratics(Hres, Gres, Cres, s));
 
 % Latin hypercube sample: each coordinate's num_samples values fall in
 % distinct equal-width slices of [Lows(j), Upps(j)].
-num_samples = 1000 * n;
+num_samples = 300 * n;
 S = zeros(num_samples, n);
 for j = 1:n
     S(:, j) = Lows(j) + (Upps(j) - Lows(j)) * (randperm(num_samples)' - rand(num_samples, 1)) / num_samples;

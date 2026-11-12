@@ -127,6 +127,18 @@ those of manifold sampling (see :ref:`msp_section`):
 * -6 - the trust-region radius reached its minimum without satisfying the
   stationarity tolerance.
 
+Python
+^^^^^^
+The Python implementation takes the TRSP solver as a plain function argument
+rather than the |matlab| implementation's ``TRSP_options`` struct.
+This follows the convention in :py:func:`ibcdfo.pounders.create_trsp_solver`.
+So far, only the LHS-based solver (mirroring the |matlab| implementation's
+``'lhs'`` option above) is available in Python; a GAMS-based solver is
+planned.
+
+.. autofunction:: ibcdfo.run_goombah
+.. autofunction:: ibcdfo.goombah.minimize_quadratics_lhs
+
 |matlab|
 ^^^^^^^^
 .. mat:autofunction:: goombah.m.goombah
