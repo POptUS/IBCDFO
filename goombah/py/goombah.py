@@ -25,20 +25,20 @@ def goombah(hfun, Ffun, nf_max, x0, L, U, trsp_solver, subprob_switch="linprog")
     sampling (MS-P) iteration when that step is unsuccessful.
 
     :param hfun: Function evaluating :math:`\hfun`, as described in
-        :py:func:`ibcdfo.manifold_sampling.manifold_sampling_primal`.
+        :py:func:`ibcdfo.run_MSP`.
     :param Ffun: Function returning :math:`\Ffun(\xvec)` as a length-:math:`p`
         array for a given length-:math:`n` array ``x``.
     :param nf_max: Maximum number of evaluations of ``Ffun``.
     :param x0: Initial point (length-:math:`n` array).
     :param L: Lower bounds for ``x`` (length-:math:`n` array).
     :param U: Upper bounds for ``x`` (length-:math:`n` array).
-    :param trsp_solver: TRSP solver with the interface created by
-        :py:func:`create_goombah_trsp_solver`.
+    :param trsp_solver: TRSP solver with the interface implemented by
+        :py:func:`ibcdfo.goombah.minimize_quadratics_lhs`.
     :param subprob_switch: Selects the TRSP solver/variant used internally by
         the manifold sampling fallback.
 
     :return: Tuple ``(X, F, h, xkin, flag)``, as described in
-        :py:func:`ibcdfo.manifold_sampling.manifold_sampling_primal`.
+        :py:func:`ibcdfo.run_MSP`.
     """
     try:
         F0 = Ffun(x0)

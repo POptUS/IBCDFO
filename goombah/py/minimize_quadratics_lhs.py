@@ -34,7 +34,7 @@ def minimize_quadratics_lhs(Hres, Gres, Cres, Low, Upp, val_at_center, hfun, rng
     :param val_at_center: Objective value at the trust-region center (the
         zero step).
     :param hfun: Function evaluating :math:`\hfun`, as described in
-        :py:func:`ibcdfo.manifold_sampling.manifold_sampling_primal`.
+        :py:func:`ibcdfo.run_MSP`.
     :param rng: (optional) a ``numpy.random.Generator`` used for the Latin
         hypercube sample. Defaults to ``numpy.random.default_rng()``.
 
