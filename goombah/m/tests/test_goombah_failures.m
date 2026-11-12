@@ -2,9 +2,8 @@
 % an informative message, when given a bad objective, a bad option, or an
 % evaluation budget that is exhausted while building the first models.
 %
-% To run this test, you must first install a MINQ clone and add
-%    /path/to/MINQ/m/minq5
-% to the MATLAB path.
+% The LHS TRSP solver and linprog are used, so neither GAMS nor MINQ is
+% needed, and the objective is supplied inline, so neither is BenDFO.
 
 function [] = test_goombah_failures()
 
