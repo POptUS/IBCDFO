@@ -17,6 +17,7 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     %     * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
     %     * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
     %     * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+    %     * **snap_tol**       [dbl] Largest bound violation that is snapped away instead of being an error (1e-6)
 
     global h_activity_tol
 
@@ -60,6 +61,9 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     if ~isfield(Options, 'h_activity_tol')
         Options.h_activity_tol = min(1e-8, Options.delta_0); % [dbl] hfun activity tolerance (min(1e-8, delta_0))
     end
+    if ~isfield(Options, 'snap_tol')
+        Options.snap_tol = 1e-6; % [dbl] Largest bound violation that is snapped, not refused (1e-6)
+    end
 
     n = length(x0);
     p = length(F0);
@@ -88,6 +92,7 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     tol.gamma_dec = Options.gamma_dec; % [dbl] in (0, 1) for shrinking delta
     tol.gamma_inc = Options.gamma_inc; % [dbl] >= 1 for increasing delta
     tol.hfun_test_mode = Options.hfun_test_mode; % [bool] Run some checks every time the hfun is called to see if it is implemented correctly.
+    tol.snap_tol = Options.snap_tol; % [dbl] Largest bound violation that is snapped away instead of being an error
     % kappa_mh = 0;    % [dbl] > 0 that bounds the component model Hessians
 
     assert(nf_max >= n + 1, "nf_max is less than n+1, exiting");

@@ -1,6 +1,7 @@
 import numpy as np
 from ibcdfo.pounders import _checkinputss as checkinputss
 
+from .._bound_checks import snap_to_bounds
 from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts
 from .check_inputs_and_initialize import check_inputs_and_initialize
@@ -134,6 +135,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(hF[xk_in], f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch, eng)
             if lp_fail_flag:
                 return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, -2, printf, chi_k)
+            s_k = snap_to_bounds(s_k, Lows, Upps, tol["snap_tol"], "The subproblem solution")
 
             # Line 8: Compute stationary measure chi_k
             Lows = np.maximum(Low - X[xk_in], -1.0)

@@ -38,6 +38,7 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %     * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
 %     * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
 %     * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+%     * **snap_tol**       [dbl] Largest bound violation that is snapped away instead of being an error (1e-6)
 %
 %
 % :return:
@@ -146,6 +147,7 @@ while nf < nf_max && delta > tol.mindelta
         Lows = max(Low - X(xk_in, :), -delta);
         Upps = min(Upp - X(xk_in, :), delta);
         [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
+        s_k = snap_to_bounds(s_k', Lows, Upps, tol.snap_tol, 'The subproblem solution')';
 
         % Line 8: Compute stationary measure chi_k
         Lows = max(Low - X(xk_in, :), -1.0);

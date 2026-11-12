@@ -1,5 +1,7 @@
 import numpy as np
 
+from .._bound_checks import snap_to_bounds
+
 
 def call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow_recalc=0):
     if len(x_in) != len(Upp) or len(x_in) != len(Low):
@@ -8,7 +10,7 @@ def call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, x_in, tol, Low, Upp, allow
     if allow_recalc is None:
         allow_recalc = 0
 
-    xnew = np.minimum(Upp, np.maximum(Low, x_in))
+    xnew = snap_to_bounds(x_in, Low, Upp, tol["snap_tol"], "The requested point")
 
     for i in range(len(xnew)):
         if Upp[i] - xnew[i] < np.finfo(float).eps * np.abs(Upp[i]) and Upp[i] > xnew[i]:
