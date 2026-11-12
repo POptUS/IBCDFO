@@ -53,10 +53,10 @@ class TestGoombahLhsConverge(unittest.TestCase):
         self.assertIn(flag, (0, -6), "flag should be 0 or -6 when the budget is not exhausted")
 
     def test_converges_to_known_minimum_rosenbrock(self):
-        # Row 7 of the More and Wild SIOPT benchmark is the 2D Rosenbrock
-        # function, whose unique minimum is 0 at x* = (1, 1), where both
-        # residuals are exactly 0. This holds for both the sum-of-squares and
-        # pointwise-maximum-of-squares h, unlike row 1's known minimum above.
+        # Row 7 of BenDFO is the 2D Rosenbrock function, with a minimum of 0 at
+        # x* = (1, 1). where both residuals are 0.
+        # This holds for both the sum-of-squares and
+        # pointwise-maximum-of-squares h.
         Ffun, x0, n, m = _bendfo_problem(7)
         L, U = -np.inf * np.ones(n), np.inf * np.ones(n)
         nf_max = 200
