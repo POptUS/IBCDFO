@@ -51,7 +51,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %
     %       * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output, including each GAMS run (1)
     %       * **delta_0**        [dbl] Initial trust-region radius (0.1)
-    %       * **delta_max**      [dbl] Maximum trust-region radius (1e8, or half the narrowest side of the box if that is smaller)
+    %       * **delta_max**      [dbl] Maximum trust-region radius (1e3 * delta_0, or half the narrowest side of the box if that is smaller)
     %       * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
     %       * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
     %       * **eta_1**          [dbl] In (0, 1); rho above this is a successful iteration (0.01)

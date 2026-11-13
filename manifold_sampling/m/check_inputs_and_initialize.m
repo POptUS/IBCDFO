@@ -8,7 +8,7 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     %
     %     * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output in |goombah|, including each GAMS run. Level 2 has no effect in |manifold_sampling| (1)
     %     * **delta_0**        [dbl] Initial trust-region radius (0.1)
-    %     * **delta_max**      [dbl] Maximum trust-region radius (1e8, or half the narrowest side of the box if that is smaller)
+    %     * **delta_max**      [dbl] Maximum trust-region radius (1e3 * delta_0, or half the narrowest side of the box if that is smaller)
     %     * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
     %     * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
     %     * **eta_1**          [dbl] In (0, 1); rho at or above this is a successful iteration (0.01)
@@ -34,17 +34,25 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     if ~isfield(Options, 'delta_0')
         Options.delta_0 = 0.1; % [dbl] Initial trust-region radius (0.1)
     end
+    box_is_valid = isequal(size(Low), size(Upp)) && min(Upp - Low) > 0;
     if ~isfield(Options, 'delta_max')
         % Never let the radius exceed half the narrowest side of the box; a
         % larger radius cannot be realised by any feasible step anyway.
         % checkinputss validates the bounds, but only after this runs, so fall
-        % back to the flat ceiling when they do not conform and leave the
-        % complaining to it.
-        if isequal(size(Low), size(Upp))
-            Options.delta_max = min(1e8, 0.5 * min(Upp - Low)); % [dbl] Maximum trust-region radius
+        % back to the delta_0-relative ceiling when they do not conform and
+        % leave the complaining to it.
+        if box_is_valid
+            Options.delta_max = min(1e3 * Options.delta_0, 0.5 * min(Upp - Low)); % [dbl] Maximum trust-region radius
         else
-            Options.delta_max = 1e8;
+            Options.delta_max = 1e3 * Options.delta_0;
         end
+    end
+    % An infeasible or degenerate box is checked by checkinputss.
+    % Flag a delta_max that is too small when the box itself is valid.
+    if box_is_valid
+        assert(Options.delta_max >= Options.delta_0, ...
+               "Options.delta_max (%g) is less than Options.delta_0 (%g); the box may be too narrow for delta_0", ...
+               Options.delta_max, Options.delta_0);
     end
     if ~isfield(Options, 'delta_min')
         Options.delta_min = 1e-13; % [dbl] Minimum trust-region radius (1e-13)
