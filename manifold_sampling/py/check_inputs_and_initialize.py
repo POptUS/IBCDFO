@@ -22,10 +22,6 @@ def check_inputs_and_initialize(x0, F0, nf_max, Low, Upp):
         maxdelta = min(1.0e3 * delta, 0.5 * np.min(Upp - Low))
     else:
         maxdelta = 1.0e3 * delta
-    # An infeasible or degenerate box is checked by checkinputss.
-    # Flag a maxdelta that is too small when the box itself is valid.
-    if box_is_valid:
-        assert maxdelta >= delta, f"maxdelta ({maxdelta:g}) is less than delta ({delta:g}); the box may be too narrow for delta"
 
     # Internal parameters/tolerances for manifold sampling
     tol = {

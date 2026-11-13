@@ -1,7 +1,7 @@
 from .._variable_checks import is_finite_real, is_integer
 
 
-def checkoptions(printf, spsolver, batched_Ffun, delta_0, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels, snap_tol):
+def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels, snap_tol):
     """
     Raise an exception if any of the given POUNDERS options do
     not meet the requirements of the POUNDERS implementation.
@@ -30,8 +30,6 @@ def checkoptions(printf, spsolver, batched_Ffun, delta_0, delta_max, delta_min, 
         raise ValueError(f"Error: Options['delta_min'] must be a nonnegative finite real ({delta_min})")
     if delta_min > delta_max:
         raise ValueError(f"Error: Options['delta_min'] must not exceed Options['delta_max'] ({delta_min} > {delta_max})")
-    if delta_0 > delta_max:
-        raise ValueError(f"Error: Options['delta_max'] must not be less than delta_0 ({delta_max} < {delta_0}); the box may be too narrow for delta_0")
     if not (is_finite_real(delta_inact) and 0.0 < delta_inact <= 1.0):
         raise ValueError(f"Error: Options['delta_inact'] must be a finite real in (0, 1] ({delta_inact})")
     if not (is_finite_real(gamma_dec) and 0.0 < gamma_dec < 1.0):

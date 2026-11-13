@@ -214,7 +214,7 @@ def pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior=None, Opti
     combinemodels = defaults["combinemodels"]
     snap_tol = defaults["snap_tol"]
 
-    checkoptions(printf, spsolver, batched_Ffun, delta_0, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels, snap_tol)
+    checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels, snap_tol)
 
     # All calls to the TRSP solver should use only this function to avoid
     # unintentional corruption of arguments by the given solver that might break

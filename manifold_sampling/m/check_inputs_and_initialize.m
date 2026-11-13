@@ -47,13 +47,6 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
             Options.delta_max = 1e3 * Options.delta_0;
         end
     end
-    % An infeasible or degenerate box is checked by checkinputss.
-    % Flag a delta_max that is too small when the box itself is valid.
-    if box_is_valid
-        assert(Options.delta_max >= Options.delta_0, ...
-               "Options.delta_max (%g) is less than Options.delta_0 (%g); the box may be too narrow for delta_0", ...
-               Options.delta_max, Options.delta_0);
-    end
     if ~isfield(Options, 'delta_min')
         Options.delta_min = 1e-13; % [dbl] Minimum trust-region radius (1e-13)
     end

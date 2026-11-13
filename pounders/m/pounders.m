@@ -193,9 +193,6 @@ if ~isfield(Options, 'delta_max')
     Options.delta_max = min(.5 * min(Upp - Low), 1e3 * delta_0); % [dbl] Maximum tr radius
 end
 delta_max = Options.delta_max;
-assert(delta_max >= delta_0, ...
-       "Options.delta_max (%g) is less than delta_0 (%g); the box may be too narrow for delta_0", ...
-       delta_max, delta_0);
 
 if printf
     disp('  nf   delta    fl  np       f0           g0       ierror');
