@@ -23,7 +23,7 @@
 % x1:             [1-by-n] a candidate starting point
 % hF_at_x_center: [scalar] the objective value at x_center
 % h_fun:          [func handle] evaluates h
-% snap_tol:       [scalar] largest violation of [Lows, Upps] that we can is return; see snap_to_bounds
+% snap_tol:       [scalar] largest violation of [Lows, Upps] that is snapped rather than refused; see snap_to_bounds
 
 %%%%%%%%%%%
 % Outputs:
