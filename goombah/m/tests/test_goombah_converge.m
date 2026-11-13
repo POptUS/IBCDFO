@@ -5,11 +5,10 @@
 % h(F(x)) = sum(F(x).^2) has the known minimum m - n = 36. The LHS TRSP solver is
 % used instead of GAMS.
 %
-% To run this test, you must first install a BenDFO and a MINQ clone and add
+% To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
-%    /path/to/MINQ/m/minq5
-% to the MATLAB path.
+% to the MATLAB path. MINQ is not needed.
 
 function [] = test_goombah_converge()
 

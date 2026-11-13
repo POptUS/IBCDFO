@@ -2,9 +2,8 @@
 % an informative message, when given a bad objective, a bad option, or an
 % evaluation budget that is exhausted while building the first models.
 %
-% To run this test, you must first install a MINQ clone and add
-%    /path/to/MINQ/m/minq5
-% to the MATLAB path.
+% The LHS TRSP solver and linprog are used, so neither GAMS nor MINQ is
+% needed, and the objective is supplied inline, so neither is BenDFO.
 
 function [] = test_goombah_failures()
 
@@ -37,13 +36,20 @@ nf_max_small = n + 2;
 [X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max_small, TRSP_options, subprob_switch);
 assert(size(X, 1) <= nf_max_small, "goombah grew the size of X");
 
-% Low = Upp implies that no model can be built in any coordinate direction
+% Low = Upp leaves a coordinate with no room to build a model in, so the input
+% checks reject it
 Low_fixed = Low;
 Upp_fixed = Upp;
 Low_fixed(1) = x0(1);
 Upp_fixed(1) = x0(1);
-[X, F, hF, ~] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options, subprob_switch);
-assert(size(X, 1) < nf_max && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "goombah should have stopped early with consistent outputs");
+[X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, TRSP_options, subprob_switch);
+assert(flag == -1, "goombah should have rejected Low == Upp");
+assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "a rejected problem should return empty outputs");
+
+% A starting point outside the bounds is rejected too
+[X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, x0 - 1, nf_max, TRSP_options, subprob_switch);
+assert(flag == -1, "goombah should have rejected an x0 above Upp");
+assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "a rejected problem should return empty outputs");
 
 % Bad options
 bad_solver.solver = 'bad';

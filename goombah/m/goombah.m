@@ -51,7 +51,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %
     %       * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output, including each GAMS run (1)
     %       * **delta_0**        [dbl] Initial trust-region radius (0.1)
-    %       * **delta_max**      [dbl] Maximum trust-region radius (1e8)
+    %       * **delta_max**      [dbl] Maximum trust-region radius (1e3 * delta_0, or half the narrowest side of the box if that is smaller)
     %       * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
     %       * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
     %       * **eta_1**          [dbl] In (0, 1); rho above this is a successful iteration (0.01)
@@ -61,6 +61,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %       * **beta_exp**       [dbl] Exponent in the denominator of the |goombah| step ratio (1.0)
     %       * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
     %       * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+    %       * **snap_tol**       [dbl] Largest bound violation that is snapped away instead of being an error (1e-6)
     %
     %  :return:
     %       * **X**     [:math:`k \times \np`] Points evaluated, where
@@ -99,13 +100,24 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
+    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Low, Upp, Options);
+
+    [flag, ~, ~, ~, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
+    if flag == -1 % Problem with the input
+        X = [];
+        F = [];
+        hF = [];
+        xk_in = [];
+        return
+    end
+
     if ~isfield(Options, 'beta_exp')
         beta_exp = 1.0; % [dbl] Exponent in the denominator of the step ratio (1.0)
     else
         beta_exp = Options.beta_exp;
     end
     TRSP_options.printf = printf;
+    TRSP_options.snap_tol = tol.snap_tol;
     assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
@@ -117,7 +129,20 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
 
     I_n = eye(n);
     for i = 1:n
-        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
+        % Step +delta, try -delta if +delta would leave the box,
+        % or stopping at the bound when the box is narrower than +/-delta.
+        gap_up = Upp(i) - X(xk_in, i);
+        gap_lo = X(xk_in, i) - Low(i);
+        if gap_up >= delta
+            step_i = delta;
+        elseif gap_lo >= delta
+            step_i = -delta;
+        elseif gap_up >= gap_lo
+            step_i = gap_up;
+        else
+            step_i = -gap_lo;
+        end
+        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + step_i * I_n(i, :), tol, Low, Upp, 1);
     end
 
     H_mm = zeros(n);
@@ -141,7 +166,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
         Upps = min(Upp - X(xk_in, :), delta);
 
         if strcmp(TRSP_options.solver, 'lhs')
-            [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), hfun);
+            [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), hfun, tol.snap_tol);
         else
             [s_k, pred_dec] = save_quadratics_call_GAMS(Hres, Gres, F(xk_in, :), Lows, Upps, X(xk_in, :), X(xk_in, :), hF(xk_in), TRSP_options, hfun);
         end
@@ -155,7 +180,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
 
         if rho_k > tol.eta1 % Success with GOOMBAH step
             if norm(X(xk_in, :) - X(nf, :), 'inf') >= 0.8 * delta
-                delta = delta * tol.gamma_inc;
+                delta = min(delta * tol.gamma_inc, tol.maxdelta);
             end
             xk_in = nf;
         else
@@ -194,6 +219,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
                 Lows = max(Low - X(xk_in, :), -delta);
                 Upps = min(Upp - X(xk_in, :), delta);
                 [s_k_msp, tau_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
+                s_k_msp = snap_to_bounds(s_k_msp', Lows, Upps, tol.snap_tol, 'The MS-P subproblem solution')';
 
                 % Line 8: Compute stationary measure chi_k
                 Lows = max(Low - X(xk_in, :), -1.0);
@@ -248,7 +274,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
                 xk_in = nf; % Line 15: Update TR center and radius
                 if rho_k > tol.eta3 && norm(s_k_msp, "inf") > 0.8 * bar_delta
                     % Update delta if rho is sufficiently large
-                    delta = bar_delta * tol.gamma_inc;
+                    delta = min(bar_delta * tol.gamma_inc, tol.maxdelta);
                     % h_activity_tol = min(1e-8, delta);
                 end
             else

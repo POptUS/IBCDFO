@@ -29,7 +29,7 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %
 %     * **printf**         [int] 0 for no output, 1 for standard output (1)
 %     * **delta_0**        [dbl] Initial trust-region radius (0.1)
-%     * **delta_max**      [dbl] Maximum trust-region radius (1e8)
+%     * **delta_max**      [dbl] Maximum trust-region radius (1e3 * delta_0, or half the narrowest side of the box if that is smaller)
 %     * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
 %     * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
 %     * **eta_1**          [dbl] In (0, 1); rho at or above this is a successful iteration (0.01)
@@ -38,6 +38,7 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %     * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
 %     * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
 %     * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+%     * **snap_tol**       [dbl] Largest bound violation that is snapped away instead of being an error (1e-6)
 %
 %
 % :return:
@@ -94,7 +95,7 @@ catch e
     return
 end
 
-[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
+[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Low, Upp, Options);
 [flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = x0;
@@ -146,6 +147,7 @@ while nf < nf_max && delta > tol.mindelta
         Lows = max(Low - X(xk_in, :), -delta);
         Upps = min(Upp - X(xk_in, :), delta);
         [s_k, tau_k, ~, lambda_k] = minimize_affine_envelope(hF(xk_in), f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch);
+        s_k = snap_to_bounds(s_k', Lows, Upps, tol.snap_tol, 'The subproblem solution')';
 
         % Line 8: Compute stationary measure chi_k
         Lows = max(Low - X(xk_in, :), -1.0);
@@ -199,7 +201,7 @@ while nf < nf_max && delta > tol.mindelta
         xk_in = nf; % Line 15: Update TR center and radius
         if rho_k > tol.eta3 && norm(s_k, "inf") > 0.8 * bar_delta
             % Update delta if rho is sufficiently large
-            delta = bar_delta * tol.gamma_inc;
+            delta = min(bar_delta * tol.gamma_inc, tol.maxdelta);
             % h_activity_tol = min(1e-8, delta);
         end
     else

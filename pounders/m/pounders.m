@@ -48,6 +48,9 @@ function [X, F, hF, flag, xk_in] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0
 %       * **combinemodels** - Handle to function that maps the linear and
 %         quadratic terms from the models of :math:`\Ffun` into a single
 %         quadratic model (default is ordinary least squares)
+%       * **snap_tol** - Largest amount by which **spsolver** may violate the
+%         subproblem bounds before |pounders| errors out instead of snapping
+%         the step back (default is 1e-6)
 %
 % :param Model: ``struct`` of model building options.  Do not provide or set to
 %     an empty ``struct`` to use default values.
@@ -99,9 +102,6 @@ if ~isstruct(Model)
 end
 
 % --INTERNAL PARAMETERS [won't be changed elsewhere, defaults in ( ) ]-----
-if ~isfield(Options, 'delta_max')
-    Options.delta_max = min(.5 * min(Upp - Low), 1e3 * delta_0); % [dbl] Maximum tr radius
-end
 if ~isfield(Options, 'delta_min')
     Options.delta_min = min(delta_0 * 1e-13, g_tol / 10); % [dbl] Min tr radius (technically 0)
 end
@@ -134,6 +134,9 @@ end
 if ~isfield(Options, 'printf')
     Options.printf = 0; % Don't print by default
 end
+if ~isfield(Options, 'snap_tol')
+    Options.snap_tol = 1e-6; % [dbl] Largest bound violation that is snapped, not refused (1e-6)
+end
 
 if ~isfield(Model, 'np_max')
     Model.np_max = 2 * n + 1;
@@ -152,13 +155,13 @@ nfs = Prior.nfs;
 
 delta = delta_0;
 solve_trsp = Options.spsolver;
-delta_max = Options.delta_max;
 delta_min = Options.delta_min;
 gamma_dec = Options.gamma_dec;
 gamma_inc = Options.gamma_inc;
 eta_1 = Options.eta_1;
 printf = Options.printf;
 delta_inact = Options.delta_inact;
+snap_tol = Options.snap_tol;
 if ~isa(solve_trsp, 'function_handle')
     % TODO: Should this be moved into checkinputss?  Is that compatible with
     % MSP?  Should we call it to confirm that it implements the necessary
@@ -181,6 +184,15 @@ if flag == -1 % Problem with the input
     hF = [];
     return
 end
+
+% delta_max is derived from the bounds, so it is set only now that
+% checkinputss has accepted them. Setting it earlier turns a malformed Low or
+% Upp into a size error from the subtraction instead of the flag of -1 that
+% checkinputss returns. pounders.py orders these the same way.
+if ~isfield(Options, 'delta_max')
+    Options.delta_max = min(.5 * min(Upp - Low), 1e3 * delta_0); % [dbl] Maximum tr radius
+end
+delta_max = Options.delta_max;
 
 if printf
     disp('  nf   delta    fl  np       f0           g0       ierror');
@@ -257,7 +269,7 @@ while nf < nf_max
         [Mdir, np] = bmpts(X(xk_in, :), Mdir(1:n - np, :), Low, Upp, delta, Model.Par(3));
         for i = 1:min(n - np, nf_max - nf)
             nf = nf + 1;
-            X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeguard
+            X(nf, :) = snap_to_bounds(X(xk_in, :) + Mdir(i, :), Low, Upp, snap_tol, 'A geometry point');
             F(nf, :) = Ffun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
@@ -319,7 +331,7 @@ while nf < nf_max
             [Mdir, np] = bmpts(X(xk_in, :), Mdir, Low, Upp, delta, Model.Par(3));
             for i = 1:min(n - np, nf_max - nf)
                 nf = nf + 1;
-                X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Mdir(i, :))); % Temp safeg.
+                X(nf, :) = snap_to_bounds(X(xk_in, :) + Mdir(i, :), Low, Upp, snap_tol, 'A geometry point');
                 F(nf, :) = Ffun(X(nf, :));
                 if any(isnan(F(nf, :)))
                     [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);
@@ -357,13 +369,15 @@ while nf < nf_max
     end
 
     Xsp = Xsp'; % Solvers currently work with column vectors
+    Xsp = snap_to_bounds(Xsp, Lows, Upps, snap_tol, 'The step spsolver returned');
     step_norm = norm(Xsp, inf);
 
     % 4. Evaluate the function at the new point (provided the model is
     % valid, or the step is sufficiently large and mdec isn't zero)
     if valid || (step_norm >= 0.01 * delta && mdec ~= 0)
 
-        Xsp = min(Upp, max(Low, X(xk_in, :) + Xsp));  % Temp safeguard; note Xsp is not a step anymore
+        % Xsp is not a step anymore.
+        Xsp = snap_to_bounds(X(xk_in, :) + Xsp, Low, Upp, snap_tol, 'The trial point');
 
         % Project if we're within machine precision
         for i = 1:n % ! This will need to be cleaned up eventually
@@ -482,7 +496,7 @@ while nf < nf_max
             end
 
             nf = nf + 1;
-            X(nf, :) = min(Upp, max(Low, X(xk_in, :) + Xsp)); % Temp safeguard
+            X(nf, :) = snap_to_bounds(X(xk_in, :) + Xsp, Low, Upp, snap_tol, 'A model-improving point');
             F(nf, :) = Ffun(X(nf, :));
             if any(isnan(F(nf, :)))
                 [X, F, hF, flag] = prepare_outputs_before_return(X, F, hF, nf, -3);

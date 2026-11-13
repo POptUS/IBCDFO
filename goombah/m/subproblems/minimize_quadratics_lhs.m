@@ -23,6 +23,7 @@
 % x1:             [1-by-n] a candidate starting point
 % hF_at_x_center: [scalar] the objective value at x_center
 % h_fun:          [func handle] evaluates h
+% snap_tol:       [scalar] largest violation of [Lows, Upps] that is snapped rather than refused; see snap_to_bounds
 
 %%%%%%%%%%%
 % Outputs:
@@ -30,7 +31,7 @@
 % s_k:            [1-by-n] array containing the step
 % pred_dec:       [scalar] predicted decrease from x_center to x_center + s_k
 
-function [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x1, hF_at_x_center, h_fun)
+function [s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x1, hF_at_x_center, h_fun, snap_tol)
 
 [n, p] = size(Gres);
 
@@ -59,7 +60,7 @@ end
 
 options = optimoptions('fmincon', 'Display', 'off');
 s_k = fmincon(obj, S(ind, :), [], [], [], [], Lows, Upps, [], options);
-s_k = min(Upps, max(Lows, s_k));
+s_k = snap_to_bounds(s_k, Lows, Upps, snap_tol, 'The step fmincon returned');
 
 % safeguard in case fmincon returns a worse solution than its starting point
 if obj(s_k) > vals(ind)

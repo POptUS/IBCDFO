@@ -1,6 +1,7 @@
 import numpy as np
 from ibcdfo.pounders import _checkinputss as checkinputss
 
+from .._bound_checks import snap_to_bounds
 from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts
 from .check_inputs_and_initialize import check_inputs_and_initialize
@@ -91,7 +92,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     X_init = np.atleast_2d(x0)
     F_init = np.atleast_2d(F0)
 
-    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
+    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max, Low, Upp)
     # This raises exceptions on bad inputs and does not alter any arguments.
     checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
 
@@ -134,6 +135,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(hF[xk_in], f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch, eng)
             if lp_fail_flag:
                 return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, -2, printf, chi_k)
+            s_k = snap_to_bounds(s_k, Lows, Upps, tol["snap_tol"], "The subproblem solution")
 
             # Line 8: Compute stationary measure chi_k
             Lows = np.maximum(Low - X[xk_in], -1.0)
@@ -177,7 +179,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             xk_in = nf
             if rho_k > tol["eta3"] and np.linalg.norm(s_k, ord=np.inf) > 0.8 * bar_delta:
                 # Update delta if rho is sufficiently large
-                delta = bar_delta * tol["gamma_inc"]
+                delta = min(bar_delta * tol["gamma_inc"], tol["maxdelta"])
                 # h_activity_tol = min(1e-8, delta);
         else:
             # Line 21: iteration is unsuccessful; shrink Delta
