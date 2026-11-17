@@ -14,6 +14,11 @@ def _failed(flag):
 
 def compare_results(filename_benchmark, filename_result):
     """
+    .. note::
+        This function is not covered by the test suite.  Its correctness is
+        expected to be assessed naturally through its use in comparing
+        benchmark results.
+
     .. todo::
         * Allow for users to specify nonzero tolerances if the use case arises.
 
