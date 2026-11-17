@@ -10,6 +10,11 @@ def load_results(filename):
     Based on benchmark results' file format established at commit
     * fb33cdfd for POUNDERS/Python and
     * 2b4d9603 for POUNDERS/MATLAB.
+
+    .. note::
+        This function is not covered by the test suite.  Its correctness is
+        expected to be assessed naturally through its use in loading benchmark
+        results.
     """
     EXPECTED_KEYS = {"alg", "problem", "H", "Fvec", "X", "flag", "xk_best"}
 
