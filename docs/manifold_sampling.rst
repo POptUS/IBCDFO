@@ -54,13 +54,26 @@ All Manifold Sampling implementations return a termination criteria flag. The
 interpretation of the value of the flag is identical across implementations and
 possible values are
 
-* > 0 - successful termination; the value of the flag is the final
-  stationarity measure (:math:`\chi_k`)
-* 0 - the budget of ``nf_max`` function evaluations was exhausted.
+* 1 - budget of ``nf_max`` function evaluations was exhausted
+* 0 - normal termination; the stationary measure (:math:`\chi_k`) and the
+  trust-region radius were sufficiently small within tolerance.
 * -1 - model construction failed (an empty or invalid local model
   was constructed)
 * -2 - trust-region subproblem failed, likely due to an unbounded
   or poorly scaled affine-envelope subproblem
+* -6 - the trust-region radius reached its minimum without satisfying the
+  stationarity tolerance. This is a common way for a successful run to end; 
+  it does not necessarily indicate a failure. The final :math:`\chi_k` is displayed
+  when output is enabled. A small :math:`\chi_k` together with the small radius
+  indicates a good result. One should inspect ``hF`` as well.
+
+.. note::
+   Unlike the norm of the gradient in |pounders|, the stationarity measure in
+   manifold sampling :math:`\chi_k` alone is not a reliable indication of how close
+   the last incumbent is to a solution. :math:`\chi_k` can be (close to) zero while the
+   trust-region radius is still large, in which case the problem could be far from
+   solved. For this reason, the flag (1) indicates only that the budget was exhausted
+   and does not return the final value of :math:`\chi_k`, like |pounders| does. 
 
 The programmatic interface is generally maintained identically across all
 implementations. Nevertheless, we provide the interface for each implementation

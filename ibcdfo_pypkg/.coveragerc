@@ -4,3 +4,5 @@ omit =
     */BenDFO/*
     ./src/ibcdfo/test.py
     */unused_code/*
+    ./src/ibcdfo/pounders/tests/compare_results.py
+    ./src/ibcdfo/pounders/tests/load_results.py

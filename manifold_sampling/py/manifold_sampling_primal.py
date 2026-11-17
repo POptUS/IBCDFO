@@ -6,7 +6,7 @@ from .call_user_scripts import call_user_scripts
 from .check_inputs_and_initialize import check_inputs_and_initialize
 from .choose_generator_set import choose_generator_set
 from .minimize_affine_envelope import minimize_affine_envelope
-from .prepare_outputs_before_return import prepare_outputs_before_return
+from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 
 # # You'll need to uncomment the following two, and not have `eng = []` if you
 # # want to use matlab's linprog in minimize_affine_envelope
@@ -113,9 +113,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             # Line 4: build models
             Gres, Hres, X, F, hF, nf, Hash = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp)
             if len(Gres) == 0:
-                return prepare_outputs_before_return(X, F, hF, nf, xk_in, -1)
+                return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, -1, printf, chi_k)
             if nf + 1 >= nf_max:
-                return prepare_outputs_before_return(X, F, hF, nf, xk_in, 0)
+                return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, 1, printf, chi_k)  # Budget exceeded
 
             # Line 5: Build set of activities Act_Z_k, gradients D_k, G_k, and beta
             D_k, Act_Z_k, f_bar = choose_generator_set(X, Hash, xk_in, nf, delta, F, hfun)
@@ -133,18 +133,18 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             Upps = np.minimum(Upp - X[xk_in], delta)
             s_k, tau_k, __, lambda_k, lp_fail_flag = minimize_affine_envelope(hF[xk_in], f_bar, beta, G_k, H_mm, delta, Lows, Upps, H_k, subprob_switch, eng)
             if lp_fail_flag:
-                return prepare_outputs_before_return(X, F, hF, nf, xk_in, -2)
+                return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, -2, printf, chi_k)
 
             # Line 8: Compute stationary measure chi_k
             Lows = np.maximum(Low - X[xk_in], -1.0)
             Upps = np.minimum(Upp - X[xk_in], 1.0)
             __, __, chi_k, __, lp_fail_flag = minimize_affine_envelope(hF[xk_in], f_bar, beta, G_k, np.zeros((n, n)), delta, Lows, Upps, np.zeros((G_k.shape[1], n + 1, n + 1)), subprob_switch, eng)
             if lp_fail_flag:
-                return prepare_outputs_before_return(X, F, hF, nf, xk_in, -2)
+                return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, -2, printf, chi_k)
 
             # Lines 9-11: Convergence test: tiny master model gradient and tiny delta
             if chi_k <= tol["gtol"] and delta <= tol["mindelta"]:
-                return prepare_outputs_before_return(X, F, hF, nf, xk_in, chi_k)
+                return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, 0, printf, chi_k)
 
             # Line 12: Evaluate F
             nf, X, F, hF, Hash, hashes_at_nf = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X[xk_in] + np.transpose(s_k), tol, Low, Upp, 1)
@@ -185,6 +185,8 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
             # h_activity_tol = min(1e-8, delta);
 
     if nf + 1 >= nf_max:
-        return prepare_outputs_before_return(X, F, hF, nf, xk_in, 0)
+        return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, 1, printf, chi_k)  # Budget exceeded
+    elif chi_k <= tol["gtol"]:
+        return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, 0, printf, chi_k)
     else:
-        return prepare_outputs_before_return(X, F, hF, nf, xk_in, chi_k)
+        return prepare_ms_outputs_before_return(X, F, hF, nf, xk_in, -6, printf, chi_k)  # delta_min reached without satisfying g_tol

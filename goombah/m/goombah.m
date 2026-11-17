@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch)
+function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -27,6 +27,10 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     %         point. Each solver must be available with your GAMS license. The
     %         solver that each integer selects is set in **TRSP_options.file**.
     %
+    %       * **atol**, **rtol** - (optional) Absolute and relative tolerances
+    %         (default ``1e-4`` each) for the check that the GAMS and |matlab|
+    %         objective values agree. If they do not, the step is rejected.
+    %
     %       * **hfun_data** - (optional) Users that pass an **hfun** that
     %         corresponds to one of the |goombah|-provided parameterized
     %         :math:`h` functions must use this field to provide GAMS with the
@@ -42,18 +46,44 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     %       * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
     %         problem that includes the Hessians of the models.
     %
+    %  :param Options: [struct] (optional) Solver options. Omit or pass ``[]``
+    %       for the defaults. Any missing field takes its default:
+    %
+    %       * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output, including each GAMS run (1)
+    %       * **delta_0**        [dbl] Initial trust-region radius (0.1)
+    %       * **delta_max**      [dbl] Maximum trust-region radius (1e8)
+    %       * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
+    %       * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
+    %       * **eta_1**          [dbl] In (0, 1); rho above this is a successful iteration (0.01)
+    %       * **eta_3**          [dbl] rho above this allows the radius to grow (0.5)
+    %       * **gamma_dec**      [dbl] In (0, 1); factor for shrinking delta (0.5)
+    %       * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
+    %       * **beta_exp**       [dbl] Exponent in the denominator of the |goombah| step ratio (1.0)
+    %       * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
+    %       * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+    %
     %  :return:
     %       * **X**     [:math:`k \times \np`] Points evaluated, where
     %         :math:`k \leq \mathrm{nf\_max}`
     %       * **F**     [:math:`k \times p`] Their simulation values
     %       * **hF**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xk_in** [int] Current trust region center
+    %       * **flag**  [dbl] Termination criteria flag. The values are the same as
+    %         for ``manifold_sampling_primal``: 0 for normal termination, 1 if
+    %         the budget was exhausted, -1 if model building failed or **Ffun** failed, and -6 if
+    %         the trust-region radius reached its minimum without satisfying the
+    %         stationarity tolerance. A flag of -6 is a common way for a successful
+    %         run to end; check the final ``chi_k`` that is displayed, and ``hF``
 
     [here_path, ~, ~] = fileparts(mfilename('fullpath'));
     repo_root = fullfile(here_path, '..', '..');
     addpath(fullfile(repo_root, 'pounders', 'm'));
     addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
     addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
+
+    if nargin < 9
+        Options = [];
+    end
 
     % Deduce p from evaluating Ffun at x0
     try
@@ -69,7 +99,13 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max);
+    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
+    if ~isfield(Options, 'beta_exp')
+        beta_exp = 1.0; % [dbl] Exponent in the denominator of the step ratio (1.0)
+    else
+        beta_exp = Options.beta_exp;
+    end
+    TRSP_options.printf = printf;
     assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
@@ -85,8 +121,7 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
     end
 
     H_mm = zeros(n);
-    beta_exp = 1.0;
-
+    chi_k = inf; % Stationary measure; set whenever it is computed
     while nf < nf_max && delta > tol.mindelta
         [~, xk_in] = min(hF(1:nf));
         % ================================
@@ -94,13 +129,11 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
         [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
 
         if isempty(Gres)
-            disp(['Empty Gres. Delta = ' num2str(delta)]);
-            X = X(1:nf, :);
-            F = F(1:nf, :);
-            hF = hF(1:nf, :);
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, -1, printf);
             return
         end
         if nf >= nf_max
+            [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 1, printf); % Budget exceeded
             return
         end
 
@@ -136,14 +169,11 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
                 % Line 4: build models
                 [Gres, Hres, X, F, hF, nf, Hash] = build_p_models(nf, nf_max, xk_in, delta, F, X, hF, Hres, fq_pars, tol, hfun, Ffun, Hash, Low, Upp);
                 if isempty(Gres)
-                    disp(['Model building failed. Empty Gres. Delta = ' num2str(delta)]);
-                    X = X(1:nf, :);
-                    F = F(1:nf, :);
-                    hF = hF(1:nf, :);
-                    flag = -1;
+                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, -1, printf);
                     return
                 end
                 if nf >= nf_max
+                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 1, printf); % Budget exceeded
                     return
                 end
 
@@ -172,11 +202,7 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
 
                 % Lines 9-11: Convergence test: tiny master model gradient and tiny delta
                 if chi_k <= tol.gtol && delta <= tol.mindelta
-                    disp('Convergence satisfied: small stationary measure and small delta');
-                    X = X(1:nf, :);
-                    F = F(1:nf, :);
-                    hF = hF(1:nf, :);
-                    flag = chi_k;
+                    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, 0, printf);
                     return
                 end
 
@@ -232,14 +258,17 @@ function [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_opti
             end
 
         end
-        fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, hF(xk_in), delta);
+        if printf
+            fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, hF(xk_in), delta);
+        end
     end
 
     if nf >= nf_max
-        flag = 0; % Budget exceeded
+        exit_flag = 1; % Budget exceeded
+    elseif chi_k <= tol.gtol
+        exit_flag = 0;
     else
-        X = X(1:nf, :);
-        F = F(1:nf, :);
-        hF = hF(1:nf, :);
+        exit_flag = -6; % delta_min reached without satisfying g_tol
     end
+    [X, F, hF, flag] = prepare_ms_outputs_before_return(X, F, hF, nf, exit_flag, printf, chi_k);
 end

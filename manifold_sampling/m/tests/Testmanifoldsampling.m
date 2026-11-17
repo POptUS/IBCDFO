@@ -21,6 +21,8 @@ classdef Testmanifoldsampling < matlab.unittest.TestCase
         function shortTests(testCase)
             test_failing_objective;
             test_manifold_sampling_simple;
+            test_manifold_sampling_flags;
+            test_manifold_sampling_options;
             test_evaluate_points_bounds;
         end
 
