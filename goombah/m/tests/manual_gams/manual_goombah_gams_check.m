@@ -12,52 +12,38 @@
 %      the MATLAB MEX files; if yours does not, add the GDXMRW folder of an older
 %      GAMS installation (the MEX files from an older release worked with a newer
 %      gams executable).
-%    * BenDFO (https://github.com/POptUS/BenDFO: its data and m folders) and
-%      MINQ (https://github.com/POptUS/minq: m/minq5, at the commit in
-%      REQUIRED_MINQ_COMMIT in the repository root) on the MATLAB path
+%    * BenDFO (https://github.com/POptUS/BenDFO) data and m folders on the
+%      MATLAB path
 %    * internet access (or an unzipped mpc_test_files_smaller_Q in the current
 %      folder) for the data used by the parameterized h functions
 %
 % From MATLAB, in a folder you are willing to have data downloaded into (the first
 % run downloads and unzips mpc_test_files_smaller_Q.zip there):
 %     >> addpath('/path/to/IBCDFO/goombah/m/tests/manual_gams')
-%     >> manual_goombah_gams_check          % default: subproblem comparison
-%     >> manual_goombah_gams_check(true)    % also run one short goombah run
-%     >> manual_goombah_gams_check(false, true)  % also the slow piecewise case
+%     >> manual_goombah_gams_check
+%     >> manual_goombah_gams_check(true)  % also the slow piecewise case
 %
-% The default run takes a few minutes. It prints the GAMS and lhs predicted
-% decreases for each h function and ends with "All manual GAMS checks passed."; an
-% error is raised on the first failure. Reviewers may wish to note the result in
-% the PR (no results are reported back automatically).
-%
-% This only checks that the GAMS flow works (data written to GDX, GAMS called,
-% solution read back) and that it is close to the lhs solver. It is deliberately
-% small: only the first problem of dfo.dat is used, and no GOOMBAH run is made
-% unless asked for.
-%
-% Default: for each h function, one TRSP is built from fixed random quadratic models
-% and solved with both the GAMS and lhs TRSP solvers. The GAMS predicted decrease
-% must be at least 90% of the lhs one (only a positive decrease is required for the
-% nonconvex min-type h functions), and the GAMS step must be feasible and
-% consistent with its reported predicted decrease.
-%
-% With include_goombah = true: one short goombah run (nf_max = 30) per solver on
-% the h_pw_maximum_squared function; the GAMS run must decrease h at least 90% as much as
-% the lhs run does.
+% For each h function, one TRSP is built from fixed random quadratic models for
+% the first problem in dfo.dat and solved with both the GAMS and lhs TRSP
+% solvers. The GAMS predicted decrease must be at least 90% of the lhs one
+% (only a positive decrease is required for the nonconvex min-type h
+% functions), and the GAMS step must be feasible and consistent with its
+% reported predicted decrease.  Test execution terminates if any errors or
+% failures occur.  In addition, the test executes one short goombah run on the
+% h_pw_maximum_squared function; the GAMS run must decrease h at least 90% as
+% much as the lhs run does.  Reviewers may wish to note the result in the PR
+% (no results are reported back automatically).
 %
 % The create_piecewise_quadratic_hfun case is very slow with GAMS, so it is only
 % run with include_slow = true.
 
-function [] = manual_goombah_gams_check(include_goombah, include_slow)
+function [] = manual_goombah_gams_check(include_slow)
 
 if nargin < 1
-    include_goombah = false;
-end
-if nargin < 2
     include_slow = false;
 end
 
-assert(system('which gams > /dev/null 2>&1') == 0, ...
+assert(system('which gams > /dev/null') == 0, ...
        'The gams executable is not on the system path');
 assert(exist('wgdx', 'file') > 0, 'GDXMRW (wgdx) is not on the MATLAB path');
 
@@ -66,7 +52,6 @@ clear global h_activity_tol;
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 repo_root = fullfile(here_path, '..', '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
-addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
 trsp_root = fullfile(repo_root, 'goombah', 'm', 'subproblems');
 addpath(trsp_root);
@@ -124,36 +109,37 @@ for row = rows
 
     for name = names
         name = name{1}; %#ok<FXSET>
-        TRSP_options = struct('solver', 'GAMS', 'hfun_data', []);
+        GAMS_options = struct('solver', 'GAMS', 'hfun_data', []);
         switch name
             case 'h_pw_minimum'
                 hfun = @h_pw_minimum;
-                TRSP_options.file = fullfile(trsp_root, 'minimize_min_quadratic_models.gms');
-                TRSP_options.solvers = 1:3;
+                GAMS_options.file = fullfile(trsp_root, 'minimize_min_quadratic_models.gms');
+                GAMS_options.solvers = 1:3;
             case 'h_pw_minimum_squared'
                 hfun = @h_pw_minimum_squared;
-                TRSP_options.file = fullfile(trsp_root, 'minimize_min_squared_quadratic_models.gms');
-                TRSP_options.solvers = 1:3;
+                GAMS_options.file = fullfile(trsp_root, 'minimize_min_squared_quadratic_models.gms');
+                GAMS_options.solvers = 1:3;
             case 'h_pw_maximum_squared'
                 hfun = @h_pw_maximum_squared;
-                TRSP_options.file = fullfile(trsp_root, 'minimize_max_squared_quadratic_models.gms');
-                TRSP_options.solvers = 1:4;
+                GAMS_options.file = fullfile(trsp_root, 'minimize_max_squared_quadratic_models.gms');
+                GAMS_options.solvers = 1:4;
             case 'create_censored_L1_loss_hfun'
                 hfun = create_censored_L1_loss_hfun(C, D);
-                TRSP_options.hfun_data = struct('C', C, 'D', D);
-                TRSP_options.file = fullfile(trsp_root, 'minimize_censored_L1_loss_quadratic_models.gms');
-                TRSP_options.solvers = 1:4;
+                GAMS_options.hfun_data = struct('C', C, 'D', D);
+                GAMS_options.file = fullfile(trsp_root, 'minimize_censored_L1_loss_quadratic_models.gms');
+                GAMS_options.solvers = 1:4;
             case 'create_piecewise_quadratic_hfun'
                 hfun = create_piecewise_quadratic_hfun(Q, z, c);
-                TRSP_options.hfun_data = struct('Q', Q, 'z', z, 'c', c);
-                TRSP_options.file = fullfile(trsp_root, 'minimize_max_quadratic_mapping_of_quadratic_models.gms');
-                TRSP_options.solvers = 1:4;
+                GAMS_options.hfun_data = struct('Q', Q, 'z', z, 'c', c);
+                GAMS_options.file = fullfile(trsp_root, 'minimize_max_quadratic_mapping_of_quadratic_models.gms');
+                GAMS_options.solvers = 1:4;
+            otherwise
+                error("Unknown hfun " + name);
         end
         problem = ['problem ' num2str(row) ' with hfun=' name];
         fprintf('Running %s\n', problem);
 
         % One TRSP from fixed random quadratic models, GAMS versus lhs.
-        rand('seed', 1);
         randn('seed', 1);
         % convex quadratics, so the comparison does not depend on which local
         % minimizer each solver happens to find
@@ -172,7 +158,7 @@ for row = rows
 
         rand('seed', 1);
         [~, pred_lhs] = minimize_quadratics_lhs(H, g, b, Low, Upp, x0, x0, val_at_x0, hfun);
-        [s_gams, pred_gams] = save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x0, val_at_x0, TRSP_options, hfun);
+        [s_gams, pred_gams] = save_quadratics_call_GAMS(H, g, b, Low, Upp, x0, x0, val_at_x0, GAMS_options, hfun);
         fprintf('  predicted decrease: GAMS %g, lhs %g\n', pred_gams, pred_lhs);
 
         assert(all(size(s_gams) == [1, n]), "GAMS step has wrong size on " + problem);
@@ -192,18 +178,34 @@ for row = rows
             assert(pred_gams >= 0.9 * pred_lhs, "GAMS predicted decrease much less than lhs on " + problem);
         end
 
-        if include_goombah && strcmp(name, 'h_pw_maximum_squared')
+        if strcmp(name, 'h_pw_maximum_squared')
             rand('seed', 1);
-            [~, ~, h_lhs, ~, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, lhs_options, subprob_switch);
-            assert(flag >= 0, "goombah with lhs failed");
+            [X, F, h_lhs, xkin_lhs, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, lhs_options, subprob_switch);
+            if flag == 0
+                assert(size(X, 1) <= nf_max, "goombah with lhs exceeded evaluation budget");
+            elseif flag == 1
+                assert(size(X, 1) == nf_max, "goombah with lhs did not terminate at evaluation budget");
+            else
+                error("goombah with lhs failed with flag " + flag);
+            end
+            assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h_lhs), "goombah with lhs has inconsistent output sizes");
             decrease_lhs = h_lhs(1) - min(h_lhs);
-            assert(decrease_lhs > 0, "goombah with lhs did not decrease h on " + problem);
+            assert(decrease_lhs > 0, "goombah with lhs did not decrease h");
 
             rand('seed', 1);
-            [X, F, h, xkin, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, TRSP_options, subprob_switch);
-            assert(flag >= 0, "goombah with GAMS failed");
-            check_outputs(X, F, h, xkin, nf_max, "goombah on " + problem);
-            assert(h(1) - min(h) >= 0.9 * decrease_lhs, "goombah GAMS decreased h much less than lhs on " + problem);
+            [X, F, h, xkin, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, GAMS_options, subprob_switch);
+            if flag == 0
+                assert(size(X, 1) <= nf_max, "goombah with GAMS exceeded evaluation budget");
+            elseif flag == 1
+                assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
+            else
+                error("goombah with GAMS failed with flag " + flag);
+            end
+            assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
+            assert(h(xkin) < h(1), "goombah with GAMS did not decrease");
+            assert(h(1) - min(h) >= 0.9 * decrease_lhs, "goombah GAMS decreased h much less than lhs");
+
+            fprintf('  h(xkin): GAMS %g, lhs %g\n', h(xkin), h_lhs(xkin_lhs));
         end
     end
 end
@@ -211,12 +213,6 @@ end
 fprintf('All manual GAMS checks passed.\n');
 warning(oldwarn);
 path(oldpath);
-end
-
-function [] = check_outputs(X, F, h, xkin, nf_max, label)
-    assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "Inconsistent output sizes: " + label);
-    assert(size(X, 1) <= nf_max, "Exceeded evaluation budget: " + label);
-    assert(h(xkin) < h(1), "No decrease from the starting point: " + label);
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)
