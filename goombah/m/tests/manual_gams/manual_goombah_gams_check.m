@@ -194,12 +194,14 @@ for row = rows
 
         if include_goombah && strcmp(name, 'h_pw_maximum_squared')
             rand('seed', 1);
-            [~, ~, h_lhs, ~] = goombah(hfun, Ffun, nf_max, x0_prob, LB, UB, lhs_options, subprob_switch);
+            [~, ~, h_lhs, ~, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, lhs_options, subprob_switch);
+            assert(flag >= 0, "goombah with lhs failed");
             decrease_lhs = h_lhs(1) - min(h_lhs);
             assert(decrease_lhs > 0, "goombah with lhs did not decrease h on " + problem);
 
             rand('seed', 1);
-            [X, F, h, xkin] = goombah(hfun, Ffun, nf_max, x0_prob, LB, UB, TRSP_options, subprob_switch);
+            [X, F, h, xkin, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, TRSP_options, subprob_switch);
+            assert(flag >= 0, "goombah with GAMS failed");
             check_outputs(X, F, h, xkin, nf_max, "goombah on " + problem);
             assert(h(1) - min(h) >= 0.9 * decrease_lhs, "goombah GAMS decreased h much less than lhs on " + problem);
         end
