@@ -86,14 +86,15 @@ are selected with the ``solver`` field of ``TRSP_options``:
 .. note::
     The |matlab| implementation's test suite is integrated into the |ibcdfo|
     continuous integration system.  However, because GAMS is not installed in
-    GitHub action runners, the suite only tests the ``'lhs'`` solver (`Issue 332
-    <https://github.com/POptUS/IBCDFO/issues/332>`__).
+    GitHub action runners, the suite only tests the ``'lhs'`` solver.
 
-    A GAMS-based end-to-end check that is *not* run automatically can be run
-    manually by anyone with GAMS and GDXMRW: see
-    ``goombah/m/tests/manual_gams/manual_goombah_gams_check.m``. Its header
-    lists the requirements and how to run it; reviewers are encouraged to note
-    the result in the PR.
+    To address this testing gap, the GAMS-based end-to-end test
+    ``goombah/m/tests/manual_gams/manual_goombah_gams_check.m``, which is *not*
+    included in the test suite, can be run manually on any system with GAMS and
+    GDXMRW installations.  The file's header documentation details the test
+    design, lists requirements, and provides instructions.  Reviewers are
+    encouraged to manually run this test as part of GOOMBAH-related pull
+    request reviews and to note test results in the PR.
 
 Programmatic Interface
 ----------------------
