@@ -19,7 +19,7 @@
 %      with a newer gams executable).
 %    * BenDFO (https://github.com/POptUS/BenDFO: its data and m folders) and
 %      MINQ (https://github.com/POptUS/minq: m/minq5, at the commit in
-%      REQUIRED_MINQ_COMMIT in the repository root) on the MATLAB path
+%      REQUIRED_MINQ_COMMIT in the IBCDFO repository root) on the MATLAB path
 %
 % From MATLAB:
 %     >> addpath('/path/to/IBCDFO/goombah/m/tests/manual_gams')
@@ -28,10 +28,8 @@
 % For each problem, pounders is run to build a reference decrease in h, then
 % goombah is run with the GAMS TRSP solver from the same starting point; the
 % GAMS run must decrease h at least 90% as much as pounders does. Test
-% execution terminates if any errors or failures occur; it prints the final h
-% from each solver and ends with "All manual GAMS checks passed."  Reviewers
-% may wish to note the result in the PR (no results are reported back
-% automatically).
+% execution terminates if any errors or failures occur.  Reviewers may wish to
+% note the result in the PR (no results are reported back automatically).
 
 function [] = manual_goombah_GAMS_vs_pounders()
 
@@ -58,11 +56,11 @@ nf_max = 30;
 g_tol = 1e-13;
 delta_0 = 0.1;
 subprob_switch = 'linprog';
-GAMS_options = struct('solver', 'GAMS', 'hfun_data', [], ...
+GAMS_options = struct('solver', 'GAMS', ...
                        'file', fullfile(trsp_root, 'minimize_sum_quad_models_squared.gms'), ...
                        'solvers', 1:4);
 Options_pounders = struct('hfun', @h_leastsquares, 'combinemodels', @combine_leastsquares, ...
-                           'printf', 0, 'spsolver', create_trsp_solver(2));
+                          'printf', 0, 'spsolver', create_trsp_solver(2));
 
 load dfo.dat;
 
@@ -83,9 +81,9 @@ for row = 1
     problem = ['problem ' num2str(row) ' with hfun=h_leastsquares'];
     fprintf('Running %s\n', problem);
 
-    [~, ~, h_pounders, flag] = pounders(@(x)Ffun(x)', x0_prob, n, nf_max, g_tol, delta_0, m, LB, UB, [], Options_pounders);
+    [~, ~, h_pounders, flag, xkin_pounders] = pounders(@(x)Ffun(x)', x0_prob, n, nf_max, g_tol, delta_0, m, LB, UB, [], Options_pounders);
     assert(flag == -6 || flag >= 0, "pounders failed on " + problem);
-    decrease_pounders = h_pounders(1) - min(h_pounders);
+    decrease_pounders = h_pounders(1) - h_pounders(xkin_pounders);
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
     rand('seed', 1);
@@ -99,10 +97,11 @@ for row = 1
         error("goombah with GAMS failed with flag " + flag);
     end
     assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
-    assert(h(xkin) < h(1), "goombah with GAMS did not decrease");
-    assert(h(1) - min(h) >= 0.9 * decrease_pounders, "goombah GAMS decreased h much less than pounders on " + problem);
+    decrease_goombah = h(1) - h(xkin);
+    assert(decrease_goombah > 0, "goombah with GAMS did not decrease");
+    assert(decrease_goombah >= 0.9 * decrease_pounders, "goombah GAMS decreased h much less than pounders on " + problem);
 
-    fprintf('  h(xkin): GAMS %g, pounders %g\n', h(xkin), min(h_pounders));
+    fprintf('  h(xkin): GAMS %g, pounders %g\n', h(xkin), h_pounders(xkin_pounders));
 end
 
 fprintf('All manual GAMS checks passed.\n');
