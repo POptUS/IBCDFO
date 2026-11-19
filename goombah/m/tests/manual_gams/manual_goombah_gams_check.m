@@ -34,6 +34,10 @@
 % much as the lhs run does.  Reviewers may wish to note the result in the PR
 % (no results are reported back automatically).
 %
+% See manual_goombah_GAMS_vs_pounders.m for a check of goombah+GAMS against an
+% independent solver (pounders) on h_leastsquares, the one h function pounders
+% applies to.
+%
 % The create_piecewise_quadratic_hfun case is very slow with GAMS, so it is only
 % run with include_slow = true.
 
@@ -53,7 +57,7 @@ clear global h_activity_tol;
 repo_root = fullfile(here_path, '..', '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
-addpath(fullfile(repo_root, 'pounders', 'm', 'general_h_funs'));
+addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'tests', 'general_smooth_h_funs'));
 trsp_root = fullfile(repo_root, 'goombah', 'm', 'subproblems');
 addpath(trsp_root);
 
