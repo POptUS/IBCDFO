@@ -82,20 +82,14 @@ for row = 1
     fprintf('Running %s\n', problem);
 
     [~, ~, h_pounders, flag, xkin_pounders] = pounders(@(x)Ffun(x)', x0_prob, n, nf_max, g_tol, delta_0, m, LB, UB, [], Options_pounders);
-    assert(flag == -6 || flag >= 0, "pounders failed");
+    assert(flag > 0, "pounders ended with flag = " + flag);
     decrease_pounders = h_pounders(1) - h_pounders(xkin_pounders);
     assert(decrease_pounders > 0, "pounders did not decrease h");
 
     rand('seed', 1);
     [X, F, h, xkin, flag] = goombah(@h_leastsquares, Ffun, x0_prob, LB, UB, nf_max, GAMS_options, subprob_switch);
-    % -6 (stationary before budget used) is accepted (though nf_max=30 is too small to reach it).
-    if flag == 0 || flag == -6
-        assert(size(X, 1) <= nf_max, "goombah with GAMS exceeded evaluation budget");
-    elseif flag == 1
-        assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
-    else
-        error("goombah with GAMS failed with flag " + flag);
-    end
+    assert(flag == 1, "goombah with GAMS ended with flag = " + flag);
+    assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
     assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
     decrease_goombah = h(1) - h(xkin);
     assert(decrease_goombah > 0, "goombah with GAMS did not decrease");

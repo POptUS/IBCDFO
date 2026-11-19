@@ -192,28 +192,16 @@ for row = rows
         if strcmp(name, 'h_pw_maximum_squared')
             rand('seed', 1);
             [X, F, h_lhs, xkin_lhs, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, lhs_options, subprob_switch);
-            % -6 (stationary before nf_max) is accepted (though nf_max=30 is too small to reach it).
-            if flag == 0 || flag == -6
-                assert(size(X, 1) <= nf_max, "goombah with lhs exceeded evaluation budget");
-            elseif flag == 1
-                assert(size(X, 1) == nf_max, "goombah with lhs did not terminate at evaluation budget");
-            else
-                error("goombah with lhs failed with flag " + flag);
-            end
+            assert(flag == 1, "goombah with lhs ended with flag = " + flag);
+            assert(size(X, 1) == nf_max, "goombah with lhs did not terminate at evaluation budget");
             assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h_lhs), "goombah with lhs has inconsistent output sizes");
             decrease_lhs = h_lhs(1) - min(h_lhs);
             assert(decrease_lhs > 0, "goombah with lhs did not decrease h");
 
             rand('seed', 1);
             [X, F, h, xkin, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, GAMS_options, subprob_switch);
-            % -6 (stationary before budget used) is accepted (though nf_max=30 is too small to reach it).
-            if flag == 0 || flag == -6
-                assert(size(X, 1) <= nf_max, "goombah with GAMS exceeded evaluation budget");
-            elseif flag == 1
-                assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
-            else
-                error("goombah with GAMS failed with flag " + flag);
-            end
+            assert(flag == 1, "goombah with GAMS ended with flag = " + flag);
+            assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
             assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
             assert(h(xkin) < h(1), "goombah with GAMS did not decrease");
             assert(h(1) - min(h) >= 0.9 * decrease_lhs, "goombah GAMS decreased h much less than lhs");
