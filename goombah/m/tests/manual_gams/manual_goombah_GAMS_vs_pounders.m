@@ -82,9 +82,9 @@ for row = 1
     fprintf('Running %s\n', problem);
 
     [~, ~, h_pounders, flag, xkin_pounders] = pounders(@(x)Ffun(x)', x0_prob, n, nf_max, g_tol, delta_0, m, LB, UB, [], Options_pounders);
-    assert(flag == -6 || flag >= 0, "pounders failed on " + problem);
+    assert(flag == -6 || flag >= 0, "pounders failed");
     decrease_pounders = h_pounders(1) - h_pounders(xkin_pounders);
-    assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
+    assert(decrease_pounders > 0, "pounders did not decrease h");
 
     rand('seed', 1);
     [X, F, h, xkin, flag] = goombah(@h_leastsquares, Ffun, x0_prob, LB, UB, nf_max, GAMS_options, subprob_switch);
@@ -99,7 +99,7 @@ for row = 1
     assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
     decrease_goombah = h(1) - h(xkin);
     assert(decrease_goombah > 0, "goombah with GAMS did not decrease");
-    assert(decrease_goombah >= 0.9 * decrease_pounders, "goombah GAMS decreased h much less than pounders on " + problem);
+    assert(decrease_goombah >= 0.9 * decrease_pounders, "goombah GAMS decreased h much less than pounders");
 
     fprintf('  h(xkin): GAMS %g, pounders %g\n', h(xkin), h_pounders(xkin_pounders));
 end
