@@ -53,6 +53,7 @@ clear global h_activity_tol;
 repo_root = fullfile(here_path, '..', '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
+addpath(fullfile(repo_root, 'pounders', 'm', 'general_h_funs'));
 trsp_root = fullfile(repo_root, 'goombah', 'm', 'subproblems');
 addpath(trsp_root);
 
@@ -79,7 +80,7 @@ Qzb = load('mpc_test_files_smaller_Q/Q_z_and_b_for_benchmark_problems_normalized
 
 % Rows of dfo.dat to test, and the h functions that have a GAMS model file.
 rows = 1;
-names = {'h_pw_minimum', 'h_pw_minimum_squared', 'h_pw_maximum_squared', ...
+names = {'h_leastsquares', 'h_pw_minimum', 'h_pw_minimum_squared', 'h_pw_maximum_squared', ...
          'create_censored_L1_loss_hfun'};
 if include_slow
     names{end + 1} = 'create_piecewise_quadratic_hfun';
@@ -111,6 +112,10 @@ for row = rows
         name = name{1}; %#ok<FXSET>
         GAMS_options = struct('solver', 'GAMS', 'hfun_data', []);
         switch name
+            case 'h_leastsquares'
+                hfun = @h_leastsquares;
+                GAMS_options.file = fullfile(trsp_root, 'minimize_sum_quad_models_squared.gms');
+                GAMS_options.solvers = 1:4;
             case 'h_pw_minimum'
                 hfun = @h_pw_minimum;
                 GAMS_options.file = fullfile(trsp_root, 'minimize_min_quadratic_models.gms');
