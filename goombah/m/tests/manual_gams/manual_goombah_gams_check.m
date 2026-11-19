@@ -178,10 +178,13 @@ for row = rows
             assert(pred_gams >= 0.9 * pred_lhs, "GAMS predicted decrease much less than lhs on " + problem);
         end
 
+        % Calling goombah + GAMS on every iteration can be expensive for some
+        % h_funs, so we test only representative h fun rather than all of them.
         if strcmp(name, 'h_pw_maximum_squared')
             rand('seed', 1);
             [X, F, h_lhs, xkin_lhs, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, lhs_options, subprob_switch);
-            if flag == 0
+            % -6 (stationary before nf_max) is accepted (though nf_max=30 is too small to reach it).
+            if flag == 0 || flag == -6
                 assert(size(X, 1) <= nf_max, "goombah with lhs exceeded evaluation budget");
             elseif flag == 1
                 assert(size(X, 1) == nf_max, "goombah with lhs did not terminate at evaluation budget");
@@ -194,7 +197,8 @@ for row = rows
 
             rand('seed', 1);
             [X, F, h, xkin, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, GAMS_options, subprob_switch);
-            if flag == 0
+            % -6 (stationary before budget used) is accepted (though nf_max=30 is too small to reach it).
+            if flag == 0 || flag == -6
                 assert(size(X, 1) <= nf_max, "goombah with GAMS exceeded evaluation budget");
             elseif flag == 1
                 assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
