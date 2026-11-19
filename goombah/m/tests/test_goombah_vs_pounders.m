@@ -60,7 +60,7 @@ for row = [7, 43, 44]
     Options.spsolver = create_trsp_solver(spsolver);
 
     [~, ~, h_pounders, flag] = pounders(@(x)Ffun(x)', x0, n, nf_max, g_tol, delta_0, m, Low, Upp, [], Options);
-    assert(flag ~= -1, "pounders failed on " + problem);
+    assert(flag == -6 || flag >= 0, "pounders failed on " + problem);
     decrease_pounders = h_pounders(1) - min(h_pounders);
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
