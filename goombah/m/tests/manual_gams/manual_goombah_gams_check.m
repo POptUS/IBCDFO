@@ -25,7 +25,7 @@
 %
 % For each h function, one TRSP is built from fixed random quadratic models for
 % the first problem in dfo.dat and solved with both the GAMS and lhs TRSP
-% solvers. The GAMS predicted decrease must be at least 90% of the lhs one
+% solvers. The GAMS predicted decrease must be at least 99.9% of the lhs one
 % (only a positive decrease is required for the nonconvex min-type h
 % functions), and the GAMS step must be feasible and consistent with its
 % reported predicted decrease.  Test execution terminates if any errors or
@@ -184,7 +184,7 @@ for row = rows
         if any(strcmp(name, {'h_pw_minimum', 'h_pw_minimum_squared'}))
             assert(pred_gams > 0, "GAMS predicted no decrease on " + problem);
         else
-            assert(pred_gams >= 0.9 * pred_lhs, "GAMS predicted decrease much less than lhs on " + problem);
+            assert(pred_gams >= 0.999 * pred_lhs, "GAMS predicted decrease much less than lhs on " + problem);
         end
 
         % Calling goombah + GAMS on every iteration can be expensive for some
@@ -204,7 +204,7 @@ for row = rows
             assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
             assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
             assert(h(xkin) < h(1), "goombah with GAMS did not decrease");
-            assert(h(1) - min(h) >= 0.9 * decrease_lhs, "goombah GAMS decreased h much less than lhs");
+            assert(h(1) - min(h) >= 0.999 * decrease_lhs, "goombah GAMS decreased h much less than lhs");
 
             fprintf('  h(xkin): GAMS %g, lhs %g\n', h(xkin), h_lhs(xkin_lhs));
         end

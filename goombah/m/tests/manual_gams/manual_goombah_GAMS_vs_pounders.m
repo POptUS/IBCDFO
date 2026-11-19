@@ -27,7 +27,7 @@
 %
 % For each problem, pounders is run to build a reference decrease in h, then
 % goombah is run with the GAMS TRSP solver from the same starting point; the
-% GAMS run must decrease h at least 90% as much as pounders does. Test
+% GAMS run must decrease h at least 99.9% as much as pounders does. Test
 % execution terminates if any errors or failures occur.  Reviewers may wish to
 % note the result in the PR (no results are reported back automatically).
 
@@ -93,7 +93,7 @@ for row = 1
     assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
     decrease_goombah = h(1) - h(xkin);
     assert(decrease_goombah > 0, "goombah with GAMS did not decrease");
-    assert(decrease_goombah >= 0.9 * decrease_pounders, "goombah GAMS decreased h much less than pounders");
+    assert(decrease_goombah >= 0.999 * decrease_pounders, "goombah GAMS decreased h much less than pounders");
 
     fprintf('  h(xkin): GAMS %g, pounders %g\n', h(xkin), h_pounders(xkin_pounders));
 end
