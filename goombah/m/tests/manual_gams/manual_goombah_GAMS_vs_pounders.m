@@ -52,7 +52,6 @@ addpath(fullfile(repo_root, 'pounders', 'm', 'general_h_funs'));
 % takes precedence over pounders/m/general_h_funs's single-output version.
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'tests', 'general_smooth_h_funs'));
 trsp_root = fullfile(repo_root, 'goombah', 'm', 'subproblems');
-addpath(trsp_root);
 
 factor = 10;
 nf_max = 30;
@@ -64,7 +63,6 @@ GAMS_options = struct('solver', 'GAMS', 'hfun_data', [], ...
                        'solvers', 1:4);
 Options_pounders = struct('hfun', @h_leastsquares, 'combinemodels', @combine_leastsquares, ...
                            'printf', 0, 'spsolver', create_trsp_solver(2));
-oldwarn = warning('off', 'GOOMBAH:lhsTrspSolver');
 
 load dfo.dat;
 
@@ -86,7 +84,7 @@ for row = 1
     fprintf('Running %s\n', problem);
 
     [~, ~, h_pounders, flag] = pounders(@(x)Ffun(x)', x0_prob, n, nf_max, g_tol, delta_0, m, LB, UB, [], Options_pounders);
-    assert(flag ~= -1, "pounders failed on " + problem);
+    assert(flag == -6 || flag >= 0, "pounders failed on " + problem);
     decrease_pounders = h_pounders(1) - min(h_pounders);
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
@@ -108,7 +106,6 @@ for row = 1
 end
 
 fprintf('All manual GAMS checks passed.\n');
-warning(oldwarn);
 path(oldpath);
 end
 

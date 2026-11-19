@@ -89,12 +89,13 @@ are selected with the ``solver`` field of ``TRSP_options``:
     GitHub action runners, the suite only tests the ``'lhs'`` solver.
 
     To address this testing gap, users can manually run on any system with GAMS
-    and GDXMRW installations a
-    `GAMS-based end-to-end test <https://github.com/POptUS/IBCDFO/tree/main/goombah/m/tests/manual_gams/manual_goombah_gams_check.m>`__
-    that is *not* included in the test suite.  The file's header documentation
-    details the test design, lists requirements, and provides instructions.
-    Reviewers are encouraged to manually run this test as part of
-    GOOMBAH-related pull request reviews and to note test results in the PR.
+    and GDXMRW installations the GAMS-based |goombah|
+    `end-to-end tests <https://github.com/POptUS/IBCDFO/tree/main/goombah/m/tests/manual_gams>`_,
+    which are *not* included in the test suite.  The header documentation in
+    each test script details the test design, lists requirements, and provides
+    instructions.  Reviewers are encouraged to manually run these tests as part
+    of |goombah|-related pull request reviews and to note test results in the
+    PR.
 
 Programmatic Interface
 ----------------------

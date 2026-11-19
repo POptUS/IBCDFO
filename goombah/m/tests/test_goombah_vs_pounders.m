@@ -20,9 +20,11 @@ clear global h_activity_tol;
 repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
 addpath(fullfile(repo_root, 'pounders', 'm'));
-% While both POUNDERS and Manifold Sampling provide an h_leastsquares, both of
-% which are used here, the two functions have different interfaces.
 addpath(fullfile(repo_root, 'pounders', 'm', 'general_h_funs'));
+% h_leastsquares is used both by goombah (which needs its 3-output,
+% manifold-sampling-style interface) and by pounders (which only ever calls it
+% for a scalar), so use the one version that supports both; added last so it
+% takes precedence over pounders/m/general_h_funs's single-output version.
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'tests', 'general_smooth_h_funs'));
 
 factor = 10;
