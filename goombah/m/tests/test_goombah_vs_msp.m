@@ -8,11 +8,10 @@
 % as much as manifold_sampling_primal does from the same starting point, and that
 % the outputs are consistent (see check_outputs).
 %
-% To run this test, you must first install a BenDFO and a MINQ clone and add
+% To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
-%    /path/to/MINQ/m/minq5
-% to the MATLAB path.
+% to the MATLAB path. MINQ is not needed.
 
 function [] = test_goombah_vs_msp()
 

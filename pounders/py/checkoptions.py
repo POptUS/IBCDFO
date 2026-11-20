@@ -1,7 +1,7 @@
 from .._variable_checks import is_finite_real, is_integer
 
 
-def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels):
+def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_inact, gamma_dec, gamma_inc, eta_1, hfun, combinemodels, snap_tol):
     """
     Raise an exception if any of the given POUNDERS options do
     not meet the requirements of the POUNDERS implementation.
@@ -38,6 +38,8 @@ def checkoptions(printf, spsolver, batched_Ffun, delta_max, delta_min, delta_ina
         raise ValueError(f"Error: Options['gamma_inc'] must be a finite real >= 1 ({gamma_inc})")
     if not (is_finite_real(eta_1) and 0.0 < eta_1 < 1.0):
         raise ValueError(f"Error: Options['eta1'] must be a finite real in (0, 1) ({eta_1})")
+    if not (is_finite_real(snap_tol) and snap_tol >= 0.0):
+        raise ValueError(f"Error: Options['snap_tol'] must be a nonnegative finite real ({snap_tol})")
 
     if not callable(hfun):
         raise TypeError("Error: Options['hfun'] must be a function")

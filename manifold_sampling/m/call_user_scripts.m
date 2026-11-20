@@ -4,7 +4,7 @@ function [nf, X, F, hF, Hash, hashes_at_nf] = call_user_scripts(nf, X, F, hF, Ha
         allow_recalc = 0;
     end
 
-    xnew = min(Upp, max(Low, x_in));
+    xnew = snap_to_bounds(x_in, Low, Upp, tol.snap_tol, 'The requested point');
 
     for i = 1:length(xnew) % ! This will need to be cleaned up eventually
         if Upp(i) - xnew(i) < eps * abs(Upp(i)) && Upp(i) > xnew(i)

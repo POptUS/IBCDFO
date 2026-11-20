@@ -91,9 +91,15 @@ end
 % Test success without last (optional) arguments to pounders
 [X, F, hF, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp);
 
-path(oldpath);
-
 assert(flag == 0, "Test didn't complete");
+
+% Bounds whose sizes disagree are rejected by checkinputss, with the
+% documented flag, rather than erroring out of the delta_max default
+[Xb, Fb, hFb, flag_b] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, [Low 1], Upp);
+assert(flag_b == -1, "Mismatched bounds should give a flag of -1");
+assert(isempty(Xb) && isempty(Fb) && isempty(hFb), "A rejected problem should return empty outputs");
+
+path(oldpath);
 end
 
 function [fvec] = calfun_wrapper(x, struct, probtype)

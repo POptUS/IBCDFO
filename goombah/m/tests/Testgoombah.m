@@ -1,9 +1,13 @@
-% To run this test, you must first install a BenDFO and a MINQ clone and add
+% To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
-%    /path/to/MINQ/m/minq5
 % to the MATLAB path.  The tests solve the GOOMBAH TRSP with Latin hypercube
 % sampling and fmincon, so GAMS is not needed.
+%
+% longTest needs a MINQ clone with
+%    /path/to/MINQ/m/minq5
+% on the path, because test_goombah_vs_pounders compares against pounders,
+% whose default subproblem solver is MINQ5.  shortTests runs without it.
 %
 % From MATLAB and the directory containing this file, execute
 %     >> runtests
@@ -33,6 +37,7 @@ classdef Testgoombah < matlab.unittest.TestCase
 
         function shortTests(testCase)
             test_minimize_quadratics_lhs;
+            test_goombah_initial_simplex;
             test_goombah_failures;
             test_goombah_converge;
             test_goombah_budget_sweep;

@@ -98,9 +98,12 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Lows, Upps, H_k, sub
         tau = 0
         s = np.zeros(n)
 
-    Lows[duals_l <= 0] = 0
-    Upps[duals_u <= 0] = 0
+    # Only the active bounds contribute to chi. Write these into new arrays:
+    # MATLAB copies on assignment, but indexed assignment here would edit the
+    # caller's Lows and Upps.
+    Lows_chi = np.where(duals_l > 0, Lows, 0.0)
+    Upps_chi = np.where(duals_u > 0, Upps, 0.0)
 
-    chi = np.linalg.norm(np.dot(G_k, lambda_star) - duals_l + duals_u) + np.dot(bk, lambda_star) - np.dot(Lows, duals_l) + np.dot(Upps, duals_u)
+    chi = np.linalg.norm(np.dot(G_k, lambda_star) - duals_l + duals_u) + np.dot(bk, lambda_star) - np.dot(Lows_chi, duals_l) + np.dot(Upps_chi, duals_u)
 
     return s, tau, chi, lambda_star, False
