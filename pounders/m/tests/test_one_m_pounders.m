@@ -42,7 +42,7 @@ Model.np_max = np_max;
 
 % Step nf_max through small values with a huge g_tol so that the criticality
 % test is hit immediately and, for some budgets, the budget runs out while
-% the model is being made valid in that test. 
+% the model is being made valid in that test.
 Options.printf = 0;
 for nf_small = (n + 1):(2 * n + 3)
     [X_small, ~, ~, flag_small] = pounders(Ffun, X_0, n, nf_small, 1e3, delta_0, m, Low, Upp, Prior, Options);
