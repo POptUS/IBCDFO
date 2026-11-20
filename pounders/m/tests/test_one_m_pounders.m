@@ -40,6 +40,16 @@ Options.printf = printf;
 Model.np_max = np_max;
 [X, F, hf, flag, xk_best] = pounders(Ffun, X_0, n, nf_max, g_tol, delta_0, m, Low, Upp, Prior, Options, Model);
 
+% Step nf_max through small values with a huge g_tol so that the criticality
+% test is hit immediately and, for some budgets, the budget runs out while
+% the model is being made valid in that test. 
+Options.printf = 0;
+for nf_small = (n + 1):(2 * n + 3)
+    [X_small, ~, ~, flag_small] = pounders(Ffun, X_0, n, nf_small, 1e3, delta_0, m, Low, Upp, Prior, Options);
+    assert(size(X_small, 1) <= nf_small + nfs, "pounders exceeded nf_max");
+end
+assert(size(X_small, 1) == nf_small + nfs && flag_small > 0, "The budget should have been exhausted");
+
 path(oldpath);
 
 assert(flag == 0, "We should solve this within 200 evaluations");

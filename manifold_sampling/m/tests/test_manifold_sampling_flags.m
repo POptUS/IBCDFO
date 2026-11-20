@@ -68,6 +68,14 @@ if flag == -6
     assert(contains(out, 'Final chi_k = '), "The -6 message should report the final chi_k");
 end
 
+% Full run with loose tolerances: any stationary measure satisfies g_tol, so
+% the run ends with exit_flag==0 as soon as the radius reaches delta_min
+Options = struct('g_tol', Inf, 'delta_min', 1e-3, 'printf', 1);
+out = evalc('[X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, 300, subprob_switch, Options);');
+assert(flag == 0, "flag should be 0 with a loose g_tol and delta_min");
+assert(contains(out, 'Convergence satisfied: small stationary measure and small delta'));
+assert(size(X, 1) < 300, "the run should end before exhausting the budget");
+
 path(oldpath);
 end
 
