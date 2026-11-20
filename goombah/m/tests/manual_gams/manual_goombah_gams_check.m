@@ -195,7 +195,7 @@ for row = rows
             assert(flag == 1, "goombah with lhs ended with flag = " + flag);
             assert(size(X, 1) == nf_max, "goombah with lhs did not terminate at evaluation budget");
             assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h_lhs), "goombah with lhs has inconsistent output sizes");
-            decrease_lhs = h_lhs(1) - min(h_lhs);
+            decrease_lhs = h_lhs(1) - h_lhs(xkin_lhs);
             assert(decrease_lhs > 0, "goombah with lhs did not decrease h");
 
             rand('seed', 1);
@@ -203,8 +203,9 @@ for row = rows
             assert(flag == 1, "goombah with GAMS ended with flag = " + flag);
             assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
             assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");
-            assert(h(xkin) < h(1), "goombah with GAMS did not decrease");
-            assert(h(1) - min(h) >= 0.999 * decrease_lhs, "goombah GAMS decreased h much less than lhs");
+            decrease_gams = h(1) - h(xkin);
+            assert(decrease_gams > 0, "goombah with GAMS did not decrease");
+            assert(decrease_gams >= 0.999 * decrease_lhs, "goombah GAMS decreased h much less than lhs");
 
             fprintf('  h(xkin): GAMS %g, lhs %g\n', h(xkin), h_lhs(xkin_lhs));
         end
