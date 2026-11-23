@@ -124,11 +124,6 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     [hF(nf), ~, hashes_at_nf] = hfun(F(nf, :));
     Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
 
-    I_n = eye(n);
-    for i = 1:n
-        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + delta * I_n(i, :), tol, Low, Upp, 1);
-    end
-
     H_mm = zeros(n);
     chi_k = inf; % Stationary measure; set whenever it is computed
     while nf < nf_max && delta > tol.mindelta
@@ -268,7 +263,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
 
         end
         if printf
-            fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, hF(xk_in), delta);
+            fprintf('nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n', nf, hF(xk_in), chi_k, delta);
         end
     end
 

@@ -32,7 +32,7 @@ rand('seed', 1);
 [X, F, hF, xk_in] = goombah(hfun, x0, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
 assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
 
-% Supplying only enough evaluation budget for the initial simplex and one more
+% Supplying only enough evaluation budget for the first model and one more
 nf_max_small = n + 2;
 [X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max_small, TRSP_options, subprob_switch);
 assert(size(X, 1) <= nf_max_small, "goombah grew the size of X");
@@ -61,7 +61,7 @@ assert(isempty(out), "printf = 0 should produce no output");
 % Options: delta_0 sets the initial trust-region radius
 Options.delta_0 = 0.5;
 [X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 2, TRSP_options, subprob_switch, Options);
-assert(max(abs(X(2, :) - x0)) == 0.5, "Options.delta_0 was not used for the initial simplex");
+assert(max(abs(X(2, :) - x0)) <= 0.5 + 1e-12, "Options.delta_0 was not used");
 
 % The following covers beta_exp and tests that there is an actual
 % effect. Both runs use the same seed and budget, so they evaluate the same
