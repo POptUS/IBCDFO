@@ -1,6 +1,6 @@
 """
-Test that manifold_sampling_primal accepts an Options dict and rejects one
-that is not valid.
+Test that manifold_sampling_primal accepts Options and Prior dicts and rejects
+ones that are not valid.
 """
 
 import contextlib
@@ -70,3 +70,28 @@ class TestManifoldSamplingOptions(unittest.TestCase):
         Options = {"printf": 0, "delta_0": 0.1, "delta_min": 0.09, "g_tol": 1e10}
         flag = ibcdfo.run_MSP(self.hfun, self.Ffun, x0_near, self.Low, self.Upp, self.nf_max, Options)[4]
         self.assertEqual(flag, 0)
+
+    def test_prior(self):
+        # A second run starts from the points of a first run and only evaluates
+        # nf_max new points
+        Options = {"printf": 0}
+        X1, F1, hF1, _, _ = self.run_msp(self.n + 5, Options)
+        i_best = int(np.argmin(hF1))
+        Prior = {"nfs": X1.shape[0], "X_init": X1, "F_init": F1, "xk_in": i_best}
+        X2, F2, _, _, _ = ibcdfo.run_MSP(self.hfun, self.Ffun, X1[i_best], self.Low, self.Upp, 5, Options, Prior)
+        self.assertTrue(np.array_equal(X2[: Prior["nfs"]], X1) and np.array_equal(F2[: Prior["nfs"]], F1))
+        self.assertLessEqual(X2.shape[0], Prior["nfs"] + 5)
+
+        # Bad Prior
+        with self.assertRaisesRegex(TypeError, "Prior argument must be a dictionary"):
+            ibcdfo.run_MSP(self.hfun, self.Ffun, self.x0, self.Low, self.Upp, self.nf_max, Options, "bad")
+        with self.assertRaisesRegex(ValueError, "Prior must be a dictionary with the keys"):
+            ibcdfo.run_MSP(self.hfun, self.Ffun, X1[i_best], self.Low, self.Upp, self.nf_max, Options, {"nfs": Prior["nfs"]})
+        with self.assertRaisesRegex(ValueError, "X_0 doesn't match X_init"):
+            ibcdfo.run_MSP(self.hfun, self.Ffun, self.x0 + 1, self.Low, self.Upp, self.nf_max, Options, Prior)
+        Prior_repeated = {"nfs": Prior["nfs"] + 1, "X_init": np.vstack((X1, X1[0])), "F_init": np.vstack((F1, F1[0])), "xk_in": i_best}
+        with self.assertRaisesRegex(ValueError, "X_init contains repeated points"):
+            ibcdfo.run_MSP(self.hfun, self.Ffun, X1[i_best], self.Low, self.Upp, self.nf_max, Options, Prior_repeated)
+        Prior_bad_nfs = dict(Prior, nfs=Prior["nfs"] + 1)
+        with self.assertRaisesRegex(ValueError, "X_init has shape"):
+            ibcdfo.run_MSP(self.hfun, self.Ffun, X1[i_best], self.Low, self.Upp, self.nf_max, Options, Prior_bad_nfs)

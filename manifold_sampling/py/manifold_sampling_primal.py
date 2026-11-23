@@ -5,7 +5,7 @@ from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts
 from .check_inputs_and_initialize import check_inputs_and_initialize
 from .choose_generator_set import choose_generator_set
-from .defaults import ALL_OPTIONS_KEYS, compute_default_options
+from .defaults import ALL_OPTIONS_KEYS, EXPECTED_PRIOR_KEYS, compute_default_options
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 
@@ -16,7 +16,7 @@ from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 eng = []
 
 
-def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options=None):
+def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options=None, Prior=None):
     r"""
     Run manifold sampling to solve the composite nonsmooth optimization problem.
 
@@ -80,10 +80,27 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options=None):
           Only ``"linprog"`` (default), which uses ``scipy.optimize.linprog``,
           is supported.
 
+    :param Prior: ``dict`` describing past evaluations of ``Ffun``.  Set to
+        ``None`` to run optimization assuming no past evaluations. A nonempty
+        **Prior** must contain entries:
+
+        * **nfs** - Number of past function evaluations
+        * **X_init** - :math:`\mathrm{nfs} \times \np` NumPy array of distinct
+          points :math:`\psp_k`
+        * **F_init** - :math:`\mathrm{nfs} \times \nd` NumPy array of values
+          :math:`\Ffun(\psp_k)` computed with ``Ffun``
+        * **xk_in** - Zero-based index into ``X_init`` and ``F_init`` that
+          corresponds to the point and value to use as the initial point for
+          optimization. Note that if **Prior** is nonempty, **X_init[xk_in]**
+          and **x0** must be identical.
+
+        **nf_max** counts only new evaluations of ``Ffun``.
+
     :return:
         Tuple ``(X, F, hF, xk_in, flag)`` where
 
-        * ``X`` -- array of evaluated points in evaluation order
+        * ``X`` -- array of the points in ``Prior`` followed by the evaluated
+          points in evaluation order
         * ``F`` -- array with rows :math:`\Ffun(X[i])`
         * ``hF`` -- array with ``hF[i]`` = :math:`\hfun(\Ffun(X[i]))`
         * ``xk_in`` -- zero-based index in ``X`` of the final trust-region center
@@ -121,24 +138,39 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options=None):
     if subprob_switch != "linprog":
         raise ValueError(f"Error: Options subprob_switch must be 'linprog' ({subprob_switch})")
 
-    # Deduce p from evaluating Ffun at x0
-    try:
-        F0 = Ffun(x0)
-    finally:
-        pass
+    # -- Prior dictionary
+    if Prior is None:
+        # Deduce p from evaluating Ffun at x0
+        try:
+            F0 = Ffun(x0)
+        finally:
+            pass
 
-    m = len(F0)
-    nfs = 1
-    X_init = np.atleast_2d(x0)
-    F_init = np.atleast_2d(F0)
+        nfs = 1
+        X_init = np.atleast_2d(x0)
+        F_init = np.atleast_2d(F0)
+        xk_in = 0
+    else:
+        if not isinstance(Prior, dict):
+            raise TypeError("Error: Prior argument must be a dictionary")
+        if set(Prior) != EXPECTED_PRIOR_KEYS:
+            raise ValueError(f"Error: Prior must be a dictionary with the keys {EXPECTED_PRIOR_KEYS}")
 
-    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max, defaults)
+        nfs = Prior["nfs"]
+        X_init = Prior["X_init"]
+        F_init = Prior["F_init"]
+        xk_in = Prior["xk_in"]
+        nf_max = nf_max + nfs
+
+    m = F_init.shape[1]
+
+    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, defaults)
     # This raises exceptions on bad inputs and does not alter any arguments.
     checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
 
-    # Evaluate user scripts at x_0
-    hF[nf], __, hashes_at_nf = hfun(F[nf])
-    Hash[nf] = hashes_at_nf
+    # Evaluate hfun at the points already evaluated
+    for i in range(nf + 1):
+        hF[i], __, Hash[i] = hfun(F[i])
 
     H_mm = np.zeros((n, n))
 

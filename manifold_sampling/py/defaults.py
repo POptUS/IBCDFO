@@ -5,7 +5,9 @@ documentation to confirm that it remains consistent.
 """
 
 # ----- SETS OF DICT CONFIG KEYS
+# * EXPECTED_* implies that users have to provide this and only this set of keys
 # * ALL_* implies that users can at most provide this set of keys
+EXPECTED_PRIOR_KEYS = {"nfs", "X_init", "F_init", "xk_in"}
 ALL_OPTIONS_KEYS = {
     "printf",
     "delta_0",
