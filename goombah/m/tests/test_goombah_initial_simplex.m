@@ -1,10 +1,10 @@
-% This tests the n initial coordinate steps that goombah takes before its main
-% loop. One coordinate is given to each of the four cases in the step choice:
+% This tests the n initial evaluations that goombah requests before its main
+% loop. Each coordinate tests each of one of these four cases:
 %
-%   1. room for +delta above the incumbent
-%   2. no room above, but room for -delta below
-%   3. box narrower than delta, with the wider side above
-%   4. box narrower than delta, with the wider side below
+%   1. [x0]_i +/- delta are both feasible (that is, in [Low]_i, [Upp]_i)
+%   2. [x0]_i + delta not feasible, but [x0]_i - delta is feasible
+%   3. Neither [x0]_i +/- delta is feasible, right hand side wider
+%   4. Neither [x0]_i +/- delta is feasible, left hand side wider
 
 function [] = test_goombah_initial_simplex()
 
@@ -18,8 +18,8 @@ addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'
 n = 4;
 delta_0 = 0.1;
 
-% Coordinate i exercises case i above. Coordinates 3 and 4 sit in a box of
-% width 0.05, narrower than delta_0, so neither a +delta nor a -delta step fits.
+% Coordinate i tests case i from comments. Coordinates 3 and 4 sit in a box of
+% width 0.05, narrower than delta_0, so neither +/- delta are feasible.
 x0 =  [0.0,  1.0,  0.01, 0.04];
 Low = [-1.0, -1.0, 0.0,  0.0];
 Upp = [1.0,  1.0,  0.05, 0.05];
@@ -30,7 +30,7 @@ Ffun = @(x) x;
 TRSP_options.solver = 'lhs';
 Options = struct('printf', 0, 'delta_0', delta_0);
 
-% A budget of n + 1 returns as soon as the initial simplex has been evaluated
+% A budget of n + 1 forces a return right after the initial simplex has been evaluated
 [X, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, n + 1, TRSP_options, 'linprog', Options);
 
 assert(flag == 1, "goombah should stop once the budget is spent on the initial simplex");
@@ -45,7 +45,7 @@ for i = 1:n
            sprintf("coordinate %d stepped %g, expected %g", i, step(i), expected_steps(i)));
 end
 
-% Whichever case applies, no requested point may leave the box
+% Whichever case applies, no requested point can be infeasible
 assert(all(all(X >= Low)) && all(all(X <= Upp)), "goombah requested a point outside the bounds");
 
 path(oldpath);
