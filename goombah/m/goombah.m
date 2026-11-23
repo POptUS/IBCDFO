@@ -88,8 +88,9 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     % Deduce p from evaluating Ffun at x0
     try
         F0 = Ffun(x0);
-        F0 = F0(:)';
-    catch
+    catch e
+        fprintf(1, 'The identifier was:\n%s\n\n', e.identifier);
+        fprintf(1, 'There was an error! The message was:\n%s\n', e.message);
         warning('Problem using Ffun. Exiting');
         X = [];
         F = [];
@@ -100,6 +101,14 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     end
 
     [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
+    [flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
+    if flag == -1 % Problem with the input
+        X = x0;
+        F = F0;
+        hF = [];
+        return
+    end
+
     if ~isfield(Options, 'beta_exp')
         beta_exp = 1.0; % [dbl] Exponent in the denominator of the step ratio (1.0)
     else
