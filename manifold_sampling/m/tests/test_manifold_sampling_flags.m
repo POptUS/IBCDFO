@@ -20,8 +20,6 @@ clear global h_activity_tol;
 oldpath = addpath(fullfile(here_path, '..'));
 addpath(fullfile(here_path, 'general_smooth_h_funs'));
 
-subprob_switch = 'linprog';
-
 load dfo.dat;
 
 row = 1;
@@ -45,19 +43,19 @@ known_min = m - n;
 % Failing objective
 bad_Ffun = @(x)failing_Ffun(x);
 oldwarn = warning('off', 'all'); % The solver warns that Ffun failed
-[~, ~, ~, ~, flag] = manifold_sampling_primal(hfun, bad_Ffun, x0, Low, Upp, 300, subprob_switch);
+[~, ~, ~, ~, flag] = manifold_sampling_primal(hfun, bad_Ffun, x0, Low, Upp, 300);
 warning(oldwarn);
 assert(flag == -1, "flag should be -1 when Ffun fails");
 
 % Exhausted budget: flag of 1, and outputs have nf rows
 nf_max = n + 5;
-[X, F, hF, ~, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch);
+[X, F, hF, ~, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max);
 assert(flag == 1, "flag should be 1 when the budget is exhausted");
 assert(size(X, 1) == nf_max && size(F, 1) == nf_max && numel(hF) == nf_max, "outputs should have nf rows");
 
 % Converges before exhausting the budget
 nf_max = 300;
-out = evalc('[X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch);');
+out = evalc('[X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max);');
 assert(size(X, 1) < nf_max, "manifold_sampling_primal used its entire evaluation budget");
 assert(size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "outputs should have nf rows");
 assert(abs(hF(xk_in) - known_min) <= 1e-6, "manifold_sampling_primal did not converge to the known minimum");

@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options)
+function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options, Prior)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -10,44 +10,35 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %  :param Low:     [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
     %  :param Upp:     [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
     %  :param nf_max:  [int] Maximum number of function evaluations.
-    %  :param TRSP_options: [struct] Options for solving the trust-region
-    %       subproblem. Fields:
+    %  :param Options: [struct] Solver options. **TRSP** must be given; any
+    %       other missing field takes its default:
     %
-    %       * **solver** - ``'GAMS'`` to solve the subproblem with
-    %         `GAMS <https://www.gams.com>`_
-    %         or ``'lhs'`` to use a simple solver that samples the
-    %         trust region and refines the best point with ``fmincon``. The
-    %         latter is not recommended and is intended for testing and
-    %         development. All other fields apply only to ``'GAMS'``.
+    %       * **TRSP**           [struct] Options for solving the trust-region
+    %         subproblem. Fields:
     %
-    %       * **file** - Path to the GAMS model file that corresponds to **hfun**.
+    %           * **solver** - ``'GAMS'`` to solve the subproblem with
+    %             `GAMS <https://www.gams.com>`_
+    %             or ``'lhs'`` to use a simple solver that samples the
+    %             trust region and refines the best point with ``fmincon``. The
+    %             latter is not recommended and is intended for testing and
+    %             development. All other fields apply only to ``'GAMS'``.
     %
-    %       * **solvers** - Vector of integers that selects the GAMS solvers to
-    %         try. The step from the best successful solve is used as the trial
-    %         point. Each solver must be available with your GAMS license. The
-    %         solver that each integer selects is set in **TRSP_options.file**.
+    %           * **file** - Path to the GAMS model file that corresponds to **hfun**.
     %
-    %       * **atol**, **rtol** - (optional) Absolute and relative tolerances
-    %         (default ``1e-4`` each) for the check that the GAMS and |matlab|
-    %         objective values agree. If they do not, the step is rejected.
+    %           * **solvers** - Vector of integers that selects the GAMS solvers to
+    %             try. The step from the best successful solve is used as the trial
+    %             point. Each solver must be available with your GAMS license. The
+    %             solver that each integer selects is set in **Options.TRSP.file**.
     %
-    %       * **hfun_data** - (optional) Users that pass an **hfun** that
-    %         corresponds to one of the |goombah|-provided parameterized
-    %         :math:`h` functions must use this field to provide GAMS with the
-    %         same parameters used to construct their **hfun**.  See the general
-    %         |goombah| documentation for more information.
+    %           * **atol**, **rtol** - (optional) Absolute and relative tolerances
+    %             (default ``1e-4`` each) for the check that the GAMS and |matlab|
+    %             objective values agree. If they do not, the step is rejected.
     %
-    %  :param subprob_switch: [str] Solver for the subproblem of the manifold sampling
-    %       subproblems that |goombah| solves as a recourse:
-    %
-    %       * ``'linprog'`` - Solve the linear program with ``linprog``
-    %         (requires the |matlab| Optimization Toolbox).
-    %       * ``'GAMS_LP'`` - Solve the linear program with GAMS.
-    %       * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
-    %         problem that includes the Hessians of the models.
-    %
-    %  :param Options: [struct] (optional) Solver options. Omit or pass ``[]``
-    %       for the defaults. Any missing field takes its default:
+    %           * **hfun_data** - (optional) Users that pass an **hfun** that
+    %             corresponds to one of the |goombah|-provided parameterized
+    %             :math:`h` functions must use this field to provide GAMS with the
+    %             same parameters used to construct their **hfun**.  See the general
+    %             |goombah| documentation for more information.
     %
     %       * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output, including each GAMS run (1)
     %       * **delta_0**        [dbl] Initial trust-region radius (0.1)
@@ -61,10 +52,30 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %       * **beta_exp**       [dbl] Exponent in the denominator of the |goombah| step ratio (1.0)
     %       * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
     %       * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+    %       * **subprob_switch** [str] Solver for the manifold sampling
+    %         subproblems that |goombah| solves as a recourse (``'linprog'``):
+    %
+    %           * ``'linprog'`` - Solve the linear program with ``linprog``
+    %             (requires the |matlab| Optimization Toolbox).
+    %           * ``'GAMS_LP'`` - Solve the linear program with GAMS.
+    %           * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
+    %             problem that includes the Hessians of the models.
+    %
+    %  :param Prior: [struct] (optional) Past evaluations of ``Ffun``. Omit or
+    %       pass ``[]`` if there are none. Otherwise, all fields must be given:
+    %
+    %       * **nfs**    [int] Number of past evaluations
+    %       * **X_init** [:math:`\mathrm{nfs} \times \np` dbl] Distinct points :math:`\psp_k`
+    %       * **F_init** [:math:`\mathrm{nfs} \times p` dbl] Values :math:`\Ffun(\psp_k)`
+    %       * **xk_in**  [int] One-based index into ``X_init`` and ``F_init`` of the
+    %         initial point, which must equal ``x0``
+    %
+    %       ``nf_max`` counts only new evaluations of ``Ffun``.
     %
     %  :return:
-    %       * **X**     [:math:`k \times \np`] Points evaluated, where
-    %         :math:`k \leq \mathrm{nf\_max}`
+    %       * **X**     [:math:`k \times \np`] The points in ``Prior.X_init``
+    %         followed by the points evaluated, where
+    %         :math:`k \leq \mathrm{nfs} + \mathrm{nf\_max}`
     %       * **F**     [:math:`k \times p`] Their simulation values
     %       * **hF**    [:math:`k \times 1`] The values :math:`\hfun(\Ffun(\psp)))`
     %       * **xk_in** [int] Current trust region center
@@ -81,56 +92,68 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
     addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 
-    if nargin < 9
+    if nargin < 7
         Options = [];
     end
+    if nargin < 8 || isempty(Prior)
+        Prior = struct();
+        Prior.nfs = 0;
+    end
+    assert(isstruct(Prior), "Prior must be a struct");
 
-    % Deduce p from evaluating Ffun at x0
-    try
-        F0 = Ffun(x0);
-        F0 = F0(:)';
-    catch
-        warning('Problem using Ffun. Exiting');
-        X = [];
-        F = [];
+    if Prior.nfs == 0
+        % Deduce p from evaluating Ffun at x0
+        try
+            F0 = Ffun(x0);
+        catch e
+            fprintf(1, 'The identifier was:\n%s\n\n', e.identifier);
+            fprintf(1, 'There was an error! The message was:\n%s\n', e.message);
+            warning('Problem using Ffun. Exiting');
+            X = [];
+            F = [];
+            hF = [];
+            xk_in = [];
+            flag = -1;
+            return
+        end
+        X_init = x0;
+        F_init = F0;
+        xk_in = 1;
+    else
+        assert(size(Prior.F_init, 1) == Prior.nfs, "Prior.F_init must have Prior.nfs rows");
+        X_init = Prior.X_init;
+        F_init = Prior.F_init;
+        xk_in = Prior.xk_in;
+        nf_max = nf_max + Prior.nfs;
+    end
+
+    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, subprob_switch] = check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, Options);
+    [flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, X_init, n, fq_pars.npmax, nf_max, tol.gtol, delta, nf, size(F_init, 2), F_init, xk_in, Low, Upp);
+    if flag == -1 % Problem with the input
+        X = x0;
+        F = F0;
         hF = [];
-        xk_in = [];
-        flag = -1;
         return
     end
 
-    [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
     if ~isfield(Options, 'beta_exp')
         beta_exp = 1.0; % [dbl] Exponent in the denominator of the step ratio (1.0)
     else
         beta_exp = Options.beta_exp;
     end
+    assert(isfield(Options, 'TRSP'), "Options.TRSP must be given");
+    TRSP_options = Options.TRSP;
     TRSP_options.printf = printf;
-    assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
+    assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'Options.TRSP.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
                 "The lhs TRSP solver should only be used for testing or debugging");
     end
 
-    [hF(nf), ~, hashes_at_nf] = hfun(F(nf, :));
-    Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
-
-    I_n = eye(n);
-    for i = 1:n
-        % Step +delta, try -delta if +delta would leave the box,
-        % or stopping at the bound when the box is narrower than +/-delta.
-        gap_up = Upp(i) - X(xk_in, i);
-        gap_lo = X(xk_in, i) - Low(i);
-        if gap_up >= delta
-            step_i = delta;
-        elseif gap_lo >= delta
-            step_i = -delta;
-        elseif gap_up >= gap_lo
-            step_i = gap_up;
-        else
-            step_i = -gap_lo;
-        end
-        [nf, X, F, hF, Hash] = call_user_scripts(nf, X, F, hF, Hash, Ffun, hfun, X(xk_in, :) + step_i * I_n(i, :), tol, Low, Upp, 1);
+    % Evaluate hfun at the points already evaluated
+    for i = 1:nf
+        [hF(i), ~, hashes_at_i] = hfun(F(i, :));
+        Hash(i, 1:length(hashes_at_i)) = hashes_at_i;
     end
 
     H_mm = zeros(n);
@@ -272,7 +295,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
 
         end
         if printf
-            fprintf('nf: %8d; fval: %8e; radius: %8e; \n', nf, hF(xk_in), delta);
+            fprintf('nf: %8d; fval: %8e; chi: %8e; radius: %8e; \n', nf, hF(xk_in), chi_k, delta);
         end
     end
 

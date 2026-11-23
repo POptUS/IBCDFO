@@ -10,7 +10,6 @@ nf_max = 300;
 factor = 10;
 
 hfun = @h_leastsquares;
-subprob_switch = 'linprog';
 
 load dfo.dat;
 
@@ -32,7 +31,7 @@ for row = [1, 2]
     Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
     x0 = xs';
 
-    [X, ~, hF, xk_in, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+    [X, ~, hF, xk_in, ~] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max);
     % Every point evaluated must remain feasible (to within roundoff)
     assert(all(all(X >= LB - 1e-15)) && all(all(X <= UB + 1e-15)), "Evaluated point violates bounds");
     if row == 1 || row == 2

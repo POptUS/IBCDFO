@@ -49,7 +49,7 @@ the time spent solving the trust-region subproblem is commensurate with the
 cost of evaluating :math:`\Ffun`.
 
 To preserve robustness, |goombah| reverts to a manifold sampling iteration
-(see **subprob_switch** below) whenever the proposed trust-region subproblem solution does not produce
+(see **Options.subprob_switch** below) whenever the proposed trust-region subproblem solution does not produce
 sufficient objective decrease. This fallback to manifold sampling, which
 identifies only a local descent step, allows |goombah| to retain the convergence
 properties of the chosen manifold sampling solver while otherwise potentially taking more
@@ -61,7 +61,7 @@ For algorithmic details and numerical results, see :cite:t:`MSP_2024`.
 Any high-quality global solver for the subproblem can be used, and the performance
 of |goombah| will generally change whenever the solver is changed.
 The |matlab| implementation provides two ways to solve the subproblems, which
-are selected with the ``solver`` field of ``TRSP_options``:
+are selected with the ``solver`` field of ``Options.TRSP``:
 
 * ``'GAMS'`` solves |goombah| trust-region subproblems by calling
   `GAMS <https://www.gams.com/>`__, which requires a local, licensed
@@ -71,7 +71,7 @@ are selected with the ``solver`` field of ``TRSP_options``:
   not, it must be obtained separately (|eg| from an older GAMS
   release). Other GAMS interfaces to |matlab| are not currently supported. GAMS
   models for several choices of :math:`\hfun` are
-  provided; see the description of ``TRSP_options`` below. 
+  provided; see the description of ``Options.TRSP`` below. 
   When available, we recommend the 
   `BARON <https://www.gams.com/latest/docs/S_BARON.html>`__
   optimization software.
@@ -102,7 +102,7 @@ Programmatic Interface
 
 The interface requires that users pass in a handle to a |matlab| function
 that computes :math:`h`.  When GAMS is employed, users must also set in
-**TRSP_Options.file** the path of a GAMS model file that is matched to
+**Options.TRSP.file** the path of a GAMS model file that is matched to
 their **hfun** argument.  Model files for several choices of :math:`\hfun` are
 provided as ``minimize_*.gms`` files in 
 `goombah/m/subproblems <https://github.com/POptUS/IBCDFO/tree/main/goombah/m/subproblems>`_.
@@ -119,7 +119,7 @@ their actual **hfun** argument using, respectively, the |matlab| versions of
 * :py:func:`ibcdfo.manifold_sampling.create_piecewise_quadratic_hfun`
 
 located in ``manifold_sampling/m/general_nonsmooth_h_funs``.  In addition they
-must use **TRSP_Options.hfun_data** to provide to GAMS the exact same **C**/**D**
+must use **Options.TRSP.hfun_data** to provide to GAMS the exact same **C**/**D**
 or **Q**/**z**/**c** parameters used to construct their **hfun**
 
 Status Code

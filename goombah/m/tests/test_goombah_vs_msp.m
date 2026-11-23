@@ -26,8 +26,7 @@ addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'
 
 factor = 10;
 nf_max = 100;
-subprob_switch = 'linprog';
-TRSP_options.solver = 'lhs';
+Options.TRSP.solver = 'lhs';
 
 load dfo.dat;
 
@@ -98,12 +97,12 @@ for i = 1:size(rows_and_hfuns, 1)
         hfun = hfuns{jj, 2};
         problem = ['problem ' num2str(row) ' with hfun=' hfuns{jj, 1}];
 
-        [~, ~, h_msp, ~, ~] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch);
+        [~, ~, h_msp, ~, ~] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max);
         decrease_msp = h_msp(1) - min(h_msp);
         assert(decrease_msp > 0, "manifold_sampling_primal did not decrease h on " + problem);
 
         rand('seed', 1);
-        [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
+        [X, F, hF, xk_in] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options);
         check_outputs(X, F, hF, xk_in);
         assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
         assert(hF(1) - min(hF) >= 0.9 * decrease_msp, "goombah decreased h much less than manifold_sampling_primal on " + problem);

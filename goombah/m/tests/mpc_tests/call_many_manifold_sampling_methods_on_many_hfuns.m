@@ -56,8 +56,8 @@ if ~exist('Qzb', 'var')
 end
 h_activity_tol = 1e-8;
 
-% subprob_switch = 'GAMS_LP'; % subprob_switch = 'GAMS_QCP';
-subprob_switch = 'linprog';
+% Options.subprob_switch = 'GAMS_LP'; % Options.subprob_switch = 'GAMS_QCP';
+Options.subprob_switch = 'linprog';
 
 Results = cell(num_solvers, num_seeds, size(dfo, 1));
 for mw_prob_num = [7] % full tests are 1:53
@@ -101,25 +101,25 @@ for mw_prob_num = [7] % full tests are 1:53
                     system(['touch ' filename]);
 
                     if s == 1
-                        TRSP_options.solver = 'GAMS';
-                        TRSP_options.hfun_data = [];
+                        Options.TRSP.solver = 'GAMS';
+                        Options.TRSP.hfun_data = [];
                         if strcmp(func2str(hfun{1}), 'pw_minimum_squared')
-                            TRSP_options.file = [trsp_root 'minimize_min_squared_quadratic_models.gms'];
-                            TRSP_options.solvers = 1:3;
+                            Options.TRSP.file = [trsp_root 'minimize_min_squared_quadratic_models.gms'];
+                            Options.TRSP.solvers = 1:3;
                         elseif strcmp(func2str(hfun{1}), 'pw_maximum_squared')
-                            TRSP_options.file = [trsp_root 'minimize_max_squared_quadratic_models.gms'];
-                            TRSP_options.solvers = 1:4;
+                            Options.TRSP.file = [trsp_root 'minimize_max_squared_quadratic_models.gms'];
+                            Options.TRSP.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'censored_L1_loss')
-                            TRSP_options.hfun_data = struct('C', C, 'D', D);
-                            TRSP_options.file = [trsp_root 'minimize_censored_L1_loss_quadratic_models.gms'];
-                            TRSP_options.solvers = 1:4;
+                            Options.TRSP.hfun_data = struct('C', C, 'D', D);
+                            Options.TRSP.file = [trsp_root 'minimize_censored_L1_loss_quadratic_models.gms'];
+                            Options.TRSP.solvers = 1:4;
                         elseif strcmp(func2str(hfun{1}), 'piecewise_quadratic')
-                            TRSP_options.hfun_data = struct('Q', Qs, 'z', zs, 'c', cs);
-                            TRSP_options.file = [trsp_root 'minimize_max_quadratic_mapping_of_quadratic_models.gms'];
-                            TRSP_options.solvers = 1:4;
+                            Options.TRSP.hfun_data = struct('Q', Qs, 'z', zs, 'c', cs);
+                            Options.TRSP.file = [trsp_root 'minimize_max_quadratic_mapping_of_quadratic_models.gms'];
+                            Options.TRSP.solvers = 1:4;
                         end
 
-                        [X, F, hF, xk_in] = goombah(hfun{1}, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
+                        [X, F, hF, xk_in] = goombah(hfun{1}, Ffun, x0, Low, Upp, nf_max, Options);
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -131,7 +131,7 @@ for mw_prob_num = [7] % full tests are 1:53
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % PRIMAL MANIFOLD SAMPLING %%%%
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, Low, Upp, nf_max, subprob_switch);
+                        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, Low, Upp, nf_max, Options);
 
                         assert(size(X, 1) <= nf_max, "Method grew the size of X");
 

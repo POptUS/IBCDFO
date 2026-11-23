@@ -16,8 +16,6 @@ addpath(fullfile(here_path, '..', 'general_nonsmooth_h_funs'));
 global Qs zs cs
 factor = 10;
 
-subprob_switch = 'linprog';
-
 load dfo.dat;
 
 Results = cell(1, 53);
@@ -98,7 +96,7 @@ for row = [1, 2, 7, 8, 43, 44, 45]
         Ffun = @(x)calfun_wrapper(x, BenDFO, 'smooth');
         x0 = xs';
 
-        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch);
+        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, LB, UB, nf_max);
 
         Results{jj, row}.alg = 'Manifold sampling';
         Results{jj, row}.problem = ['problem ' num2str(row) ' from More/Wild with hfun=' hfun_name];
