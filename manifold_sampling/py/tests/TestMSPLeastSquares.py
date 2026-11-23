@@ -15,7 +15,6 @@ class TestMSPLeastSquares(unittest.TestCase):
         DFO_PROBS = [0, 1]
         NF_MAX = 300
         FACTOR = 10
-        SUBPROB_SWITCH = "linprog"
 
         # ----- SUITE OF PROBLEMS
         DFO = np.loadtxt("dfo.dat")
@@ -34,7 +33,7 @@ class TestMSPLeastSquares(unittest.TestCase):
                 assert len(out) == m, "Incorrect output dimension"
                 return np.squeeze(out)
 
-            X, _, hF, xk_in, flag = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX, SUBPROB_SWITCH)
+            X, _, hF, xk_in, flag = ibcdfo.run_MSP(h_leastsquares, Ffun, x0, LB, UB, NF_MAX)
             self.assertIn(flag, (0, -6), f"MSP should converge (flag 0, or -6 if delta_min is reached first), but returned flag {flag}")
             self.assertTrue(hF[xk_in] <= 36.0 + 1.0e-8, "MSP did not reach the known minimum of 36")
             # Every point evaluated must remain feasible (to within roundoff)

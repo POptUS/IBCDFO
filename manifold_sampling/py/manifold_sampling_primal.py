@@ -5,6 +5,7 @@ from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts
 from .check_inputs_and_initialize import check_inputs_and_initialize
 from .choose_generator_set import choose_generator_set
+from .defaults import ALL_OPTIONS_KEYS, EXPECTED_PRIOR_KEYS, compute_default_options
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 
@@ -15,7 +16,7 @@ from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 eng = []
 
 
-def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
+def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options=None, Prior=None):
     r"""
     Run manifold sampling to solve the composite nonsmooth optimization problem.
 
@@ -53,13 +54,53 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
 
     :param nf_max: Maximum number of evaluations of ``Ffun``.
 
-    :param subprob_switch:
-        Selects the trust-region subproblem solver/variant used internally.
+    :param Options: ``dict`` of method options.  Set to ``None`` to use default
+        values.
+
+        * **printf** - 0 for no printing to screen, 1 for standard output
+          (default is 1)
+        * **delta_0** - Initial trust-region radius (default is 0.1)
+        * **delta_max** - Maximum allowed trust-region radius (default is
+          :math:`10^8`)
+        * **delta_min** - Minimum allowed trust-region radius; reaching this
+          triggers termination (default is :math:`10^{-13}`)
+        * **g_tol** - Tolerance on the stationary measure (default is
+          :math:`10^{-13}`)
+        * **eta_1** - In (0, 1); minimum ratio of actual to predicted
+          reduction required to accept a step (default is 0.01)
+        * **eta_3** - Ratio of actual to predicted reduction above which the
+          trust-region radius may grow (default is 0.5)
+        * **gamma_dec** - In (0, 1); factor by which the trust-region radius
+          is decreased (default is 0.5)
+        * **gamma_inc** - At least 1; factor by which the trust-region radius
+          is increased (default is 2)
+        * **hfun_test_mode** - Check the **hfun** implementation on every call
+          (default is 1)
+        * **subprob_switch** - Solver for the manifold sampling subproblem.
+          Only ``"linprog"`` (default), which uses ``scipy.optimize.linprog``,
+          is supported.
+
+    :param Prior: ``dict`` describing past evaluations of ``Ffun``.  Set to
+        ``None`` to run optimization assuming no past evaluations. A nonempty
+        **Prior** must contain entries:
+
+        * **nfs** - Number of past function evaluations
+        * **X_init** - :math:`\mathrm{nfs} \times \np` NumPy array of distinct
+          points :math:`\psp_k`
+        * **F_init** - :math:`\mathrm{nfs} \times \nd` NumPy array of values
+          :math:`\Ffun(\psp_k)` computed with ``Ffun``
+        * **xk_in** - Zero-based index into ``X_init`` and ``F_init`` that
+          corresponds to the point and value to use as the initial point for
+          optimization. Note that if **Prior** is nonempty, **X_init[xk_in]**
+          and **x0** must be identical.
+
+        **nf_max** counts only new evaluations of ``Ffun``.
 
     :return:
         Tuple ``(X, F, hF, xk_in, flag)`` where
 
-        * ``X`` -- array of evaluated points in evaluation order
+        * ``X`` -- array of the points in ``Prior`` followed by the evaluated
+          points in evaluation order
         * ``F`` -- array with rows :math:`\Ffun(X[i])`
         * ``hF`` -- array with ``hF[i]`` = :math:`\hfun(\Ffun(X[i]))`
         * ``xk_in`` -- zero-based index in ``X`` of the final trust-region center
@@ -80,24 +121,62 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     #   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
     #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
-    # Deduce p from evaluating Ffun at x0
-    try:
-        F0 = Ffun(x0)
-    finally:
-        pass
+    # ----- EXTRACT ARGUMENTS & DEFINE DEFAULTS
+    if Options is None:
+        Options = {}
+    if not isinstance(Options, dict):
+        raise TypeError("Error: Options argument must be a dictionary")
+    if not set(Options).issubset(ALL_OPTIONS_KEYS):
+        extras = set(Options).difference(ALL_OPTIONS_KEYS)
+        raise ValueError(f"Error: Options dictionary contains unknown keys {extras}")
 
-    m = len(F0)
-    nfs = 1
-    X_init = np.atleast_2d(x0)
-    F_init = np.atleast_2d(F0)
+    defaults = compute_default_options()
+    for key, value in Options.items():
+        defaults[key] = value
 
-    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
+    subprob_switch = defaults["subprob_switch"]
+    if subprob_switch != "linprog":
+        raise ValueError(f"Error: Options subprob_switch must be 'linprog' ({subprob_switch})")
+
+    # -- Prior dictionary
+    if Prior is None:
+        # Deduce p from evaluating Ffun at x0
+        try:
+            F0 = Ffun(x0)
+        finally:
+            pass
+
+        nfs = 1
+        X_init = np.atleast_2d(x0)
+        F_init = np.atleast_2d(F0)
+        xk_in = 0
+    else:
+        if not isinstance(Prior, dict):
+            raise TypeError("Error: Prior argument must be a dictionary")
+        if set(Prior) != EXPECTED_PRIOR_KEYS:
+            raise ValueError(f"Error: Prior must be a dictionary with the keys {EXPECTED_PRIOR_KEYS}")
+
+        nfs = Prior["nfs"]
+        X_init = Prior["X_init"]
+        F_init = Prior["F_init"]
+        xk_in = Prior["xk_in"]
+        nf_max = nf_max + nfs
+
+    m = F_init.shape[1]
+
+    n, delta, printf, fq_pars, tol, successful, Hres, chi_k = check_inputs_and_initialize(x0, m, nf_max, defaults)
     # This raises exceptions on bad inputs and does not alter any arguments.
     checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
 
-    # Evaluate user scripts at x_0
-    hF[nf], __, hashes_at_nf = hfun(F[nf])
-    Hash[nf] = hashes_at_nf
+    X = np.vstack((X_init, np.zeros((nf_max - nfs, n))))
+    F = np.vstack((F_init, np.zeros((nf_max - nfs, m))))
+    hF = np.zeros((nf_max, 1))
+    Hash = {}
+    nf = nfs - 1
+
+    # Evaluate hfun at the points already evaluated
+    for i in range(nf + 1):
+        hF[i], __, Hash[i] = hfun(F[i])
 
     H_mm = np.zeros((n, n))
 

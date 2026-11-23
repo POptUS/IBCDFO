@@ -18,7 +18,6 @@ class TestManifoldSampling(unittest.TestCase):
 
             return fvec
 
-        subprob_switch = "linprog"
         nf_max = 1000
         X0 = np.array([10.0, 20.0, 30.0])
         Low = -np.inf * np.ones(3)
@@ -27,8 +26,8 @@ class TestManifoldSampling(unittest.TestCase):
         np.random.seed(1)
 
         with self.assertRaises(ValueError):
-            X, F, hF, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max, subprob_switch)
+            X, F, hF, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max)
 
         Low = np.append(Low, Low)
         with self.assertRaises(ValueError):
-            X, F, hF, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max, subprob_switch)
+            X, F, hF, xk_best, flag = ibcdfo.run_MSP(ibcdfo.manifold_sampling.h_pw_maximum, failing_objective, X0, Low, Upp, nf_max)

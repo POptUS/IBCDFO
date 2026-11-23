@@ -21,7 +21,6 @@ dfo = np.loadtxt("dfo.dat")
 Results = {}
 probs_to_solve = [16, 33]
 
-subprob_switch = "linprog"
 nfmax = 150
 
 # Make sure plots directory exists
@@ -39,7 +38,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
         assert len(out) == m, "Incorrect output dimension"
         return out
 
-    X, F, h_msp, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+    X, F, h_msp, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax)
     assert flag == 1, f"MSP should exhaust its small budget nfmax (flag 1), but returned flag {flag}"
 
     # --- Run pounders without using the structure ---
