@@ -17,6 +17,7 @@ ALL_OPTIONS_KEYS = {
     "gamma_dec",
     "gamma_inc",
     "hfun_test_mode",
+    "subprob_switch",
 }
 
 
@@ -38,6 +39,7 @@ def compute_default_options():
         "gamma_dec": 0.5,
         "gamma_inc": 2,
         "hfun_test_mode": 1,
+        "subprob_switch": "linprog",
     }
     assert set(defaults) == ALL_OPTIONS_KEYS
     return defaults

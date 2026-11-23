@@ -33,7 +33,6 @@ dfo = np.loadtxt("dfo.dat")
 Results = {}
 probs_to_solve = [0, 1, 6, 7, 42, 43, 44]
 
-subprob_switch = "linprog"
 nf_max = 50
 
 hfuns = [
@@ -88,7 +87,7 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-        X, F, hF, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max, subprob_switch)
+        X, F, hF, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nf_max)
 
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)] = {}
         Results["MSP_" + str(probs_to_solve[row] + 1) + "_" + str(i)]["alg"] = "Manifold sampling"

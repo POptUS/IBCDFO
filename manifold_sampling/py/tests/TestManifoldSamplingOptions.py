@@ -19,25 +19,27 @@ class TestManifoldSamplingOptions(unittest.TestCase):
         self.Upp = np.inf * np.ones(self.n)
         self.hfun = ibcdfo.manifold_sampling.h_pw_maximum_squared
         self.Ffun = lambda x: np.copy(x)
-        self.subprob_switch = "linprog"
         self.nf_max = 30
 
     def run_msp(self, nf_max, Options):
-        return ibcdfo.run_MSP(self.hfun, self.Ffun, self.x0, self.Low, self.Upp, nf_max, self.subprob_switch, Options)
+        return ibcdfo.run_MSP(self.hfun, self.Ffun, self.x0, self.Low, self.Upp, nf_max, Options)
 
     def test_bad_options(self):
         with self.assertRaisesRegex(TypeError, "Options argument must be a dictionary"):
             self.run_msp(self.nf_max, "bad")
         with self.assertRaisesRegex(ValueError, "Options dictionary contains unknown keys"):
             self.run_msp(self.nf_max, {"not_an_option": 1})
+        with self.assertRaisesRegex(ValueError, "Options subprob_switch must be 'linprog'"):
+            self.run_msp(self.nf_max, {"subprob_switch": "GAMS_LP"})
 
     def test_default_options(self):
         # Omitting Options and passing None or {} are equivalent
         with contextlib.redirect_stdout(io.StringIO()):
-            X1 = ibcdfo.run_MSP(self.hfun, self.Ffun, self.x0, self.Low, self.Upp, self.nf_max, self.subprob_switch)[0]
+            X1 = ibcdfo.run_MSP(self.hfun, self.Ffun, self.x0, self.Low, self.Upp, self.nf_max)[0]
             X2 = self.run_msp(self.nf_max, None)[0]
             X3 = self.run_msp(self.nf_max, {})[0]
-        self.assertTrue(np.array_equal(X1, X2) and np.array_equal(X1, X3))
+            X4 = self.run_msp(self.nf_max, {"subprob_switch": "linprog"})[0]
+        self.assertTrue(np.array_equal(X1, X2) and np.array_equal(X1, X3) and np.array_equal(X1, X4))
 
     def test_printf(self):
         out = io.StringIO()
@@ -66,5 +68,5 @@ class TestManifoldSamplingOptions(unittest.TestCase):
         # delta_0 and delta_0, so MSP stops with flag 0.
         x0_near = np.array([0.03, 0.04, 0.05])
         Options = {"printf": 0, "delta_0": 0.1, "delta_min": 0.09, "g_tol": 1e10}
-        flag = ibcdfo.run_MSP(self.hfun, self.Ffun, x0_near, self.Low, self.Upp, self.nf_max, self.subprob_switch, Options)[4]
+        flag = ibcdfo.run_MSP(self.hfun, self.Ffun, x0_near, self.Low, self.Upp, self.nf_max, Options)[4]
         self.assertEqual(flag, 0)

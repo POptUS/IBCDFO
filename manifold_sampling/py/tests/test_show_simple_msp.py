@@ -26,7 +26,6 @@ dfo = np.loadtxt("dfo.dat")
 Results = {}
 probs_to_solve = [1]
 
-subprob_switch = "linprog"
 
 hfuns = [ibcdfo.manifold_sampling.h_one_norm, ibcdfo.manifold_sampling.create_censored_L1_loss_hfun]
 nfmax = 150
@@ -51,5 +50,5 @@ for row, (nprob, n, m, factor_power) in enumerate(dfo[probs_to_solve, :]):
 
             hfun = ibcdfo.manifold_sampling.create_censored_L1_loss_hfun(C, D)
 
-        X, F, hF, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax, subprob_switch)
+        X, F, hF, xk_in, flag = ibcdfo.run_MSP(hfun, Ffun, x0, LB, UB, nfmax)
         assert flag == 1, f"MSP should exhaust its small budget nfmax (flag 1), but returned flag {flag}"

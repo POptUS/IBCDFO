@@ -16,7 +16,7 @@ from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 eng = []
 
 
-def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options=None):
+def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options=None):
     r"""
     Run manifold sampling to solve the composite nonsmooth optimization problem.
 
@@ -54,9 +54,6 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, O
 
     :param nf_max: Maximum number of evaluations of ``Ffun``.
 
-    :param subprob_switch:
-        Selects the trust-region subproblem solver/variant used internally.
-
     :param Options: ``dict`` of method options.  Set to ``None`` to use default
         values.
 
@@ -79,6 +76,9 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, O
           is increased (default is 2)
         * **hfun_test_mode** - Check the **hfun** implementation on every call
           (default is 1)
+        * **subprob_switch** - Solver for the manifold sampling subproblem.
+          Only ``"linprog"`` (default), which uses ``scipy.optimize.linprog``,
+          is supported.
 
     :return:
         Tuple ``(X, F, hF, xk_in, flag)`` where
@@ -116,6 +116,10 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, O
     defaults = compute_default_options()
     for key, value in Options.items():
         defaults[key] = value
+
+    subprob_switch = defaults["subprob_switch"]
+    if subprob_switch != "linprog":
+        raise ValueError(f"Error: Options subprob_switch must be 'linprog' ({subprob_switch})")
 
     # Deduce p from evaluating Ffun at x0
     try:
