@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def check_inputs_and_initialize(x0, F0, nf_max):
+def check_inputs_and_initialize(x0, F0, nf_max, Low, Upp):
     x0 = x0.squeeze()
     n = int(len(x0))
     p = int(len(F0))
@@ -12,9 +12,20 @@ def check_inputs_and_initialize(x0, F0, nf_max):
 
     fq_pars = {"Par": [np.sqrt(n), max(10, np.sqrt(n)), 0.001, 0.001, False], "npmax": 2 * n + 1}
 
+    # Never let the radius exceed half the narrowest side of the box; a larger
+    # radius cannot be realised by any feasible step anyway. checkinputss
+    # validates the bounds, but only after this runs, so fall back to the
+    # delta-relative ceiling when they do not conform and leave the
+    # complaining to it.
+    box_is_valid = np.shape(Low) == np.shape(Upp) and np.min(Upp - Low) > 0
+    if box_is_valid:
+        maxdelta = min(1.0e3 * delta, 0.5 * np.min(Upp - Low))
+    else:
+        maxdelta = 1.0e3 * delta
+
     # Internal parameters/tolerances for manifold sampling
     tol = {
-        "maxdelta": 1e8,
+        "maxdelta": maxdelta,
         "mindelta": 1e-13,
         "gtol": 1e-13,
         "norm_g_change": 0.001,
@@ -25,6 +36,7 @@ def check_inputs_and_initialize(x0, F0, nf_max):
         "gamma_dec": 0.5,
         "gamma_inc": 2,
         "hfun_test_mode": 1,
+        "snap_tol": 1.0e-6,
     }
 
     # kappa_mh = 0;    # [dbl] > 0 that bounds the component model Hessians

@@ -1,4 +1,4 @@
-function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options)
+function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Low, Upp, Options)
     % Validates the inputs shared by |manifold_sampling| and |goombah|.
     % Fills in defaults for any missing fields of Options.
     % Makes/allocates variables used by the solvers.
@@ -8,7 +8,7 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     %
     %     * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output in |goombah|, including each GAMS run. Level 2 has no effect in |manifold_sampling| (1)
     %     * **delta_0**        [dbl] Initial trust-region radius (0.1)
-    %     * **delta_max**      [dbl] Maximum trust-region radius (1e8)
+    %     * **delta_max**      [dbl] Maximum trust-region radius (1e3 * delta_0, or half the narrowest side of the box if that is smaller)
     %     * **delta_min**      [dbl] Minimum trust-region radius (1e-13)
     %     * **g_tol**          [dbl] Tolerance on the stationary measure (1e-13)
     %     * **eta_1**          [dbl] In (0, 1); rho at or above this is a successful iteration (0.01)
@@ -17,10 +17,11 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     %     * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
     %     * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
     %     * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+    %     * **snap_tol**       [dbl] Largest bound violation that is snapped away instead of being an error (1e-6)
 
     global h_activity_tol
 
-    if nargin < 4 || isempty(Options)
+    if nargin < 6 || isempty(Options)
         Options = struct();
     end
     if ~isstruct(Options)
@@ -33,8 +34,18 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     if ~isfield(Options, 'delta_0')
         Options.delta_0 = 0.1; % [dbl] Initial trust-region radius (0.1)
     end
+    box_is_valid = isequal(size(Low), size(Upp)) && min(Upp - Low) > 0;
     if ~isfield(Options, 'delta_max')
-        Options.delta_max = 1e8; % [dbl] Maximum trust-region radius (1e8)
+        % Never let the radius exceed half the narrowest side of the box; a
+        % larger radius cannot be realised by any feasible step anyway.
+        % checkinputss validates the bounds, but only after this runs, so fall
+        % back to the delta_0-relative ceiling when they do not conform and
+        % leave the complaining to it.
+        if box_is_valid
+            Options.delta_max = min(1e3 * Options.delta_0, 0.5 * min(Upp - Low)); % [dbl] Maximum trust-region radius
+        else
+            Options.delta_max = 1e3 * Options.delta_0;
+        end
     end
     if ~isfield(Options, 'delta_min')
         Options.delta_min = 1e-13; % [dbl] Minimum trust-region radius (1e-13)
@@ -59,6 +70,9 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     end
     if ~isfield(Options, 'h_activity_tol')
         Options.h_activity_tol = min(1e-8, Options.delta_0); % [dbl] hfun activity tolerance (min(1e-8, delta_0))
+    end
+    if ~isfield(Options, 'snap_tol')
+        Options.snap_tol = 1e-6; % [dbl] Largest bound violation that is snapped, not refused (1e-6)
     end
 
     n = length(x0);
@@ -88,6 +102,7 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     tol.gamma_dec = Options.gamma_dec; % [dbl] in (0, 1) for shrinking delta
     tol.gamma_inc = Options.gamma_inc; % [dbl] >= 1 for increasing delta
     tol.hfun_test_mode = Options.hfun_test_mode; % [bool] Run some checks every time the hfun is called to see if it is implemented correctly.
+    tol.snap_tol = Options.snap_tol; % [dbl] Largest bound violation that is snapped away instead of being an error
     % kappa_mh = 0;    % [dbl] > 0 that bounds the component model Hessians
 
     assert(nf_max >= n + 1, "nf_max is less than n+1, exiting");

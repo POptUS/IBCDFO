@@ -13,6 +13,7 @@ ibcdfo_pypkg/src/ibcdfo.egg-info
 **/dfo.dat
 **/mpc_test_files_smaller_Q
 **/mpc_test_files_smaller_Q.zip
+**/TempPoundersBenchmarkResults
 ibcdfo_pypkg/.tox
 ibcdfo_pypkg/benchmark_results
 ibcdfo_pypkg/msp_benchmark_results

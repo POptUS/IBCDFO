@@ -27,6 +27,7 @@ ALL_OPTIONS_KEYS = {
     "eta1",
     "hfun",
     "combinemodels",
+    "snap_tol",
 }
 
 
@@ -98,6 +99,7 @@ def compute_default_options(delta_0, g_tol, Low, Upp):
         "eta1": 0.05,
         "hfun": h_leastsquares,
         "combinemodels": combine_leastsquares,
+        "snap_tol": 1.0e-6,
     }
     assert set(defaults) == ALL_OPTIONS_KEYS
     return defaults

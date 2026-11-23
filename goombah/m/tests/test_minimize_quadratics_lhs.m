@@ -8,6 +8,7 @@ function [] = test_minimize_quadratics_lhs()
 repo_root = fullfile(here_path, '..', '..', '..');
 oldpath = addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
+addpath(fullfile(repo_root, 'pounders', 'm')); % for snap_to_bounds
 
 rand('seed', 1);
 
@@ -22,13 +23,13 @@ x_center = ones(1, n);
 
 hF_at_x_center = h_pw_maximum_squared(Cres);
 
-[s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x_center, hF_at_x_center, @h_pw_maximum_squared);
+[s_k, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x_center, hF_at_x_center, @h_pw_maximum_squared, 1e-6);
 
 assert(all(Lows <= s_k) && all(s_k <= Upps), "Step is not within the bounds");
 assert(abs(pred_dec - hF_at_x_center) <= 1e-4, "Did not find the known minimum");
 
 % The predicted decrease should never be negative, even if x_center is a global minimizer.
-[~, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x_center, -1, @h_pw_maximum_squared);
+[~, pred_dec] = minimize_quadratics_lhs(Hres, Gres, Cres, Lows, Upps, x_center, x_center, -1, @h_pw_maximum_squared, 1e-6);
 assert(pred_dec == 0, "Predicted decrease should have been clamped to zero");
 
 path(oldpath);

@@ -8,11 +8,10 @@
 % paths.  Rather, users would need to manually inspect code-coverage-by-line
 % reports.  The small dimension ensures each run ends quickly.
 %
-% To run this test, you must first install a BenDFO and a MINQ clone and add
+% To run this test, you must first install a BenDFO clone and add
 %    /path/to/BenDFO/data
 %    /path/to/BenDFO/m
-%    /path/to/MINQ/m/minq5
-% to the MATLAB path.
+% to the MATLAB path. MINQ is not needed.
 
 function [] = test_goombah_budget_sweep()
 
