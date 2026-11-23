@@ -48,13 +48,15 @@ assert(flag == -1, "flag should be -1 when Low(j) == Upp(j)");
 
 % Bad Options.TRSP
 assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max), "Options.TRSP must be given");
-bad_solver.solver = 'bad';
+Options_bad_solver.TRSP.solver = 'bad';
 solver_message = "Options.TRSP.solver must be 'GAMS' or 'lhs'";
-assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, struct('TRSP', bad_solver)), solver_message);
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options_bad_solver), solver_message);
 
 % Bad Options
 assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, 'bad'), "Options must be a struct");
-assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, struct('TRSP', TRSP_options, 'subprob_switch', 'bad')), "Options.subprob_switch must be 'linprog', 'GAMS_LP', or 'GAMS_QCP'");
+Options_bad_subprob = Options_lhs;
+Options_bad_subprob.subprob_switch = 'bad';
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options_bad_subprob), "Options.subprob_switch must be 'linprog', 'GAMS_LP', or 'GAMS_QCP'");
 
 % Options: printf = 0 prints nothing
 Options = Options_lhs;
@@ -129,8 +131,9 @@ assert(size(X_msp, 1) < nf_max, "goombah should have returned from the MS-P loop
 % This takes a second pass through the MS-P loop, but the budget
 % nf_max =n + 4 is exhausted by model building in the second pass, so goombah
 % returns a flag of 1.
+Options_budget = struct('TRSP', TRSP_options, 'printf', 0);
 rand('seed', 1);
-[X_msp, F_msp, hF_msp, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, n + 4, struct('TRSP', TRSP_options, 'printf', 0));
+[X_msp, F_msp, hF_msp, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, n + 4, Options_budget);
 assert(flag == 1, "flag should be 1 when the MS-P loop exhausts the budget while building its models");
 assert(size(X_msp, 1) == n + 4 && size(F_msp, 1) == n + 4 && numel(hF_msp) == n + 4, "outputs should have nf rows");
 

@@ -26,7 +26,7 @@ oldwarn = warning('off', 'optimlib:fwdFinDiffInsideBnds:StepReduced');
 
 factor = 10;
 nf_max = 400;
-TRSP_options.solver = 'lhs';
+Options.TRSP.solver = 'lhs';
 
 load dfo.dat;
 
@@ -49,7 +49,7 @@ x0 = dfoxs(n, nprob, factor^factor_power)';
 known_min = m - n;
 
 rand('seed', 1);
-[X, ~, hF, ~, flag] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, struct('TRSP', TRSP_options));
+[X, ~, hF, ~, flag] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, Options);
 assert(size(X, 1) < nf_max, "goombah used its entire evaluation budget");
 assert(abs(min(hF) - known_min) <= 1e-6, "goombah did not converge to the known minimum");
 assert(flag == 0 || flag == -6, "flag should be 0 or -6 when the budget is not exhausted");

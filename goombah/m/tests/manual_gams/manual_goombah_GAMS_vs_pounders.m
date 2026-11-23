@@ -60,6 +60,7 @@ GAMS_options = struct('solver', 'GAMS', ...
                        'solvers', 1:4);
 Options_pounders = struct('hfun', @h_leastsquares, 'combinemodels', @combine_leastsquares, ...
                           'printf', 0, 'spsolver', create_trsp_solver(2));
+Options_goombah = struct('TRSP', GAMS_options);
 
 load dfo.dat;
 
@@ -86,7 +87,7 @@ for row = 1
     assert(decrease_pounders > 0, "pounders did not decrease h");
 
     rand('seed', 1);
-    [X, F, h, xkin, flag] = goombah(@h_leastsquares, Ffun, x0_prob, LB, UB, nf_max, struct('TRSP', GAMS_options));
+    [X, F, h, xkin, flag] = goombah(@h_leastsquares, Ffun, x0_prob, LB, UB, nf_max, Options_goombah);
     assert(flag == 1, "goombah with GAMS ended with flag = " + flag);
     assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
     assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");

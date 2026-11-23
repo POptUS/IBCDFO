@@ -32,9 +32,11 @@ end
 assert(isequal(X1, X2), "Omitting Options and passing [] should give the same result");
 
 % subprob_switch defaults to 'linprog' and must name a known solver
-[X3, ~, ~, ~, ~] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, struct('subprob_switch', 'linprog'));
+Options_subprob.subprob_switch = 'linprog';
+[X3, ~, ~, ~, ~] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options_subprob);
 assert(isequal(X1, X3), "Options.subprob_switch should default to 'linprog'");
-assert_errors(@()manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, struct('subprob_switch', 'bad')), "Options.subprob_switch must be 'linprog', 'GAMS_LP', or 'GAMS_QCP'");
+Options_subprob.subprob_switch = 'bad';
+assert_errors(@()manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options_subprob), "Options.subprob_switch must be 'linprog', 'GAMS_LP', or 'GAMS_QCP'");
 
 % printf = 0 is silent
 Options.printf = 0;

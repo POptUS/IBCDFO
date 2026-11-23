@@ -24,7 +24,7 @@ oldpath = addpath(fullfile(repo_root, 'goombah', 'm'));
 addpath(fullfile(repo_root, 'manifold_sampling', 'm', 'general_nonsmooth_h_funs'));
 
 factor = 10;
-TRSP_options.solver = 'lhs';
+Options.TRSP.solver = 'lhs';
 
 load dfo.dat;
 
@@ -51,7 +51,7 @@ for nf_max = n + 1:n + MAX_EXTRA
     problem = ['problem ' num2str(row) ' with nf_max=' int2str(nf_max)];
 
     rand('seed', 1);
-    [X, F, hF, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, struct('TRSP', TRSP_options));
+    [X, F, hF, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options);
     check_outputs(X, F, hF, hfun, nf_max, "goombah on " + problem);
 end
 
