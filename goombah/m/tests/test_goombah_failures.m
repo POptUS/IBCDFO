@@ -55,7 +55,9 @@ assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob
 
 % Options: printf = 0 prints nothing
 Options.printf = 0;
+oldwarn = warning('off', 'GOOMBAH:lhsTrspSolver'); % the warning text appears in "out" one line below when we run Testgoombah:
 out = evalc('goombah(hfun, Ffun, x0, Low, Upp, n + 5, TRSP_options, subprob_switch, Options);');
+warning(oldwarn);
 assert(isempty(out), "printf = 0 should produce no output");
 
 % Options: delta_0 sets the initial trust-region radius
