@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options)
+function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options, Prior)
 % Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
 % :param hfun: Handle to function that, given a :math:`p \times 1` point
@@ -39,10 +39,21 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %     * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
 %     * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
 %
+% :param Prior: [struct] (optional) Past evaluations of ``Ffun``. Omit or pass
+%     ``[]`` if there are none. Otherwise, all fields must be given:
+%
+%     * **nfs**    [int] Number of past evaluations
+%     * **X_init** [:math:`\mathrm{nfs} \times \np` dbl] Distinct points :math:`\psp_k`
+%     * **F_init** [:math:`\mathrm{nfs} \times p` dbl] Values :math:`\Ffun(\psp_k)`
+%     * **xk_in**  [int] One-based index into ``X_init`` and ``F_init`` of the
+%       initial point, which must equal ``x0``
+%
+%     ``nf_max`` counts only new evaluations of ``Ffun``.
 %
 % :return:
 %      * **X** - :math:`\mathrm{nf} \times \np` matrix containing the
-%        points evaluated in the order in which they were evaluated
+%        points in ``Prior.X_init`` followed by the points evaluated in the
+%        order in which they were evaluated
 %      * **F** - :math:`\mathrm{nf} \times p` matrix containing the
 %        blackbox function values :math:`\Ffun(\psp)` for all points in ``X``
 %        with matching ordering
@@ -78,24 +89,40 @@ addpath(fullfile(here_path, '..', '..', 'pounders', 'm'));
 if nargin < 8
     Options = [];
 end
+if nargin < 9 || isempty(Prior)
+    Prior = struct();
+    Prior.nfs = 0;
+end
+assert(isstruct(Prior), "Prior must be a struct");
 
-% Deduce p from evaluating Ffun at x0
-try
-    F0 = Ffun(x0);
-catch e
-    fprintf(1, 'The identifier was:\n%s\n\n', e.identifier);
-    fprintf(1, 'There was an error! The message was:\n%s\n', e.message);
-    warning('Problem using Ffun. Exiting');
-    X = [];
-    F = [];
-    hF = [];
-    xk_in = [];
-    flag = -1;
-    return
+if Prior.nfs == 0
+    % Deduce p from evaluating Ffun at x0
+    try
+        F0 = Ffun(x0);
+    catch e
+        fprintf(1, 'The identifier was:\n%s\n\n', e.identifier);
+        fprintf(1, 'There was an error! The message was:\n%s\n', e.message);
+        warning('Problem using Ffun. Exiting');
+        X = [];
+        F = [];
+        hF = [];
+        xk_in = [];
+        flag = -1;
+        return
+    end
+    X_init = x0;
+    F_init = F0;
+    xk_in = 1;
+else
+    assert(size(Prior.F_init, 1) == Prior.nfs, "Prior.F_init must have Prior.nfs rows");
+    X_init = Prior.X_init;
+    F_init = Prior.F_init;
+    xk_in = Prior.xk_in;
+    nf_max = nf_max + Prior.nfs;
 end
 
-[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options);
-[flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, x0, n, fq_pars.npmax, nf_max, tol.gtol, delta, 1, length(F0), F0, xk_in, Low, Upp);
+[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, Options);
+[flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, X_init, n, fq_pars.npmax, nf_max, tol.gtol, delta, nf, size(F_init, 2), F_init, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = x0;
     F = F0;
@@ -103,9 +130,11 @@ if flag == -1 % Problem with the input
     return
 end
 
-% Evaluate user scripts at x_0
-[hF(nf), ~, hashes_at_nf] = hfun(F(nf, :));
-Hash(nf, 1:length(hashes_at_nf)) = hashes_at_nf;
+% Evaluate hfun at the points already evaluated
+for i = 1:nf
+    [hF(i), ~, hashes_at_i] = hfun(F(i, :));
+    Hash(i, 1:length(hashes_at_i)) = hashes_at_i;
+end
 
 H_mm = zeros(n);
 chi_k = inf; % Stationary measure; set whenever it is computed

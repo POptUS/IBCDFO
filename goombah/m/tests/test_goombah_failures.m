@@ -1,6 +1,7 @@
 % This tests that goombah terminates gracefully, or error with
-% an informative message, when given a bad objective, a bad option, or an
-% evaluation budget that is exhausted while building the first models.
+% an informative message, when given a bad objective, a bad option, a bad
+% Prior, or an evaluation budget that is exhausted while building the first
+% models. It also tests that goombah starts from the points in a Prior.
 %
 % To run this test, you must first install a MINQ clone and add
 %    /path/to/MINQ/m/minq5
@@ -65,6 +66,25 @@ assert(isempty(out), "printf = 0 should produce no output");
 Options.delta_0 = 0.5;
 [X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 2, subprob_switch, Options);
 assert(max(abs(X(2, :) - x0)) <= 0.5 + 1e-12, "Options.delta_0 was not used");
+
+% Prior: a second run starts from the points of a first run and only
+% evaluates nf_max new points
+Options = struct('TRSP', TRSP_options, 'printf', 0);
+[X1, F1, hF1, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 5, subprob_switch, Options);
+[~, i_best] = min(hF1);
+Prior = struct('nfs', size(X1, 1), 'X_init', X1, 'F_init', F1, 'xk_in', i_best);
+[X2, F2, ~, ~] = goombah(hfun, Ffun, X1(i_best, :), Low, Upp, 5, subprob_switch, Options, Prior);
+assert(isequal(X2(1:Prior.nfs, :), X1) && isequal(F2(1:Prior.nfs, :), F1), "The Prior points should start X and F");
+assert(size(X2, 1) <= Prior.nfs + 5, "goombah evaluated more than nf_max new points");
+
+% Bad Prior
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options, 'bad'), "Prior must be a struct");
+assert_errors(@()goombah(hfun, Ffun, x0 + 1, Low, Upp, nf_max, subprob_switch, Options, Prior), "x0 must equal X_init(xk_in, :)");
+Prior_repeated = struct('nfs', Prior.nfs + 1, 'X_init', [X1; X1(1, :)], 'F_init', [F1; F1(1, :)], 'xk_in', i_best);
+assert_errors(@()goombah(hfun, Ffun, X1(i_best, :), Low, Upp, nf_max, subprob_switch, Options, Prior_repeated), "X_init contains repeated points");
+Prior_bad_nfs = Prior;
+Prior_bad_nfs.nfs = Prior.nfs - 1;
+assert_errors(@()goombah(hfun, Ffun, X1(i_best, :), Low, Upp, nf_max, subprob_switch, Options, Prior_bad_nfs), "Prior.F_init must have Prior.nfs rows");
 
 % The following covers beta_exp and tests that there is an actual
 % effect. Both runs use the same seed and budget, so they evaluate the same

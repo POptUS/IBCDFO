@@ -1,7 +1,13 @@
-function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, F0, nf_max, Options)
+function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, Options)
     % Validates the inputs shared by |manifold_sampling| and |goombah|.
     % Fills in defaults for any missing fields of Options.
     % Makes/allocates variables used by the solvers.
+    %
+    % :param x0:     [:math:`1 \times \np` dbl] Starting point
+    % :param X_init: [:math:`\mathrm{nfs} \times \np` dbl] Distinct points already evaluated
+    % :param F_init: [:math:`\mathrm{nfs} \times p` dbl] Their ``Ffun`` values
+    % :param xk_in:  [int] One-based index of ``x0`` in ``X_init``
+    % :param nf_max: [int] Number of rows to allocate in ``X``, ``F``, ``hF``, and ``Hash``
     %
     % :param Options: [struct] (optional) Solver options. Any field that is
     %     missing takes the default given below:
@@ -62,7 +68,13 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
     end
 
     n = length(x0);
-    p = length(F0);
+    [nfs, p] = size(F_init);
+
+    assert(mod(xk_in, 1) == 0 && xk_in >= 1 && xk_in <= nfs, "xk_in must be an integer between 1 and nfs");
+    assert(isequal(size(X_init), [nfs, n]), "X_init must be nfs-by-n");
+    assert(isequal(X_init(xk_in, :), x0), "x0 must equal X_init(xk_in, :)");
+    assert(size(unique(X_init, 'rows'), 1) == nfs, "X_init contains repeated points");
+
     delta = Options.delta_0;
     printf = Options.printf;
 
@@ -92,14 +104,13 @@ function [n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in,
 
     assert(nf_max >= n + 1, "nf_max is less than n+1, exiting");
 
-    X = [x0; zeros(nf_max - 1, n)]; % Stores the point locations
-    F = [F0; zeros(nf_max - 1, p)];         % Stores the simulation values
+    X = [X_init; zeros(nf_max - nfs, n)]; % Stores the point locations
+    F = [F_init; zeros(nf_max - nfs, p)]; % Stores the simulation values
     hF = zeros(nf_max, 1);        % Stores the function values
     Hash = cell(nf_max, 1);       % Stores the hashes
 
-    nf = 1;
+    nf = nfs;
     successful = 1;
 
-    xk_in = 1;
     Hres = zeros(n, n, p);
 end
