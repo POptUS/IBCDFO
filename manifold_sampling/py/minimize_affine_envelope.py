@@ -7,6 +7,11 @@ from scipy.optimize import linprog
 
 
 def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Lows, Upps, H_k, subprob_switch, eng):
+    # Work on local copies so that any internal changes made here do not affect
+    # calling code's variables.
+    Lows = copy.deepcopy(Lows)
+    Upps = copy.deepcopy(Upps)
+
     G_k_smaller, cols = np.unique(G_k, axis=1, return_index=True)
 
     n, p = G_k_smaller.shape
@@ -100,8 +105,6 @@ def minimize_affine_envelope(f, f_bar, beta, G_k, H, delta, Lows, Upps, H_k, sub
         tau = 0
         s = np.zeros(n)
 
-    Lows = copy.deepcopy(Lows)
-    Upps = copy.deepcopy(Upps)
     Lows[duals_l <= 0] = 0
     Upps[duals_u <= 0] = 0
 
