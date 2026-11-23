@@ -1,12 +1,12 @@
 import numpy as np
 
 
-def check_inputs_and_initialize(x0, F0, nf_max):
+def check_inputs_and_initialize(x0, F0, nf_max, Options):
     x0 = x0.squeeze()
     n = int(len(x0))
     p = int(len(F0))
-    delta = 0.1
-    printf = 1
+    delta = Options["delta_0"]
+    printf = Options["printf"]
 
     # Internal parameters/tolerances for formquad
 
@@ -14,17 +14,17 @@ def check_inputs_and_initialize(x0, F0, nf_max):
 
     # Internal parameters/tolerances for manifold sampling
     tol = {
-        "maxdelta": 1e8,
-        "mindelta": 1e-13,
-        "gtol": 1e-13,
+        "maxdelta": Options["delta_max"],
+        "mindelta": Options["delta_min"],
+        "gtol": Options["g_tol"],
         "norm_g_change": 0.001,
         "kappa_d": 0.0001,
-        "eta1": 0.01,
+        "eta1": Options["eta_1"],
         "eta2": 10000.0,
-        "eta3": 0.5,
-        "gamma_dec": 0.5,
-        "gamma_inc": 2,
-        "hfun_test_mode": 1,
+        "eta3": Options["eta_3"],
+        "gamma_dec": Options["gamma_dec"],
+        "gamma_inc": Options["gamma_inc"],
+        "hfun_test_mode": Options["hfun_test_mode"],
     }
 
     # kappa_mh = 0;    # [dbl] > 0 that bounds the component model Hessians

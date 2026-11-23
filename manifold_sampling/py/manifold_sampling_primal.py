@@ -5,6 +5,7 @@ from .build_p_models import build_p_models
 from .call_user_scripts import call_user_scripts
 from .check_inputs_and_initialize import check_inputs_and_initialize
 from .choose_generator_set import choose_generator_set
+from .defaults import ALL_OPTIONS_KEYS, compute_default_options
 from .minimize_affine_envelope import minimize_affine_envelope
 from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 
@@ -15,7 +16,7 @@ from .prepare_ms_outputs_before_return import prepare_ms_outputs_before_return
 eng = []
 
 
-def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
+def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options=None):
     r"""
     Run manifold sampling to solve the composite nonsmooth optimization problem.
 
@@ -56,6 +57,29 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     :param subprob_switch:
         Selects the trust-region subproblem solver/variant used internally.
 
+    :param Options: ``dict`` of method options.  Set to ``None`` to use default
+        values.
+
+        * **printf** - 0 for no printing to screen, 1 for standard output
+          (default is 1)
+        * **delta_0** - Initial trust-region radius (default is 0.1)
+        * **delta_max** - Maximum allowed trust-region radius (default is
+          :math:`10^8`)
+        * **delta_min** - Minimum allowed trust-region radius; reaching this
+          triggers termination (default is :math:`10^{-13}`)
+        * **g_tol** - Tolerance on the stationary measure (default is
+          :math:`10^{-13}`)
+        * **eta_1** - In (0, 1); minimum ratio of actual to predicted
+          reduction required to accept a step (default is 0.01)
+        * **eta_3** - Ratio of actual to predicted reduction above which the
+          trust-region radius may grow (default is 0.5)
+        * **gamma_dec** - In (0, 1); factor by which the trust-region radius
+          is decreased (default is 0.5)
+        * **gamma_inc** - At least 1; factor by which the trust-region radius
+          is increased (default is 2)
+        * **hfun_test_mode** - Check the **hfun** implementation on every call
+          (default is 1)
+
     :return:
         Tuple ``(X, F, hF, xk_in, flag)`` where
 
@@ -80,6 +104,19 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     #   G_k  [n x l]        Matrix of model gradients composed with gradients of elements in Act_Z_k
     #   D_k  [p x l_2]      Matrix of gradients of selection functions at different points in p-space
 
+    # ----- EXTRACT ARGUMENTS & DEFINE DEFAULTS
+    if Options is None:
+        Options = {}
+    if not isinstance(Options, dict):
+        raise TypeError("Error: Options argument must be a dictionary")
+    if not set(Options).issubset(ALL_OPTIONS_KEYS):
+        extras = set(Options).difference(ALL_OPTIONS_KEYS)
+        raise ValueError(f"Error: Options dictionary contains unknown keys {extras}")
+
+    defaults = compute_default_options()
+    for key, value in Options.items():
+        defaults[key] = value
+
     # Deduce p from evaluating Ffun at x0
     try:
         F0 = Ffun(x0)
@@ -91,7 +128,7 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch):
     X_init = np.atleast_2d(x0)
     F_init = np.atleast_2d(F0)
 
-    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max)
+    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, F0, nf_max, defaults)
     # This raises exceptions on bad inputs and does not alter any arguments.
     checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
 
