@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch, Options)
+function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options)
     % Run |goombah| on the optimization problem specified by the given arguments.
     %
     %  :param hfun:    [func handle] Evaluates :math:`\hfun`, returning the
@@ -10,33 +10,6 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %  :param Low:     [:math:`1 \times \np` dbl] Lower bounds; set unbounded entries to ``-Inf``.
     %  :param Upp:     [:math:`1 \times \np` dbl] Upper bounds; set unbounded entries to ``Inf``.
     %  :param nf_max:  [int] Maximum number of function evaluations.
-    %  :param TRSP_options: [struct] Options for solving the trust-region
-    %       subproblem. Fields:
-    %
-    %       * **solver** - ``'GAMS'`` to solve the subproblem with
-    %         `GAMS <https://www.gams.com>`_
-    %         or ``'lhs'`` to use a simple solver that samples the
-    %         trust region and refines the best point with ``fmincon``. The
-    %         latter is not recommended and is intended for testing and
-    %         development. All other fields apply only to ``'GAMS'``.
-    %
-    %       * **file** - Path to the GAMS model file that corresponds to **hfun**.
-    %
-    %       * **solvers** - Vector of integers that selects the GAMS solvers to
-    %         try. The step from the best successful solve is used as the trial
-    %         point. Each solver must be available with your GAMS license. The
-    %         solver that each integer selects is set in **TRSP_options.file**.
-    %
-    %       * **atol**, **rtol** - (optional) Absolute and relative tolerances
-    %         (default ``1e-4`` each) for the check that the GAMS and |matlab|
-    %         objective values agree. If they do not, the step is rejected.
-    %
-    %       * **hfun_data** - (optional) Users that pass an **hfun** that
-    %         corresponds to one of the |goombah|-provided parameterized
-    %         :math:`h` functions must use this field to provide GAMS with the
-    %         same parameters used to construct their **hfun**.  See the general
-    %         |goombah| documentation for more information.
-    %
     %  :param subprob_switch: [str] Solver for the subproblem of the manifold sampling
     %       subproblems that |goombah| solves as a recourse:
     %
@@ -46,8 +19,35 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     %       * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
     %         problem that includes the Hessians of the models.
     %
-    %  :param Options: [struct] (optional) Solver options. Omit or pass ``[]``
-    %       for the defaults. Any missing field takes its default:
+    %  :param Options: [struct] Solver options. **TRSP** must be given; any
+    %       other missing field takes its default:
+    %
+    %       * **TRSP**           [struct] Options for solving the trust-region
+    %         subproblem. Fields:
+    %
+    %           * **solver** - ``'GAMS'`` to solve the subproblem with
+    %             `GAMS <https://www.gams.com>`_
+    %             or ``'lhs'`` to use a simple solver that samples the
+    %             trust region and refines the best point with ``fmincon``. The
+    %             latter is not recommended and is intended for testing and
+    %             development. All other fields apply only to ``'GAMS'``.
+    %
+    %           * **file** - Path to the GAMS model file that corresponds to **hfun**.
+    %
+    %           * **solvers** - Vector of integers that selects the GAMS solvers to
+    %             try. The step from the best successful solve is used as the trial
+    %             point. Each solver must be available with your GAMS license. The
+    %             solver that each integer selects is set in **Options.TRSP.file**.
+    %
+    %           * **atol**, **rtol** - (optional) Absolute and relative tolerances
+    %             (default ``1e-4`` each) for the check that the GAMS and |matlab|
+    %             objective values agree. If they do not, the step is rejected.
+    %
+    %           * **hfun_data** - (optional) Users that pass an **hfun** that
+    %             corresponds to one of the |goombah|-provided parameterized
+    %             :math:`h` functions must use this field to provide GAMS with the
+    %             same parameters used to construct their **hfun**.  See the general
+    %             |goombah| documentation for more information.
     %
     %       * **printf**         [int] 0 for no output, 1 for standard output, 2 for additional output, including each GAMS run (1)
     %       * **delta_0**        [dbl] Initial trust-region radius (0.1)
@@ -81,7 +81,7 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     addpath(fullfile(repo_root, 'manifold_sampling', 'm'));
     addpath(fullfile(repo_root, 'goombah', 'm', 'subproblems'));
 
-    if nargin < 9
+    if nargin < 8
         Options = [];
     end
 
@@ -114,8 +114,10 @@ function [X, F, hF, xk_in, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRS
     else
         beta_exp = Options.beta_exp;
     end
+    assert(isfield(Options, 'TRSP'), "Options.TRSP must be given");
+    TRSP_options = Options.TRSP;
     TRSP_options.printf = printf;
-    assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'TRSP_options.solver must be ''GAMS'' or ''lhs''');
+    assert(any(strcmp(TRSP_options.solver, {'GAMS', 'lhs'})), 'Options.TRSP.solver must be ''GAMS'' or ''lhs''');
     if strcmp(TRSP_options.solver, 'lhs')
         warning("GOOMBAH:lhsTrspSolver", ...
                 "The lhs TRSP solver should only be used for testing or debugging");

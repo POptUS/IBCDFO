@@ -191,7 +191,7 @@ for row = rows
         % h_funs, so we test only representative h fun rather than all of them.
         if strcmp(name, 'h_pw_maximum_squared')
             rand('seed', 1);
-            [X, F, h_lhs, xkin_lhs, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, lhs_options, subprob_switch);
+            [X, F, h_lhs, xkin_lhs, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, subprob_switch, struct('TRSP', lhs_options));
             assert(flag == 1, "goombah with lhs ended with flag = " + flag);
             assert(size(X, 1) == nf_max, "goombah with lhs did not terminate at evaluation budget");
             assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h_lhs), "goombah with lhs has inconsistent output sizes");
@@ -199,7 +199,7 @@ for row = rows
             assert(decrease_lhs > 0, "goombah with lhs did not decrease h");
 
             rand('seed', 1);
-            [X, F, h, xkin, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, GAMS_options, subprob_switch);
+            [X, F, h, xkin, flag] = goombah(hfun, Ffun, x0_prob, LB, UB, nf_max, subprob_switch, struct('TRSP', GAMS_options));
             assert(flag == 1, "goombah with GAMS ended with flag = " + flag);
             assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
             assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");

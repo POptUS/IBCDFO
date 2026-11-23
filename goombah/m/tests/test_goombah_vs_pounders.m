@@ -65,7 +65,7 @@ for row = [7, 43, 44]
     assert(decrease_pounders > 0, "pounders did not decrease h on " + problem);
 
     rand('seed', 1);
-    [X, ~, hF, ~] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
+    [X, ~, hF, ~] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, subprob_switch, struct('TRSP', TRSP_options));
     assert(size(X, 1) <= nf_max, "goombah grew the size of X on " + problem);
     assert(hF(1) - min(hF) >= 0.9 * decrease_pounders, "goombah decreased h much less than pounders on " + problem);
 end

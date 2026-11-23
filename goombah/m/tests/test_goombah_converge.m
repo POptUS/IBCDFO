@@ -50,7 +50,7 @@ x0 = dfoxs(n, nprob, factor^factor_power)';
 known_min = m - n;
 
 rand('seed', 1);
-[X, ~, hF, ~, flag] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
+[X, ~, hF, ~, flag] = goombah(@h_leastsquares, Ffun, x0, Low, Upp, nf_max, subprob_switch, struct('TRSP', TRSP_options));
 assert(size(X, 1) < nf_max, "goombah used its entire evaluation budget");
 assert(abs(min(hF) - known_min) <= 1e-6, "goombah did not converge to the known minimum");
 assert(flag == 0 || flag == -6, "flag should be 0 or -6 when the budget is not exhausted");

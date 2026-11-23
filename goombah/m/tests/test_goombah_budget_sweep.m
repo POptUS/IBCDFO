@@ -52,7 +52,7 @@ for nf_max = n + 1:n + MAX_EXTRA
     problem = ['problem ' num2str(row) ' with nf_max=' int2str(nf_max)];
 
     rand('seed', 1);
-    [X, F, hF, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, TRSP_options, subprob_switch);
+    [X, F, hF, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, struct('TRSP', TRSP_options));
     check_outputs(X, F, hF, hfun, nf_max, "goombah on " + problem);
 end
 
