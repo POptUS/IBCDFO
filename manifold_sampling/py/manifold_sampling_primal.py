@@ -164,9 +164,15 @@ def manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options=None, Pri
 
     m = F_init.shape[1]
 
-    n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k = check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, defaults)
+    n, delta, printf, fq_pars, tol, successful, Hres, chi_k = check_inputs_and_initialize(x0, m, nf_max, defaults)
     # This raises exceptions on bad inputs and does not alter any arguments.
     checkinputss(hfun, x0, n, fq_pars["npmax"], nf_max, tol["gtol"], delta, nfs, m, X_init, F_init, xk_in, Low, Upp, fq_pars["Par"])
+
+    X = np.vstack((X_init, np.zeros((nf_max - nfs, n))))
+    F = np.vstack((F_init, np.zeros((nf_max - nfs, m))))
+    hF = np.zeros((nf_max, 1))
+    Hash = {}
+    nf = nfs - 1
 
     # Evaluate hfun at the points already evaluated
     for i in range(nf + 1):

@@ -95,3 +95,6 @@ class TestManifoldSamplingOptions(unittest.TestCase):
         Prior_bad_nfs = dict(Prior, nfs=Prior["nfs"] + 1)
         with self.assertRaisesRegex(ValueError, "X_init has shape"):
             ibcdfo.run_MSP(self.hfun, self.Ffun, X1[i_best], self.Low, self.Upp, self.nf_max, Options, Prior_bad_nfs)
+        Prior_bad_cols = dict(Prior, X_init=X1[:, :2])
+        with self.assertRaisesRegex(ValueError, "X_init has shape"):
+            ibcdfo.run_MSP(self.hfun, self.Ffun, X1[i_best], self.Low, self.Upp, self.nf_max, Options, Prior_bad_cols)

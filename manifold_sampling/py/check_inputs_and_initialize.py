@@ -1,10 +1,9 @@
 import numpy as np
 
 
-def check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, Options):
+def check_inputs_and_initialize(x0, p, nf_max, Options):
     x0 = x0.squeeze()
     n = int(len(x0))
-    nfs, p = F_init.shape
     delta = Options["delta_0"]
     printf = Options["printf"]
 
@@ -31,14 +30,8 @@ def check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, Options):
 
     assert nf_max >= n + 1, "nf_max is less than n+1, exiting"
 
-    X = np.vstack((X_init, np.zeros((nf_max - nfs, n))))
-    F = np.vstack((F_init, np.zeros((nf_max - nfs, p))))
-    hF = np.zeros((nf_max, 1))
-    Hash = {}
-
-    nf = nfs - 1
     successful = 1
     Hres = np.zeros((n, n, p))
     chi_k = np.inf
 
-    return n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, chi_k
+    return n, delta, printf, fq_pars, tol, successful, Hres, chi_k
