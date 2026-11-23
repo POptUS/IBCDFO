@@ -1,4 +1,4 @@
-function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options, Prior)
+function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low, Upp, nf_max, Options, Prior)
 % Run manifold sampling to solve the composite nonsmooth optimization problem.
 %
 % :param hfun: Handle to function that, given a :math:`p \times 1` point
@@ -23,7 +23,6 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 % :param Low: :math:`1 \times \np` vector of lower bounds
 % :param Upp: :math:`1 \times \np` vector of upper bounds
 % :param nf_max: [int] Maximum number of function evaluations
-% :param subprob_switch: Selects the trust-region subproblem solver used internally.
 % :param Options: [struct] (optional) Solver options. Omit or pass ``[]`` for
 %     the defaults. Any missing field takes its default:
 %
@@ -38,6 +37,13 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 %     * **gamma_inc**      [dbl] >= 1; factor for increasing delta (2)
 %     * **hfun_test_mode** [bool] Check the hfun implementation on every call (1)
 %     * **h_activity_tol** [dbl] Tolerance for declaring an hfun manifold active (min(1e-8, delta_0))
+%     * **subprob_switch** [str] Solver for the manifold sampling subproblem (``'linprog'``):
+%
+%       * ``'linprog'`` - Solve the linear program with ``linprog``
+%         (requires the |matlab| Optimization Toolbox).
+%       * ``'GAMS_LP'`` - Solve the linear program with GAMS.
+%       * ``'GAMS_QCP'`` - Solve, with GAMS, the quadratically constrained
+%         problem that includes the Hessians of the models.
 %
 % :param Prior: [struct] (optional) Past evaluations of ``Ffun``. Omit or pass
 %     ``[]`` if there are none. Otherwise, all fields must be given:
@@ -86,10 +92,10 @@ function [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun, Ffun, x0, Low,
 [here_path, ~, ~] = fileparts(mfilename('fullpath'));
 addpath(fullfile(here_path, '..', '..', 'pounders', 'm'));
 
-if nargin < 8
+if nargin < 7
     Options = [];
 end
-if nargin < 9 || isempty(Prior)
+if nargin < 8 || isempty(Prior)
     Prior = struct();
     Prior.nfs = 0;
 end
@@ -121,7 +127,7 @@ else
     nf_max = nf_max + Prior.nfs;
 end
 
-[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres] = check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, Options);
+[n, delta, printf, fq_pars, tol, X, F, hF, Hash, nf, successful, xk_in, Hres, subprob_switch] = check_inputs_and_initialize(x0, X_init, F_init, xk_in, nf_max, Options);
 [flag, x0, ~, F0, Low, Upp] = checkinputss(hfun, X_init, n, fq_pars.npmax, nf_max, tol.gtol, delta, nf, size(F_init, 2), F_init, xk_in, Low, Upp);
 if flag == -1 % Problem with the input
     X = x0;

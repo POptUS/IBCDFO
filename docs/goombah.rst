@@ -49,7 +49,7 @@ the time spent solving the trust-region subproblem is commensurate with the
 cost of evaluating :math:`\Ffun`.
 
 To preserve robustness, |goombah| reverts to a manifold sampling iteration
-(see **subprob_switch** below) whenever the proposed trust-region subproblem solution does not produce
+(see **Options.subprob_switch** below) whenever the proposed trust-region subproblem solution does not produce
 sufficient objective decrease. This fallback to manifold sampling, which
 identifies only a local descent step, allows |goombah| to retain the convergence
 properties of the chosen manifold sampling solver while otherwise potentially taking more

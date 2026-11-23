@@ -24,19 +24,18 @@ hfun = @h_pw_maximum_squared;
 Ffun = @(x)x;
 TRSP_options.solver = 'lhs';
 Options_lhs = struct('TRSP', TRSP_options);
-subprob_switch = 'linprog';
 
 nf_max = 100; % Setting a budget that won't be used for the calls below that are expected to fail
 
 rand('seed', 1);
 
 % Intentionally not passing a function for an objective
-[X, F, hF, xk_in] = goombah(hfun, x0, x0, Low, Upp, nf_max, subprob_switch, Options_lhs);
+[X, F, hF, xk_in] = goombah(hfun, x0, x0, Low, Upp, nf_max, Options_lhs);
 assert(isempty(X) && isempty(F) && isempty(hF) && isempty(xk_in), "Should have failed");
 
 % Supplying only enough evaluation budget for the first model and one more
 nf_max_small = n + 2;
-[X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max_small, subprob_switch, Options_lhs);
+[X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, nf_max_small, Options_lhs);
 assert(size(X, 1) <= nf_max_small, "goombah grew the size of X");
 
 % Low = Upp is rejected by checkinputss
@@ -44,49 +43,50 @@ Low_fixed = Low;
 Upp_fixed = Upp;
 Low_fixed(1) = x0(1);
 Upp_fixed(1) = x0(1);
-[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, subprob_switch, Options_lhs);
+[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low_fixed, Upp_fixed, nf_max, Options_lhs);
 assert(flag == -1, "flag should be -1 when Low(j) == Upp(j)");
 
 % Bad Options.TRSP
-assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch), "Options.TRSP must be given");
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max), "Options.TRSP must be given");
 bad_solver.solver = 'bad';
 solver_message = "Options.TRSP.solver must be 'GAMS' or 'lhs'";
-assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, struct('TRSP', bad_solver)), solver_message);
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, struct('TRSP', bad_solver)), solver_message);
 
 % Bad Options
-assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, 'bad'), "Options must be a struct");
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, 'bad'), "Options must be a struct");
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, struct('TRSP', TRSP_options, 'subprob_switch', 'bad')), "Options.subprob_switch must be 'linprog', 'GAMS_LP', or 'GAMS_QCP'");
 
 % Options: printf = 0 prints nothing
 Options = Options_lhs;
 Options.printf = 0;
 oldwarn = warning('off', 'GOOMBAH:lhsTrspSolver'); % the warning text appears in "out" one line below when we run Testgoombah:
-out = evalc('goombah(hfun, Ffun, x0, Low, Upp, n + 5, subprob_switch, Options);');
+out = evalc('goombah(hfun, Ffun, x0, Low, Upp, n + 5, Options);');
 warning(oldwarn);
 assert(isempty(out), "printf = 0 should produce no output");
 
 % Options: delta_0 sets the initial trust-region radius
 Options.delta_0 = 0.5;
-[X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 2, subprob_switch, Options);
+[X, ~, ~, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 2, Options);
 assert(max(abs(X(2, :) - x0)) <= 0.5 + 1e-12, "Options.delta_0 was not used");
 
 % Prior: a second run starts from the points of a first run and only
 % evaluates nf_max new points
 Options = struct('TRSP', TRSP_options, 'printf', 0);
-[X1, F1, hF1, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 5, subprob_switch, Options);
+[X1, F1, hF1, ~] = goombah(hfun, Ffun, x0, Low, Upp, n + 5, Options);
 [~, i_best] = min(hF1);
 Prior = struct('nfs', size(X1, 1), 'X_init', X1, 'F_init', F1, 'xk_in', i_best);
-[X2, F2, ~, ~] = goombah(hfun, Ffun, X1(i_best, :), Low, Upp, 5, subprob_switch, Options, Prior);
+[X2, F2, ~, ~] = goombah(hfun, Ffun, X1(i_best, :), Low, Upp, 5, Options, Prior);
 assert(isequal(X2(1:Prior.nfs, :), X1) && isequal(F2(1:Prior.nfs, :), F1), "The Prior points should start X and F");
 assert(size(X2, 1) <= Prior.nfs + 5, "goombah evaluated more than nf_max new points");
 
 % Bad Prior
-assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options, 'bad'), "Prior must be a struct");
-assert_errors(@()goombah(hfun, Ffun, x0 + 1, Low, Upp, nf_max, subprob_switch, Options, Prior), "x0 must equal X_init(xk_in, :)");
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options, 'bad'), "Prior must be a struct");
+assert_errors(@()goombah(hfun, Ffun, x0 + 1, Low, Upp, nf_max, Options, Prior), "x0 must equal X_init(xk_in, :)");
 Prior_repeated = struct('nfs', Prior.nfs + 1, 'X_init', [X1; X1(1, :)], 'F_init', [F1; F1(1, :)], 'xk_in', i_best);
-assert_errors(@()goombah(hfun, Ffun, X1(i_best, :), Low, Upp, nf_max, subprob_switch, Options, Prior_repeated), "X_init contains repeated points");
+assert_errors(@()goombah(hfun, Ffun, X1(i_best, :), Low, Upp, nf_max, Options, Prior_repeated), "X_init contains repeated points");
 Prior_bad_nfs = Prior;
 Prior_bad_nfs.nfs = Prior.nfs - 1;
-assert_errors(@()goombah(hfun, Ffun, X1(i_best, :), Low, Upp, nf_max, subprob_switch, Options, Prior_bad_nfs), "Prior.F_init must have Prior.nfs rows");
+assert_errors(@()goombah(hfun, Ffun, X1(i_best, :), Low, Upp, nf_max, Options, Prior_bad_nfs), "Prior.F_init must have Prior.nfs rows");
 
 % The following covers beta_exp and tests that there is an actual
 % effect. Both runs use the same seed and budget, so they evaluate the same
@@ -94,10 +94,10 @@ assert_errors(@()goombah(hfun, Ffun, X1(i_best, :), Low, Upp, nf_max, subprob_sw
 x0_near = [0.03, 0.04, 0.05];
 Options_beta = struct('TRSP', TRSP_options, 'printf', 0, 'beta_exp', 1.0);
 rand('seed', 1);
-[X_accepted, ~, hF_accepted] = goombah(hfun, Ffun, x0_near, Low, Upp, n + 3, subprob_switch, Options_beta);
+[X_accepted, ~, hF_accepted] = goombah(hfun, Ffun, x0_near, Low, Upp, n + 3, Options_beta);
 Options_beta.beta_exp = -1.0;
 rand('seed', 1);
-[X_rejected, ~, hF_rejected] = goombah(hfun, Ffun, x0_near, Low, Upp, n + 3, subprob_switch, Options_beta);
+[X_rejected, ~, hF_rejected] = goombah(hfun, Ffun, x0_near, Low, Upp, n + 3, Options_beta);
 assert(isequal(X_accepted(1:n + 2, :), X_rejected(1:n + 2, :)), "The two runs should agree until the first GOOMBAH step is accepted or rejected");
 assert(~isequal(X_accepted(n + 3, :), X_rejected(n + 3, :)), "Options.beta_exp was not used when deciding whether to take the GOOMBAH step");
 assert(min(hF_accepted) < min(hF_rejected), "Accepting the GOOMBAH step should find a better point within the same budget");
@@ -105,10 +105,10 @@ assert(min(hF_accepted) < min(hF_rejected), "Accepting the GOOMBAH step should f
 % Exit flags 0 and -6. Setting delta_min = delta_0 means that the main loop is
 % never entered, so no trust-region subproblem is solved and chi_k is never computed.
 Options_flags = struct('TRSP', TRSP_options, 'printf', 0, 'delta_0', 0.1, 'delta_min', 0.1);
-[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options_flags);
+[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options_flags);
 assert(flag == -6, "flag should be -6 when delta_min is reached without satisfying g_tol");
 Options_flags.g_tol = Inf; % Any stationary measure satisfies this
-[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options_flags);
+[~, ~, ~, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options_flags);
 assert(flag == 0, "flag should be 0 when delta_min is reached and g_tol is satisfied");
 
 % The following covers the convergence test within the MS-P loop. g_tol = Inf
@@ -120,7 +120,7 @@ assert(flag == 0, "flag should be 0 when delta_min is reached and g_tol is satis
 % shrink within the MS-P loop.
 Options_msp = struct('TRSP', TRSP_options, 'printf', 0, 'g_tol', Inf, 'delta_0', 0.1, 'delta_min', 0.09);
 rand('seed', 1);
-[X_msp, ~, ~, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, nf_max, subprob_switch, Options_msp);
+[X_msp, ~, ~, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, nf_max, Options_msp);
 assert(flag == 0, "flag should be 0 when the MS-P loop meets both the stationarity and the radius test");
 assert(size(X_msp, 1) < nf_max, "goombah should have returned from the MS-P loop well before exhausting its budget");
 
@@ -130,22 +130,22 @@ assert(size(X_msp, 1) < nf_max, "goombah should have returned from the MS-P loop
 % nf_max =n + 4 is exhausted by model building in the second pass, so goombah
 % returns a flag of 1.
 rand('seed', 1);
-[X_msp, F_msp, hF_msp, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, n + 4, subprob_switch, struct('TRSP', TRSP_options, 'printf', 0));
+[X_msp, F_msp, hF_msp, ~, flag] = goombah(@h_pw_minimum_squared, Ffun, x0_near, Low, Upp, n + 4, struct('TRSP', TRSP_options, 'printf', 0));
 assert(flag == 1, "flag should be 1 when the MS-P loop exhausts the budget while building its models");
 assert(size(X_msp, 1) == n + 4 && size(F_msp, 1) == n + 4 && numel(hF_msp) == n + 4, "outputs should have nf rows");
 
 % Exit flag: a failing objective gives -1 and an exhausted budget gives a
 % flag of 1
-[~, ~, ~, ~, flag] = goombah(hfun, x0, x0, Low, Upp, nf_max, subprob_switch, Options_lhs);
+[~, ~, ~, ~, flag] = goombah(hfun, x0, x0, Low, Upp, nf_max, Options_lhs);
 assert(flag == -1, "flag should be -1 when Ffun fails");
-[X, F, hF, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, n + 5, subprob_switch, Options_lhs);
+[X, F, hF, ~, flag] = goombah(hfun, Ffun, x0, Low, Upp, n + 5, Options_lhs);
 assert(flag == 1, "flag should be 1 when the budget is exhausted");
 assert(size(X, 1) == n + 5 && size(F, 1) == size(X, 1) && numel(hF) == size(X, 1), "outputs should have nf rows");
 
 % The solver intended only for testing and debugging warns
 oldwarn = warning('error', 'GOOMBAH:lhsTrspSolver');
 lhs_message = "The lhs TRSP solver should only be used for testing or debugging";
-assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, subprob_switch, Options_lhs), lhs_message);
+assert_errors(@()goombah(hfun, Ffun, x0, Low, Upp, nf_max, Options_lhs), lhs_message);
 warning(oldwarn);
 
 path(oldpath);

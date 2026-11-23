@@ -55,7 +55,6 @@ factor = 10;
 nf_max = 30;
 g_tol = 1e-13;
 delta_0 = 0.1;
-subprob_switch = 'linprog';
 GAMS_options = struct('solver', 'GAMS', ...
                        'file', fullfile(trsp_root, 'minimize_sum_quad_models_squared.gms'), ...
                        'solvers', 1:4);
@@ -87,7 +86,7 @@ for row = 1
     assert(decrease_pounders > 0, "pounders did not decrease h");
 
     rand('seed', 1);
-    [X, F, h, xkin, flag] = goombah(@h_leastsquares, Ffun, x0_prob, LB, UB, nf_max, subprob_switch, struct('TRSP', GAMS_options));
+    [X, F, h, xkin, flag] = goombah(@h_leastsquares, Ffun, x0_prob, LB, UB, nf_max, struct('TRSP', GAMS_options));
     assert(flag == 1, "goombah with GAMS ended with flag = " + flag);
     assert(size(X, 1) == nf_max, "goombah with GAMS did not terminate at evaluation budget");
     assert(size(X, 1) == size(F, 1) && size(F, 1) == numel(h), "goombah with GAMS has inconsistent output sizes");

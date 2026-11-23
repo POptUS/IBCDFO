@@ -119,7 +119,7 @@ for mw_prob_num = [7] % full tests are 1:53
                             TRSP_options.solvers = 1:4;
                         end
 
-                        [X, F, hF, xk_in] = goombah(hfun{1}, Ffun, x0, Low, Upp, nf_max, subprob_switch, struct('TRSP', TRSP_options));
+                        [X, F, hF, xk_in] = goombah(hfun{1}, Ffun, x0, Low, Upp, nf_max, struct('TRSP', TRSP_options, 'subprob_switch', subprob_switch));
 
                         Results{s, seed, mw_prob_num}.alg = solver_names{s};
                         Results{s, seed, mw_prob_num}.problem = ['problem ' num2str(mw_prob_num) ' from More/Wild with hfun='];
@@ -131,7 +131,7 @@ for mw_prob_num = [7] % full tests are 1:53
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         % PRIMAL MANIFOLD SAMPLING %%%%
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, Low, Upp, nf_max, subprob_switch);
+                        [X, F, hF, xk_in, flag] = manifold_sampling_primal(hfun{1}, Ffun, x0, Low, Upp, nf_max, struct('subprob_switch', subprob_switch));
 
                         assert(size(X, 1) <= nf_max, "Method grew the size of X");
 
